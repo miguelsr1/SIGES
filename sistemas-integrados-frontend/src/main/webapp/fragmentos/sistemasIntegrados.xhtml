@@ -1,0 +1,312 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">                 
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionSistemaIntegrado}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSistemaIntegrado}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.SISTEMA_INTEGRADO}" title="#{msg.nuevoSistemaIntegrado}"
+                        styleClass="btn btn-secondary" 
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SISTEMA_INTEGRADO)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoSistemaIntegrado}"/>
+                </p:link>
+               <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SISTEMAS_INTEGRADOS)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_filto_departamento">
+                        <h:outputLabel value="#{msg.departamento}" for="filtro_departamento" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_departamento" value="#{sistemasIntegradosBean.comboDepartamentos.selected}" 
+                                             styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{sistemasIntegradosBean.comboDepartamentos.items}" />
+                                <p:ajax listener="#{sistemasIntegradosBean.departamentoElegido()}" 
+                                        process="@this" update="fila_filtro_municipio"/>
+                            </h:selectOneMenu>
+                            <h:message for="filtro_departamento" styleClass="msj-danger"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio">
+                        <h:outputLabel value="#{msg.municipio}" for="filtro_municipio" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_municipio" value="#{sistemasIntegradosBean.comboMunicipio.selected}" 
+                                             styleClass="form-control dropdown texto-medio" 
+                                             disabled="#{sistemasIntegradosBean.comboDepartamentos.selectedT == null}">
+                                <f:selectItems value="#{sistemasIntegradosBean.comboMunicipio.items}" />
+                            </h:selectOneMenu>
+                            <h:message for="filtro_municipio" styleClass="msj-danger"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_codigo" 
+                                         value="#{sistemasIntegradosBean.filtro.codigo}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nombre" 
+                                         value="#{sistemasIntegradosBean.filtro.nombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sede}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="b_sede"
+                                            styleClass="form-control texto-medio"
+                                            value="#{sistemasIntegradosBean.sedeSeleccionada}"
+                                            completeMethod="#{sistemasIntegradosBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}">
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" 
+                                                  value="#{sistemasIntegradosBean.filtro.habilitado}">
+                                    <f:selectItems value="#{applicationBean.habilitadoValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.promotor}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_promotor" 
+                                                 value="#{sistemasIntegradosBean.comboPromotor.selected}" 
+                                                 styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sistemasIntegradosBean.comboPromotor.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3 text-right">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                             action="#{sistemasIntegradosBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{sistemasIntegradosBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{sistemasIntegradosBean.sistemaIntegradoLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="sinPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{sistemasIntegradosBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{sistemasIntegradosBean.totalResultados lt (sistemasIntegradosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3>
+                                <h:outputText value="#{msg.resultadoBusqueda}" />
+                                <h:outputText styleClass="cantidad" value="#{sistemasIntegradosBean.totalResultados} #{msg.elementos}" />
+                            </h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="sistemasIntegrados" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.sinCodigo}">
+                    <h:outputText value="#{elem.sinCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.sinNombre}">
+                    <h:outputText value="#{elem.sinNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hpromotor}" sortBy="#{elem.sinPromotor.proNombre}">
+                    <h:outputText value="#{elem.sinPromotor.proNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hhabilitado}">
+                    <h:outputText value="#{elem.sinHabilitado}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.cantidadSedes}">
+                    <h:outputText value="#{elem.totalSedes}"/>
+                </p:column>
+                <p:column headerText="#{msg.hmapa}">
+                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:popupInfoSede" 
+                           oncomplete="PF('itemDialogInfoSede').show()" 
+                           styleClass="dropdown-item btn btn-link"  action="#{sistemasIntegradosBean.actualizar(elem)}"  
+                           rendered="#{elem.totalSedes gt 0}"
+                           value="#{msg.verMapa}" />
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.sinUltModUsuario}">
+                    <h:outputText value="#{elem.sinUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.sinUltModFecha}">
+                    <h:outputText value="#{elem.sinUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_SISTEMA_INTEGRADO)}">
+                    <p:link outcome="#{ConstantesPaginas.SISTEMA_INTEGRADO}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.sinPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"     
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SISTEMA_INTEGRADO)}">
+                    <p:link outcome="#{ConstantesPaginas.SISTEMA_INTEGRADO}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.sinPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.HISTORIAL_SISTEMA_INTEGRADO)}">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{sistemasIntegradosBean.historial(elem.sinPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"     
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_SISTEMA_INTEGRADO)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{sistemasIntegradosBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{sistemasIntegradosBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+        <p:dialog header="#{msg.historial}" widgetVar="historialDialog" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{sistemasIntegradosBean.historialEntidad}" /> 
+            </ui:include>   
+        </p:dialog>
+        
+        <p:dialog header="#{msg.hmapa}" id="popupInfoSede" widgetVar="itemDialogInfoSede" 
+                    modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailInfoSede">                                                            
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                <p:outputPanel id="formularioInfoSede">
+                                                
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sistemasIntegrados}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                          value="#{sistemasIntegradosBean.entidadEnEdicion.sinCodigoNombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel> 
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_mapa" >
+                        <iframe title="Mapa" src="#{sistemasIntegradosBean.urlMapa}" class="iframeMapa" />
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">                        
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogInfoSede').hide();"  
+                                           styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>         
+            </p:outputPanel>        
+        </p:dialog>
+
+    </h:form>
+</ui:composition>

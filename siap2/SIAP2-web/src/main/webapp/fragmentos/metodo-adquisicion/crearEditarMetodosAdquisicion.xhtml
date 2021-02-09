@@ -1,0 +1,387 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearMetodoAdquisicion')}" rendered="#{!metodosAdquisicionCE.update}"/>
+                    <h:outputText value="#{textMB.obtenerTexto('labels.EditarMetodoAdquisicion')}" rendered="#{metodosAdquisicionCE.update}"/>
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearEditarMetodoAdquisicion')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.CrearEditarMetodoAdquisicion')}" escape="false" /> 
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreateEditMetodo"  prependId="false"  >
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <h:panelGroup layout="block" styleClass="form-horizontal">
+                        <div class="form-group">
+                            <h:outputLabel for="nombre" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                            <div class="col-sm-9">
+                                <p:inputText id="nombre"  maxlength="200" value="#{metodosAdquisicionCE.objeto.nombre}" styleClass="form-control textoLargo" >
+                                    <f:validateLength maximum="200" />
+                                </p:inputText>
+                                <h:message for="nombre" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel for="normativa" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Normativa')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu id="normativa" value="#{metodosAdquisicionCE.comboNormativas.selected}"  styleClass="form-control textoMedio" >
+                                    <f:selectItems value="#{metodosAdquisicionCE.comboNormativas.items}" />
+                                </h:selectOneMenu>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Tipo')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneRadio value="#{metodosAdquisicionCE.metodoEsUACI}"
+                                                  styleClass="radio"
+                                                  id="tipo">
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('NOUACI')}" itemValue="false" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('UACI')}" itemValue="true" noSelectionOption="true"/>
+                                </h:selectOneRadio>
+                            </div>
+                        </div>
+                    </h:panelGroup>
+                    <p:tabView id="tabs">
+                        <p:tab title="Cronograma" id="tabTareas">
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <p:commandButton styleClass="btn btn-default pull-right"  
+                                                     icon="glyphicon glyphicon-plus"
+                                                     value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                     update="agregarMetodoAdqModalForm"
+                                                     action="#{metodosAdquisicionCE.limpiarTarea()}"
+                                                     oncomplete="$('#agregarMetodoAdqModal').modal('show');" 
+                                                     immediate="true">
+                                    </p:commandButton>
+                                </div>
+                            </div>
+                            <p:dataTable
+                                id="tablaTareas"
+                                var="item" 
+                                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                value="#{metodosAdquisicionCE.objeto.tareas}" 
+                                paginator="true" rows="25"
+                                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                                rowsPerPageTemplate="5,10,25,50">
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                                    <h:outputText value="#{item.id}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Inicio')}">
+                                    <h:outputText value="#{item.inicioEnDias}"  />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Duración')}">
+                                    <h:outputText value="#{item.duracionEnDias}"  />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                    <h:outputText value="#{item.nombre}"  />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Predecesora')}">
+                                    <h:outputText value="#{item.predecesora.id}"  />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Tipo')}">
+                                    <h:outputText value="#{textMB.obtenerTexto(item.tipoTarea.label)}" rendered="#{not empty item.tipoTarea.label}" />
+                                </p:column>
+
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" >
+                                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono"  
+                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                     action="#{metodosAdquisicionCE.cargarTarea()}"
+                                                     update="agregarMetodoAdqModalForm"
+                                                     oncomplete="$('#agregarMetodoAdqModal').modal('show');" 
+                                                     immediate="true">
+                                        <f:setPropertyActionListener target="#{metodosAdquisicionCE.objetoTarea}" value="#{item}" />
+                                    </p:commandButton>
+                                </p:column>
+
+                                <p:column  exportable="false"  headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                     styleClass="btn btn-danger btn-icono" 
+                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                 return false" 
+                                                     actionListener="#{metodosAdquisicionCE.eliminarTarea(item)}"
+                                                     update="@form confirmModalCallBackBody"
+                                                     immediate="true">
+                                    </p:commandButton>                                     
+                                </p:column>  
+                            </p:dataTable>
+
+                        </p:tab>
+                        <p:tab title="Rango por año" id="tabRangos">
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <p:commandButton styleClass="btn btn-default pull-right"  
+                                                     icon="glyphicon glyphicon-plus"
+                                                     value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                     update="agregarRangoPorAnioModalForm"
+                                                     action="#{metodosAdquisicionCE.limpiarRango()}"
+                                                     oncomplete="$('#agregarRangoPorAnioModal').modal('show');" 
+                                                     immediate="true">
+                                    </p:commandButton>
+                                </div>
+                            </div>
+                            <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                            <p:dataTable                                
+                                id="tablaRangos"
+                                var="item" 
+                                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                value="#{metodosAdquisicionCE.objeto.rangos}" 
+                                paginator="true" rows="10"
+                                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                                rowsPerPageTemplate="5,10,25,50">
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Anio')}">
+                                    <h:outputText value="#{item.anio}" />
+                                </p:column>
+
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.PresupuestoMinimo')}" styleClass="numericos">
+                                    <h:outputText value="#{item.montoMin}"  >
+                                        <f:convertNumber minFractionDigits="2" />
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.PresupuestoMaximo')}" styleClass="numericos">
+                                    <h:outputText value="#{item.montoMax}"  >
+                                        <f:convertNumber minFractionDigits="2" />
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" >                                                                       
+                                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono"  
+                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                     action="#{metodosAdquisicionCE.cargarRango()}"
+                                                     update="agregarRangoPorAnioModalForm"
+                                                     oncomplete="$('#agregarRangoPorAnioModal').modal('show');" 
+                                                     immediate="true">
+                                        <f:setPropertyActionListener target="#{metodosAdquisicionCE.objetoRango}" value="#{item}" />
+                                    </p:commandButton>
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                     styleClass="btn btn-danger btn-icono" 
+                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                 return false" 
+                                                     actionListener="#{metodosAdquisicionCE.eliminarRango(item)}"
+                                                     update="@form confirmModalCallBackBody"
+                                                     immediate="true">
+                                    </p:commandButton>                   
+                                </p:column>
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                </p:outputPanel>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{metodosAdquisicionCE.guardar}"  update="bloqueNoModal" />
+
+                        <p:commandButton  
+                            styleClass="btn btn-primary"  
+                            icon="glyphicon glyphicon-ban-circle"
+                            value="#{textMB.obtenerTexto('labels.Deshabilitar')}"  
+                            oncomplete="$('#modalDeshabilitar').modal('show');" 
+                            immediate="true" rendered="#{metodosAdquisicionCE.update}">
+                        </p:commandButton>
+                        <h:outputLink styleClass="btn btn-link" value="#{metodosAdquisicionCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+
+        <!-- MODAL PARA AGREGAR UNIFICAR GRUPOS-->  
+        <h:panelGroup id="blockDehabilitar"  layout="block">
+            <div class="modal fade"  id="modalDeshabilitar" tabindex="-1" role="dialog" aria-labelledby="unificarGrupos">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoUnificarGrupos">
+                        <h:form id="formModalDeshabilitar" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.tituloModalDeshabilitarMetodoAdq')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">    
+                                <p:outputPanel id="deshabilitarModal">
+                                    <div class="col-sm-12">
+                                        <h:messages showSummary="true"  globalOnly="true" warnClass="alert" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                    </div>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_dehabilitar')}" />
+                                </p:outputPanel>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" action="#{metodosAdquisicionCE.deshabilitar()}" update="formModalDeshabilitar:deshabilitarModal"/>
+                                <h:commandLink styleClass="btn btn-link" action="#{metodosAdquisicionCE.cancelarDeshabilitar()}" value="#{textMB.obtenerTexto('labels.Cancelar')}" ></h:commandLink>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+        <!-- MODAL PARA AGREGAR METODO ADQUISICION-->  
+        <div class="modal fade"  id="agregarMetodoAdqModal" tabindex="-1" role="dialog" aria-labelledby="anadirMacroActividad">
+            <div class="modal-dialog" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="agregarMetodoAdqModalContenido">
+                    <h:form  prependId="false" id="agregarMetodoAdqModalForm"> 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.AgregarMetodoAdq')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <div class="form-group">
+                                    <h:outputLabel for="nombreTarea" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.nombreTarea')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="nombreTarea"  maxlength="255" value="#{metodosAdquisicionCE.nombreTarea}" styleClass="form-control textoLargo" >
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="nombreTarea" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <h:panelGroup id="bloqueInicioDias" layout="block" class="form-group">
+                                    <h:outputLabel for="inicioDias" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.inicioDiasTarea')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="inicioDias" value="#{metodosAdquisicionCE.inicioEnDias}" styleClass="form-control" rendered="#{metodosAdquisicionCE.editInicioDias}">
+                                        </h:inputText>
+                                        <h:message for="inicioDias" styleClass="help-inline msj-danger" />
+                                        <h:outputText value="#{metodosAdquisicionCE.inicioEnDias}" rendered="#{not metodosAdquisicionCE.editInicioDias}" styleClass="form-control-static"/>                                        
+                                    </div>
+                                </h:panelGroup>
+                                <div class="form-group">
+                                    <h:outputLabel for="duracionDias" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.duracionDiasTarea')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="duracionDias"  value="#{metodosAdquisicionCE.duracionEnDias}" styleClass="form-control" >
+                                        </h:inputText>
+                                        <h:message for="duracionDias" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>    
+                                <div class="form-group">
+                                    <h:outputLabel for="tareaPredecesora" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.tareaPredecesora')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="tareaPredecesora" value="#{metodosAdquisicionCE.predecesora}"  styleClass="form-control textoMedio">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{-1}"/>
+                                            <f:selectItems value="#{metodosAdquisicionCE.tareasCombo}" />
+                                            <p:ajax event="change" listener="#{metodosAdquisicionCE.calculoInicioDias}" update="bloqueInicioDias"/>
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>   
+
+                                <div class="form-group">
+                                    <h:outputLabel for="TipoTarea" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.TipoTarea')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="TipoTarea" value="#{metodosAdquisicionCE.tipoTarea}"  styleClass="form-control textoMedio"  >
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{utilsMB.getTipoTareaMetodoAdq()}" var="iter"  itemValue="#{iter}" itemLabel="#{textMB.obtenerTexto(iter.label)}" />
+                                        </h:selectOneMenu>
+                                        <h:message for="TipoTarea" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-plus" update="tabs:tablaTareas @form" value="#{textMB.obtenerTexto('labels.AgregarTarea')}"  action="#{metodosAdquisicionCE.agregarTarea()}" rendered="#{not metodosAdquisicionCE.editTarea}"/>
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" update="tabs:tablaTareas @form" value="#{textMB.obtenerTexto('labels.Guardar')}"  action="#{metodosAdquisicionCE.editarTarea()}" rendered="#{metodosAdquisicionCE.editTarea}"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div>
+
+
+        <!-- MODAL PARA AGREGAR METODO RANFO POR ANIO-->  
+        <div class="modal fade"  id="agregarRangoPorAnioModal" tabindex="-1" role="dialog" aria-labelledby="anadirMacroActividad">
+            <div class="modal-dialog" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="agregarRangoPorAnioModalContenido">
+                    <h:form  prependId="false" id="agregarRangoPorAnioModalForm"> 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.AgregarRangoPorAnio')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                <div class="form-group">
+                                    <h:outputLabel for="anio" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.anio')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="anio"  maxlength="4" value="#{metodosAdquisicionCE.anio}" styleClass="form-control textoCorto" >
+                                            <f:validateLength maximum="4" />
+                                        </h:inputText>
+                                        <h:message for="anio" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="montomin" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.montoMin')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="montomin"  value="#{metodosAdquisicionCE.montoMin}" styleClass="form-control numericos" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:inputText>
+                                        <h:message for="montomin" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="montomax" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.montoMax')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="montomax" value="#{metodosAdquisicionCE.montoMax}" styleClass="form-control numericos" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:inputText>
+                                        <h:message for="montomax" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" update="@form tabs:tablaRangos" icon="glyphicon glyphicon-lus" value="#{textMB.obtenerTexto('labels.AgregarRango')}"  action="#{metodosAdquisicionCE.agregarRango()}" rendered="#{not metodosAdquisicionCE.editRango}"/>
+                            <p:commandButton styleClass="btn btn-primary" update="@form tabs:tablaRangos" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}"  action="#{metodosAdquisicionCE.editarRango()}" rendered="#{metodosAdquisicionCE.editRango}"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+    </ui:composition>
+</html>

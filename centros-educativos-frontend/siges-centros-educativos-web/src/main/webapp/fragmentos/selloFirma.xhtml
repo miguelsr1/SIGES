@@ -1,0 +1,193 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <h:form id="form">               
+        <f:passThroughAttribute name="autocomplete" value="off"/>  
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.SELLOS_FIRMAS}.xhtml">#{msg.gestionSelloFirma}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{selloFirmaBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSelloFirma}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SELLO_FIRMA)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{selloFirmaBean.tituloPagina}"/>
+        </h3>
+
+        <p:outputPanel rendered="#{selloFirmaBean.configuracionArchivoAlto == null || selloFirmaBean.configuracionArchivoAncho == null || selloFirmaBean.configuracionArchivoTipo == null }" styleClass="ui-messages">
+            <div class="ui-messages-warn ui-corner-all">
+                <span class="ui-messages-warn-icon"></span>
+                <ul>
+                    <li>
+                        <h:outputText styleClass="ui-messages-warn-summary" 
+                                      value="#{msg.faltaConfiguracionCargaArchivos}" />
+                    </li>         
+                </ul>
+            </div>
+        </p:outputPanel>
+
+        <p:outputPanel id="containerSelloFirma" >
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete" >
+                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9" >
+                    <p:autoComplete id="input_sede_autocomplete" 
+                                    styleClass="form-control texto-medio"
+                                    value="#{selloFirmaBean.sedSeleccionado}"
+                                    completeMethod="#{selloFirmaBean.completeSede}"
+                                    var="sed" itemLabel="#{sed.sedCodigoNombre}"  
+                                    itemValue="#{sed}" 
+                                    widgetVar="b_inst_resp_autocomplete"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{sedesConverter}"    
+                                    rendered="#{selloFirmaBean.entidadEnEdicion.sfiPk == null}"
+                                    multiple="false">
+                        <p:ajax listener="#{selloFirmaBean.seleccionarSede}" event="itemSelect"  process="@this" update="fila_input_dui"/>
+                    </p:autoComplete>
+                    <h:outputText  id="output_sede_solo_lec" styleClass="form-control-plaintext" value="#{selloFirmaBean.entidadEnEdicion.sfiSede.sedCodigoNombre}" rendered="#{selloFirmaBean.entidadEnEdicion.sfiPk != null}" /> 
+                </p:outputPanel>                    
+            </p:outputPanel>  
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_dui">                        
+                <h:outputLabel value="#{msg.dui}" for="input_dui" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-9">                            
+                    <h:inputText autocomplete="off" id="input_dui" value="#{selloFirmaBean.perDui}" styleClass="form-control texto-medio" disabled="#{selloFirmaBean.soloLectura or selloFirmaBean.sedSeleccionado == null}" rendered="#{!selloFirmaBean.soloLectura and selloFirmaBean.entidadEnEdicion.sfiPk == null}"  maxlength="500" />
+                    <p:commandButton  id="btnBuscarPersona" style="margin-top:10px;" value="#{msg.buscarPersonal}" action="#{selloFirmaBean.buscarPersonaDui()}" update="fila_output_persona" rendered="#{!selloFirmaBean.soloLectura and selloFirmaBean.entidadEnEdicion.sfiPk == null}" disabled="#{selloFirmaBean.sedSeleccionado == null}"  styleClass="btn btn-primary"  />
+                    <h:message for="input_dui" styleClass="msj-danger"/>
+                    <p:blockUI block="@form" trigger="btnBuscarPersona"/>
+                    <h:outputText  id="output_dui" styleClass="form-control-plaintext" value="#{selloFirmaBean.entidadEnEdicion.sfiPersona.perDui}" rendered="#{selloFirmaBean.entidadEnEdicion.sfiPk != null}" /> 
+                </p:outputPanel>  
+            </p:outputPanel> 
+
+            <h:panelGroup id="fila_output_persona">
+                <p:outputPanel rendered="#{selloFirmaBean.personaPersonal!=null}">     
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.nombre}" for="output_persona" styleClass="col-sm-3 col-form-label "/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:outputText  id="output_persona" styleClass="form-control-plaintext" value="#{selloFirmaBean.personaPersonal.perNombreCompleto}"  />                    
+                        </p:outputPanel>   
+                    </p:outputPanel> 
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nip}" for="output_persona_nip" styleClass="col-sm-3 col-form-label "/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:outputText  id="output_persona_nip" styleClass="form-control-plaintext" value="#{selloFirmaBean.personaPersonal.perNip}"  />                    
+                        </p:outputPanel>   
+                    </p:outputPanel>    
+
+                    <p:outputPanel styleClass="form-group row">   
+                        <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>
+                        <div class="col-sm-8">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{selloFirmaBean.entidadEnEdicion.sfiHabilitado}" disabled="#{selloFirmaBean.soloLectura}" />
+                                <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_comentario">                        
+                        <h:outputLabel value="#{msg.comentario}" for="input_comentario" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:inputTextarea  id="input_comentario" value="#{selloFirmaBean.entidadEnEdicion.sfiComentario}" styleClass="form-control" disabled="#{selloFirmaBean.soloLectura}"  />
+                            <h:message for="input_comentario" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_responsable">
+                        <h:outputLabel value="#{msg.tipoRepresentante}" for="combo_tipo_calendario" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="combo_tipo_calendario" value="#{selloFirmaBean.comboTipoRepresentante.selected}" rendered="#{selloFirmaBean.entidadEnEdicion.sfiPk == null}" styleClass="form-control dropdown texto-medio" disabled="#{selloFirmaBean.soloLectura}" >
+                                <f:selectItems value="#{selloFirmaBean.comboTipoRepresentante.items}" />           
+                            </h:selectOneMenu>  
+                            <h:outputText styleClass="form-control-plaintext" value="#{selloFirmaBean.entidadEnEdicion.sfiTipoRepresentante.treNombre}" rendered="#{selloFirmaBean.entidadEnEdicion.sfiPk != null}" /> 
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_firma">
+                        <h:outputLabel value="#{msg.firmaSello}" for="file_upload_firma" styleClass="col-sm-3 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:fileUpload fileUploadListener="#{selloFirmaBean.handleFileUploadFirma}"
+                                          id="file_upload_firma"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar firma"
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoFotos} "
+                                          update="fila_firma"
+                                          cancelLabel="#{msg.cancelar}"
+                                          rendered="#{!selloFirmaBean.soloLectura}"
+                                          auto="true"
+                                          sizeLimit="#{applicationBean.fotosTamPermitido}" 
+                                          allowTypes="#{selloFirmaBean.configuracionArchivoTipo.conValor}" />     
+                            <o:graphicImage value="#{imagenesBean.getFile(selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achPk)}" width="220" 
+                                            lastModified="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achUltmodFechaAsDate}"
+                                            alt="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achNombre}" title="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achNombre}"
+                                            rendered="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello != null and selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achPk != null and !selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achShowTmpFile}"/>
+
+                            <o:graphicImage value="#{imagenesBean.getTmpFile(selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achTmpPath)}" width="220" 
+                                            alt="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achNombre}" title="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achNombre}"
+                                            rendered="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello != null and selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achShowTmpFile}" />
+                            <o:graphicImage name="/imagenes/firma.png" width="220" 
+                                            rendered="#{selloFirmaBean.entidadEnEdicion.sfiFirmaSello == null or (selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achPk == null and !selloFirmaBean.entidadEnEdicion.sfiFirmaSello.achShowTmpFile)}"/>
+                            <p:commandLink action="#{selloFirmaBean.eliminarFotoFirma()}" update="fila_firma" value="#{msg.eliminar}" rendered="#{!selloFirmaBean.soloLectura and selloFirmaBean.entidadEnEdicion.sfiFirmaSello != null}" style="margin-top:5px; display: block;" />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_aclaracion_firma">                        
+                        <h:outputLabel value="#{msg.aclaracionFirma}" for="input_aclaracion_firma" styleClass="col-sm-3 col-form-label "/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:inputText autocomplete="off" id="input_aclaracion_firma" value="#{selloFirmaBean.entidadEnEdicion.sfiAclaracionFirma}" styleClass="form-control" disabled="#{selloFirmaBean.soloLectura}"  maxlength="500"/>
+                            <h:message for="input_aclaracion_firma" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+
+                    <div class="form-action-buttons">
+                        <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{selloFirmaBean.guardar()}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!selloFirmaBean.soloLectura}"/>
+                        <p:blockUI block="@form" trigger="btnGuardar" />
+                        <p:defaultCommand target="btnGuardar" scope="containerSelloFirma"/>     
+                    </div>
+
+                </p:outputPanel> 
+
+            </h:panelGroup>
+
+
+
+
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+
+
+
+    </h:form>
+</ui:composition>

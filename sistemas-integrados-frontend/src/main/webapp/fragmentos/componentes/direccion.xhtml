@@ -1,0 +1,149 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <c:set var="direccion" value="#{direccion}" scope="request"/>
+    <c:set var="soloLecturaDireccion" value="#{soloLecturaDireccion}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{direccionComponenteBean.setSoloLectura(soloLecturaDireccion)}"/>
+        <f:event type="preRenderView" listener="#{direccionComponenteBean.actualizar(direccion)}"/>
+    </f:metadata>       
+
+
+    <p:outputPanel id="itemDetailDomicilio" rendered="#{direccionComponenteBean.direccion != null}">
+        <p:tabView id="tabDireccion" style="background:none;border:0px;" >
+            <p:tab title="#{direccionComponenteBean.verMapa?msg.datos:msg.direccionSede}" id="tabDatosDireccion" titleStyle="#{direccionComponenteBean.verMapa?'':'background:none;'}" >
+                <p:outputPanel styleClass="form-group row" id="fila_input_zona" rendered="#{direccionComponenteBean.verZona}" >
+                    <h:outputLabel value="#{msg.zona}" for="input_zona" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:selectOneMenu id="input_zona" value="#{direccionComponenteBean.comboZona.selected}" 
+                                         rendered="#{!direccionComponenteBean.soloLectura}" styleClass="form-control dropdown texto-medio">                                
+                            <f:selectItems value="#{direccionComponenteBean.comboZona.items}"/>
+                            <p:ajax listener="#{direccionComponenteBean.seleccionarZona()}" event="change" process="@this"/>
+                        </h:selectOneMenu>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirZona.zonNombre}"/>
+                    </p:outputPanel>                                                                                   
+                </p:outputPanel>   
+
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                    <h:outputLabel value="#{msg.departamento}" for="input_departamento" styleClass="col-sm-3 col-form-label obligatorio"/>                                                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:selectOneMenu id="input_departamento" value="#{direccionComponenteBean.comboDepartamento.selected}" rendered="#{!direccionComponenteBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                            <f:selectItems value="#{direccionComponenteBean.comboDepartamento.items}"/>
+                            <p:ajax listener="#{direccionComponenteBean.seleccionarDepartamento}" event="change"  process="@this" update="fila_input_municipio fila_input_canton fila_input_caserio"/>
+                        </h:selectOneMenu>  
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirDepartamento.depNombre}"/>
+                        <h:message for="input_departamento" styleClass="msj-danger"/>
+                    </p:outputPanel>                                                                                   
+                </p:outputPanel>    
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_municipio">
+                    <h:outputLabel value="#{msg.municipio}" for="input_municipio" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:selectOneMenu id="input_municipio" value="#{direccionComponenteBean.comboMunicipio.selected}" 
+                                         disabled="#{direccionComponenteBean.comboDepartamento.selectedT == null}"
+                                         rendered="#{!direccionComponenteBean.soloLectura}"
+                                         styleClass="form-control dropdown texto-medio">
+                            <f:selectItems value="#{direccionComponenteBean.comboMunicipio.items}"/>
+                            <p:ajax listener="#{direccionComponenteBean.seleccionarMunicipio()}" event="change" process="@this" update="fila_input_canton fila_input_caserio"/>
+                        </h:selectOneMenu>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirMunicipio.munNombre}"/>
+                        <h:message for="input_municipio" styleClass="msj-danger"/>
+                    </p:outputPanel>                                                                                   
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_canton" rendered="#{direccionComponenteBean.verCanton}" >
+                    <h:outputLabel value="#{msg.canton}" for="input_canton" styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:selectOneMenu id="input_canton" value="#{direccionComponenteBean.comboCanton.selected}" 
+                                         disabled="#{direccionComponenteBean.comboMunicipio.selectedT == null}"
+                                         rendered="#{!direccionComponenteBean.soloLectura}"
+                                         styleClass="form-control dropdown texto-medio">
+                            <f:selectItems value="#{direccionComponenteBean.comboCanton.items}"/>
+                            <p:ajax listener="#{direccionComponenteBean.seleccionarCanton()}" event="change" process="@this" update="fila_input_caserio"/>
+                        </h:selectOneMenu>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirCanton.canNombre}"/>
+                    </p:outputPanel>                                
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_caserio" rendered="false">
+                    <h:outputLabel value="#{msg.caserio}" for="input_caserio" styleClass="col-sm-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:selectOneMenu id="input_caserio" value="#{direccionComponenteBean.comboCaserio.selected}" 
+                                         disabled="#{direccionComponenteBean.comboCanton.selectedT == null}" 
+                                         rendered="#{!direccionComponenteBean.soloLectura}"
+                                         styleClass="form-control dropdown texto-medio">
+                            <f:selectItems value="#{direccionComponenteBean.comboCaserio.items}"/>
+                        </h:selectOneMenu>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirCaserio.casNombre}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_caserio_texto"  rendered="#{direccionComponenteBean.verCaserio}" >
+                    <h:outputLabel value="#{msg.caserio}" for="input_caserio_texto" styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:inputText autocomplete="off" id="input_caserio_texto" 
+                                     value="#{direccionComponenteBean.direccion.dirCaserioTexto}" 
+                                     styleClass="form-control texto-medio" rendered="#{!direccionComponenteBean.soloLectura}" maxlength="255"/>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirCaserioTexto}"/>
+                    </p:outputPanel>                                                                                   
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_calle" rendered="#{direccionComponenteBean.verTipoCalle}" >
+                    <h:outputLabel value="#{msg.tipoCalle}" for="input_tipo_calle" styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:selectOneMenu id="input_tipo_calle" value="#{direccionComponenteBean.comboTiposCalle.selected}" rendered="#{!direccionComponenteBean.soloLectura}" styleClass="form-control dropdown texto-medio">                                
+                            <f:selectItems value="#{direccionComponenteBean.comboTiposCalle.items}"/>
+                            <p:ajax listener="#{direccionComponenteBean.seleccionarTipoCalle()}" event="change" process="@this"/>
+                        </h:selectOneMenu>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirTipoCalle.tllNombre}"/>
+                    </p:outputPanel>                                                                                   
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_direccion">                        
+                    <h:outputLabel value="#{msg.direccion}*" for="input_direccion" styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <h:inputText autocomplete="off" id="input_direccion" value="#{direccionComponenteBean.direccion.dirDireccion}" styleClass="form-control" rendered="#{!direccionComponenteBean.soloLectura}" maxlength="500"/>
+                        <h:outputText rendered="#{direccionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{direccionComponenteBean.direccion.dirDireccion}"/>
+                        <h:message for="input_direccion" styleClass="msj-danger"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </p:tab>
+            <p:tab title="#{msg.hmapa}" id="tabMapa" rendered="#{direccionComponenteBean.verMapa}" >
+
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_latitud"  >
+                    <h:outputLabel value="#{msg.latitud}" for="input_latitud" styleClass="col-sm-3 col-form-label"/>                        
+                    <p:inputNumber autocomplete="off" id="input_latitud" value="#{direccionComponenteBean.direccion.dirLatitud}" disabled="#{direccionComponenteBean.soloLectura}" decimalSeparator="." thousandSeparator="" styleClass="form-control texto-corto latitud_update_class"  minValue="-90.999999" maxValue="90.000000"/>
+
+                    <h:outputLabel value="#{msg.logitud}" for="input_latitud" styleClass="col-sm-3 col-form-label"/>                        
+                    <p:inputNumber autocomplete="off" id="input_longitud" value="#{direccionComponenteBean.direccion.dirLongitud}" disabled="#{direccionComponenteBean.soloLectura}" decimalSeparator="." thousandSeparator="" styleClass="form-control texto-corto longitud_update_class" minValue="-180.999999" maxValue="180.000000" />
+
+                </p:outputPanel>
+
+
+                <!--<div id="map" style="height:300px; width:100%;"></div>-->
+
+                <p:outputPanel styleClass="form-group row" id="fila_mapa" >
+
+                    <iframe title="Mapa" src="#{direccionComponenteBean.urlMapa}" class="iframeMapa" />
+                </p:outputPanel>
+            </p:tab>
+        </p:tabView>
+    </p:outputPanel>
+
+</ui:composition>

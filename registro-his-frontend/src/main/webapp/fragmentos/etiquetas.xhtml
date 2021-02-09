@@ -1,0 +1,207 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">           
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.IR_A_INICIO}.xhtml">#{msg.inicio}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionEtiqueta}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionEtiqueta}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.GESTION_ETIQUETA}" title="#{msg.nuevoEtiqueta}" styleClass="btn btn-secondary" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_RH_ETIQUETA)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoEtiqueta}"/>
+                    <f:param name="edit" value="true"/>
+                </p:link>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{etiquetasBean.filtro.etiNombre}" />
+                            </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.apellido}" for="b_apellido" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_apellido" value="#{etiquetasBean.filtro.etiApellido}" />                 
+                            </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>                
+                                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.libro}" for="b_libro" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber  styleClass="form-control texto-extra-corto" id="b_libro" value="#{etiquetasBean.filtro.etiLibro}" thousandSeparator="" decimalSeparator="." decimalPlaces="0" />         
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.anio}" for="b_anio" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputMask id="b_anio" styleClass="form-control texto-extra-corto" value="#{etiquetasBean.filtro.etiAnio}" mask="9999"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sede}" for="b_nombreSede" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombreSede" value="#{etiquetasBean.filtro.etiNombreSede}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                                <p:commandButton value="#{msg.buscar}" styleClass="btn btn-primary" id="btnBuscar"  
+                                                 icon="glyphicon glyphicon-search" action="#{etiquetasBean.buscar()}" 
+                                                 update="pnlResultado"/>
+                                <p:blockUI block="@form" trigger="btnBuscar"/>
+                                <p:commandLink value="#{msg.limpiar}" action="#{etiquetasBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch pnlResultado" />
+                                </p:commandLink>
+                                <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            </p:outputPanel>
+                    </p:outputPanel>                                        
+                </p:outputPanel>
+
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{etiquetasBean.etiquetaLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="etiPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{etiquetasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{etiquetasBean.totalResultados lt (etiquetasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{etiquetasBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+       
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="asociacion" pageOnly="false"/>
+                                </h:commandLink>   
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hniveles}" sortBy="#{elem.etiPagina.pagNivel.nivNombre}">
+                    <h:outputText value="#{elem.etiPagina.pagNivel.nivNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hanio}" sortBy="#{elem.etiPagina.pagAnio}">
+                    <h:outputText value="#{elem.etiPagina.pagAnio}" />
+                </p:column>
+                <p:column headerText="#{msg.hnumeroLibro}" sortBy="#{elem.etiPagina.pagLibro}">
+                    <h:outputText value="#{elem.etiPagina.pagLibro}" />
+                </p:column>                               
+                <p:column headerText="#{msg.hpagina}" sortBy="#{elem.etiPagina.pagPagina}">
+                    <h:outputText value="#{elem.etiPagina.pagPagina}" />
+                </p:column>
+                <p:column headerText="#{msg.hsede}" sortBy="#{elem.etiNombreSede}">
+                    <h:outputText value="#{elem.etiNombreSede}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.etiNombre}">
+                    <h:outputText value="#{elem.etiNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hapellido}" sortBy="#{elem.etiApellido}">
+                    <h:outputText value="#{elem.etiApellido}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_RH_ETIQUETA)}">
+                    <a href="#{handleArchivoBean.descargarHistorico(elem.etiPagina)}" target="_blank">#{msg.descargar}</a>                                            
+                </p:column>                   
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_RH_ETIQUETA)}">
+                    <p:link outcome="#{ConstantesPaginas.GESTION_ETIQUETA}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.etiPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>                 
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_RH_ETIQUETA)}">
+                    <p:link outcome="#{ConstantesPaginas.GESTION_ETIQUETA}" title="#{msg.editar}"
+                            styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.etiPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update="form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{etiquetasBean.historial(elem.etiPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"    
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_RH_ETIQUETA)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{etiquetasBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{etiquetasBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+        <p:dialog header="#{msg.historialEtiqueta}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{etiquetasBean.historialEtiquetas}" /> 
+            </ui:include>           
+        </p:dialog>        
+    </h:form>
+</ui:composition>

@@ -1,0 +1,383 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoLiquidacion"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEvaluacionLiquidacion"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumMovimientosTipo"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoMovimiento"/>
+        
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        <f:passThroughAttribute name="autocomplete" value="off"/>          
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">             
+                <li class="breadcrumb-item active" ><a href="#{ConstantesPaginas.LIQUIDACIONES}.xhtml">#{msg.gestionLiquidacion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{liquidacionBean.getTituloPagina()}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{liquidacionBean.getTituloPagina()}"/></h2>
+            <p:outputPanel styleClass="float-right">
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="desembolsoPanel">
+            <p:outputPanel>
+                <p:fieldset id="datos" legend="#{msg.datosgenerales}">                   
+
+                    <h:panelGroup id="formularioLiquidacion" rendered="#{not empty liquidacionBean.entidadEnEdicion}" >                                                           
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_sede" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null}" >                        
+                            <h:outputLabel value="#{msg.sede}"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control texto-medio" value="#{liquidacionBean.entidadEnEdicion.liqSedePk.sedCodigo} - #{liquidacionBean.entidadEnEdicion.liqSedePk.sedNombre}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" rendered="#{liquidacionBean.entidadEnEdicion.liqPk==null}">
+                            <h:outputLabel value="#{msg.sede}"  styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="ui-outputpanel ui-widget col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete"
+                                    styleClass="form-control texto-medio"
+                                    value="#{liquidacionBean.sedeSeleccionada}"
+                                    completeMethod="#{liquidacionBean.completeSede}"
+                                    var="sedB" itemLabel="#{sedB.sedCodigoNombre}"
+                                    itemValue="#{sedB}"
+                                    widgetVar="filtro_resp_autocomplete"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    multiple="false"
+                                    converter="#{sedesConverter}"
+                                    placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax event="itemSelect" listener="#{liquidacionBean.cargarComponentes()}" update="fila_input_componente" />
+                                </p:autoComplete>
+                            </p:outputPanel>    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_anio" >                        
+                            <h:outputLabel value="#{msg.aniofiscal}"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_aniofiscal" value="#{liquidacionBean.comboAnioLectivoN.selected}"  styleClass="form-control dropdown texto-medio"
+                                                 disabled="#{liquidacionBean.entidadEnEdicion.liqPk!=null}" >
+                                    <f:selectItems value="#{liquidacionBean.comboAnioLectivoN.items}"/>
+                                    <p:ajax event="change" listener="#{liquidacionBean.cargarComponentes()}" update="fila_input_componente" />
+                                </h:selectOneMenu>                     
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_componente">
+                            <h:outputLabel value="#{msg.componente}"  styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_componente" value="#{liquidacionBean.comboComponenteN.selected}" styleClass="form-control texto-medio"
+                                                 disabled="#{liquidacionBean.entidadEnEdicion.liqPk!=null}">
+                                    <f:selectItems value="#{liquidacionBean.comboComponenteN.items}" />
+                                    <p:ajax event="change" listener="#{liquidacionBean.cargarSubComponente()}" update="input_subcomponente" />
+                                </h:selectOneMenu>                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.subcomponente}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_subcomponente" value="#{liquidacionBean.comboSubComponente.selected}" styleClass="form-control texto-medio" disabled="#{liquidacionBean.entidadEnEdicion.liqPk!=null}">
+                                    <f:selectItems value="#{liquidacionBean.comboSubComponente.items}" />
+                                    <p:ajax event="change" listener="#{liquidacionBean.obtenerIngresosEgresos()}" update="pnlResultado" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_estado" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null}">                        
+                            <h:outputLabel value="#{msg.estado}"   styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control texto-medio" value="#{liquidacionBean.entidadEnEdicion.liqEstado.text}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                    </h:panelGroup>          
+                </p:fieldset>    
+            </p:outputPanel>            
+        </p:outputPanel>
+        
+        <p:selectOneRadio layout="custom" id="customRadio">
+          <f:selectItems value="#{applicationBean.booleanValues}" />
+        </p:selectOneRadio>
+        
+        <p:outputPanel id="pnlResultado">
+            <h3><h:outputText value="#{msg.liquidacionTableHeader}" /></h3>
+            
+            <p:dataTable var="mov" value="#{liquidacionBean.listMovs}" 
+                         rowKey="#{elem.mlqPk}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{liquidacionBean.paginado}"
+                         sortBy="#{mov.mlqTipoMovimiento}" expandableRowGroups="true" sortOrder="descending"
+                         editable="true" editMode="cell">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{liquidacionBean.totalResultados lt (liquidacionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <p:headerRow>
+                    <p:column colspan="8">
+                        <h:outputText value="#{msg.labelIngresosLiq}"  rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.I}"/>
+                        <h:outputText value="#{msg.labelEgresosLiq}"  rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.E}"/>
+                    </p:column>
+                </p:headerRow>
+                
+                <p:column headerText="#{msg.hconcepto}">
+                    <h:outputText value="#{liquidacionBean.labelDetalleMov(mov)}" />
+                </p:column>
+                <p:column headerText="#{msg.hcantidadParcial}" style="text-align:right">
+                    <h:outputText value="#{mov.monto}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hcantidadTotal}">
+                    <h:outputText value="" />
+                </p:column>
+                <p:column headerText="#{msg.reintegro}" styleClass="align-right" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null}">
+                    <p:cellEditor rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.E}">
+                        <f:facet name="output"><h:outputText value="#{mov.mlqReintegro}"><f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" /></h:outputText></f:facet>
+                        <f:facet name="input" >
+                            <p:inputNumber minValue="0" decimalPlaces="2"  decimalSeparator="." thousandSeparator="," style="width:100%" value="#{mov.mlqReintegro}"/>
+                        </f:facet>
+                    </p:cellEditor>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" styleClass="#{liquidacionBean.estiloColumnaDetalleMov(mov)}" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}">
+                    <h:outputText value="#{liquidacionBean.labelEvaluadoMov(mov)}" />
+                </p:column>
+                <p:column headerText="#{msg.correcto}" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}">
+                    <p:selectBooleanCheckbox id="correctCheck" value="#{mov.correcto}" >
+                        <p:ajax event="change" listener="#{liquidacionBean.correctoMovimiento(mov)}" update="noCorrecto" /> 
+                    </p:selectBooleanCheckbox>
+                </p:column>
+                <p:column headerText="#{msg.noCorrecto}" id="noCorrecto" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}" >
+                    <p:selectBooleanCheckbox id="noCorrectCheck" value="#{mov.noCorrecto}">
+                    </p:selectBooleanCheckbox>
+                </p:column>
+                <p:column rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}">
+                    <h:inputText value="#{mov.mlqComentario}" styleClass="form-control texto-medio" />
+                </p:column>
+                
+                <p:summaryRow>
+                    <p:column>
+                        <h:outputText value="#{msg.totalMontoDepositado}" rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.I}"/>
+                        <h:outputText value="#{msg.totalMontosInvertidos}" rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.E}"/>
+                    </p:column>
+                    <p:column />
+                    <p:column styleClass="align-right">
+                        <h:outputText value="#{liquidacionBean.totalDepositado}" rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.I}">
+                            <f:convertNumber type="currency" currencySymbol="$" />
+                        </h:outputText>
+                        <h:outputText value="#{liquidacionBean.totalInvertido}" rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.E}">
+                            <f:convertNumber type="currency" currencySymbol="$" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column styleClass="align-right" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null}">
+                        <h:outputText value="#{liquidacionBean.totalReintegro}" rendered="#{mov.mlqTipoMovimiento eq EnumMovimientosTipo.E}">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column colspan="4" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}" />
+                </p:summaryRow>
+                
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column>
+                            <f:facet name="footer"><h:outputText styleClass="strong" value="#{msg.saldoLiquidacion}:"/></f:facet>
+                        </p:column>
+                        <p:column>
+                            <f:facet name="footer"><h:outputText value=""/></f:facet>
+                        </p:column>
+                        <p:column style= "text-align:right">
+                            <f:facet name="footer">
+                                <h:outputText value="#{liquidacionBean.obtenerSaldo()}">
+                                    <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                                </h:outputText>
+                            </f:facet>
+                        </p:column>
+                        <p:column colspan="5" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}" />
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+            
+        </p:outputPanel>
+        
+        <h:panelGroup  layout="block" styleClass="row col-sm-12 mb-3" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}">
+            <p:outputPanel styleClass="control-group" >
+                 <p:outputPanel styleClass="float-right">
+                     <p:commandButton id="btnEvaluarMovs"  value="#{msg.evaluarMovimientosLiq}" action="#{liquidacionBean.evaluarMovimientosLiquidacion()}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                 </p:outputPanel>                    
+             </p:outputPanel>                     
+        </h:panelGroup>
+        
+        
+        <p:outputPanel styleClass="mb-5 control-group" rendered="#{liquidacionBean.entidadEnEdicion.liqPk==null}">
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton id="btnGuardar"  value="#{msg.hconfirmar}" action="#{liquidacionBean.guardar()}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+            </p:outputPanel>                    
+        </p:outputPanel>                     
+        <p:blockUI block="@form" trigger="btnGuardar" /> 
+        <p:defaultCommand target="btnGuardar" scope="form"/>
+        
+        
+        <p:outputPanel id="evaluacionPanel">
+                <p:fieldset id="datosEvaluacion" legend="#{msg.evaluacionLiquidacion}">                   
+                    <h:panelGroup id="formularioEvaLiquidacion" rendered="#{not empty liquidacionBean.entidadEnEdicion}" >                                                           
+                        
+                        <p:outputPanel id="pnlResultadoDet" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}">
+                            <p:dataTable id="detalleDT"
+                                         rendered="#{not empty liquidacionBean.listEvaItems}"
+                                         widgetVar="widResultadoDet"                         
+                                         var="elem"                          
+                                         value="#{liquidacionBean.listEvaItems}"     
+                                         rowKey="#{elem.eilPk}"
+                                         emptyMessage="#{msg.noHayResultados}"		
+                                         lazy="true"
+                                         reflow="true"
+                                         scrollable="true" scrollHeight="400">
+
+                                <p:column headerText="#{msg.hnumero}">
+                                    <h:outputText value="#{elem.eilItemFk.iliCodigo}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hinconsistencias}">
+                                    <h:outputText value="#{elem.eilItemFk.iliNombre}" >
+                                    </h:outputText>
+                                </p:column>
+                                <p:column>
+                                    <p:selectBooleanCheckbox value="#{elem.eilMarcado}" >
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:dataTable>
+
+                        </p:outputPanel>
+                        
+                        
+                       <p:panel header="#{msg.reembolso}" styleClass="panel-filtro blanco">
+                            <p:outputPanel styleClass="form-group row" >   
+                                <h:outputText value="#{msg.montoReembolso}" styleClass="col-sm-4 col-form-label"/>                                                               
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:inputNumber styleClass="form-control texto-medio" minValue="0"  
+                                                   value="#{liquidacionBean.evaluacionLiqEnEdicion.elqReembolsoMonto}" disabled="#{liquidacionBean.soloLectura}" >
+                                    </p:inputNumber>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                           
+                           <p:outputPanel styleClass="form-group row" >   
+                                <h:outputText value="#{msg.numeroCheque}" styleClass="col-sm-4 col-form-label"/>                                                               
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText value="#{liquidacionBean.evaluacionLiqEnEdicion.elqReembolsoCheque}" autocomplete="off" styleClass="form-control texto-medio" disabled="#{liquidacionBean.soloLectura}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                        </p:panel>
+                        
+                        <p:panel header="#{msg.reintegro}" styleClass="panel-filtro blanco">
+                            <p:outputPanel styleClass="form-group row" >   
+                                <h:outputText value="#{msg.montoReintegro}" styleClass="col-sm-4 col-form-label"/>                                                               
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:inputNumber styleClass="form-control texto-medio" minValue="0" disabled="true"
+                                                   value="#{liquidacionBean.totalReintegro}">
+                                    </p:inputNumber>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:panel>
+                        
+                        <p:outputPanel styleClass="form-group row" >   
+                                <h:outputText value="#{msg.comentario}" styleClass="col-sm-4 col-form-label"/>                                                               
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:inputTextarea  id="input_comentario_eva" styleClass="form-control texto-medio" value="#{liquidacionBean.evaluacionLiqEnEdicion.elqComentario}" 
+                                                  counter="displayComtario" maxlength="4000" counterTemplate="{0} caracteres restantes." autoResize="false" disabled="#{liquidacionBean.soloLectura}"/>
+                                <h:outputText id="displayComtario" />
+                                </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:panel header="#{msg.resumenMontos}" styleClass="panel-filtro blanco">
+                            <p:outputPanel id="pnlResultadoResumen" >
+                                <p:dataTable id="basicDT"                         
+                                             widgetVar="widResultado"                         
+                                             var="elem"                          
+                                             value="#{liquidacionBean.listResumen}"                          
+                                             emptyMessage="#{msg.noHayResultados}" >
+
+                                    <p:column headerText="#{msg.hDetalle}">
+                                        <h:outputText value="#{elem.detalle}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.monto}">
+                                        <h:outputText value="#{elem.monto}"><f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" /></h:outputText>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:outputPanel>
+                        </p:panel>
+                        
+                        <p:outputPanel styleClass="control-group" rendered="#{liquidacionBean.entidadEnEdicion.liqPk!=null and liquidacionBean.entidadEnEdicion.liqEstado ne EnumEstadoLiquidacion.APROBADA}">
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnEvaluarLiquidacion" value="#{msg.evaluar}" action="#{liquidacionBean.evaluarLiquidacion()}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </h:panelGroup>          
+                </p:fieldset>             
+        </p:outputPanel>
+        
+        
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+        
+        
+        <p:dialog header="#{msg.evaluarMovimiento}" widgetVar="itemDialog2" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail2">                                                             
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                <h:panelGroup>
+                    <p:outputPanel id="formularioEvaluacionLiquidacion">    
+                        <p:outputPanel styleClass="form-group row" id="fila_input_concepto" >                        
+                            <h:outputLabel value="#{msg.concepto}" for="input_concepto"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">     
+                                <h:outputText id="input_concepto" value="#{liquidacionBean.movCuentaBcEnEdicion.mcbDetalle}" styleClass="form-control texto-medio"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_cantidad" >                        
+                            <h:outputLabel value="#{msg.cantidadParcial}" for="input_cantidad"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">     
+                                <h:outputText id="input_cantidad" value="#{liquidacionBean.movCuentaBcEnEdicion.mcbMonto}" styleClass="form-control texto-medio">
+                                    <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                                </h:outputText>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_comentario">                        
+                            <h:outputLabel value="#{msg.motivo}" for="input_comentario"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">     
+                                <p:inputTextarea  id="input_comentario" styleClass="form-control texto-medio" value="#{liquidacionBean.movLiqEnEdicion.mlqComentario}" 
+                                                  counter="displayCom" maxlength="4000" counterTemplate="{0} caracteres restantes." autoResize="false" />
+                                <h:outputText id="displayCom" />
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnEvaluar" value="#{msg.guardar}" action="#{liquidacionBean.evaluarMovLiquidacion()}" update="form:pnlResultado form:desembolsoPanel form:itemDetail2" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog2').hide();"  update=":form:itemDetail2" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+    </h:form>
+</ui:composition>

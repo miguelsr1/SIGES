@@ -1,0 +1,127 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+	
+		<nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.DESEMBOLSOS}.xhtml">Desembolsos</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.desembolsosCed}</li>
+            </ol>
+        </nav>
+	
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.desembolsosCed}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.nroDesembolsoCed}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo"  />                 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{desembolsoCedBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{desembolsoCedBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+							<p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{desembolsoCedBean.desembolsoCedLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="dcePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{desembolsoCedBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{desembolsoCedBean.totalResultados lt (desembolsoCedBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{desembolsoCedBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="desembolsoCed" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hnroDesembolsoCed}" sortBy="#{elem.dcePk}">
+                    <h:outputText value="#{elem.dcePk}" />
+                </p:column>
+                <p:column headerText="#{msg.hsede}" sortBy="#{dceReqFondoCedFk.rfcTransferenciaCedFk.tacCedFk.sedCodigo}">
+                    <h:outputText value="#{elem.dceReqFondoCedFk.rfcTransferenciaCedFk.tacCedFk.sedCodigo} - #{elem.dceReqFondoCedFk.rfcTransferenciaCedFk.tacCedFk.sedNombre}" />
+                </p:column>
+                <p:column sortBy="#{elem.dceEstado.text}" headerText="#{msg.hestadoDesembolso}">
+                    <h:outputText value="#{elem.dceEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.montoDesembolso}" styleClass="align-right">
+                    <h:outputText value="#{elem.dceMonto}"><f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" /></h:outputText>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+		
+		<h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{desembolsoCedBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+ 
+    </h:form>
+</ui:composition>

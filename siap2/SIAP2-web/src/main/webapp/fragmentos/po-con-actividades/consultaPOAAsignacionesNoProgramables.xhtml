@@ -1,0 +1,122 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consultaPOAAsignacionesNoProgramables')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.nombre')}:" />
+                                <div class="col-sm-9">
+                                    <h:inputText  value="#{poaAsignacionNoProgramableConsulta.nombre}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Planificacion')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu id="planificacion" value="#{poaAsignacionNoProgramableConsulta.planificacionEstrategicaId}"  styleClass="form-control textoMedio"  >
+                                        <f:ajax render="formfiltro:linea"/> 
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getPlanificacionesEstrategicasVigetnes()}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="planificacion" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Linea')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu id="linea" value="#{poaAsignacionNoProgramableConsulta.lineaEstrategicaId}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getLineasEstrategicasVigetnes(poaAsignacionNoProgramableConsulta.planificacionEstrategicaId)}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="linea" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{poaAsignacionNoProgramableConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{poaAsignacionNoProgramableConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', poaAsignacionNoProgramableConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{poaAsignacionNoProgramableConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="AsignacionesNoProgramables" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}"  sortBy="#{dummy.nombre}" >
+                        <h:outputText value="#{item.propertyMap['nombre']}" />
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_POA_ASIGNACIONES_NO_PROGRAMABLES'] }" >
+                        <h:outputLink  value="verPOAAsignacionesNoProgramables.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Ver')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_POA_ASIGNACIONES_NO_PROGRAMABLES'] }">
+                        <h:outputLink  value="crearEditarPOAAsignacionesNoProgramables.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+<!--                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CREAR_EDITAR_POA_ASIGNACIONES_NO_PROGRAMABLES'] }">
+                    <a data-toggle="modal" data-id="#{item.propertyMap['id']}" title="Eliminar este item" class="btn btn-danger btn-icono open-ConfirmModal" href="#confirmModal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="textoOculto"/>
+                    </a>                        
+                </p:column>-->
+                </p:dataTable>       
+            </div>
+
+
+
+        </h:form>
+    </ui:composition>
+</html>
+

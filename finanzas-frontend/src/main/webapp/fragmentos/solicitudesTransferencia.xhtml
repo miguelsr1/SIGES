@@ -1,0 +1,359 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">        
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoSolicitudesTransferencia"/>
+        <f:passThroughAttribute name="autocomplete" value="off"/> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.transferencias}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.requerimientoFondos}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{solicitudesTransferenciaBean.tituloPagina}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link  outcome="#{ConstantesPaginas.SOLICITUD_TRANSFERENCIA}" title="#{msg.agregarRequerimientoFondo}"                        
+                               styleClass="btn btn-secondary" rendered="#{solicitudesTransferenciaBean.transferenciaGDepId!=null}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarRequerimientoFondo}"/>
+                    <f:param name="transPk" value="#{solicitudesTransferenciaBean.transferenciaGDep.tgdPk}"/>
+                </p:link>
+                <p:commandButton value="#{msg.importarSacs}" icon="glyphicon glyphicon-plus" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarSac" styleClass="btn btn-secondary"  
+                                 actionListener="#{solicitudesTransferenciaBean.nuevoImport()}"
+                                 style="margin-left: 0.5em;"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CARGAR_SAC_REQUERIMIENTO_FONDO)}"/>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nroRequerimiento}" for="b_numero" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" styleClass="form-control texto-medio" id="b_numero" value="#{solicitudesTransferenciaBean.filtro.strPk}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.componente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_componente" value="#{solicitudesTransferenciaBean.comboComponente.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{solicitudesTransferenciaBean.comboComponente.items}" />
+                                <p:ajax listener= "#{solicitudesTransferenciaBean.cargarSubComponente()}" event="change" update="f_subcomponente" process="@this"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.unidadPresupuestaria}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_unidad" value="#{solicitudesTransferenciaBean.comboUnidadPresupuestaria.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{solicitudesTransferenciaBean.comboUnidadPresupuestaria.items}" />
+                                <p:ajax listener= "#{solicitudesTransferenciaBean.cargarComboLineaPresupuestaria()}" event="change" update="f_linea" process="@this"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.fuenteDeFin}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_fuentefin" value="#{solicitudesTransferenciaBean.comboFuenteFin.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{solicitudesTransferenciaBean.comboFuenteFin.items}" />
+                                <p:ajax listener="#{solicitudesTransferenciaBean.cargarComboFuenteRec()}" event="change" update="f_fuenterecursos" process="@this"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.aniofiscal}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_aniofiscal" styleClass="form-control texto-medio" 
+                                             value="#{solicitudesTransferenciaBean.anioLectivoCombo.selected}" >
+                                <f:selectItems value="#{solicitudesTransferenciaBean.anioLectivoCombo.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nroTransferencia}" for="b_transferencia" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" styleClass="form-control texto-medio" id="b_transferencia" value="#{solicitudesTransferenciaBean.filtro.transferenciaGDep}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.subcomponente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_subcomponente" value="#{solicitudesTransferenciaBean.comboSubComponente.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{solicitudesTransferenciaBean.comboSubComponente.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.lineaPresupuestaria}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_linea" value="#{solicitudesTransferenciaBean.comboLineaPresupuestaria.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{solicitudesTransferenciaBean.comboLineaPresupuestaria.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.fuenteRecursos}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_fuenterecursos" value="#{solicitudesTransferenciaBean.comboFuenteRec.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{solicitudesTransferenciaBean.comboFuenteRec.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.estado}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_estado" styleClass="form-control texto-medio" 
+                                             value="#{solicitudesTransferenciaBean.comboEstados.selected}" >
+                                <f:selectItems value="#{solicitudesTransferenciaBean.comboEstados.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{solicitudesTransferenciaBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{solicitudesTransferenciaBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{solicitudesTransferenciaBean.solicitudTransferenciaDataModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="strPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{solicitudesTransferenciaBean.paginado}"
+                         reflow="true" 
+                         >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{solicitudesTransferenciaBean.totalResultados lt (solicitudesTransferenciaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" />
+                                <h:outputText styleClass="cantidad" value="#{solicitudesTransferenciaBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel>
+                                 
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="Desembolsos" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+               
+                <p:column sortBy="#{elem.strPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroReq}" title="#{msg.hnroRequerimiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.strPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hnroTransferencia}" sortBy="#{elem.strTransferenciaGDepFk.tgdPk}">
+                    <h:outputText value="#{elem.strTransferenciaGDepFk.tgdPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hComponente}" sortBy="#{elem.tddTransferenciaFk.componente.cpeNombre}">
+                    <h:outputText value="#{elem.strTransferenciaGDepFk.tgdTransferenciaFk.traSubcomponente.gesCategoriaComponente.cpeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSubComponente}" sortBy="#{elem.tddTransferenciaFk.subComponente.gesNombre}">
+                    <h:outputText value="#{elem.strTransferenciaGDepFk.tgdTransferenciaFk.traSubcomponente.gesNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hUnidadPresupuestaria}">
+                    <h:outputText value="#{elem.strTransferenciaGDepFk.tgdTransferenciaFk.traLineaPresupuestaria.cuCuentaPadre.cuNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hLineaPresupuestaria}">
+                    <h:outputText value="#{elem.strTransferenciaGDepFk.tgdTransferenciaFk.traLineaPresupuestaria.cuNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hAnioFiscal}" sortBy="#{elem.tacTransferenciaDireccionDepFk.tddTransferenciaFk.anioFiscal.aniAnio}">
+                    <h:outputText value="#{elem.strTransferenciaGDepFk.tgdTransferenciaFk.traAnioFiscal.aniAnio}" />
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.strEstado.text}">
+                     <h:outputText value="#{elem.strEstado.text}" />
+                </p:column>
+                 <p:column headerText="#{msg.hcompromisoPresupuestario}" sortBy="#{elem.strCompromisoPresupuestario}" >
+                      <h:outputText value="#{elem.strCompromisoPresupuestario}" />
+                </p:column>
+                 <p:column headerText="#{msg.hsacUFI}" sortBy="#{elem.strSacUFI}" >
+                     <h:outputText value="#{elem.strSacUFI}" />
+                </p:column>
+                 <p:column headerText="#{msg.hsacGOES}" sortBy="#{elem.strSacGOES}" >
+                      <h:outputText value="#{elem.strSacGOES}" />
+                </p:column>
+                <p:column headerText="#{msg.hmonto}" sortBy="#{elem.strImporteTotal}" styleClass="align-right">
+                    <h:outputText value="#{elem.strImporteTotal}" >
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                      
+                </p:column>
+               
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.SOLICITUD_TRANSFERENCIA}"  title="#{msg.hedicion}"  
+                            styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.strPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{solicitudesTransferenciaBean.historial(elem.strPk)}"/>
+                </p:column>
+
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{solicitudesTransferenciaBean.actualizar(elem)}"
+                                     rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_DESEMBOLSO) and elem.strEstado eq EnumEstadoSolicitudesTransferencia.EN_PROCESO}"/>
+
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_REQ_FONDO}?id=#{elem.strPk}" title="#{msg.resumenRequerimientoFondo}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                        <h:outputText styleClass="glyphicon glyphicon-save-file" />
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_DETA_REQ_FONDO}?id=#{elem.strPk}" title="#{msg.detalleReqFondo}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                        <h:outputText styleClass="glyphicon glyphicon-save-file" />
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{solicitudesTransferenciaBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+       <p:dialog header="#{msg.historialSolicitudTransferencia}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historialSolicitudTransferencia.xhtml">
+                <ui:param name="historial" value="#{solicitudesTransferenciaBean.historialRequerimientoFondo}" /> 
+            </ui:include>   
+        </p:dialog>
+        
+        <p:dialog header="#{msg.agregarSacs}" widgetVar="itemDialog" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false" closable="false" style="min-height: 200px;">             
+            <p:outputPanel id="itemDetail">                  
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>     
+                
+                <h:panelGroup id="uploading">
+                    <p:outputPanel styleClass="form-group row" id="fila_archivo" 
+                                   rendered="#{!solicitudesTransferenciaBean.uploading}">
+                        <h:outputLabel value="#{msg.archivo}" for="file_upload_archivo" 
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8" id="inputfile">
+                            <p:fileUpload fileUploadListener="#{solicitudesTransferenciaBean.handleFileUpload}"
+                                          id="file_upload_archivo"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar archivo"
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoXLSX} "
+                                          update=":form:itemDetail"
+                                          cancelLabel="#{msg.cancelar}" 
+                                          auto="true"
+                                          sizeLimit="#{solicitudesTransferenciaBean.tamanioImportArchivo}" 
+                                          allowTypes="#{solicitudesTransferenciaBean.tipoImportArchivo}"
+                                          rendered="#{solicitudesTransferenciaBean.file == null}"/>
+                            <h:outputText styleClass="form-control-plaintext" value="#{solicitudesTransferenciaBean.nombreFile}"
+                                          rendered="#{solicitudesTransferenciaBean.file!=null}"/>
+                            <p:commandLink action="#{solicitudesTransferenciaBean.eliminarFile()}" 
+                                           update=":form:itemDetail" value="#{msg.eliminar}" 
+                                           rendered="#{solicitudesTransferenciaBean.file!=null}" 
+                                           style="margin-top:1px;margin-bottom: 6px; display: block;" />
+                            <o:graphicImage name="/imagenes/fileXLSX.png" width="100"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel style="width: 100%;text-align: center;padding-bottom: 5em;padding-top: 5em;" 
+                                    rendered="#{solicitudesTransferenciaBean.uploading}">
+                        <o:graphicImage name="/imagenes/loading-cloud.gif" width="50" /> 
+                        <h:outputText style="display: block;font-size: 10px;font-style: italic;" value="Importando archivo..."/>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="control-group">
+                        <p:outputPanel styleClass="float-right">
+                            <p:remoteCommand name="inicio" update="form:itemDetail" action="#{solicitudesTransferenciaBean.renderLoading()}" />
+                            <p:remoteCommand name="fin" update="form:itemDetail form:pnlResultado" action="#{solicitudesTransferenciaBean.renderLoading()}" />
+                            <p:commandButton id="btnGuardar"  value="#{msg.importar}" 
+                                             onclick="inicio()" 
+                                             onsuccess="fin()" 
+                                             update="form:pnlResultado"
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-cloud-upload"
+                                             rendered="#{!solicitudesTransferenciaBean.uploading and solicitudesTransferenciaBean.file!=null}"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  
+                                           update="form:itemDetail" styleClass="btn btn-link"
+                                           rendered="#{!solicitudesTransferenciaBean.uploading}"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>   
+                </h:panelGroup>
+            </p:outputPanel>        
+        </p:dialog> 
+        
+    </h:form>
+</ui:composition>

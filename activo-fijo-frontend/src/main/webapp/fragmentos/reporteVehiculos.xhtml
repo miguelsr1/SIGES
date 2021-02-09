@@ -1,0 +1,337 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.reporteVehiculos}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.reporteVehiculos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPORTE_VEHICULOS)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        
+        
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}">  
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_tipoUnidad">
+                            <h:outputLabel value="#{msg.tipoUnidad}" for="filtro_tipoUnidad" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_tipoUnidad"  styleClass="form-control dropdown texto-medio" value="#{reporteVehiculosBean.comboTiposUnidad.selected}" >
+                                    <f:selectItems value="#{reporteVehiculosBean.comboTiposUnidad.items}" />
+                                    <p:ajax event="change" listener="#{reporteVehiculosBean.seleccionarTipoUnidadAF()}" process="@this" update="filtro_municipio  fila_filtro_unidadadministrativa"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_tipoUnidad" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_unidadactivofijo">
+                            <h:outputLabel value="#{msg.unidadActivoFijo}" for="filtro_unidadactivofijo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_unidadactivofijo"  styleClass="form-control dropdown texto-medio" value="#{reporteVehiculosBean.comboUnidadesActivoFijo.selected}">
+                                    <f:selectItems value="#{reporteVehiculosBean.comboUnidadesActivoFijo.items}" />
+                                    <p:ajax event="change" listener="#{reporteVehiculosBean.seleccionarUnidadActivoFijo()}" process="@this"  update="filtro_municipio fila_filtro_unidadadministrativa"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_unidadactivofijo" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MUNICIPIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio">
+                            <h:outputLabel value="#{msg.municipio}" for="filtro_municipio" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_municipio"  styleClass="form-control dropdown texto-medio" value="#{reporteVehiculosBean.comboMunicipios.selected}">
+                                    <f:selectItems value="#{reporteVehiculosBean.comboMunicipios.items}" />
+                                    <p:ajax event="change" listener="#{reporteVehiculosBean.seleccionarMunicipio()}" process="@this"  update="fila_filtro_unidadadministrativa"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_municipio" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.unidadAdministrativa}" for="filtro_unidadadministrativa" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:panelGroup id="fila_filtro_unidadadministrativa">
+                                    <p:selectOneMenu rendered="#{reporteVehiculosBean.esUnidadAdministrativa}" id="filtro_unidadadministrativa"  value="#{reporteVehiculosBean.unidadSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                        effect="fade" var="u"  styleClass="texto-medio" filter="true" filterMatchMode="contains">
+                                        <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                        <f:selectItems value="#{reporteVehiculosBean.unidadesAdministrativas}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                       <p:column>
+                                           <h:outputText value="#{u.codigoNombre}" />
+                                       </p:column>
+                                   </p:selectOneMenu>
+                                    <p:selectOneMenu rendered="#{!reporteVehiculosBean.esUnidadAdministrativa}" id="filtro_sede" value="#{reporteVehiculosBean.sedeSeleccionada}" converter="#{sedeConverter}"
+                                                effect="fade" var="s"  styleClass="texto-medio" filter="true" filterMatchMode="contains">
+                                        <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                        <f:selectItems value="#{reporteVehiculosBean.sedes}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                           <p:column>
+                                               <h:outputText value="#{s.sedCodigoNombre}" />
+                                           </p:column>
+                                    </p:selectOneMenu>
+                                    
+                                    <p:blockUI block="@form" trigger="filtro_unidadadministrativa filtro_sede" />
+                                </h:panelGroup>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_ESTADO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_estado">
+                            <h:outputLabel value="#{msg.estado}" for="filtro_estado" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="filtro_estado"  value="#{reporteVehiculosBean.comboEstadosBienes.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{reporteVehiculosBean.comboEstadosBienes.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_CODIGO_INVENTARIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_codinventario">
+                            <h:outputLabel value="#{msg.codigoInventario}" for="filtro_codinventario" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_codigoinventario" value="#{reporteVehiculosBean.filtroBienes.codigoInventario}" maxlength="20"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+            <p:panel header="#{msg.filtrosAvanzados}" id="panelAvanzado" 
+                     styleClass="panel-filtro"
+                     closable="true"
+                     rendered="#{reporteVehiculosBean.panelAvanzado}">
+                <p:outputPanel styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_motor">
+                            <h:outputLabel value="#{msg.motor}" for="input_motor" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_motor" value="#{reporteVehiculosBean.filtroBienes.motor}" maxlength="20"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_chasis">
+                            <h:outputLabel value="#{msg.chasis}" for="input_chasis" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_chasis"  value="#{reporteVehiculosBean.filtroBienes.chasis}" maxlength="20"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_placa">
+                            <h:outputLabel value="#{msg.placa}" for="input_placa" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_placa" value="#{reporteVehiculosBean.filtroBienes.placa}" maxlength="20"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row col-md-12" id="fila_filtro_rango_fecha_adquisicion" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_ADQUISICION)}">
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_adquisicion_desde">
+                                <h:outputLabel value="#{msg.fechaAdquisicionDesde}" for="filtro_fecha_adquisicion_desde" styleClass="col-sm-3 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="filtro_fecha_adquisicion_desde" styleClass="form-control"
+                                                value="#{reporteVehiculosBean.filtroBienes.fechaAdquisicionDesde}" 
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_adquisicion_dhasta">
+                                <h:outputLabel value="#{msg.fechaAdquisicionHasta}" for="filtro_fecha_adquisicion_hasta" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="filtro_fecha_adquisicion_hasta" styleClass="form-control"
+                                                value="#{reporteVehiculosBean.filtroBienes.fechaAdquisicionHasta}" 
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row col-md-12" id="fila_filtro_rango_fecha_creacion" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_CREACION)}">
+                        <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_CREACION)}">
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_creacion_desde">
+                                <h:outputLabel value="#{msg.fechaCreacionDesde}" for="filtro_fecha_creacion_desde" styleClass="col-sm-3 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="filtro_fecha_creacion_desde" styleClass="form-control"
+                                                value="#{reporteVehiculosBean.filtroBienes.fechaCreacionDesde}" 
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_CREACION)}">
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_creacion_hasta">
+                                <h:outputLabel value="#{msg.fechaCreacionHasta}" for="filtro_fecha_creacion_hasta" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="filtro_fecha_creacion_hasta" styleClass="form-control"
+                                                value="#{reporteVehiculosBean.filtroBienes.fechaCreacionHasta}" 
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+            <p:outputPanel styleClass="col-md-12">
+                <p:outputPanel styleClass="form-group row">
+                    <p:outputPanel styleClass="col-sm-12 texto-right">
+                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{reporteVehiculosBean.buscar()}" update="pnlResultado"/>
+                        <p:commandLink value="#{reporteVehiculosBean.txtFiltroAvanzado}" 
+                                       action="#{reporteVehiculosBean.verPanelAvanzado()}" 
+                                       update="searchPanels @this" styleClass="btn btn-link" />
+                        <p:commandLink value="#{msg.limpiar}" action="#{reporteVehiculosBean.limpiar()}" 
+                                       update="pnlSearch panelAvanzado pnlResultado" immediate="true" styleClass="btn btn-link">
+                            <p:resetInput target="pnlSearch panelAvanzado pnlResultado" />
+                        </p:commandLink>
+                        <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                        <p:blockUI block="@form" trigger="btnBuscar" />
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </h:panelGroup>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="dataTableWidgetVar"                         
+                         var="elem"
+                         rendered="#{reporteVehiculosBean.bienesDepreciablesLazyModel != null}"
+                         value="#{reporteVehiculosBean.bienesDepreciablesLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="bdePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{reporteVehiculosBean.paginado}"
+                         reflow="true"
+                        > 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{reporteVehiculosBean.totalResultados lt (reporteVehiculosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                         <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{reporteVehiculosBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_CARGOS)}" disabled="#{reporteVehiculosBean.totalResultados == 0}">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="listadoBienes" pageOnly="false"/>
+                                </h:commandLink>
+                                <p:outputPanel id="generarReporte" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_CARGOS) and reporteVehiculosBean.totalResultados > 0}">
+                                   
+                                        <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_VEHICULOS_R}" method="get" target="_blank">
+                                            <input type="hidden" name="tu" value="#{reporteVehiculosBean.tipoUnidad}" />
+                                            <input type="hidden" name="uaf" value="#{reporteVehiculosBean.unidadAFSeleccionada.uafPk}" />
+                                            <input type="hidden" name="uad" value="#{reporteVehiculosBean.unidadSeleccionada.uadPk}"/>
+                                            <input type="hidden" name="sed" value="#{reporteVehiculosBean.sedeSeleccionada.sedPk}"/>
+                                            <input type="hidden" name="depId" value="#{reporteVehiculosBean.filtroBienes.departamentoId}"/>
+                                            <input type="hidden" name="munId" value="#{reporteVehiculosBean.filtroBienes.municipioId}"/>
+                                            <input type="hidden" name="estadoId" value="#{reporteVehiculosBean.filtroBienes.estadoId}"/>
+
+                                            <input type="hidden" name="fuenteId" value="#{reporteVehiculosBean.filtroBienes.fuenteId}"/>
+                                            <input type="hidden" name="proyectoId" value="#{reporteVehiculosBean.filtroBienes.proyectoId}"/>
+                                            <input type="hidden" name="codInventario" value="#{reporteVehiculosBean.filtroBienes.codigoInventario}"/>
+                                            <input type="hidden" name="fechaAdqDesde" value="#{reporteVehiculosBean.filtroBienes.fechaAdquisicionDesde}"/>
+                                            <input type="hidden" name="fechaAdqHasta" value="#{reporteVehiculosBean.filtroBienes.fechaAdquisicionHasta}"/>
+                                            <input type="hidden" name="fechaCreaDesde" value="#{reporteVehiculosBean.filtroBienes.fechaCreacionDesde}"/>
+                                            <input type="hidden" name="fechaCreaHasta" value="#{reporteVehiculosBean.filtroBienes.fechaCreacionHasta}"/>
+                                            <input type="hidden" name="motor" value="#{reporteVehiculosBean.filtroBienes.motor}"/>
+                                            <input type="hidden" name="chasis" value="#{reporteVehiculosBean.filtroBienes.chasis}"/>
+                                            <input type="hidden" name="placa" value="#{reporteVehiculosBean.filtroBienes.placa}"/>
+
+                                            <input type="submit" value="Generar Reporte"  class="btn btn-secondary" onblur="true"/>
+                                        </form>
+                                </p:outputPanel>
+                                <p:commandButton id="toggler" value="#{msg.hcolumnas}"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-align-justify"/>
+                                <p:columnToggler datasource="basicDT" trigger="toggler">
+                                    <p:ajax event="toggle" listener="#{reporteVehiculosBean.onToggle}"/>
+                                </p:columnToggler>
+                            
+                            </p:outputPanel>
+                            
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigoInventario}" sortBy="#{elem.bdeCodigoInventario}" toggleable="false">
+                    <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                </p:column>
+                <p:column headerText="#{msg.hdescripcion}" id="col1" visible="#{reporteVehiculosBean.colVisibilityMap['col1']}" >
+                    <h:outputText value="#{elem.bdeDescripcion}" />
+                </p:column>
+                <p:column headerText="#{msg.hmarca}" sortBy="#{elem.bdeMarca}" id="col2" visible="#{reporteVehiculosBean.colVisibilityMap['col2']}">
+                    <h:outputText  value="#{elem.bdeMarca}" />
+                </p:column>
+                <p:column headerText="#{msg.hplaca}"  id="col3" visible="#{reporteVehiculosBean.colVisibilityMap['col3']}">
+                    <h:outputText  value="#{elem.bdeNoPlaca}" />
+                </p:column>
+                <p:column headerText="#{msg.hmotor}" id="col4" visible="#{reporteVehiculosBean.colVisibilityMap['col4']}">
+                    <h:outputText  value="#{elem.bdeNoMotor}"  />
+                </p:column>
+                <p:column headerText="#{msg.hchasis}" id="col5" visible="#{reporteVehiculosBean.colVisibilityMap['col5']}">
+                    <h:outputText  value="#{elem.bdeNoChasis}" />
+                </p:column>
+                <p:column headerText="#{msg.hcolor}" id="col6" visible="#{reporteVehiculosBean.colVisibilityMap['col6']}">
+                    <h:outputText  value="#{elem.bdeMarca}" />
+                </p:column>
+                <p:column headerText="#{msg.hcalidad}" id="col7" visible="#{reporteVehiculosBean.colVisibilityMap['col7']}">
+                    <h:outputText  value="#{elem.bdeEstadoCalidad.ecaNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaAdquisicion}" sortBy="#{elem.bdeFechaAdquisicion}" id="col8" visible="#{reporteVehiculosBean.colVisibilityMap['col8']}">
+                    <h:outputText  value="#{elem.bdeFechaAdquisicion}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hvalorAdquisicion}" sortBy="#{elem.bdeValorAdquisicion}" exportable="false" id="col9" visible="#{reporteVehiculosBean.colVisibilityMap['col9']}">
+                    <h:outputText value="#{elem.bdeValorAdquisicion}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+               <p:column headerText="#{msg.hunidadAdministrativa}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}" >
+                    <h:outputText value="#{elem.bdeCodigoNombreUnidadAdministrativa}"/>
+                </p:column>
+                 <p:column headerText="#{msg.hasignadoA}" sortBy="#{elem.bdeBienAsignadoA}" exportable="false" id="col10" visible="#{reporteVehiculosBean.colVisibilityMap['col10']}"> 
+                    <h:outputText  value="#{elem.bdeBienAsignadoA}" />
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.bdeEstadosBienes.ebiNombre}"  exportable="false" id="col11" visible="#{reporteVehiculosBean.colVisibilityMap['col11']}"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_ESTADO)}"
+                          toggleable="true">
+                    <h:outputText value="#{elem.bdeEstadosBienes.ebiNombre}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

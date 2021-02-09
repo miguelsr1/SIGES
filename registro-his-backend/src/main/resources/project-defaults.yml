@@ -1,0 +1,76 @@
+project:
+    stage: development
+logger:
+    level: DEBUG
+java:
+    net:
+        preferIPv4Stack: true
+service: ""
+valor-activo-fijo-limite: 600
+files:
+    tmp:
+        path: "/tempmedia/"
+    media:
+        path: "/media/"
+mp:
+    openapi:
+        scan:
+            disable: true
+hibernate:
+    show_sql: true
+thorntail:
+    logging:
+     loggers:
+      org.hibernate.type.descriptor.sql.BasicBinder:
+        level: TRACE
+    port:
+        offset: 0
+    logstash:
+        enabled: false
+        hostname: logstash
+        port: 12100
+        level: INFO
+    datasources:
+        jdbc-drivers:
+          org.postgresql:
+            driver-class-name: org.postgresql.Driver
+            xa-datasource-class-name: org.postgresql.xa.PGXADataSource
+            driver-module-name: org.postgresql
+        data-sources:
+          SigesDS:
+            driver-name: org.postgresql
+            connection-url: ${env.DATABASE_CONNECTION_URL}
+            user-name: ${env.DATABASE_USERNAME}
+            password: ${env.DATABASE_PASSWORD}
+            jta: true
+            use-java-context: true 
+            pool-prefill: true
+            connection-checker-class-name: org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLValidConnectionChecker
+            background-validation: true
+            exception-sorter-class-name: org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter
+    microprofile:
+        jwtauth:
+          token:
+            issuedBy: "SIGES"
+#    microprofile:
+#        jwt:
+#            token:
+#                signer-pub-key: "file:publicKey.pem"
+    security:
+        security-domains:
+          jwt-jaspi:
+            jaspi-authentication:
+              login-module-stacks:
+                roles-lm-stack:
+                  login-modules:
+                    # This stack performs the token verification and group to role mapping
+                    - login-module: rm
+                      code: org.wildfly.swarm.microprofile.jwtauth.deployment.auth.jaas.JWTLoginModule
+                      flag: required
+              auth-modules:
+              # This module integrates the MP-JWT custom authentication mechanism into the web container
+                http:
+                  code: org.wildfly.extension.undertow.security.jaspi.modules.HTTPSchemeServerAuthModule
+                  module: org.wildfly.extension.undertow
+                  flag: required
+                  login-module-stack-ref: roles-lm-stack

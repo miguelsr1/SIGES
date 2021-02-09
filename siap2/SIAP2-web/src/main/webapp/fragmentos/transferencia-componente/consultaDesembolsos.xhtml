@@ -1,0 +1,260 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.DesembolsosComponente')}" /> 
+                </h2>
+
+                
+                
+                <div class="btn-group pull-right">
+                    
+                    <h:outputLink styleClass="btn btn-link" value="#{desembolsosMB.cerrar()}" >
+                        <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                    </h:outputLink>
+                    
+                    <p:commandButton styleClass="btn btn-default"  
+                        icon="glyphicon glyphicon-export"
+                        value="#{textMB.obtenerTexto('labels.DesembolsosPorCentro')}" 
+                        update="panelMensaje"
+                        actionListener="#{desembolsosMB.generarDesembolsoPorCentro()}"
+                        immediate="true" />
+                    
+                    <p:commandButton styleClass="btn btn-default pull-right"  
+                        icon="glyphicon glyphicon-plus"
+                        value="#{textMB.obtenerTexto('labels.Crear')}" 
+                        update="modalEditarForm"
+                        actionListener="#{desembolsosMB.cleanObjects()}"
+                        oncomplete="$('#editModal').modal('show');" 
+                        immediate="true" />
+                </div>
+            </div>
+        </h:form>
+
+        
+        <h:form styleClass="buscador" id="panelMensaje">
+            <div class="panelMensaje">
+                <fieldset>
+                    <div class="col-xs-12">
+                        <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                    </div>
+                </fieldset>
+            </div>            
+        </h:form>
+  
+        <!-- DATA TABLE -->
+        <h:form id="tableForm">
+
+            <div class="panelFiltro">
+                
+                <h:outputText value="#{textMB.obtenerTexto('labels.NumeroTransferencia')}: #{desembolsosMB.idTransferenciaComponente}" styleClass="titulo-resultados"/>
+
+                
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{desembolsosMB.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Categoria" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Porcentaje')}">
+                        <h:outputText value="#{item.propertyMap['porcentaje']}" />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}">
+                        <h:outputText value="#{item.propertyMap['estado'].label}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaDesembolso')}">
+                        <h:outputText value="#{item.propertyMap['fechaDesembolso']}" converter="dateConverterHastaSegundos" />
+                    </p:column>
+
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                            styleClass="btn btn-icono"  
+                            title="#{textMB.obtenerTexto('labels.Editar')}"  
+                            oncomplete="$('#editModal').modal('show');" 
+                            action="#{desembolsosMB.findDesembolso(item.propertyMap['id'])}"  
+                            update="modalEditarForm tableForm"/>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerHistorico')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-open-file" 
+                            styleClass="btn btn-icono"  
+                            title="#{textMB.obtenerTexto('labels.VerHistorico')}"  
+                            oncomplete="$('#historicoModal').modal('show');" 
+                            action="#{desembolsosMB.cargarHistorico(item.propertyMap['id'])}"  
+                            update="modalHistoricoForm tableForm"/>
+                    </p:column>
+    
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                            styleClass="btn btn-danger btn-icono" 
+                            title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                            onclick="if (!existeConfirmacion(this.id)) return false" 
+                            action="#{desembolsosMB.eliminar(item.propertyMap['id'])}"
+                            update="tableForm confirmModalCallBackBody" 
+                            onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+                    </p:column>
+
+                </p:dataTable>  
+            </div>
+        </h:form>
+        
+        
+        <!-- HISTORICO -->
+        <div class="modal fade"  id="historicoModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalHistoricoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaHistorica')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tablaConScroll">
+                                <p:dataTable
+                                    id="dataTableHistorico"
+                                    var="item" 
+                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                    value="#{desembolsosMB.listaDesembolsoHistorico}" 
+                                    styleClass="table" >
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Transferencias')}">
+                                        <h:outputText value="#{item.transferenciasComponente.id}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Porcentaje')}">
+                                        <h:outputText value="#{item.porcentaje}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaDesembolso')}">
+                                        <h:outputText value="#{item.fechaDesembolso}" converter="dateConverterHastaSegundos" />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}">
+                                        <h:outputText value="#{item.estado.label}" />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaModificacion')}">
+                                        <h:outputText value="#{item.ultMod}"  converter="dateConverterHastaSegundos"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}">
+                                        <h:outputText value="#{item.ultUsuario}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cerrar')}" />
+                            </button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div>
+    
+
+        <!-- Modal de editar -->
+        <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Desembolso')}" />
+                            </span>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		                                
+ 
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Porcentaje')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="porcentaje" autocomplete="off" value="#{desembolsosMB.desembolso.porcentaje}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:validateLongRange maximum="100" minimum="0" for="porcentaje"/>
+                                        </h:inputText>
+                                        <h:message for="porcentaje" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FechaSolicitado')}:" />
+                                    <div class="col-sm-9">
+                                        <p:calendar value="#{desembolsosMB.desembolso.fechaDesembolso}" locale="#{utilsMB.localeDate}" styleClass="textoLargo"/>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="lineaPresupuestaria" value="#{desembolsosMB.comboEstado.selected}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{desembolsosMB.comboEstado.items}"/>
+                                        </h:selectOneMenu> 
+                                        <h:message for="lineaPresupuestaria" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                     
+                                
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" 
+                                icon="glyphicon glyphicon-saved" 
+                                value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                actionListener="#{desembolsosMB.guardarActualizar()}"   
+                                update="modalEditarForm tableForm"/>
+                            
+                            <button type="button" 
+                                class="btn btn-link" 
+                                data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+
+                    </h:form>      
+                </div>
+            </div>
+        </div>
+        
+        <!-- ELIMINAR -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+    </ui:composition>
+</html>
+

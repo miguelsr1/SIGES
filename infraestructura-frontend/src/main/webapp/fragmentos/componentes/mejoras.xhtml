@@ -1,0 +1,295 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">    
+
+
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{mejorasBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{mejorasBean.setInmuebleEnEdicion(inmueble)}"/>
+    </f:metadata>      
+    
+           
+           <p:outputPanel styleClass="form-action-buttons margen-sup">
+                <p:commandButton value="#{msg.nuevoMejoras}" icon="glyphicon glyphicon-plus" 
+                                 action="#{mejorasBean.agregar()}" 
+                                 update=":form:tabs:seleccionarMejora:itemDetailMejora" oncomplete="PF('itemDialogMejora').show()"  
+                                 id="btnAgregarCargo" styleClass="btn btn-secondary"       
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_MEJORAS)}"/>
+           
+
+            </p:outputPanel>
+           
+        <p:outputPanel id="panelMejoras">
+            
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearchMejora" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                        <h:outputLabel value="#{msg.edificio}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label"/>                                                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:selectOneMenu id="input_sede_autocomplete" value="#{mejorasBean.comboEdificioFiltro.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{mejorasBean.comboEdificioFiltro.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                                                                                   
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo">
+                        <h:outputLabel value="#{msg.tipo}" for="input_tipo_filtro" styleClass="col-sm-3 col-form-label"/>                                                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:selectOneMenu id="input_tipo_filtro" value="#{mejorasBean.comboTipoMejoraFiltro.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{mejorasBean.comboTipoMejoraFiltro.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                                                                                   
+                    </p:outputPanel>   
+
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-md-6">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_adquisicion">
+                        <h:outputLabel value="#{msg.fecha}" for="input_fecha_adquisicion" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_fecha_adquisicion" styleClass="form-control" 
+                                        value="#{mejorasBean.filtro.fecha}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        maxdate="#{applicationBean.today()}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_fecha_adquisicion" styleClass="msj-danger"/> 
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fuente_financi">
+                        <h:outputLabel value="#{msg.fuenteFinanciamiento}" for="fila_input_fuente_financi" styleClass="col-sm-3 col-form-label"/>                                                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:selectOneMenu id="input_departamento" value="#{mejorasBean.comboFuenteFinanciamientoFiltro.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{mejorasBean.comboFuenteFinanciamientoFiltro.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                                                                                   
+                    </p:outputPanel> 
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3 text-right">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{mejorasBean.buscar()}" update=":form:tabs:seleccionarMejora:pnlResultadoMejora"/>
+                            <p:blockUI block="@form" trigger="btnBuscar"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{mejorasBean.limpiar()}" update=":form:tabs:seleccionarMejora:pnlSearchMejora :form:tabs:seleccionarMejora:pnlResultadoMejora" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target=":form:tabs:seleccionarMejora:pnlSearchMejora :form:tabs:seleccionarMejora:pnlResultadoMejora" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope=":form:tabs:seleccionarMejora"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultadoMejora" >
+            <p:dataTable id="basicDTMejora"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{mejorasBean.mejorasLazyModel}"        
+                         rendered="#{mejorasBean.mejorasLazyModel !=null}"     
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="mejPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{mejorasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{mejorasBean.totalResultados lt (mejorasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{mejorasBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDTMejora" fileName="mejoras" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.edificio}" >
+                    <h:outputText value="#{elem.mejEdificio.ediCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.htipo}" >
+                    <h:outputText value="#{elem.mejTipoMejora.tmeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfecha}" >
+                    <h:outputText value="#{elem.mejFecha}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hcosto}">
+                    <h:outputText value="#{elem.mejCosto}" style="float: right;" converter="#{decimalConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.mejUltModUsuario}">
+                    <h:outputText value="#{elem.mejUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.mejUltModFecha}">
+                    <h:outputText value="#{elem.mejUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:tabs:seleccionarMejora:itemDetailMejora" oncomplete="PF('itemDialogMejora').show()" 
+                                     icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{mejorasBean.actualizar(elem)}"  rendered="#{!mejorasBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_MEJORAS)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton oncomplete="PF('confirmDialogMejora').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{mejorasBean.actualizar(elem)}" rendered="#{!mejorasBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_MEJORAS)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+        </p:outputPanel>
+
+        <p:confirmDialog id="confirmDialogMejora"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogMejora">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDeleteMejora" value="#{msg.hconfirmar}" update=":form:tabs:seleccionarMejora:panelMejoras"
+                                 oncomplete="PF('confirmDialogMejora').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{mejorasBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDeleteMejora"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogMejora').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+       
+
+        <p:dialog header="#{msg.mejoras}" widgetVar="itemDialogMejora" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailMejora">                                                             
+                <h:panelGroup rendered="#{not empty mejorasBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioMejoras">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_edificio">
+                            <h:outputLabel value="#{msg.edificio}" for="input_edificio" styleClass="col-sm-4 col-form-label"/>                                                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:selectOneMenu id="input_edificio" value="#{mejorasBean.comboEdificio.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{mejorasBean.comboEdificio.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>                                                                                   
+                        </p:outputPanel>   
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                            <h:outputLabel value="#{msg.fecha}" for="input_fecha" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha" styleClass="form-control" 
+                                            value="#{mejorasBean.entidadEnEdicion.mejFecha}" 
+                                            pattern="#{applicationBean.patternFecha}"
+                                            maxdate="#{applicationBean.today()}"
+                                            converter="#{localDateConverter}" 
+                                            converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                                <h:message for="input_fecha" styleClass="msj-danger"/> 
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_mejora">
+                            <h:outputLabel value="#{msg.tipo}" for="input_tipo_mejora" styleClass="col-sm-4 col-form-label obligatorio"/>                                                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:selectOneMenu id="input_tipo_mejora" value="#{mejorasBean.comboTipoMejora.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{mejorasBean.comboTipoMejora.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>                                                                                   
+                        </p:outputPanel>   
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_observacion">                        
+                            <h:outputLabel value="#{msg.descripcion}" for="input_observacion" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputTextarea id="input_observacion" styleClass="form-control" 
+                                                 value="#{mejorasBean.entidadEnEdicion.mejDescripcion}"
+                                                 counter="display" maxlength="4000" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false" />
+                                <h:outputText id="display" />
+                            </p:outputPanel>                                           
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_costo">
+                            <h:outputLabel value="#{msg.costo}" for="input_costo" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-2">
+                                <p:inputNumber autocomplete="off" id="input_area" 
+                                               value="#{mejorasBean.entidadEnEdicion.mejCosto}"
+                                               styleClass="form-control texto-medio"
+                                               inputStyle="text-align: right"
+                                               maxValue="9999999999"
+                                               minValue="0"
+                                               decimalPlaces="2" thousandSeparator="."/>
+                               
+                            </p:outputPanel>
+                             <h:outputLabel value="#{msg.expresadoEnDolares}" for="input_valor_adquisi" styleClass="col-sm-6 col-form-label-left"/>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fuente_financi_entrada">
+                            <h:outputLabel value="#{msg.fuenteFinanciamiento}" for="fila_input_fuente_financi_entrada_ent" styleClass="col-sm-4 col-form-label"/>                                                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:selectOneMenu id="fila_input_fuente_financi_entrada_ent" value="#{mejorasBean.comboFuenteFinanciamiento.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{mejorasBean.comboFuenteFinanciamiento.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>                                                                                   
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarMejora"  value="#{msg.guardar}" action="#{mejorasBean.guardar()}" update=":form:tabs:seleccionarMejora:pnlResultadoMejora :form:tabs:seleccionarMejora:itemDetailMejora" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogMejora').hide();"  update=":form:tabs:seleccionarMejora:itemDetailMejora" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block=":form:tabs:seleccionarMejora" trigger="btnGuardarMejora" /> 
+                        <p:defaultCommand target="btnGuardarMejora" scope="itemDetailMejora"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.historialMejoras}" widgetVar="historialDialogMejora" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="historialDetailMejora" styleClass="form-horizontal">                
+                <h:panelGroup rendered="#{not empty mejorasBean.historialMejoras}"  >                     
+                    <p:dataTable value="#{mejorasBean.historialMejoras}" var="hist" reflow="true">                         
+                        <p:column headerText="#{msg.hid}">                            
+                            <h:outputText value="#{hist.mejPk}"/>                         
+                        </p:column>                        
+                        <p:column headerText="#{msg.hcodigo}">                            
+                            <h:outputText value="#{hist.mejCodigo}"/>                         
+                        </p:column>                        
+                        <p:column headerText="#{msg.hnombre}">                            
+                            <h:outputText value="#{hist.mejNombre}"/>                         
+                        </p:column>  
+                        <p:column headerText="#{msg.hhabilitado}">                            
+                            <h:outputText value="#{hist.mejHabilitado}" converter="#{booleanConverter}"/>                                         
+                        </p:column>  
+                        <p:column headerText="#{msg.husuarioMod}">                             
+                            <h:outputText value="#{hist.mejUltModUsuario}"/>                         
+                        </p:column>                         
+                        <p:column headerText="#{msg.hfecha}">                             
+                            <h:outputText value="#{hist.mejUltModFecha}" converter="#{localDateTimeConverter}"/>
+                        </p:column>                                             
+                        <p:column headerText="#{msg.hversion}">                            
+                            <h:outputText value="#{hist.mejVersion}"/>                         
+                        </p:column>                    
+                    </p:dataTable>                
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>    
+    
+</ui:composition>

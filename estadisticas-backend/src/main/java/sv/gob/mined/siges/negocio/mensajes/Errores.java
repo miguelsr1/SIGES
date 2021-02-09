@@ -1,0 +1,68 @@
+/*
+ *  SIGES
+ *  Desarrollado por Sofis Solutions
+ */
+package sv.gob.mined.siges.negocio.mensajes;
+
+public class Errores {
+
+    public static final String ERROR_GENERAL = "ERROR_GENERAL";
+    public static final String ERROR_OPTIMISTIC_LOCK = "ERROR_OPTIMISTIC_LOCK";
+
+    public static final String ERROR_DATO_VACIO = "ERROR_DATO_VACIO";
+    public static final String ERROR_CODIGO_VACIO = "ERROR_CODIGO_VACIO";
+    public static final String ERROR_NOMBRE_VACIO = "ERROR_NOMBRE_VACIO";
+    public static final String ERROR_DESCRIPCION_VACIO = "ERROR_DESCRIPCION_VACIO";
+    public static final String ERROR_VALOR_VACIO = "ERROR_VALOR_VACIO";
+    public static final String ERROR_FECHA_VACIA = "ERROR_FECHA_VACIA";
+
+    public static final String ERROR_LARGO_VALOR_25 = "ERROR_LARGO_VALOR_25";
+    public static final String ERROR_LARGO_DESCRIPCION_255 = "ERROR_LARGO_DESCRIPCION_255";
+    public static final String ERROR_LARGO_NOMBRE_255 = "ERROR_LARGO_NOMBRE_255";
+    public static final String ERROR_LARGO_NOMBRE_20 = "ERROR_LARGO_NOMBRE_20";
+    public static final String ERROR_LARGO_VALOR_255 = "ERROR_LARGO_VALOR_255";
+    public static final String ERROR_LARGO_VALOR_500 = "ERROR_LARGO_VALOR_500";
+    public static final String ERROR_LARGO_CODIGO_45 = "ERROR_LARGO_CODIGO_45";
+    public static final String ERROR_LARGO_CODIGO_4 = "ERROR_LARGO_CODIGO_4";
+    public static final String ERROR_LARGO_CODIGO_6 = "ERROR_LARGO_CODIGO_6";
+    public static final String ERROR_LARGO_CODIGO_8 = "ERROR_LARGO_CODIGO_8";
+    public static final String ERROR_LARGO_CODIGO_10 = "ERROR_LARGO_CODIGO_10";
+    public static final String ERROR_LARGO_CODIGO_20 = "ERROR_LARGO_CODIGO_20";
+    public static final String ERROR_LARGO_CODIGO_50 = "ERROR_LARGO_CODIGO_50";
+    public static final String ERROR_LARGO_NOMBRE_1000 = "ERROR_LARGO_NOMBRE_1000";
+    public static final String ERROR_LARGO_DESCRIPCION_2000 = "ERROR_LARGO_DESCRIPCION_2000";
+
+    public static final String ERROR_LARGO_DESCRIPCION_1000 = "ERROR_LARGO_DESCRIPCION_1000";
+    public static final String ERROR_LARGO_METODO_CALCULO_1000 = "ERROR_LARGO_METODO_CALCULO_1000";
+    public static final String ERROR_LARGO_DEFINICION_1000 = "ERROR_LARGO_DEFINICION_1000";
+    public static final String ERROR_LARGO_FUENTE_1000 = "ERROR_LARGO_FUENTE_1000";
+    public static final String ERROR_LARGO_OBSERVACIONES_1000 = "ERROR_LARGO_OBSERVACIONES_1000";
+
+    public static final String ERROR_CODIGO_O_NOMBRE_DUPLICADOS = "ERROR_CODIGO_O_NOMBRE_DUPLICADOS";
+    public static final String ERROR_CODIGO_DUPLICADO = "ERROR_CODIGO_DUPLICADO";
+    public static final String ERROR_NOMBRE_DUPLICADO = "ERROR_NOMBRE_DUPLICADO";
+    public static final String ERROR_EXTRACCION_DUPLICADA = "ERROR_EXTRACCION_DUPLICADA";
+    public static final String ERROR_CARGA_EXTERNA_DUPLICADA = "ERROR_CARGA_EXTERNA_DUPLICADA";
+
+    public static final String ERROR_ENTIDAD_REFERENCIADA = "ERROR_ENTIDAD_REFERENCIADA";
+
+    public static final String ERROR_NOMBRE_EXTRACCION_VACIO = "ERROR_NOMBRE_EXTRACCION_VACIO";
+    public static final String ERROR_DATASET_VACIO = "ERROR_DATASET_VACIO";
+    public static final String ERROR_ANIO_VACIO = "ERROR_ANIO_VACIO";
+    public static final String ERROR_DESAGREGACION_NO_SOPORTADA = "ERROR_DESAGREGACION_NO_SOPORTADA";
+    public static final String ERROR_REQUIERE_EXTRACCION_ANIO_ANTERIOR = "ERROR_REQUIERE_EXTRACCION_ANIO_ANTERIOR";
+    public static final String ERROR_ANIO_COMPARACION_DEBE_SER_MENOR = "ERROR_ANIO_COMPARACION_DEBE_SER_MENOR";
+    public static final String ERROR_NO_EXISTE_EXTRACCION = "ERROR_NO_EXISTE_EXTRACCION";
+    public static final String ERROR_CONFIG_EDAD_MAXIMA_POBLACION_ESTADISTICAS_INCORRECTA = "ERROR_CONFIG_EDAD_MAXIMA_POBLACION_ESTADISTICAS_INCORRECTA";
+    public static final String ERROR_ALCANCE_EXTRACCION_VACIO = "ERROR_ALCANCE_EXTRACCION_VACIO";
+    public static final String ERROR_ALCANCE_EXTRACCION_SIN_FECHA_MATRICULA = "ERROR_ALCANCE_EXTRACCION_SIN_FECHA_MATRICULA";
+    public static final String ERROR_INDICADOR_VACIO = "ERROR_INDICADOR_VACIO";
+    public static final String ERROR_CATEGORIA_O_INDICADOR_VACIO = "ERROR_CATEGORIA_O_INDICADOR_VACIO";
+
+    public static final String ERROR_ARCHIVO_VACIO = "ERROR_ARCHIVO_VACIO";
+    public static final String ERROR_NO_EXISTE_CARGA_EXTERNA = "ERROR_NO_EXISTE_CARGA_EXTERNA";
+    public static final String ERROR_NO_EXISTE_INDICADOR_MATERIALIZADO = "ERROR_NO_EXISTE_INDICADOR_MATERIALIZADO";
+    public static final String ERROR_TIPO_NUMERICO_VACIO = "ERROR_TIPO_NUMERICO_VACIO";
+    public static final String ERROR_TIPO_RESULTADO_VACIO = "ERROR_TIPO_RESULTADO_VACIO";
+
+}

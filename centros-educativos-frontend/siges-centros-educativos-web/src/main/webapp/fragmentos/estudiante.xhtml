@@ -1,0 +1,586 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <script>
+        window.document.addEventListener('markerClickEvent', handleEvent, false);
+        function handleEvent(e) {
+            updateAddressCoordinates([{name: 'latitude', value: e.detail.latitude}, {name: 'longitude', value: e.detail.longitude}]);
+        }
+
+    </script>
+
+    <h:form id="form">    
+
+        <p:remoteCommand name="updateAddressCoordinates" action="#{estudianteBean.updateAddressCoordinates}" update="@(.latitud_update_class, .longitud_update_class)"/>
+
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumMatriculaEstado"/>
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.ESTUDIANTES}.xhtml">#{msg.gestionEstudiantes}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{estudianteBean.entidadEnEdicion.estPk != null}" value="#{msg.edicionEstudiante}"/>
+                    <h:outputText rendered="#{estudianteBean.entidadEnEdicion.estPk == null}" value="#{msg.nuevoEstudiante}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionEstudiantes}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <p:link rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE) and
+                                    estudianteBean.entidadEnEdicion.estPk != null}"
+                        href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_FICHA_ESTUDIANTE}?id=#{estudianteBean.entidadEnEdicion.estPk}" 
+                        target="_blank" styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                    <h:outputText styleClass="" value="#{msg.hfichaEstudiante}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.ESTUDIANTE)}" />
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{estudianteBean.entidadEnEdicion.estPk != null}" value="#{estudianteBean.tituloPagina}"/>
+            <h:outputText rendered="#{estudianteBean.entidadEnEdicion.estPk == null}" value="#{msg.nuevoEstudiante}" />
+        </h3>
+
+
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos" style="text-align:right;"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup rendered="#{not empty estudianteBean.entidadEnEdicion}"  >
+                <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+                <p:tabView id="tabs" onTabChange="PF('tabsBlocker').show()" activeIndex="#{estudianteBean.tabActiveIndex}">
+                    <p:ajax event="tabChange" listener="#{estudianteBean.changeTab}" process="@form" />
+                    <p:tab title="#{msg.hDatosPersonales}" id="datos_personales" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_PERSONALES_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_PERSONALES_ESTUDIANTE)}">
+                        <p:outputPanel id="formularioEstudiante">
+
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.hcompletarNIE}" icon="fa fa-compress" 
+                                                 oncomplete="PF('itemDialogEstudianteUnir').show()"
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.UNIR_ESTUDIANTES) and (estudianteBean.entidadEnEdicion.estPersona.perNie == null and !estudianteBean.personaSoloLectura)}"
+                                                 id="btnCompletarNie" update="@form" process="@this" styleClass="btn btn-secondary" />
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.hbuscarSimilar}" icon="glyphicon glyphicon-transfer" 
+                                                 oncomplete="PF('itemDialogCandidatos').show()"
+                                                 action="#{estudianteBean.personasSimilares()}"
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_PERSONA_SIMILAR) and (estudianteBean.entidadEnEdicion.estPersona.perNie == null and !estudianteBean.personaSoloLectura)}"
+                                                 id="btnBuscarSimilar" update="@form" process="@this" styleClass="btn btn-secondary" />
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.generarNIE}" icon="glyphicon glyphicon-plus" 
+                                                 action="#{estudianteBean.generarNIE()}" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_NIE) and (estudianteBean.entidadEnEdicion.estPersona.perNie == null and !estudianteBean.personaSoloLectura)}"
+                                                 id="btnAgregarNie" update="@form" process="@this" styleClass="btn btn-secondary" />
+                            </p:outputPanel>
+
+                            <f:subview id="viewEstudianteIden">
+                                <ui:include src="componentes/identificaciones.xhtml">
+                                    <ui:param name="persona" value="#{estudianteBean.obtenerPersonaEnEdicion}" />
+                                    <ui:param name="soloLecturaIdentificaciones" value="#{estudianteBean.personaSoloLectura}" />
+                                    <ui:param name="renderOpcionTieneIdentificacion" value="#{estudianteBean.renderOpcionTieneIdentificacion}" />
+                                </ui:include>
+                            </f:subview>
+
+                            <f:subview id="viewEstudiante">
+                                <ui:include src="componentes/persona.xhtml">
+                                    <ui:param name="persona" id="estudianteReferente" value="#{estudianteBean.obtenerPersonaEnEdicion}" />
+                                    <ui:param name="renderPartidaNacimiento" value="#{estudianteBean.renderPartidaNacimiento}" />    
+                                    <ui:param name="soloLecturaPersona" value="#{estudianteBean.personaSoloLectura}" />
+                                    <ui:param name="verTrastornosAprendizaje" value="#{estudianteBean.verTrastornosAprendizaje}" />     
+                                    <ui:param name="controllerParam" value="#{estudianteBean}" />
+                                    <ui:param name="actionParam" value="#{estudianteBean.personaViewAction}" />   
+                                </ui:include>
+                            </f:subview>
+                            <fieldset>
+                                <legend>#{msg.residencia}</legend>
+                                <f:subview id="viewDireEstudiante">
+                                    <ui:include src="componentes/direccion.xhtml">
+                                        <ui:param name="direccion" value="#{estudianteBean.obtenerDireccionEnEdicion}" />
+                                        <ui:param name="soloLecturaDireccion" value="#{estudianteBean.direccionSoloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+                            </fieldset>
+                            <p:fieldset id="otrosDatos" legend="#{msg.otrosDatosDelLaEstudiante}">
+                                <f:subview id="otrosDatosEstudianteView">
+                                    <ui:include src="componentes/otrosDatosEstudiante.xhtml">
+                                        <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                        <ui:param name="soloLecturaOtrosDatosEstudiante" value="#{estudianteBean.personaSoloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+
+                            </p:fieldset>
+                        </p:outputPanel>
+                        <div class="form-action-buttons">
+                            <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{estudianteBean.guardar()}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!estudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_PERSONALES_ESTUDIANTE)}"/>
+                            <p:blockUI block="formularioEstudiante" trigger="btnGuardar" />
+                            <p:defaultCommand target="btnGuardar" scope="formularioEstudiante"/>  
+                        </div>
+
+
+                    </p:tab>
+                    <p:tab id="allegados" title="#{msg.hresponsablesYFamiliares}" disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                        <p:outputPanel id="allegadosContainer">
+                            <div class="form-action-buttons">
+                                <p:commandButton  id="btnGuardarFamiliar" value="#{msg.agregar}" action="#{estudianteBean.agregarFamiliar()}" update="@form" rendered="#{!estudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}" styleClass="btn btn-secondary" icon="glyphicon glyphicon-plus" />
+                            </div>
+                            <p:outputPanel id="listaFamiliares" >
+                                <p:dataTable id="basicDT"
+                                             widgetVar="widResultado"
+                                             var="elem"
+                                             value="#{estudianteBean.listFamiliares}"
+                                             emptyMessage="#{msg.noHayResultados}" 
+                                             editable="true"
+                                             >
+                                    <p:column headerText="#{msg.parentesco}" sortBy="#{elem.allTipoParentesco.tpaNombre}">
+                                        <h:outputText value="#{elem.allTipoParentesco.tpaNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.allPersona.perPrimerNombre}">
+                                        <h:outputText value="#{elem.allPersona.perPrimerNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.allPersona.perSegundoNombre}">
+                                        <h:outputText value="#{elem.allPersona.perSegundoNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.allPersona.perPrimerApellido}">
+                                        <h:outputText value="#{elem.allPersona.perPrimerApellido}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.allPersona.perSegundoApellido}">
+                                        <h:outputText value="#{elem.allPersona.perSegundoApellido}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hreferente}">
+                                        <p:selectOneRadio layout="responsive" columns="3" 
+                                                          value="#{elem.allReferente}" 
+                                                          disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <p:ajax event="change" process="@this" listener="#{estudianteBean.guardarDatosTabla(elem)}"/>
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                    <p:column headerText="#{msg.hviveCon}">
+                                        <p:selectOneRadio layout="responsive" columns="3" 
+                                                          value="#{elem.allViveConAllegado}"  
+                                                          disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <p:ajax event="change" process="@this" listener="#{estudianteBean.guardarDatosTabla(elem)}"/>
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                    <p:column styleClass="columnaAcciones" exportable="false" rendered="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                        <p:commandButton update="@form"  icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.ver}" action="#{estudianteBean.editarFamiliar(elem)}"/>
+                                    </p:column>
+                                    <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not (estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE))}">
+                                        <p:commandButton update="@form"  icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{estudianteBean.editarFamiliar(elem)}"/>
+                                    </p:column>
+                                    <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not (estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE))}">
+                                        <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}"  action="#{estudianteBean.editarFamiliar(elem)}"/>
+                                    </p:column>
+                                    <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not estudianteBean.personaSoloLectura}">
+                                        <p:commandButton  id="btnCrearUsuario" icon="glyphicon glyphicon-user" rendered="#{elem.allPersona.perUsuarioPk == null or !elem.allTieneRolPadreEnEstudiante}" styleClass="btn btn-icono" title="Crear usuario y/o asignar permisos sobre estudiante" update="@form"  action="#{estudianteBean.crearUsuarioResponsable(elem)}"/>
+                                        <p:outputPanel rendered="#{elem.allPersona.perUsuarioPk != null and elem.allTieneRolPadreEnEstudiante}"  styleClass="btn btn-icono" >
+                                            <h:outputText styleClass="glyphicon glyphicon-user" style="cursor: default; color: green;" title="La persona ya tiene usuario y permisos sobre el estudiante"/>
+                                        </p:outputPanel>    
+                                    </p:column>
+                                </p:dataTable>
+                            </p:outputPanel>
+                            <p:outputPanel id="formularioReferente" rendered="#{not empty estudianteBean.allegadoEnEdicion}">
+                                <div class="separador"></div>
+                                <h3>
+                                    <h:outputText rendered="#{estudianteBean.allegadoEnEdicion.allPk != null}" value="#{msg.edicionRespOFamiliar} #{estudianteBean.allegadoEnEdicion.allPersona.perNombreCompleto}"/>
+                                    <h:outputText rendered="#{estudianteBean.allegadoEnEdicion.allPk == null}" value="#{msg.agregarRespOFamiliar}" />
+                                </h3>
+                                <p:outputPanel styleClass="form-group row" >   
+                                    <h:outputText value="#{msg.esFamiliar}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                    <div class="col-sm-8 col-md-9">                                    
+                                        <p:selectOneRadio layout="responsive" columns="3" id="familiar"
+                                                          value="#{estudianteBean.allegadoEnEdicion.allEsFamiliar}"
+                                                          disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <p:ajax update="fila_input_parentesco_c" event="change" process="@this" />
+                                        </p:selectOneRadio>
+                                    </div>
+                                </p:outputPanel>
+
+                                <h:panelGroup id="fila_input_parentesco_c">
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_parentesco" rendered="#{estudianteBean.allegadoEnEdicion.allEsFamiliar}">                        
+                                        <h:outputLabel value="#{msg.htipoParentesco}" for="input_parentesco" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>                        
+                                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                            <h:selectOneMenu id="input_parentesco" value="#{estudianteBean.comboTipoParentesco.selected}" styleClass="form-control dropdown texto-medio" 
+                                                             disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}" >
+                                                <f:selectItems value="#{estudianteBean.comboTipoParentesco.items}" />
+                                                <p:ajax listener="#{estudianteBean.comboParentescoSelected()}" event="change" />
+                                            </h:selectOneMenu>                                    
+                                            <h:message for="input_parentesco" styleClass="msj-danger"/>
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+                                </h:panelGroup>
+
+                                <p:outputPanel styleClass="form-group row" >   
+                                    <h:outputText value="#{msg.esReferente}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                    <div class="col-sm-8 col-md-9">
+                                        <p:selectOneRadio layout="responsive" columns="3" id="referente"
+                                                          value="#{estudianteBean.allegadoEnEdicion.allReferente}"
+                                                          disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        </p:selectOneRadio>
+                                    </div>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" >   
+                                    <h:outputText value="#{msg.esContactoEmergencia}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                    <div class="col-sm-8 col-md-9">
+                                        <p:selectOneRadio layout="responsive" columns="3" id="contactoEmergencia"
+                                                          value="#{estudianteBean.allegadoEnEdicion.allContactoEmergencia}"
+                                                          disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        </p:selectOneRadio>
+                                    </div>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" >   
+                                    <h:outputText value="#{msg.viveConEstudiante}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                    <div class="col-sm-8 col-md-9">
+                                        <p:selectOneRadio layout="responsive" columns="3" id="viveConEstudiante"
+                                                          value="#{estudianteBean.allegadoEnEdicion.allViveConAllegado}"
+                                                          disabled="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        </p:selectOneRadio>
+                                    </div>
+                                </p:outputPanel>
+
+
+                                <f:subview id="idenFamiliarView">
+                                    <ui:include src="componentes/identificaciones.xhtml">
+                                        <ui:param name="persona" value="#{estudianteBean.obtenerPersonaEnEdicion}" />
+                                        <ui:param name="soloLecturaIdentificaciones" value="#{estudianteBean.personaSoloLectura}" />
+                                        <ui:param name="renderOpcionTieneIdentificacion" value="#{estudianteBean.renderOpcionTieneIdentificacion}" />
+                                    </ui:include>
+                                </f:subview>
+
+                                <f:subview id="viewFamiliar">
+                                    <ui:include src="componentes/persona.xhtml">
+                                        <ui:param name="persona" value="#{estudianteBean.obtenerPersonaEnEdicion}" />
+                                        <ui:param name="soloLecturaPersona" value="#{estudianteBean.personaSoloLectura}" />
+                                        <ui:param name="controllerParam" value="#{estudianteBean}" />
+                                        <ui:param name="actionParam" value="#{estudianteBean.personaViewAction}" />    
+                                        <ui:param name="verTrastornosAprendizaje" value="#{estudianteBean.verTrastornosAprendizaje}" />  
+                                    </ui:include>
+                                </f:subview>
+                                <!-- Se usa style ya que con rendered false hay veces que no funciona bien el actualizar direccion al pasar a true -->
+                                <p:fieldset legend="#{msg.hDireccion}" style="#{estudianteBean.allegadoEnEdicion.allPersona.renderBuscarPersona ? 'display: none;' : 'display: block;'}">
+                                    <f:subview id="viewDireFamiliar">
+                                        <ui:include src="componentes/direccion.xhtml">
+                                            <ui:param name="direccion" value="#{estudianteBean.obtenerDireccionEnEdicion}" />
+                                            <ui:param name="soloLecturaDireccion" value="#{estudianteBean.direccionSoloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </p:fieldset>
+                                <p:fieldset id="otrosDatosALlegado" legend="#{msg.otrosDatos}" style="#{estudianteBean.allegadoEnEdicion.allPersona.renderBuscarPersona ? 'display: none;' : 'display: block;'}">
+                                    <f:subview id="otrosDatosAllegadoView">
+                                        <ui:include src="componentes/otrosDatosAllegado.xhtml">
+                                            <ui:param name="allegado" value="#{estudianteBean.allegadoEnEdicion}" />
+                                            <ui:param name="soloLecturaOtrosDatosAllegado" value="#{estudianteBean.personaSoloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </p:fieldset>
+
+                                <div class="form-action-buttons">
+                                    <p:commandButton  id="btnGuardarReferente" value="#{msg.guardar}" 
+                                                      action="#{estudianteBean.guardarFamiliar()}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!estudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_RESPONSABLE_Y_FAMILIARES_ESTUDIANTE)}"/>
+                                    <p:blockUI block="formularioReferente" trigger="btnGuardarReferente" />
+                                    <p:defaultCommand target="btnGuardarReferente" scope="formularioReferente"/>  
+                                </div>
+
+
+                            </p:outputPanel>
+                            <p:confirmDialog id="confirmDialog"
+                                             message="#{msg.textoConfirmacionEliminacion}"
+                                             header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+                                <p:outputPanel styleClass="float-right" >
+                                    <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                                     oncomplete="PF('confirmDialog').hide()"
+                                                     styleClass="btn btn-primary"
+                                                     action="#{estudianteBean.eliminarFamiliar()}"  />
+                                    <p:blockUI block="@form" trigger="confirmDelete"/>
+                                    <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                                                   onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+                                </p:outputPanel>
+                            </p:confirmDialog>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabManifestacionViolencia" title="#{msg.tManifestacionViolencia}" disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_MANIFESTACION_VIOLENCIA_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_MANIFESTACION_VIOLENCIA_ESTUDIANTE)}">
+                        <p:outputPanel id="tabManifestacionViolenciaContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and estudianteBean.estRev == null and (sessionBean.operaciones.contains(ConstantesOperaciones.VER_MANIFESTACION_VIOLENCIA_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_MANIFESTACION_VIOLENCIA_ESTUDIANTE))}">
+                                <ui:include src="componentes/manifestacionViolenciaComponente.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLecturaManifestacionViolencia" value="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_MANIFESTACION_VIOLENCIA_ESTUDIANTE)}" />
+                                </ui:include>
+                            </c:if>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabValoracionesDocente" title="#{msg.tValoracionesDocente}" disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_VALORACION_DOCENTE_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_VALORACION_DOCENTE_ESTUDIANTE)}">
+                        <p:outputPanel id="tabValoracionesDocenteContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and estudianteBean.estRev == null and sessionBean.operaciones.contains(ConstantesOperaciones.VER_VALORACION_DOCENTE_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_VALORACION_DOCENTE_ESTUDIANTE)}">
+                                <ui:include src="componentes/estudianteValoracionComponente.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLecturaValoracion" value="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_VALORACION_DOCENTE_ESTUDIANTE)}" />
+                                </ui:include>
+                            </c:if>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabBitMatricula" title="#{msg.tBitacoraMatricula}" disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_BITACORA_MATRICULA_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_BITACORA_MATRICULA_ESTUDIANTE)}">
+                        <p:outputPanel id="tabBitMatriculaContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and estudianteBean.estRev == null and (sessionBean.operaciones.contains(ConstantesOperaciones.VER_BITACORA_MATRICULA_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_BITACORA_MATRICULA_ESTUDIANTE))}">
+                                <ui:include src="componentes/matriculaComponente.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLecturaBitacoraMatricula" value="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_BITACORA_MATRICULA_ESTUDIANTE)}" />
+                                </ui:include>
+                            </c:if>
+                            <br/>
+                            <br/>
+                            <fieldset>
+                                <legend>#{msg.servicioSocial}</legend>
+                                <p:outputPanel styleClass="row" >   
+                                    <p:outputPanel styleClass="col-sm-6">   
+                                        <p:outputPanel styleClass="form-group row" id="fila_input_realizoServicioSocial">                        
+                                            <h:outputLabel value="#{msg.realizoHorasServicioSocial}" 
+                                                           styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">                         
+                                                <p:selectOneRadio layout="responsive" columns="3" id="b_servicio_social" 
+                                                                  disabled="#{!estudianteBean.soloLecturaServicioSocial}"
+                                                                  value="#{estudianteBean.entidadEnEdicion.estRealizoServicioSocial}">
+                                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                                    <p:ajax event="change" listener="#{estudianteBean.seleccionadoServicioSocial}"  
+                                                            update="campos_servicio_social"/>
+                                                </p:selectOneRadio>                                                                                                
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>
+
+                                        <p:outputPanel id="campos_servicio_social" >
+                                            <p:outputPanel rendered="#{estudianteBean.entidadEnEdicion.estRealizoServicioSocial}">
+
+                                                <p:outputPanel styleClass="form-group row" id="fila_input_fechaServicioSocial">                        
+                                                    <h:outputLabel value="#{msg.fecha}" for="input_fechaServicioSocial" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                    <p:outputPanel styleClass="col-sm-8">                         
+                                                        <p:calendar id="input_fechaServicioSocial" autocomplete="off" styleClass="form-control" 
+                                                                    value="#{estudianteBean.entidadEnEdicion.estFechaServicioSocial}" 
+                                                                    disabled="#{!estudianteBean.soloLecturaServicioSocial}"
+                                                                    pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"
+                                                                    converter="#{localDateConverter}"
+                                                                    readonlyInput="true"
+                                                                    maxdate="#{applicationBean.today()}"/>                                                                                             
+                                                    </p:outputPanel>                    
+                                                </p:outputPanel>
+
+                                                <p:outputPanel styleClass="form-group row" id="fila_input_cantidadHoras">                        
+                                                    <h:outputLabel value="#{msg.cantidadHoras}" for="input_cantidadHoras" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                    <p:outputPanel styleClass="col-sm-8">                         
+                                                        <p:inputNumber autocomplete="off" disabled="#{!estudianteBean.soloLecturaServicioSocial}"
+                                                                       decimalPlaces="0" thousandSeparator="" emptyValue="empty" minValue="0" maxValue="500" styleClass="form-control" id="input_cantidadHoras" value="#{estudianteBean.entidadEnEdicion.estCantidadHorasServicioSocial}" />
+
+                                                    </p:outputPanel>                    
+                                                </p:outputPanel>
+
+                                                <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                                                    <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                    <p:outputPanel styleClass="col-sm-8">                         
+                                                        <h:inputTextarea  id="input_descripcion" disabled="#{!estudianteBean.soloLecturaServicioSocial}"  styleClass="form-control" value="#{estudianteBean.entidadEnEdicion.estDescripcionServicioSocial}" />                                                                                                                        
+                                                    </p:outputPanel>                    
+                                                </p:outputPanel>
+                                            </p:outputPanel> 
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </fieldset>
+                            <div class="form-action-buttons">
+                                <p:commandButton  id="btnGuardarServicioSocial" value="#{msg.guardar}" 
+                                                  rendered="#{estudianteBean.soloLecturaServicioSocial}" 
+                                                  action="#{estudianteBean.guardar()}" update="@form"  
+                                                  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+
+                            </div>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabDatosSalud" title="#{msg.datosSauld}" disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_SALUD_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_SALUD_ESTUDIANTE)}">
+                        <p:outputPanel id="tabDatosSaludContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and estudianteBean.estRev == null and (sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_SALUD_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_SALUD_ESTUDIANTE))}">
+                                <ui:include src="componentes/datosSaludEstudiante.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLecturaDatosSalud" value="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_SALUD_ESTUDIANTE)}" />
+                                </ui:include>
+                            </c:if>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabAlertas" title="#{msg.halertas}" 
+                           disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_ALERTAS_ESTUDIANTE)}">
+                        <p:outputPanel id="tabAlertasContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and 
+                                          estudianteBean.estRev == null and 
+                                          sessionBean.operaciones.contains(ConstantesOperaciones.VER_ALERTAS_ESTUDIANTE)}">
+                                <ui:include src="componentes/alertasEstudianteComponente.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                </ui:include>
+                            </c:if>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabEscolaridad" title="#{msg.hescolaridad}" 
+                           disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_ESCOLARIDAD_ESTUDIANTE)}">
+                        <p:outputPanel id="tabEscolaridadContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and 
+                                          estudianteBean.estRev == null and
+                                          sessionBean.operaciones.contains(ConstantesOperaciones.VER_ESCOLARIDAD_ESTUDIANTE)}">
+                                <ui:include id="escolaridadDatos"  src="componentes/escolaridadEstudianteComponente.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLectura" value="#{estudianteBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_ESCOLARIDAD_ESTUDIANTE)}" />
+                                </ui:include>
+                            </c:if>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabEvolucion" title="Evolución" disabled="#{estudianteBean.entidadEnEdicion.estPk == null or estudianteBean.estRev != null}"
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_EVOLUCION_ESTUDIANTE)}">
+                        <p:outputPanel id="tabEvolucionContainer">
+                            <c:if test="#{estudianteBean.entidadEnEdicion.estPk != null and estudianteBean.estRev == null 
+                                          and sessionBean.operaciones.contains(ConstantesOperaciones.VER_DATOS_EVOLUCION_ESTUDIANTE)}">
+                                <ui:include src="componentes/estudianteEvolucion.xhtml">
+                                    <ui:param name="estudiante" value="#{estudianteBean.entidadEnEdicion}" />
+                                </ui:include>
+                            </c:if>
+                        </p:outputPanel>
+                    </p:tab>
+                </p:tabView>
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+
+        <p:dialog header="#{msg.hcompletarNIE}" widgetVar="itemDialogEstudianteUnir" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetailEstudianteUnir">
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                    <h:outputLabel value="#{msg.nie}" for="input_nie" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-4">
+                        <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control" id="input_nie"
+                                       value="#{estudianteBean.completarNIE}" />
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-sm-4">
+                        <p:commandButton value="#{msg.buscar}"
+                                         action="#{estudianteBean.buscarRemplazoEstudiante()}" 
+
+                                         id="btnbuscarEstudianteNie" styleClass="btn btn-primary" icon="glyphicon glyphicon-search"  />
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:fieldset legend="#{msg.hestudiante}">
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_nombre_persona">
+                        <h:outputText value="#{msg.nombrecompleto}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext" 
+                                           value="#{estudianteBean.estudianteUnir.estPersona.perNombreCompleto}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_ident_persona">
+                        <h:outputText value="#{msg.identificaciones}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText styleClass="form-control-plaintext" style="white-space: pre-wrap;"
+                                          value="#{estudianteBean.estudianteUnir.estPersona.perIdentificacionesAsString}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:fieldset>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton value="#{msg.hconfirmar}" id="btnConfirmarUnir" update="itemDetailEstudianteUnir" action="#{estudianteBean.unirEstudiante()}" styleClass="btn btn-primary"/>
+                        <p:blockUI block="itemDetailEstudianteUnir" trigger="btnConfirmarUnir" />
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:dialog>
+
+        <p:dialog header="#{msg.listaCandidatos}" widgetVar="itemDialogCandidatos" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetailCandidatos">
+
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                <p:dataTable value="#{estudianteBean.lazyPersonaDataModel}" 
+                             var="per"
+                             paginator="true"
+                             lazy="true"
+                             paginatorPosition="bottom"
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                             rows="#{estudianteBean.paginado}"
+                             reflow="true" 
+                             emptyMessage="#{msg.noHayResultados}">
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{estudianteBean.totalResultadosPersonas lt (estudianteBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                    </f:facet>
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{estudianteBean.totalResultadosPersonas}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.hnombre}">
+                        <h:outputText value="#{per.perNombreCompleto}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hnie}">
+                        <h:outputText value="#{per.perNie}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hdui}">
+                        <h:outputText value="#{per.perDui}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaNacimiento}">
+                        <h:outputText value="#{per.perFechaNacimiento}" converter="#{localDateConverter}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hsexo}">
+                        <h:outputText value="#{per.perSexo.sexNombre}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hdepartamento}">
+                        <h:outputText value="#{per.perDireccion.dirDepartamento.depNombre}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hmunicipio}">
+                        <h:outputText value="#{per.perDireccion.dirMunicipio.munNombre}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hcorreo}">
+                        <h:outputText value="#{per.perEmail}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hestadocivil}">
+                        <h:outputText value="#{per.perEstadoCivil.eciNombre}"  />
+                    </p:column>    
+                    <p:column headerText="#{msg.hestadoMatricula}">
+                        <h:outputText value="#{per.perEstudiante.estUltimaMatricula.matEstado.text}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hanio}">
+                        <h:outputText value="#{per.perEstudiante.estUltimaMatricula.matSeccion.secAnioLectivo.aleAnio}"  />
+                    </p:column>
+                </p:dataTable>
+                <p:outputPanel styleClass="control-group" >
+
+                </p:outputPanel>
+
+            </p:outputPanel>
+        </p:dialog>
+
+    </h:form>
+</ui:composition>

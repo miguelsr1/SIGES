@@ -1,0 +1,795 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.Transferencias')}" /> 
+                </h2>
+
+                <div class="btn-group pull-right">
+                    <h:outputLink styleClass="btn btn-default" value="crearTransferenciasArchivo.xhtml" style="margin-right:10px">
+                        <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.CargarDesdeArchivo')}" />
+                    </h:outputLink>
+                    <p:commandButton styleClass="btn btn-default pull-right"  
+                                     icon="glyphicon glyphicon-plus"
+                                     value="#{textMB.obtenerTexto('labels.Crear')}" 
+                                     update="modalEditarForm"
+                                     actionListener="#{transferenciasMB.preCreate()}"
+                                     oncomplete="$('#editModal').modal('show');" 
+                                     immediate="true" />
+                </div>
+            </div>
+        </h:form>
+
+
+        <!-- EDITAR -->
+        <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Transferencia')}" />
+                            </span>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		                                
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.NumeroTransferencia')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{transferenciasMB.transferencia.id ne null}" styleClass="form-control-static" value="#{transferenciasMB.transferencia.id}" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Componente')}:" />
+                                    <div class="col-sm-9">
+                                       <!-- <h:selectOneMenu id="componente" value="#{transferenciasMB.comboComponente.selected}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{transferenciasMB.comboComponente.items}"/>
+                                            <p:ajax listener="#{transferenciasMB.cargarSubcomponentes()}" update="subcomponente"/>
+                                        </h:selectOneMenu> -->
+                                        <p:autoComplete id="componente" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{transferenciasMB.componenteSelected}"  
+                                            completeMethod="#{transferenciasMB.completeComponentes}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('componente').search(PF('componente').input.val())" 
+                                            widgetVar="componente" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{categoriaPresupuestoEscolarConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" update="subcomponente presupuesto unidadPresupuestaria lineaPresupuestaria idOptPnelNombreComplemento" listener="#{transferenciasMB.limpiarCampos(1)}"/>
+                                        </p:autoComplete>
+                                        <h:message for="componente" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Subcomponente')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                       <!-- <h:selectOneMenu id="subcomponente" value="#{transferenciasMB.comboSubcomponente.selected}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{transferenciasMB.comboSubcomponente.items}"/>
+                                        </h:selectOneMenu> -->
+                                        <p:autoComplete id="subcomponente" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{transferenciasMB.subComponenteSelected}"  
+                                            completeMethod="#{transferenciasMB.completeSubComponentes}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('subcomponente').search(PF('subcomponente').input.val())" 
+                                            widgetVar="subcomponente" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{componentePresupuestoEscolarConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" update="presupuesto unidadPresupuestaria lineaPresupuestaria idOptPnelNombreComplemento" listener="#{transferenciasMB.limpiarCampos(2)}"/>
+                                        </p:autoComplete>
+                                        <h:message for="subcomponente" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="anioFiscal" value="#{transferenciasMB.comboAnioFiscal.selected}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{transferenciasMB.comboAnioFiscal.items}"/>
+                                            <p:ajax  update="presupuesto unidadPresupuestaria lineaPresupuestaria idOptPnelNombreComplemento" listener="#{transferenciasMB.limpiarCampos(3)}"/>
+                                        </h:selectOneMenu> 
+                                        <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="tipo"  value="#{transferenciasMB.comboTipoPresupuestoAnio.selected}" styleClass="form-control textoLargo">
+                                            <f:selectItems value="#{transferenciasMB.comboTipoPresupuestoAnio.items}"/>
+                                            <p:ajax update="presupuesto unidadPresupuestaria lineaPresupuestaria idOptPnelNombreComplemento" process="@this" listener="#{transferenciasMB.limpiarCampos(4)}"/>
+                                        </h:selectOneMenu> 
+                                        <h:message for="tipo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Presupuesto')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <!--  <h:selectOneMenu id="presupuesto" value="#{transferenciasMB.comboPresupuesto.selected}" styleClass="form-control textoLargo" >
+                                            <f:selectItems value="#{transferenciasMB.comboPresupuesto.items}"/>
+                                            <p:ajax update="@parent" process="@form" listener="#{transferenciasMB.cargarNombreYBuscarFuentes()}"/>
+                                            <p:ajax listener="#{transferenciasMB.cargarUnidadPresupuestaria()}" process="@this" update="unidadPresupuestaria lineaPresupuestaria"/>
+                                        </h:selectOneMenu>-->
+                                        <p:autoComplete id="presupuesto" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{transferenciasMB.presupuestoSelected}"  
+                                            completeMethod="#{transferenciasMB.completePresupuestoAnio}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.descripcion}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('presupuesto').search(PF('presupuesto').input.val())" 
+                                            widgetVar="presupuesto" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{relacionGesPresEsAnioFiscalConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" listener="#{transferenciasMB.cargarUnidadPresupuestaria()}" update="unidadPresupuestaria lineaPresupuestaria idOptPnelNombreComplemento"/>
+                                        </p:autoComplete>
+                                        <h:message for="presupuesto" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadPresupuestaria')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="unidadPresupuestaria" value="#{transferenciasMB.comboUnidadPresupuestaria.selected}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{transferenciasMB.comboUnidadPresupuestaria.items}"/>
+                                            <p:ajax listener="#{transferenciasMB.cargarLineaPresupuestaria()}" update="lineaPresupuestaria"/>
+                                        </h:selectOneMenu> 
+                                        <h:message for="unidadPresupuestaria" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.LineaPresupuestaria')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="lineaPresupuestaria" value="#{transferenciasMB.comboLineaPresupuestaria.selected}" styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{transferenciasMB.comboLineaPresupuestaria.items}"/>
+                                            <p:ajax update="@parent" process="@form" listener="#{transferenciasMB.cargarNombreYBuscarFuentes()}"/>
+                                        </h:selectOneMenu> 
+                                        <h:message for="lineaPresupuestaria" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <p:outputPanel id="idOptPnelNombreComplemento">
+                                    
+
+                                    <p:outputPanel rendered="#{transferenciasMB.flagNombreComplemento}">
+                                        <div class="form-group">
+                                            <div class="required">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.NombreComplemento')}:" />
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <h:selectOneMenu id="nombreComplemento"  value="#{transferenciasMB.nombreComplemento}" styleClass="form-control textoLargo">
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                                    <f:selectItems value="#{transferenciasMB.listaNombreComplemento}"/>
+                                                    <p:ajax update="idOptPnelNombreComplemento" listener="#{transferenciasMB.buscarRelacionFuentesFinanciamiento()}"/>
+                                                </h:selectOneMenu> 
+                                                <h:message for="nombreComplemento" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+
+                                    <p:outputPanel rendered="#{transferenciasMB.flagRelacionFinanciamiento}">
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FuentesFinanciamientoPorPresupuesto')}:" />
+                                            <div class="col-sm-9">
+                                                <p:dataTable
+                                                    var="item" 
+                                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                    value="#{transferenciasMB.listaRelacionFinanciamiento}" 
+                                                    styleClass="table" >
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" >
+                                                        <h:outputText value="#{item.fuenteFinanciamiento.nombre}" />
+                                                    </p:column>
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecursos')}" >
+                                                        <h:outputText value="#{item.fuenteRecursos.nombre}" />
+                                                    </p:column>
+                                                </p:dataTable>
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputTextarea id="descripcion" value="#{transferenciasMB.transferencia.descripcion}" styleClass="form-control textoLargo" rows="4" />
+                                        <h:message for="descripcion" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <!--
+                                <p:outputPanel id="pnelPorcentaje" >
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <h:selectOneRadio id="radioOpcion" styleClass="radio" value="#{transferenciasMB.codigoSeleccion}">
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Porcentaje')}" itemValue="1"/>
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.ImporteFijoCentro')}" itemValue="2"/>
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Remanente')}" itemValue="3"/>
+                                                        <p:ajax update="@parent"/>
+                                                    </h:selectOneRadio>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" 
+                                                           value="#{textMB.obtenerTexto('labels.Porcentaje')}:" 
+                                                           rendered="#{transferenciasMB.codigoSeleccion eq 1}"/>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <h:inputText id="porcentaje" autocomplete="off" 
+                                                         rendered="#{transferenciasMB.codigoSeleccion eq 1}"
+                                                         value="#{transferenciasMB.transferencia.porcentaje}" 
+                                                         required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"
+                                                         styleClass="form-control textoLargo">
+                                                <f:validateLongRange maximum="100" minimum="0" for="porcentaje"/>
+                                            </h:inputText>
+                                            <h:message for="porcentaje" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" 
+                                                           value="#{textMB.obtenerTexto('labels.ImporteFijoCentro')}:"
+                                                           rendered="#{transferenciasMB.codigoSeleccion eq 2}"/>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <h:inputText id="importeFijo" autocomplete="off" 
+                                                         value="#{transferenciasMB.transferencia.importeFijoCentro}" 
+                                                         required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"
+                                                         rendered="#{transferenciasMB.codigoSeleccion eq 2}"
+                                                         styleClass="form-control textoLargo"/>
+                                            <h:message for="importeFijo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </p:outputPanel>
+                                -->
+
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="estado" value="#{transferenciasMB.comboEstado.selected}" 
+                                                         styleClass="form-control textoLargo" 
+                                                         disabled="#{transferenciasMB.flagCreate}"
+                                                         required="true"  
+                                                         requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{transferenciasMB.comboEstado.items}"/>
+                                        </h:selectOneMenu> 
+                                        <h:message for="estado" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-saved" 
+                                             value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                             actionListener="#{transferenciasMB.guardarActualizar()}"   
+                                             update="modalEditarForm tableForm"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal" >
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                        <!--<div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" 
+                                value="#{textMB.obtenerTexto('labels.GenerarTransferenciaComponente')}" 
+                                disabled="#{!transferenciasMB.habilitarGeneracionTransferencia()}"
+                                actionListener="#{transferenciasMB.generarTransferenciasComponente()}"   
+                                update="modalEditarForm formTranferenciasComponente"/>
+                        </div>-->
+                    </h:form>      
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- FILTRO -->
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend>
+                        <h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" />
+                    </legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        
+                        <div class="col-sm-6 form-horizontal">
+ 
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Componente')}:" />
+                                <div class="col-sm-8">
+                                   <!-- <h:selectOneMenu  value="#{transferenciasMB.comboComponente.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{transferenciasMB.comboComponente.items}"/>
+                                        <p:ajax listener="#{transferenciasMB.cargarSubcomponentes()}" update="filtroSubcomponente"/>
+                                    </h:selectOneMenu>-->
+                                    <p:autoComplete id="filtroComponente" 
+                                        styleClass="form-control textoLargo" 
+                                        value="#{transferenciasMB.componenteSelected}"  
+                                        completeMethod="#{transferenciasMB.completeComponentes}" 
+                                        maxResults="10"
+                                        var="ut" itemLabel="#{ut.nombre}"  
+                                        itemValue="#{ut}" 
+                                        onclick="PF('filtroComponente').search(PF('filtroComponente').input.val())" 
+                                        widgetVar="filtroComponente" 
+                                        forceSelection="true" 
+                                        queryDelay="500" 
+                                        converter="#{categoriaPresupuestoEscolarConverter}"
+                                        multiple="false">
+                                        <p:ajax event="itemSelect"  process="@this" update="filtroSubcomponente"/>
+                                    </p:autoComplete>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Subcomponente')}:" />
+                                <div class="col-sm-8">
+                                   <!-- <h:selectOneMenu id="filtroSubcomponente" value="#{transferenciasMB.comboSubcomponente.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{transferenciasMB.comboSubcomponente.items}"/>
+                                    </h:selectOneMenu> -->
+                                    <p:autoComplete id="filtroSubcomponente" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{transferenciasMB.subComponenteSelected}"  
+                                            completeMethod="#{transferenciasMB.completeSubComponentes}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('filtroSubcomponente').search(PF('filtroSubcomponente').input.val())" 
+                                            widgetVar="filtroSubcomponente" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{componentePresupuestoEscolarConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" />
+                                        </p:autoComplete>
+                                </div>
+                            </div>
+
+                            <p:outputPanel id="idOptPnelNombreComplemento">
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                    <div class="col-sm-8">
+                                        <h:selectOneMenu id="tipo"  value="#{transferenciasMB.comboTipoPresupuestoAnio.selected}" styleClass="form-control textoMedio">
+                                            <f:selectItems value="#{transferenciasMB.comboTipoPresupuestoAnio.items}"/>
+                                            <p:ajax process="tipo filtroSubcomponente filtroAnioFiscal filtroLineaPresupuestaria" update="@parent" listener="#{transferenciasMB.cargarNombreYBuscarFuentes()}"/>
+                                        </h:selectOneMenu> 
+                                    </div>
+                                </div>
+
+                                <p:outputPanel rendered="#{transferenciasMB.flagNombreComplemento}">
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.NombreComplemento')}:" />
+                                        </div>
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="nombreComplemento"  value="#{transferenciasMB.nombreComplemento}" styleClass="form-control textoMedio">
+                                                <f:selectItems value="#{transferenciasMB.listaNombreComplemento}"/>
+                                            </h:selectOneMenu> 
+                                        </div>
+                                    </div>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.NumeroTransferencia')}:" />
+                                <div class="col-sm-8">
+                                    <p:inputText id="monto-minimo-apr"  value="#{transferenciasMB.numeroTransferencia}"  converter="javax.faces.Integer"
+                                                styleClass="textoMedio numericos form-control">
+                                        <f:convertNumber minFractionDigits="0" maxFractionDigits="0"/>
+                                   </p:inputText> 
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="filtroAnioFiscal" value="#{transferenciasMB.comboAnioFiscal.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{transferenciasMB.comboAnioFiscal.items}"/>
+                                        <p:ajax update="unidadPresupuestaria" listener="#{transferenciasMB.cargarUnidadPresupuestaria()}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadPresupuestaria')}:" />
+                                <div class="col-sm-8">
+                                   <!-- <h:selectOneMenu id="unidadPresupuestaria" value="#{transferenciasMB.comboUnidadPresupuestaria.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{transferenciasMB.comboUnidadPresupuestaria.items}"/>
+                                        <p:ajax listener="#{transferenciasMB.cargarLineaPresupuestaria()}" update="filtroLineaPresupuestaria"/>
+                                    </h:selectOneMenu>--> 
+                                    <p:autoComplete id="unidadPresupuestaria" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{transferenciasMB.unidadPresupuestariaSelected}"  
+                                            completeMethod="#{transferenciasMB.completeUnidadesPresupuestarias}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('unidadPresupuestaria').search(PF('unidadPresupuestaria').input.val())" 
+                                            widgetVar="unidadPresupuestaria" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{cuentaConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" />
+                                        </p:autoComplete>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.LineaPresupuestaria')}:" />
+                                <div class="col-sm-8">
+                                    <!--<h:selectOneMenu id="filtroLineaPresupuestaria" value="#{transferenciasMB.comboLineaPresupuestaria.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{transferenciasMB.comboLineaPresupuestaria.items}"/>
+                                    </h:selectOneMenu> -->
+                                    <p:autoComplete id="filtroLineaPresupuestaria" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{transferenciasMB.lineaPresupuestariaSelected}"  
+                                            completeMethod="#{transferenciasMB.completeLineaPresupuestarias}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('filtroLineaPresupuestaria').search(PF('filtroLineaPresupuestaria').input.val())" 
+                                            widgetVar="filtroLineaPresupuestaria" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{cuentaConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" />
+                                        </p:autoComplete>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu  value="#{transferenciasMB.comboEstado.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{transferenciasMB.comboEstado.items}"/>
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" 
+                                                     icon="glyphicon glyphicon-search" 
+                                                     update="tableForm formfiltro:mensajes" 
+                                                     value="#{textMB.obtenerTexto('labels.Consultar')}"  
+                                                     actionListener="#{transferenciasMB.filterTable()}"/>
+                                    
+                                    <p:commandButton styleClass="btn btn-link" 
+                                                     update="tableForm formfiltro" 
+                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                     actionListener="#{transferenciasMB.cleanObject()}" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                    </div>
+                </fieldset>
+            </div>            
+        </h:form>
+
+
+
+        <!-- DATA TABLE -->
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', transferenciasMB.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{transferenciasMB.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Transferencias" />
+                        </h:commandLink> 
+                    </f:facet>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NumeroTransferencia')}">
+                        <h:outputText value="#{item.propertyMap['id']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.AnioFiscal')}">
+                        <h:outputText value="#{item.propertyMap['anioFiscal.anio']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Componente')}">
+                        <h:outputText value="#{item.propertyMap['subcomponente.categoriaPresupuestoEscolar.nombre']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Subcomponente')}">
+                        <h:outputText value="#{item.propertyMap['subcomponente.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadPresupuestaria')}" >
+                        <h:outputText value="#{item.propertyMap['lineaPresupuestaria.cuentaPadre.nombre']}"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.LineaPresupuestaria')}" >
+                        <h:outputText value="#{item.propertyMap['lineaPresupuestaria.nombre']}" />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Tipo')}">
+                        <h:outputText value="#{item.propertyMap['relacionGesPresEsAnioFiscal.tipo'].label}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NombreComplemento')}">
+                        <h:outputText value="#{item.propertyMap['relacionGesPresEsAnioFiscal.nombreComplemento']}"  />
+                    </p:column>
+                    <!--
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Porcentaje')}" styleClass="alinearDerecha">
+                        <h:outputText value="#{item.propertyMap['porcentaje']}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ImporteFijoCentro')}" styleClass="alinearDerecha">
+                        <h:outputText value="#{item.propertyMap['importeFijoCentro']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Remanente')}">
+                        <h:outputText rendered="#{item.propertyMap['remanente']}" value="#{textMB.obtenerTexto('labels.Si')}" />
+                        <h:outputText rendered="#{!item.propertyMap['remanente']}" value="#{textMB.obtenerTexto('labels.No')}" />
+                    </p:column>
+                    -->
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}">
+                        <h:outputText value="#{item.propertyMap['estado'].label}"  />
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.CargarTransferencias')}" styleClass="columnaAcciones">
+                        <h:outputLink  value="crearTransferenciasArchivo.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.CargarTransferencias')}" >
+                            <f:param name="compoId" value="#{item.propertyMap['relacionGesPresEsAnioFiscal.id']}"  />
+                            <span class="glyphicon glyphicon-usd"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.CargarTransferencias')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         oncomplete="$('#editModal').modal('show');" 
+                                         action="#{transferenciasMB.asignarEdicion(item.propertyMap['id'])}"  
+                                         update="modalEditarForm tableForm"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerHistorico')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-open-file" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.VerHistorico')}"  
+                                         oncomplete="$('#historicoModal').modal('show');" 
+                                         action="#{transferenciasMB.cargarHistorico(item.propertyMap['id'])}"  
+                                         update="modalHistoricoForm tableForm"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         actionListener="#{transferenciasMB.verificarEliminar(item.propertyMap['id'])}"
+                                         update="confirmModalCallBackBody" />
+                    </p:column>
+
+                </p:dataTable>  
+            </div>
+        </h:form>
+
+
+
+        <!-- HISTORICO -->
+        <div class="modal fade"  id="historicoModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalHistoricoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaHistorica')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tablaConScroll">
+                                <p:dataTable
+                                    id="dataTableHistorico"
+                                    var="item" 
+                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                    value="#{transferenciasMB.listaTransferenciasHistorico}" 
+                                    styleClass="table" >
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.AnioFiscal')}">
+                                        <h:outputText value="#{item.anioFiscal.anio}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Componente')}">
+                                        <h:outputText value="#{item.subcomponente.categoriaPresupuestoEscolar.nombre}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Subcomponente')}">
+                                        <h:outputText value="#{item.subcomponente.nombre}" />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadPresupuestaria')}" >
+                                        <h:outputText value="#{item.lineaPresupuestaria.cuentaPadre.nombre}"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.LineaPresupuestaria')}" >
+                                        <h:outputText value="#{item.lineaPresupuestaria.nombre}" />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}">
+                                        <h:outputText value="#{item.ultModUsuario}"  />
+                                    </p:column> 
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaModificacion')}">
+                                        <h:outputText value="#{item.ultModFecha}"  converter="dateConverterHastaSegundos"/>
+                                    </p:column>
+
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cerrar')}" />
+                            </button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+
+        
+        <!-- MODAL PARA CONFIRMAR LAS TRANSFERENCIAS A COMPONENTE-->
+        <h:form id="formTranferenciasComponente" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="tranferenciasComponente" tabindex="-1" role="dialog" aria-labelledby="tranferenciasComponente">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"/>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.GenerarTransferenciasComponente')}" />
+                            </span>
+                        </div>
+                        
+                        <div class="modal-body">    
+                            <h:outputText styleClass="margenInf" value="#{textMB.obtenerTexto('GENERACION_TRANSFERENCIAS_COMPONENTE_ADVERTENCIA_CONTINUAR')}" />
+                        </div>
+                        
+                        <div class="modal-body">
+                            <p:dataTable
+                                id="dataTableFF"
+                                var="item" 
+                                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                value="#{transferenciasMB.listaTC}" 
+                                styleClass="table" >
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" >
+                                    <h:outputText value="#{item.fuenteRecursos.fuenteFinanciamiento.nombre}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecursos')}" >
+                                    <h:outputText value="#{item.fuenteRecursos.nombre}" />
+                                </p:column>
+
+                            </p:dataTable>
+
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}" 
+                                             actionListener="#{transferenciasMB.guardarActualizarTransferenciasComponente()}"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+
+        <!-- MODAL PARA CONFIRMACION DE ELIMINAR-->
+        <h:form id="formEliminar" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" />
+                            </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.ProcesoTechosDesdeArchivoIniciado')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}" 
+                                             actionListener="#{transferenciasMB.eliminar()}"
+                                             update="formfiltro tableForm"
+                                             onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+
+
+    </ui:composition>
+</html>
+

@@ -1,0 +1,493 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <p:outputPanel id="initView">       
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText  rendered="#{!poaCE.metaActual}" value="#{textMB.obtenerTexto('labels.EditarPOA')}" />
+                    <h:outputText  rendered="#{poaCE.metaActual}" value="#{textMB.obtenerTexto('labels.MetaAnual')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearEditarPOA')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.CrearEditarPOA')}" escape="false" /> 
+            </div>
+            <h:form id="formCreatePlantilla"  prependId="false">
+                <p:outputPanel id="bloqueNoModal" styleClass="form-horizontal">
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                    <p:focus context="bloqueNoModal" />
+                    <div class="grupoCampos">
+                        <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        <ui:fragment  rendered="#{!poaCE.metaActual}" >
+                            <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText value="#{poaCE.poa.nombre}" styleClass="form-control"/>
+                                    </div>
+                                </div>
+                            
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                    <div class="col-sm-9">
+                                        <p:autoComplete id="input_unidad_tecnica_autocomplete" 
+                                                styleClass="form-control textoLargo" 
+                                                value="#{poaCE.poa.unidadTecnica}"  
+                                                completeMethod="#{poaCE.completeUnidadesTecnicas}" 
+                                                maxResults="10"
+                                                var="ut" itemLabel="#{ut.nombre}"  
+                                                itemValue="#{ut}" 
+                                                onclick="PF('unidadtecnica_autocomplete').search(PF('unidadtecnica_autocomplete').input.val())" 
+                                                widgetVar="unidadtecnica_autocomplete" 
+                                                forceSelection="true" 
+                                                queryDelay="500" 
+                                                converter="#{unidadTecnicaConverter}"
+                                                multiple="false">
+                                        </p:autoComplete>
+                                        <h:message for="input_unidad_tecnica_autocomplete" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.programaInstitucional')}:" />
+                                    <div class="col-sm-9">
+                                        <p:autoComplete id="input_programa_autocomplete" 
+                                                styleClass="form-control textoLargo" 
+                                                value="#{poaCE.poa.programaInstitucional}"  
+                                                completeMethod="#{poaCE.completeProgramasInstitucionales}" 
+                                                maxResults="10"
+                                                var="prog" itemLabel="#{prog.nombre}"  
+                                                itemValue="#{prog}" 
+                                                onclick="PF('programa_autocomplete').search(PF('programa_autocomplete').input.val())" 
+                                                widgetVar="programa_autocomplete" 
+                                                forceSelection="true" 
+                                                queryDelay="500" 
+                                                converter="#{programaConverter}"
+                                                multiple="false">
+                                        </p:autoComplete>
+                                        <h:message for="input_programa_autocomplete" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.anio')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu  id="anioId" value="#{poaCE.anioFiscalId}"  styleClass="form-control textoMedio" required="false" >
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}"  />
+                                        </h:selectOneMenu>
+                                        <h:message for="anioId" styleClass="help-inline msj-danger" />
+                                    </div>
+
+                                 </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Estado')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{poaCE.poa.estado ne null}" styleClass="form-control-static" value="#{poaCE.poa.estado.label}" />
+                                    </div>
+                                </div>
+                        </ui:fragment>
+                        
+                        <p:outputPanel rendered="#{poaCE.metaActual}" >
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3  control-label" value="*#{textMB.obtenerTexto('labels.MetaAnual')}:" />
+                                <div class="col-sm-9">
+                                    <h:inputTextarea id="metaActual1" value="#{poaCE.meta.metaAnual}" styleClass="form-control textoLargo"  rows="10" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Indicador')}:" />
+                                 <div class="col-sm-9">
+                                        <p:autoComplete id="input_indicador_autocomplete1" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{poaCE.meta.indicador}"  
+                                            completeMethod="#{poaCE.completeIndicador}" 
+                                            maxResults="10"
+                                            var="prog" itemLabel="#{prog.nombre}"  
+                                            itemValue="#{prog}" 
+                                            onclick="PF('indicador_autocomplete').search(PF('indicador_autocomplete').input.val())" 
+                                            widgetVar="indicador_autocomplete" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{indicadorConverter}"
+                                            multiple="false">
+                                    </p:autoComplete>
+                                    
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 col-sm-offset-3">
+                                    <div class="checkbox">
+                                        <label>
+                                            <h:selectBooleanCheckbox id="vinculacionUnidadOperativa1" value="#{poaCE.meta.vinculadoUnidadOperativa}" disabled="#{unidadTecnicaConsulta.editando.id ne null}" styleClass="textoLargo"/>
+                                            #{textMB.obtenerTexto('labels.VinculacionUnidadOperativo')}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3  control-label" value="*#{textMB.obtenerTexto('labels.MedioVerificacionIndicador')}:" />
+                                <div class="col-sm-9 ">
+                                    <h:inputTextarea id="medioVerificacion1" value="#{poaCE.meta.medioVerificacionIndicador}" styleClass="form-control textoLargo"  rows="10" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3  control-label" value="*#{textMB.obtenerTexto('labels.FormaMedicion')}:" />
+                                <div class="col-sm-9">
+                                    <div class="checkbox">
+                                        <label>
+                                            <h:selectOneRadio value="#{poaCE.meta.tipoMedicion}">
+                                                <f:selectItems value="#{utilsMB.getTiposMediciones()}" var="tm" itemLabel="#{tm.label}" itemValue="#{tm}"  />
+                                            </h:selectOneRadio>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3  control-label" value="*#{textMB.obtenerTexto('labels.ProgramacionTrimestralMetalAnual')}:" />
+                                <div class="col-sm-9">
+                                    <!-- POR TABLAS -->
+                                    <div class="table-responsive">
+                                        <table class="table table-hover tabla-campos">
+                                            <thead>
+                                                <tr>
+                                                    <th><h:outputText value="*#{textMB.obtenerTexto('labels.PrimerTrimestre')}"/></th>
+                                                    <th><h:outputText value="*#{textMB.obtenerTexto('labels.SegundoTrimestre')}"/></th>
+                                                    <th><h:outputText value="*#{textMB.obtenerTexto('labels.TercerTrimestre')}"/></th>
+                                                    <th><h:outputText value="*#{textMB.obtenerTexto('labels.CuartoTrimestre')}"/></th>
+                                                    <th><h:outputText value="*#{textMB.obtenerTexto('labels.Totales')}"/></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="numericos">
+                                                        <p:inputText  value="#{poaCE.meta.programaPrimerTrimestre}" >
+                                                            <f:convertNumber minFractionDigits="0" maxFractionDigits="0"  type="number" groupingUsed="false"/>
+                                                            <p:ajax event="keyup" listener="#{poaCE.reloadMontosTRimestralesTarea()}" update="montoTotalTrimestres"/>
+                                                       </p:inputText >
+                                                    </td>
+                                                    <td class="numericos">
+                                                        <p:inputText value="#{poaCE.meta.programaSegundoTrimestre}" >
+                                                            <f:convertNumber minFractionDigits="0" maxFractionDigits="0"  type="number" groupingUsed="false"/>
+                                                            <p:ajax event="keyup" listener="#{poaCE.reloadMontosTRimestralesTarea()}" update="montoTotalTrimestres"/>
+                                                        </p:inputText >
+                                                    </td>
+                                                    <td class="numericos">
+                                                        <p:inputText  value="#{poaCE.meta.programaTercerTrimestre}" >
+                                                            <f:convertNumber minFractionDigits="0" maxFractionDigits="0"  type="number" groupingUsed="false"/>
+                                                            <p:ajax event="keyup" listener="#{poaCE.reloadMontosTRimestralesTarea()}" update="montoTotalTrimestres"/>
+                                                        </p:inputText >
+                                                    </td>
+                                                    <td class="numericos">
+                                                        <p:inputText  value="#{poaCE.meta.programaCuartoTrimestre}" >
+                                                            <f:convertNumber minFractionDigits="0" maxFractionDigits="0"  type="number" groupingUsed="false"/>
+                                                            <p:ajax event="keyup" listener="#{poaCE.reloadMontosTRimestralesTarea()}" update="montoTotalTrimestres"/>
+                                                        </p:inputText >
+                                                    </td>
+                                                    <td class="numericos">
+                                                        <h:outputText id="montoTotalTrimestres" value="#{poaCE.meta.total}" styleClass="col-sm-12 control-label"  />
+                                                    </td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                         </p:outputPanel>
+                     </div>   
+                        
+
+                    <p:outputPanel styleClass="grupoCampos" rendered="#{!poaCE.metaActual}" >
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.MetasPOA')}" />
+                            </div>
+                            <div class="col-sm-6 clearfix">                        
+                                <p:commandButton  styleClass="btn btn-default pull-right" rendered="#{poaCE.poa.id != null and poaCE.poa.id > 0 }" 
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.NuevaMetaPOA')}" 
+                                                 action="#{poaCE.loadMeta('')}" 
+                                                 update="initView"
+                                                 oncomplete="$('html, body').animate({ scrollTop: 0 }, 'fast');"/>
+                            </div>
+                        </div>
+                        <p:dataTable  id="metasPOATabla"
+                                      var="item" 
+                                      value="#{poaCE.poa.metasAnuales}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.MetaAnual')}">
+                                <h:outputText value="#{item.metaAnual}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Indicador')}">
+                                <h:outputText value="#{item.indicador.nombre}"  />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.MedioVerificacionIndicador')}">
+                                <h:outputText value="#{item.medioVerificacionIndicador}"  />
+                            </p:column>
+                            
+                            <p:column headerText="Actividades">
+                                <ui:repeat var="act" value="#{item.actividades}">
+                                    <h:outputText value="#{act.nombre}"  />
+                                    <br></br><br></br>
+                                </ui:repeat>
+                            </p:column>
+                            
+                            
+                            <p:column headerText="#{textMB.obtenerTexto('labels.PrimerTrimestre')}">
+                                <h:outputText value="#{item.programaPrimerTrimestre}"  />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.SegundoTrimestre')}">
+                                <h:outputText value="#{item.programaSegundoTrimestre}"  />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.TercerTrimestre')}">
+                                <h:outputText value="#{item.programaTercerTrimestre}"  />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.CuartoTrimestre')}">
+                                <h:outputText value="#{item.programaCuartoTrimestre}"  />
+                            </p:column>
+                            <p:column  headerText="#{textMB.obtenerTexto('labels.Totales')}">
+                                <h:outputText value="#{item.total}"  />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.EditarMetaPOA')}"  
+                                                 action="#{poaCE.loadMeta(rowIndex)}"  
+                                                 update="initView"
+                                                 oncomplete="$('html, body').animate({ scrollTop: 0 }, 'fast');"/>
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 actionListener="#{poaCE.eliminarMetaAnual(item)}"
+                                                 update="metasPOATabla confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>                     
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="grupoCampos" rendered="#{poaCE.metaActual}" >
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.ActividadesMetaActual')}" />
+                            </div>
+                            <div class="col-sm-6 clearfix">                        
+                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.NuevaActividad')}" 
+                                                 action="#{poaCE.loadActividad('')}" 
+                                                 update="anadirActividadMetaForm"
+                                                 oncomplete="$('#anadirActividadMeta').modal('show');"/>
+                            </div>
+                        </div>
+                        <p:dataTable  id="actividadesMetaTabla"
+                                      var="item" 
+                                      value="#{poaCE.listaActividades}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.PeriodoEjecusionDesde')}">
+                                <h:outputText value="#{item.periodoEjecusionDesde}" converter="dateConverter" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.PeriodoEjecusionHasta')}">
+                                <h:outputText value="#{item.periodoEjecusionHasta}" converter="dateConverter" />
+                            </p:column>
+                            
+                            <p:column headerText="#{textMB.obtenerTexto('labels.FuncionarioResponsableMeta')}">
+                                <h:outputText value="#{item.funcionarioResponsable}"  />
+                            </p:column>
+                            
+                            <p:column headerText="#{textMB.obtenerTexto('labels.UnidadTecnicaResponsable')}">
+                                <h:outputText value="#{item.unidadTecnicaResponsable.nombre}"  />
+                            </p:column>
+                            
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.EditarMetaPOA')}"  
+                                                 action="#{poaCE.loadActividad(rowIndex)}"  
+                                                 update="anadirActividadMetaForm"
+                                                 oncomplete="$('#anadirActividadMeta').modal('show');"/>
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 actionListener="#{poaCE.eliminarActividadMetaAnual(item)}"
+                                                 update="actividadesMetaTabla confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>                     
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                    <h:panelGroup id="riesgosTabla" class="grupoCampos" layout="block" rendered="#{poaCE.poa.id != null and poaCE.poa.id  > 0 and !poaCE.metaActual}"> 
+                        <ui:fragment>
+                                <ui:include src="./../po-comun/POTablaRiesgos.xhtml" >
+                                    <ui:param name="parameterBean" value="#{poaCE}" />
+                                    <ui:param name="poa" value="#{poaCE.poa}" />
+                                </ui:include>
+                            </ui:fragment>
+                           <!-- <ui:fragment rendered="#{ poaCE.poa.estado eq 'CERRADO'}">
+                                <ui:include src="./../po-comun/verPOTablaRiesgos.xhtml" >
+                                    <ui:param name="parameterBean" value="#{poaCE}" />
+                                    <ui:param name="poa" value="#{poaCE.poa}" />
+                                </ui:include>
+                            </ui:fragment>-->
+                    </h:panelGroup>
+                    
+                    <div class="form-group sin-color">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-send" rendered="#{ poaCE.poa != null and  poaCE.poa.id != null and poaCE.poa.id > 0 and poaCE.poa.estado !=null and !poaCE.metaActual and poaCE.poa.estado eq 'EN_ELABORACION' and permisosMB.permisos['ENVIAR_PLAN_OPERATIVO_ANUAL']}"  value="#{textMB.obtenerTexto('labels.Enviar')}" actionListener="#{poaCE.enviar}"  update="initView"/>
+                            <p:commandButton id="save" styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" rendered="#{poaCE.poa != null and poaCE.poa.estado eq 'EN_ELABORACION'}" value="#{textMB.obtenerTexto(poaCE.getLabelSaveButton())}" action="#{poaCE.guardar()}"  update="initView"/>
+                            <p:commandButton id="cerrar" rendered="#{!poaCE.metaActual}" styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.Salir')}" onclick="$('#confirmSalir').modal('show');" />
+                            <p:commandButton id="cerrar2" rendered="#{poaCE.metaActual}"   styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.volver')}" action="#{poaCE.cerrar()}"   update="initView"/>
+                        </div>
+                    </div>
+                </p:outputPanel>
+            </h:form>
+
+
+            <!-- MODAL CONFIRMAR SALIR -->
+            <h:form prependId="false">
+                <div class="modal fade"  id="confirmSalir" tabindex="-1" role="dialog" aria-labelledby="confirmSalir">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                                </button>
+                                <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Advertencia')}" /> </span>
+                            </div>
+                            <div class="modal-body">    
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Si_no_guarda_el_poa_todos_los_cambios_a_las_tarea_se_perderan')}" />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.permanecer_en_la_pagina')}" /></button>
+                                <p:commandButton id="salir"  styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.salir')}" action="#{poaCE.salir()}"   update="initView"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </h:form>
+            
+            <!-- MODAL PARA AGREGAR DETALLE DEL POA-->  
+            <div class="modal fade"  id="anadirActividadMeta" tabindex="-1" role="dialog" aria-labelledby="anadirActividadMeta">
+                <div class="modal-dialog modal-lg" role="document">
+                    <p:outputPanel styleClass="modal-content">
+                        <h:form id="anadirActividadMetaForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.ActividadMetaActual')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.nombre')}:" />
+                                        <div class="col-sm-8 ">
+                                            <h:inputTextarea id="nombre" value="#{poaCE.actividad.nombre}" styleClass="form-control textoLargo"  rows="10" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"/>
+                                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.PeriodoEjecusionDesde')}:" />
+                                        <div class="col-sm-8 ">
+                                            <p:calendar id="desde" value="#{poaCE.actividad.periodoEjecusionDesde}" styleClass="textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" maxdate="#{poaCE.actividad.periodoEjecusionHasta}"/>
+                                            <h:message for="desde" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.PeriodoEjecusionHasta')}:" />
+                                        <div class="col-sm-8 ">
+                                            <p:calendar id="hasta" value="#{poaCE.actividad.periodoEjecusionHasta}" styleClass="textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" />
+                                            <h:message for="hasta" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.FuncionarioResponsableMeta')}:" />
+                                        <div class="col-sm-8 ">
+                                            <h:inputText id="funcionarioResponsable" value="#{poaCE.actividad.funcionarioResponsable}"  styleClass="form-control" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"/>
+                                            <h:message for="funcionarioResponsable" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnicaResponsable')}:" />
+                                        <div class="col-sm-8 ">
+                                            <p:autoComplete id="input_unidad_tecnica_actividad_autocomplete" required="true"
+                                                styleClass="form-control textoLargo" 
+                                                value="#{poaCE.actividad.unidadTecnicaResponsable}" 
+                                                completeMethod="#{poaCE.completeUnidadesTecnicasActividad}" 
+                                                maxResults="10"
+                                                requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"
+                                                var="ut" itemLabel="#{ut.nombre}"  
+                                                itemValue="#{ut}" 
+                                                onclick="PF('unidadtecnica_actividad_autocomplete').search(PF('unidadtecnica_actividad_autocomplete').input.val())" 
+                                                widgetVar="unidadtecnica_actividad_autocomplete" 
+                                                forceSelection="true" 
+                                                queryDelay="500" 
+                                                converter="#{unidadTecnicaConverter}"
+                                                multiple="false">
+                                            </p:autoComplete>
+                                            <h:message for="input_unidad_tecnica_autocomplete" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{poaCE.saveActividadMetaAnual()}" update="anadirActividadMetaForm actividadesMetaTabla"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form>
+                    </p:outputPanel>
+                </div>
+            </div>
+            
+            <!-- MODAL DE ELIMINAR -->
+            <ui:include src="../eliminarGeneralModal.xhtml" />
+
+            <!-- MODALES DE EDITAR CUANDO PUEDE EDITAR -->        
+            <ui:include src="./../po-comun/POAmodalRiesgo.xhtml">
+                <ui:param name="parameterBean" value="#{poaCE}" />
+            </ui:include>
+        </p:outputPanel>
+    </ui:composition>
+</html>

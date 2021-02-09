@@ -1,0 +1,216 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{confirmacionMatriculasBean.onload}"/>
+    </f:metadata>     
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hconfirmacionMatricula}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hconfirmacionMatricula}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <p:commandButton value="#{msg.hverConfirmacionFirmada}" ajax="false" 
+                                 rendered="#{confirmacionMatriculasBean.conf.cmaPk != null and confirmacionMatriculasBean.conf.cmaArhivoFirmado != null}"
+                                 onclick="this.form.target = '_blank';" 
+                                 styleClass="btn btn-secondary">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(confirmacionMatriculasBean.conf.cmaArhivoFirmado)}" />
+                </p:commandButton>
+
+                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CONFIRMACION_MATRICULA_SEDE}?sedId=#{confirmacionMatriculasBean.sedeSeleccionada.sedPk}&amp;a=#{confirmacionMatriculasBean.comboAnioLectivo.selectedT.aleAnio}"
+                        target="_blank" styleClass="btn btn-secondary" 
+                        style="margin-left:15px;"
+                        rendered="#{confirmacionMatriculasBean.conf.cmaPk != null and sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CONFIRMACION_MATRICULA_SEDE)}">
+                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                    <h:outputText styleClass="" value="#{msg.reporteConfirmacionMatriculaSede}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CONFIRMACION_MATRICULAS)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:blockUI block="@form" widgetVar="sedeSelectBlock" /> 
+
+
+        <p:panel toggleable="false">
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_anio_lectivo" value="#{confirmacionMatriculasBean.comboAnioLectivo.selected}"  
+                                     styleClass="form-control texto-medio" disabled="#{confirmacionMatriculasBean.soloLectura}">
+                        <f:selectItems value="#{confirmacionMatriculasBean.comboAnioLectivo.items}"/>
+                        <p:ajax listener="#{confirmacionMatriculasBean.cargarConfirmacion}" process="@this" update="@form"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" 
+                               styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:autoComplete id="input_sede_autocomplete" 
+                                    styleClass="form-control texto-medio"
+                                    value="#{confirmacionMatriculasBean.sedeSeleccionada}"
+                                    completeMethod="#{confirmacionMatriculasBean.completeSede}"
+                                    var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                    itemValue="#{sed}" 
+                                    widgetVar="b_inst_resp_autocomplete"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500" 
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{sedesConverter}"
+                                    disabled="#{confirmacionMatriculasBean.soloLectura}"
+                                    multiple="false">
+                        <p:ajax listener="#{confirmacionMatriculasBean.cargarConfirmacion}" event="itemSelect" process="@this" update="@form"
+                                onstart="PF('sedeSelectBlock').show()"
+                                oncomplete="PF('sedeSelectBlock').hide()"/>
+                    </p:autoComplete>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+
+        </p:panel> 
+
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{confirmacionMatriculasBean.seccionLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         rendered="#{confirmacionMatriculasBean.sedeSeleccionada != null and confirmacionMatriculasBean.comboAnioLectivo.selectedT != null}"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{confirmacionMatriculasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{confirmacionMatriculasBean.totalResultados lt (confirmacionMatriculasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-9">
+                            <h3><h:outputText value="#{msg.hsecciones}" /><h:outputText styleClass="cantidad" value="#{confirmacionMatriculasBean.totalResultados} #{msg.elementos} " /> 
+                                <h:outputText value="#{msg.totalEstudiantes}" /><h:outputText styleClass="cantidad" value="#{confirmacionMatriculasBean.totalMatriculas} " />
+                                <h:outputText value="#{msg.hombres}" /><h:outputText styleClass="cantidad" value="#{confirmacionMatriculasBean.totalHombres} " />
+                                <h:outputText value="#{msg.mujeres}" /><h:outputText styleClass="cantidad" value="#{confirmacionMatriculasBean.totalMujeres} " />
+                            </h3>
+
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-3">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="confirmacionMatriculas" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{msg.hniveles}" sortBy="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.ciclo}" sortBy="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.modalidad}" sortBy="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.opcion}" sortBy="#{elem.secServicioEducativo.sduOpcion.opcNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduOpcion.opcNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hprogramaEducativo}" sortBy="#{elem.secServicioEducativo.sduProgramaEducativo.pedNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduProgramaEducativo.pedNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hmodalidadAtencion}" sortBy="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hgrado}" sortBy="#{elem.secServicioEducativo.sduGrado.graNombre}">
+                    <h:outputText value="#{elem.secServicioEducativo.sduGrado.graNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}">
+                    <h:outputText value="#{elem.nombreSeccion}"/>
+                </p:column>
+                <p:column headerText="#{msg.hhombres}" styleClass="texto-right">
+                    <h:outputText value="#{elem.secCantidadAlumnosHombres}" />
+                </p:column>
+                <p:column headerText="#{msg.hmujeres}" styleClass="texto-right">
+                    <h:outputText value="#{elem.secCantidadAlumnosMujeres}" />
+                </p:column>
+                <p:column headerText="#{msg.htotal}" styleClass="texto-right columnaVerde">
+                    <h:outputText value="#{elem.secCantidadAlumnos}" />
+                </p:column>
+
+            </p:dataTable>
+        </p:outputPanel>
+
+
+        <p:outputPanel rendered="#{confirmacionMatriculasBean.conf.cmaPk != null and confirmacionMatriculasBean.conf.cmaFechaConfirmacion != null}" styleClass="ui-messages">
+            <div class="ui-messages-warn ui-corner-all">
+                <span class="ui-messages-warn-icon"></span>
+                <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.confirmacionMatriculaRealizadaInfo}" />
+            </div>
+        </p:outputPanel>
+
+        <p:outputPanel rendered="#{confirmacionMatriculasBean.conf.cmaPk != null and confirmacionMatriculasBean.conf.cmaFirmada}" styleClass="ui-messages">
+            <div class="ui-messages-warn ui-corner-all">
+                <span class="ui-messages-warn-icon"></span>
+                <h:outputText styleClass="ui-messages-warn-summary" value="La confirmación está firmada" />
+            </div>
+        </p:outputPanel>
+
+
+        <p:outputPanel rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CONFIRMAR_MATRICULAS) and (confirmacionMatriculasBean.conf.cmaPk == null or (!confirmacionMatriculasBean.conf.cmaFirmada and confirmacionMatriculasBean.conf.cmaFirmaTransactionId != null)) and confirmacionMatriculasBean.sedeSeleccionada != null and confirmacionMatriculasBean.comboAnioLectivo.selectedT != null}" styleClass="ui-messages">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <h:outputText styleClass="ui-messages-info-summary float-left margen-sup10" value="#{msg.confirmacionMatriculaInfo}" />
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton value="#{msg.hconfirmar}" 
+                                     action="#{confirmacionMatriculasBean.confirmar()}" 
+                                     update="@form" 
+                                     style="margin-left:15px;"
+                                     id="btnConfirmar" 
+                                     styleClass="btn btn-primary" />
+                    <p:blockUI block="@form" trigger="btnConfirmar" />
+                </p:outputPanel>
+            </div>
+        </p:outputPanel>
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

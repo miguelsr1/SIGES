@@ -1,0 +1,423 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <p:outputPanel id="initView">       
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText  rendered="#{!programaPresupuestarioCE.isSubprograma()}" value="#{textMB.obtenerTexto('labels.ProgramaPresupuestario')}" />
+                    <h:outputText  rendered="#{programaPresupuestarioCE.isSubprograma()}" value="#{textMB.obtenerTexto('labels.SubprogramaPresupuestario')}" />
+                </h2>
+                
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.ProgramaPresupuestario')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.ProgramaPresupuestario')}" escape="false" /> 
+            </div>
+            <!--        <div class="panelSubtituloPagina">
+                            <h3 class="caminoProgramas">
+                                <ui:repeat var="prog" value="# {programaPresupuestarioCE.getNombrePadres()}" varStatus="status">                         
+                                    <h:outputText value="# {prog}" styleClass="nivelPrograma # {programaPresupuestarioCE.getCssLvl(status.index)}"/> 
+                                </ui:repeat>
+                            </h3>
+                        </div>-->
+            <!--        <h:form id="formCreatePlantilla"  prependId="false"  styleClass="# {programaPresupuestarioCE.getSubClassLevel()}" ></h:form>-->
+            <h:form id="formCreatePlantilla"  prependId="false">
+                <p:outputPanel id="bloqueNoModal" styleClass="form-horizontal">
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                    <p:focus context="bloqueNoModal" />
+                    <div class="grupoCampos">
+                        <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        <p:outputPanel styleClass="form-group" rendered="#{programaPresupuestarioCE.isSubprograma()}">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="Programa:" />
+                            <div class="col-sm-9">
+                                <h:outputText value="#{programaPresupuestarioCE.objeto.programaPresupuestario.nombre}" styleClass="form-control-static"/>
+                            </div>
+                        </p:outputPanel>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText id="nombre" value="#{programaPresupuestarioCE.objeto.nombre}" styleClass="form-control-static"  >
+                                </h:outputText>
+                                <h:message for="nombre" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText id="codigo" value="#{programaPresupuestarioCE.objeto.codigo}" styleClass="form-control-static"  >
+                                </h:outputText>
+                                <h:message for="codigo" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Planificacion')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText value="#{programaPresupuestarioCE.objeto.planificacionEstrategica.nombre}" styleClass="form-control-static"  rendered="#{programaPresupuestarioCE.isSubprograma() eq false}"   />
+                                <h:outputText styleClass="form-control-static" rendered="#{programaPresupuestarioCE.isSubprograma()}" value="#{programaPresupuestarioCE.nombrePlanificacion}" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.LineasEstrategicas')}:" />
+                            <ui:fragment  rendered="#{!programaPresupuestarioCE.isSubprograma()}" >
+                                <h:panelGroup layout="block"  id="linea" styleClass="col-sm-9 " >
+                                    <p:pickList id="pickList" value="#{programaPresupuestarioCE.lineasEstrategicas}" 
+                                                var="linea" itemLabel="#{linea.nombre}" itemValue="#{linea}" 
+                                                responsive="true" disabled="true" >
+                                        <f:facet name="sourceCaption">#{textMB.obtenerTexto('labels.Disponibles')}</f:facet>
+                                        <f:facet name="targetCaption">#{textMB.obtenerTexto('labels.Seleccionadas')}</f:facet>
+                                        <f:converter  binding="#{lineaEstrategicaConverter}" />
+                                    </p:pickList>
+                                </h:panelGroup>
+                                <h:message for="linea" styleClass="help-inline msj-danger" />
+                            </ui:fragment>
+                            <ui:fragment  rendered="#{programaPresupuestarioCE.isSubprograma()}" >
+                                <h:panelGroup layout="block"  styleClass="col-sm-9" >
+                                    <h:outputText id="selectUnaLinea" value="#{programaPresupuestarioCE.getLineaEstrategicaDeSubprograma(programaPresupuestarioCE.objeto).nombre}" styleClass="form-control-static"  />
+                                    <h:message for="selectUnaLinea" styleClass="help-inline msj-danger" />
+                                </h:panelGroup>
+                            </ui:fragment>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}:" />
+                            <div class="col-sm-9">     
+                                <h:outputText  value="#{textMB.obtenerTexto(programaPresupuestarioCE.objeto.estado.label)}" styleClass="form-control-static"  />
+                            </div>
+                        </div>
+
+                        <p:outputPanel rendered="#{programaPresupuestarioCE.isSubprograma()}" styleClass="form-group" >
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ClasificadorFuncional')}:" />
+                            <div class="col-sm-9">     
+                                <h:outputText  value="#{programaPresupuestarioCE.objeto.clasificadorFuncional.nombre}" styleClass="form-control-static"  />
+                            </div>
+                        </p:outputPanel>
+                    </div>
+
+                    <!-- tabla para los programas institucionales -->
+                    <p:outputPanel styleClass="grupoCampos" rendered="#{!programaPresupuestarioCE.isSubprograma()}">
+                        <p:outputPanel styleClass="form-group"  >
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.ProgramasInstitucionalesRelacionados')}" />
+                            </div>
+                        </p:outputPanel>
+                        <p:dataTable  id="institucionalesTabla"
+                                      var="item" 
+                                      value="#{programaPresupuestarioCE.objeto.programasInstitucionales}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+
+                        </p:dataTable>
+                    </p:outputPanel>
+
+
+                    <!--tabla de de subprogramas -->    
+                    <p:outputPanel styleClass="grupoCampos" rendered="#{!programaPresupuestarioCE.isSubprograma()}">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.SuprogramasPresupuestarios')}" />
+                            </div>
+                        </div>
+                        <p:dataTable  id="subprogramaTabla"
+                                      var="item" 
+                                      value="#{programaPresupuestarioCE.objeto.programasPresupuestarios}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.estado')}">
+                                <h:outputText value="#{textMB.obtenerTexto(item.estado.label)}"  />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.LineaEstrategica')}">
+                                <h:outputText value="#{programaPresupuestarioCE.getLineaEstrategicaDeSubprograma(item).nombre}"  />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-eye-open" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.EditarSubprograma')}"  
+                                                 action="#{programaPresupuestarioCE.loadSubprograma(rowIndex)}"  
+                                                 update="initView"
+                                                 oncomplete="$('html, body').animate({ scrollTop: 0 }, 'fast');"/>
+                            </p:column>
+
+                        </p:dataTable>
+                    </p:outputPanel>            
+
+
+                    <!--tabla de de SUPUESTOS -->    
+                    <div class="grupoCampos">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Supuestos')}" />
+                            </div>
+                        </div>
+
+                        <p:dataTable  id="supuestoTabla"
+                                      var="item" 
+                                      value="#{programaPresupuestarioCE.objeto.supuestos}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Descripcion')}">
+                                <h:outputText value="#{item.texto}" />
+                            </p:column>
+
+                        </p:dataTable>
+                    </div>
+
+
+                    
+                    
+                     <!-- tabla de techos para subprogramas-->
+                    <p:outputPanel  styleClass="grupoCampos"  rendered="#{programaPresupuestarioCE.isSubprograma() }" >
+
+                        <!-- SI TEINE PERMISO DE EDITAR -->
+                        <p:outputPanel  rendered="#{ permisosMB.permisos['CARGA_FUENTES_EN_SUBPROGRAMA_PRESUPUESTARIO']}" >
+                            <div class="form-group">
+                                <div class="col-sm-6">
+                                    <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Fuentes')}" />
+                                </div>
+                                <div class="col-sm-6 clearfix">     
+                                    
+                                </div>
+                            </div>
+                            <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                            <p:dataTable  id="tablaTechos"
+                                          value="#{programaPresupuestarioCE.objeto.techos}" 
+                                          emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                          var="item">
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" >
+                                    <h:outputText value="#{item.fuenteFinanciamiento.nombre}" />
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecurso')}" >
+                                    <h:outputText value="#{item.fuenteRecursos.nombre}" />
+                                </p:column>
+                                <p:columns value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column" columnIndexVar="colIndex" styleClass="numericos">
+                                    <f:facet name="header">
+                                        <h:outputText rendered="#{colIndex!=0 and colIndex!= programaPresupuestarioCE.aniosPlanificacion.size()-1}" value="#{column}" />
+                                        <h:outputText rendered="#{colIndex==0 }" value="#{programaPresupuestarioCE.planificacion.desde}"  converter="dateConverter" />
+                                        <h:outputText rendered="#{colIndex==programaPresupuestarioCE.aniosPlanificacion.size()-1}"   value="#{programaPresupuestarioCE.planificacion.hasta}"  converter="dateConverter"  />                                                      
+                                    </f:facet>
+                                    <p:inputText id="monto-ut"  value="#{item.techos[colIndex].monto}"  converter="javax.faces.BigDecimal"
+                                                 styleClass="textoCorto numericos form-control pull-right"  disabled="#{!utilsMB.habilitadaAnioTechoCategoriaPresupuestal(column)}" >
+                                        <p:ajax event="keyup" listener="#{programaPresupuestarioCE.recalcularTotales()}"  process="@this"
+                                                oncomplete="refreshFooter();" />
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </p:inputText> 
+                                </p:columns>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-default btn-icono"  
+                                                     title="#{textMB.obtenerTexto('labels.EditarProrroga')}"  
+                                                     update="anadirFuenteForm"
+                                                     action="#{programaPresupuestarioCE.reloadTecho()}"
+                                                     oncomplete="$('#anadirFuente').modal('show');" 
+                                                     immediate="true">
+                                        <f:setPropertyActionListener target="#{programaPresupuestarioCE.techo}" value="#{item}" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                     styleClass="btn btn-danger btn-icono" 
+                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                 return false" 
+                                                     actionListener="#{programaPresupuestarioCE.eliminarFuente(item)}"
+                                                     update="tablaTechos confirmModalCallBackBody"
+                                                     immediate="true">
+                                    </p:commandButton>
+                                </p:column>
+                                <p:columnGroup type="footer">
+                                    <p:row>
+                                        <p:column  footerText=" " />
+                                        <p:column  style="text-align:right" footerText="#{textMB.obtenerTexto('labels.Total')}" />
+                                        <ui:repeat value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column"  varStatus="columnStatus">
+                                            <p:column style="text-align:right" footerText="#{utilsMB.formatNumber(programaPresupuestarioCE.totalesSuma[columnStatus.index])}" />
+                                        </ui:repeat>
+                                        <p:column  footerText=" " />
+                                        <p:column  footerText=" " />
+                                    </p:row>
+                                    <p:row>
+                                        <p:column  footerText=" " />
+                                        <p:column  style="text-align:right" footerText="#{textMB.obtenerTexto('labels.Asignado')}" />
+                                        <ui:repeat value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column"  varStatus="columnStatus">
+                                            <p:column style="text-align:right"  footerText="#{utilsMB.formatNumber(programaPresupuestarioCE.totalesAsignado[columnStatus.index])}" />
+                                        </ui:repeat>
+                                        <p:column  footerText=" " />
+                                        <p:column  footerText=" " />
+                                    </p:row>
+                                    <p:row>
+                                        <p:column  footerText=" " />
+                                        <p:column  style="text-align:right" footerText="#{textMB.obtenerTexto('labels.Diferencia')}" />
+                                        <ui:repeat value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column"  varStatus="columnStatus">
+                                            <p:column style="text-align:right" footerText="#{utilsMB.formatNumber(programaPresupuestarioCE.totalesDiferencia[columnStatus.index])}" />
+                                        </ui:repeat>
+                                        <p:column  footerText=" " />
+                                        <p:column  footerText=" " />
+                                    </p:row>
+                                </p:columnGroup>
+                            </p:dataTable>
+                            <p:remoteCommand name="refreshFooter" update="tablaTechos"/>
+                            
+                         
+                            
+                        </p:outputPanel>
+
+
+
+                        <!-- SI NO TIENE PERMISO DE EDITAR SOLO VE -->
+                        <p:outputPanel  rendered="#{ not permisosMB.permisos['CARGA_FUENTES_EN_SUBPROGRAMA_PRESUPUESTARIO']}" >
+                            <div class="form-group">
+                                <div class="col-sm-6">
+                                    <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Fuentes')}" />
+                                </div>
+                            </div>
+                            <p:dataTable  
+                                          value="#{programaPresupuestarioCE.objeto.techos}" 
+                                          emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                          var="item">
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" >
+                                    <h:outputText value="#{item.fuenteFinanciamiento.nombre}" />
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecurso')}" >
+                                    <h:outputText value="#{item.fuenteRecursos.nombre}" />
+                                </p:column>
+                                <p:columns value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column" columnIndexVar="colIndex" styleClass="numericos">
+                                    <f:facet name="header">
+                                        <h:outputText rendered="#{colIndex!=0 and colIndex!= programaPresupuestarioCE.aniosPlanificacion.size()-1}" value="#{column}" />
+                                        <h:outputText rendered="#{colIndex==0 }" value="#{programaPresupuestarioCE.planificacion.desde}"  converter="dateConverter" />
+                                        <h:outputText rendered="#{colIndex==programaPresupuestarioCE.aniosPlanificacion.size()-1}"   value="#{programaPresupuestarioCE.planificacion.hasta}"  converter="dateConverter"  />                                                      
+                                    </f:facet>
+                                    <h:outputText id="monto-ut"  value="#{item.techos[colIndex].monto}"  styleClass=" numericos " >
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </p:columns>                            
+                                <p:columnGroup type="footer">
+                                    <p:row>
+                                        <p:column  footerText=" " />
+                                        <p:column  style="text-align:right" footerText="#{textMB.obtenerTexto('labels.Total')}" />
+                                        <ui:repeat value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column"  varStatus="columnStatus">
+                                            <p:column style="text-align:right" footerText="#{utilsMB.formatNumber(programaPresupuestarioCE.totalesSuma[columnStatus.index])}" />
+                                        </ui:repeat>
+                                    </p:row>
+                                    <p:row>
+                                        <p:column  footerText=" " />
+                                        <p:column  style="text-align:right" footerText="#{textMB.obtenerTexto('labels.Asignado')}" />
+                                        <ui:repeat value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column"  varStatus="columnStatus">
+                                            <p:column style="text-align:right"  footerText="#{utilsMB.formatNumber(programaPresupuestarioCE.totalesAsignado[columnStatus.index])}" />
+                                        </ui:repeat>
+                                    </p:row>
+                                    <p:row>
+                                        <p:column  footerText=" " />
+                                        <p:column  style="text-align:right" footerText="#{textMB.obtenerTexto('labels.Diferencia')}" />
+                                        <ui:repeat value="#{programaPresupuestarioCE.aniosPlanificacion}" var="column"  varStatus="columnStatus">
+                                            <p:column style="text-align:right" footerText="#{utilsMB.formatNumber(programaPresupuestarioCE.totalesDiferencia[columnStatus.index])}" />
+                                        </ui:repeat>
+                                    </p:row>
+                                </p:columnGroup>
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                    
+
+
+
+
+
+
+                    <div class="form-group sin-color">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <p:commandButton id="cerrar2" styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.volver')}" action="#{programaPresupuestarioCE.cerrar()}"   update="initView"/>
+                        </div>
+                    </div>
+                </p:outputPanel>
+            </h:form>
+
+
+            
+            
+            
+            
+            
+            <!-- MODAL PARA AGREGAR Fuenets-->  
+            <div class="modal fade"  id="anadirFuente" tabindex="-1" role="dialog" aria-labelledby="anadirFuente">
+                <div class="modal-dialog modal-lg" role="document">
+                    <p:outputPanel styleClass="modal-content">
+                        <h:form id="anadirFuenteForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Fuente')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" />
+                                        <div class="col-sm-8 ">
+                                            <h:selectOneMenu id="selectFF" value="#{programaPresupuestarioCE.idFuenteFinanciamiento}"  styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems  value="#{utilsMB.getFuentesFinanciamiento()}"  />
+                                                <f:ajax render="selectFR"  />
+                                            </h:selectOneMenu> 
+                                            <h:message for="selectFF" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4  control-label" value="*#{textMB.obtenerTexto('labels.FuenteRecurso')}" />
+                                        <div class="col-sm-8 ">
+                                            <h:selectOneMenu id="selectFR" value="#{programaPresupuestarioCE.idFuenteRecurso}"  styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems  value="#{utilsMB.getFuentesRecurso(programaPresupuestarioCE.idFuenteFinanciamiento)}"  />
+                                            </h:selectOneMenu> 
+                                            <h:message for="selectFR" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{programaPresupuestarioCE.addTecho()}"   update="anadirFuenteForm tablaTechos"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form>
+                    </p:outputPanel>
+                </div>
+            </div>
+
+            
+            <!-- MODAL DE ELIMINAR -->
+            <ui:include src="../eliminarGeneralModal.xhtml" />
+
+            
+            
+            
+        </p:outputPanel>
+    </ui:composition>
+</html>

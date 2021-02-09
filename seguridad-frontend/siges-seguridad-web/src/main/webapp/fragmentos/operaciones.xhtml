@@ -1,0 +1,254 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">                 
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionOperacion}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionOperacion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoOperacion}" icon="glyphicon glyphicon-plus" 
+                                 action="#{operacionBean.agregar()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarOperacion" styleClass="btn btn-secondary"     
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_OPERACION)}"/>
+                <p:commandButton title="#{msg.ayuda}" icon="glyphicon glyphicon-question-sign" 
+                                 id="btnAyuda" styleClass="btn btn-icono btn-ayuda"
+                                 oncomplete="PF('sidebar2').show()"/>
+                <p:sidebar widgetVar="sidebar2" position="right" baseZIndex="90000">
+                    <ui:include src="componentes/ayudaComponente.xhtml">
+                        <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.OPERACIONES)}" /> 
+                    </ui:include>
+                </p:sidebar>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo" value="#{operacionBean.filtro.codigo}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{operacionBean.filtro.habilitado}">
+                                    <f:selectItems value="#{applicationBean.habilitadoValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{operacionBean.filtro.nombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.categoria}" for="b_categoria" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_categoria" value="#{operacionBean.comboCategoriasBuscar.selected}"  
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{operacionBean.comboCategoriasBuscar.items}"/>
+                            </h:selectOneMenu>      
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                             action="#{operacionBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{operacionBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{operacionBean.operacionLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="opePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{operacionBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{operacionBean.totalResultados lt (operacionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{operacionBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="operacion" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.opeCodigo}">
+                    <h:outputText value="#{elem.opeCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.opeNombre}">
+                    <h:outputText value="#{elem.opeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hcategoria}" sortBy="#{elem.opeCategoriaOperacion.copNombre}">
+                    <h:outputText value="#{elem.opeCategoriaOperacion.copNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hhabilitado}">
+                    <h:outputText value="#{elem.opeHabilitado}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.opeUltModUsuario}">
+                    <h:outputText value="#{elem.opeUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.opeUltModFecha}">
+                    <h:outputText value="#{elem.opeUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"     
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_OPERACION)}">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                     icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" 
+                                     action="#{operacionBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{operacionBean.historial(elem.opePk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"     
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_OPERACION)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{operacionBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{operacionBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.operacion}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty operacionBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioOperacion">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_codigo" styleClass="form-control" value="#{operacionBean.entidadEnEdicion.opeCodigo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{operacionBean.entidadEnEdicion.opeNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_categoria">
+                            <h:outputLabel value="#{msg.categoria}" for="input_categoria" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu value="#{operacionBean.comboCategorias.selected}" id="input_categoria" styleClass="form-control texto-medio">
+                                    <f:selectItems  value="#{operacionBean.comboCategorias.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">
+                            <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:textEditor id="input_descripcion" styleClass="form-control" value="#{operacionBean.entidadEnEdicion.opeDescripcion}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{operacionBean.entidadEnEdicion.opeHabilitado}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{operacionBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>               
+                             
+                        <p:blockUI block="@form" trigger="btnGuardar" />       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+    
+        
+        <p:dialog header="#{msg.historialOperacion}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{operacionBean.historialOperacion}" /> 
+            </ui:include>   
+        </p:dialog> 
+    </h:form>
+</ui:composition>

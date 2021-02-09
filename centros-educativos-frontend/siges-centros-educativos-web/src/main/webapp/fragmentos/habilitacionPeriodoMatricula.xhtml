@@ -1,0 +1,324 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoHabilitacionPeriodoMatricula" />
+        <nav aria-label="breadcrumb">
+
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#{ConstantesPaginas.HABILITACIONES_PERIODOS_MATRICULA}.xhtml">#{msg.solicitudesHabilitacionPeriodoMatricula}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" >#{habilitacionPeriodoMatriculaBean.tituloDialog()}</li>
+
+                </ol>
+            </nav>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{habilitacionPeriodoMatriculaBean.tituloDialog()}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.HABILITACION_PERIODO_MATRICULA)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="panelEnt">
+
+            <h:panelGroup rendered="#{not empty habilitacionPeriodoMatriculaBean.entidadEnEdicion }"  >
+                <fieldset>
+
+                    <p:outputPanel id="formularioHabilitacionPeriodoCalificacion">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk != null}" >                        
+                            <h:outputLabel value="#{msg.nroSolicitud}" for="input_codigo"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:outputText  id="input_codigo" styleClass="form-control-plaintext" value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel id="busquedaEstudiante" >
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_b" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:autoComplete id="input_sede_autocomplete_b"
+                                                    styleClass="form-control texto-medio"
+                                                    value="#{habilitacionPeriodoMatriculaBean.sedeSeleccionada}"
+                                                    rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk == null and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                                    completeMethod="#{habilitacionPeriodoMatriculaBean.completeSede}"
+                                                    var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                                    itemValue="#{sed}"
+                                                    forceSelection="true"
+                                                    maxResults="10"
+                                                    queryDelay="500"
+                                                    multiple="false"
+                                                    converter="#{sedesConverter}"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}">        
+                                        <p:ajax listener="#{habilitacionPeriodoMatriculaBean.seleccionarSede}" event="itemSelect"  process="@this" update="@form"/>
+                                    </p:autoComplete>
+                                    <h:outputText value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpSedeFk.sedCodigoNombre}" styleClass="form-control-plaintext" 
+                                                  rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk != null or (habilitacionPeriodoMatriculaBean.soloLectura)}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_observacion_creacion">
+                            <h:outputLabel value="Motivo de la solicitud:" for="input_observacion_creacion" styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputTextarea  id="input_observacion_creacion" styleClass="form-control" 
+                                                  value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpObservacion}" 
+                                                  rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk == null and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                                  />
+                                <h:outputText value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpObservacion}" styleClass="form-control-plaintext" 
+                                              rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk != null or (habilitacionPeriodoMatriculaBean.soloLectura)}" />
+                                <h:message for="input_observacion_creacion" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="modalidadSeleccion">
+                            <p:outputPanel rendered="#{not(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpSedeFk eq null)}">
+                                <fieldset>
+                                    <legend><h:outputText value="Niveles y modalidades"/></legend>
+                                    <p:outputPanel id="input_rango_fechas" rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk == null}">
+                                        <p:outputPanel rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk == null) and (not(habilitacionPeriodoMatriculaBean.mensajeMatricula eq null)) }" styleClass="ui-messages">
+                                            <div class="ui-messages-warn ui-corner-all">
+                                                <span class="ui-messages-warn-icon"></span>
+                                                <ul>
+                                                    <li>
+                                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{habilitacionPeriodoMatriculaBean.mensajeMatricula}" />
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_combo_nivel">
+                                            <h:outputLabel value="#{msg.niveles}" for="combo_tipo_nivel" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:selectOneMenu id="combo_tipo_nivel" value="#{habilitacionPeriodoMatriculaBean.nivelCombo.selected}" styleClass="form-control texto-medio">
+                                                    <f:selectItems value="#{habilitacionPeriodoMatriculaBean.nivelCombo.items}" />  
+                                                    <p:ajax update="fila_combo_mod_at fila_combo_sub_mod_at"  listener="#{habilitacionPeriodoMatriculaBean.seleccionarNivel()}" />
+                                                </h:selectOneMenu>  
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_combo_mod_at">
+                                            <h:outputLabel value="Modalidad de Atención:" for="combo_mod_at" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:selectOneMenu id="combo_mod_at" value="#{habilitacionPeriodoMatriculaBean.modalidadAtencionCombo.selected}" styleClass="form-control texto-medio">
+                                                    <f:selectItems value="#{habilitacionPeriodoMatriculaBean.modalidadAtencionCombo.items}" />    
+                                                    <p:ajax update="fila_combo_sub_mod_at"  listener="#{habilitacionPeriodoMatriculaBean.seleccionarModalidadAtencion()}" />
+                                                </h:selectOneMenu>  
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>      
+
+                                        <p:outputPanel  id="fila_combo_sub_mod_at">
+                                            <p:outputPanel styleClass="form-group row" rendered="#{habilitacionPeriodoMatriculaBean.subModalidadAtencionCombo!=null}">
+                                                <h:outputLabel value="Submodalidad:" for="combo_sub_mod_at" styleClass="col-sm-4 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="combo_sub_mod_at" value="#{habilitacionPeriodoMatriculaBean.subModalidadAtencionCombo.selected}" styleClass="form-control texto-medio">
+                                                        <f:selectItems value="#{habilitacionPeriodoMatriculaBean.subModalidadAtencionCombo.items}" />           
+                                                    </h:selectOneMenu>  
+                                                </p:outputPanel>          
+                                            </p:outputPanel> 
+                                        </p:outputPanel> 
+
+
+
+
+
+
+                                        <p:outputPanel styleClass="form-group row" >
+                                            <p:outputPanel styleClass="col-md-2"/>
+                                            <p:outputPanel styleClass="col-md-8"  style="text-align: right;">
+                                                <p:outputPanel styleClass="form-action-buttons">
+                                                    <p:commandButton id="btnAgregar"  value="#{msg.agregar}" action="#{habilitacionPeriodoMatriculaBean.agregarNivel()}" 
+                                                                     update="@form " styleClass="btn btn-secondary" icon="glyphicon glyphicon-plus"/>    
+                                                    <p:blockUI block="@form" trigger="btnAgregar" /> 
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-md-2"/>
+                                        </p:outputPanel> 
+
+
+                                    </p:outputPanel>    
+
+
+
+                                    <p:outputPanel id="tablaPeriodos">
+                                        <p:outputPanel styleClass="form-group row" >
+                                            <p:outputPanel styleClass="col-sm-2"/>  
+                                            <p:outputPanel styleClass="col-sm-8"> 
+                                                <p:dataTable id="basicDT"                         
+                                                             widgetVar="widResultado"                         
+                                                             var="elem"                          
+                                                             value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpRelHabilitacionMatriculaNivel}"    
+                                                             rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpRelHabilitacionMatriculaNivel!=null) and (habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpRelHabilitacionMatriculaNivel.size() gt 0)}"    
+                                                             emptyMessage="#{msg.noHayResultados}"	
+                                                             reflow="true" >
+                                                    <p:column headerText="#{msg.hniveles}" >
+                                                        <h:outputText value="#{elem.rhnNivelFk.nivNombre}" />
+                                                    </p:column>
+                                                    <p:column headerText="Modalidad de Atención" >
+                                                        <h:outputText value="#{elem.rhnModalidadAtencionFk.matNombre}" />
+                                                    </p:column>     
+                                                    <p:column headerText="Submodalidad" >
+                                                        <h:outputText value="#{elem.rhnSubmodaliadadFk.smoNombre}" />
+                                                    </p:column>    
+                                                    <p:column styleClass="columnaAcciones" exportable="false" rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk == null}">
+                                                        <p:commandButton update="form:tablaPeriodos" icon="glyphicon glyphicon-remove " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{habilitacionPeriodoMatriculaBean.eliminarNivel(elem)}"/>
+                                                    </p:column>
+                                                </p:dataTable>
+                                            </p:outputPanel>  
+                                            <p:outputPanel styleClass="col-sm-2"/>  
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </fieldset>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel id="formulario_evaluacion" rendered="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk != null and not((habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) and (habilitacionPeriodoMatriculaBean.soloLectura))}">
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_observacion">
+                                <h:outputLabel value="#{msg.observacion} " for="input_observacion" styleClass="col-sm-4 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:inputTextarea  id="input_observacion" styleClass="form-control" 
+                                                      rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                                      value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpObservacionAprobacionRechazo}" 
+                                                      />
+                                    <h:message for="input_observacion" styleClass="msj-danger"/>
+                                    <h:outputText value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpObservacionAprobacionRechazo}"  styleClass="form-control-plaintext" 
+                                                  rendered="#{not (habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) or (habilitacionPeriodoMatriculaBean.soloLectura)}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_desde">
+                                <h:outputLabel value="#{msg.desde}" for="input_fecha_desde" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:calendar id="input_fecha_desde" styleClass="form-control" 
+                                                value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpFechaDesde}" 
+                                                rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}"
+                                                mask="true"/>
+                                    <h:message for="input_fecha_desde" styleClass="msj-danger"/>
+                                    <h:outputText value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpFechaDesde}"  styleClass="form-control-plaintext" converter="#{localDateConverter}"
+                                                  rendered="#{not (habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) or (habilitacionPeriodoMatriculaBean.soloLectura)}" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta" >
+                                <h:outputLabel value="#{msg.hasta}" for="input_fecha_hasta" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:calendar id="input_fecha_hasta" styleClass="form-control" 
+                                                value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpFechaHasta}" 
+                                                rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}"
+                                                mask="true"/>
+                                    <h:message for="input_fecha_hasta" styleClass="msj-danger"/>
+                                    <h:outputText value="#{habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpFechaHasta}"  styleClass="form-control-plaintext"  converter="#{localDateConverter}"
+                                                  rendered="#{not (habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) or (habilitacionPeriodoMatriculaBean.soloLectura)}" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+
+                        </p:outputPanel>  
+
+
+
+
+
+
+
+
+                    </p:outputPanel>  
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardar"  value="#{msg.enviar}"
+                                             rendered="#{(not(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpSedeFk eq null))and(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpPk == null)and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"
+                                             oncomplete="PF('confirmDialogEnvio').show()"/>                             
+
+
+                            <p:commandButton id="btnAprobar" value="#{msg.aprobar}" 
+                                             oncomplete="PF('confirmDialogAprobar').show()"
+                                             rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-ok"/>
+
+                            <p:commandButton id="btnRechazar" value="#{msg.rechazar}" oncomplete="PF('confirmDialogRechazar').show()"
+                                             rendered="#{(habilitacionPeriodoMatriculaBean.entidadEnEdicion.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE) and (!habilitacionPeriodoMatriculaBean.soloLectura)}"
+                                             styleClass="btn btn-secondary" icon="glyphicon glyphicon-remove"/>                      
+                        </p:outputPanel>
+
+                    </p:outputPanel>     
+                    <p:blockUI block="@form" trigger="btnAprobar" /> 
+                    <p:blockUI block="@form" trigger="btnRechazar" /> 
+                    <p:blockUI block="@form" trigger="btnGuardar" /> 
+
+                </fieldset>
+            </h:panelGroup>    
+        </p:outputPanel> 
+
+        <p:confirmDialog id="confirmDialogEnvio"
+                         message="#{msg.textoConfirmacionEnvio}"
+                         header="#{msg.confirmacionEnviar}" severity="alert" widgetVar="confirmDialogEnvio">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmEnvio" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogEnvio').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionPeriodoMatriculaBean.guardar()}"  />
+                <p:blockUI block="@form" trigger="confirmEnvio"/>
+                <p:commandLink id="cancelarEnvio" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogEnvio').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>                
+
+        <p:confirmDialog id="confirmDialogAprobar"
+                         message="#{msg.textoConfirmacionAprobar}"
+                         header="#{msg.confirmacionAprobar}" severity="alert" widgetVar="confirmDialogAprobar">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmAprobar" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogAprobar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionPeriodoMatriculaBean.aprobar()}"  />
+                <p:blockUI block="@form" trigger="confirmAprobar"/>
+                <p:commandLink id="cancelarAprobar" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogAprobar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>            
+
+        <p:confirmDialog id="confirmDialogRechazar"
+                         message="#{msg.textoConfirmacionRechazo}"
+                         header="#{msg.confirmacionRechazo}" severity="alert" widgetVar="confirmDialogRechazar">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmRechazar" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogRechazar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionPeriodoMatriculaBean.rechazar()}"  />
+                <p:blockUI block="@form" trigger="confirmRechazar"/>
+                <p:commandLink id="cancelarRechazo" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogRechazar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>   
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

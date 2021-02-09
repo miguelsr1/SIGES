@@ -1,0 +1,370 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.verActaPago')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.verActaPago')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <div class="btn-group  pull-right" role="group" aria-label="Opciones"> 
+                    <div class="btn-group">
+                        <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-triangle-bottom"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.MasOpciones')}" />                             
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" >      
+                            <li> 
+                                <p:commandButton
+                                    rendered="#{actaContratoMB.objeto.quedanEmitido ne true}"
+                                    styleClass="btn"  
+                                    actionListener="#{actaContratoMB.generarQUEDAN()}"
+                                    update="@form mainForm"
+                                    value="#{textMB.obtenerTexto('labels.GenerarQUEDAN')}" 
+                                    immediate="true"/>                      
+                            </li>
+                            <li>   
+                                <p:commandButton
+                                    rendered="#{actaContratoMB.objeto.comprobanteDeRecepcionDeExpedienteDePago eq null}"
+                                    styleClass="btn"  
+                                    actionListener="#{actaContratoMB.generarComprobanteRecepcionExpedienteDepago()}" 
+                                    update="@form"
+                                    value="#{textMB.obtenerTexto('labels.GenerarComprobanteDeRecepcionDeExpedienteDePago')}" 
+                                    immediate="true"/>                        
+                            </li>
+
+                            <li role="separator" class="divider"></li>
+
+                            <li>
+                                <p:commandLink
+                                    styleClass="btn"
+                                    actionListener="#{actaContratoMB.generarActa()}"
+                                    ajax="false"
+                                    update="@form">
+                                    <h:outputText styleClass="glyphicon glyphicon-download"/>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.DescargarActa')}" />
+                                </p:commandLink>   
+                            </li>
+                            <li>
+                                <p:commandLink 
+                                    rendered="#{actaContratoMB.objeto.quedan ne null}"
+                                    styleClass="btn"  
+                                    actionListener="#{utilsMB.downloadFile(actaContratoMB.objeto.quedan.archivo)}"
+                                    ajax="false"
+                                    update="@form">
+                                    <h:outputText styleClass="glyphicon glyphicon-download"/>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.DescargarQUEDAN')}" />
+                                </p:commandLink>       
+                            </li>
+                            <li>
+                                <p:commandLink 
+                                    rendered="#{actaContratoMB.objeto.comprobanteDeRecepcionDeExpedienteDePago ne null}"
+                                    styleClass="btn"  
+                                    actionListener="#{utilsMB.downloadFile(actaContratoMB.objeto.comprobanteDeRecepcionDeExpedienteDePago.archivo)}"
+                                    ajax="false"
+                                    update="@form">
+                                    <h:outputText styleClass="glyphicon glyphicon-download"/>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.DescargarComprobanteDeRecepcionDeExpedienteDePago')}" />
+                                </p:commandLink>
+                            </li>
+
+                            <li role="separator" class="divider"></li>  
+
+                            <li> 
+                                <p:commandButton
+                                    rendered="#{actaContratoMB.objeto.quedan ne null }"
+                                    styleClass="btn"  
+                                    actionListener="#{actaContratoMB.eliminarQUEDAN()}"
+                                    onclick="if (!existeConfirmacion(this.id))
+                                                return false" 
+                                    update="@form mainForm confirmModalCallBackBody"
+                                    value="#{textMB.obtenerTexto('labels.EliminarQUEDAN')}" 
+                                    immediate="true"/>                      
+                            </li>
+                            <li>   
+                                <p:commandButton
+                                    rendered="#{actaContratoMB.objeto.comprobanteDeRecepcionDeExpedienteDePago ne null}"
+                                    styleClass="btn"  
+                                    actionListener="#{actaContratoMB.eliminarComprobanteRecepcionExpedienteDepago()}" 
+                                    onclick="if (!existeConfirmacion(this.id))
+                                                return false" 
+                                    update="@form mainForm confirmModalCallBackBody"
+                                    value="#{textMB.obtenerTexto('labels.EliminarComprobanteDeRecepcionDeExpedienteDePago')}" 
+                                    immediate="true"/>                        
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.verActaPago')}" escape="false" /> 
+            </div>
+        </h:form>
+
+        <h:form id="mainForm"  prependId="false" >
+            <div class="form-horizontal">
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nroComprobanteRecepcionDePAgo')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText id="nombre" value="#{actaContratoMB.objeto.numeroComprobanteRecepcionPago.id}" styleClass="form-control-static" />
+                            <p:commandButton styleClass="btn btn-primary" 
+                                             update="@form" 
+                                             value="#{textMB.obtenerTexto('labels.generar')}" 
+                                             actionListener="#{actaContratoMB.crearNumeroActaPago()}"/>
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nroContrato')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText  value="#{actaContratoMB.objeto.contratoOC.nroContrato}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nroActa')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText  value="#{actaContratoMB.objeto.nroActa}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.numeroSolicitudPago')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText  value="#{actaContratoMB.objeto.numeroSolicitudPago}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText  value="#{textMB.obtenerTexto(actaContratoMB.objeto.estado.label)}" rendered="#{actaContratoMB.objeto.estado ne null}"  styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.tipo')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText  value="#{textMB.obtenerTexto(actaContratoMB.objeto.tipo.label)}" rendered="#{actaContratoMB.objeto.tipo ne null}"  styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.fechaGeneracion')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText value="#{actaContratoMB.objeto.fechaGeneracion}" styleClass="form-control-static"  converter="dateConverter" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.fechaInicioContrato')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText value="#{actaContratoMB.objeto.contratoOC.fechaInicio}" styleClass="form-control-static"  converter="dateConverter" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.fechaFinActaContrato')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText value="#{actaContratoMB.objeto.contratoOC.fechaFin}" styleClass="form-control-static"  converter="dateConverter" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.monto')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText value="#{actaContratoMB.objeto.montoRecibido}" styleClass="form-control-static" >
+                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                            </h:outputText>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.lugarRecepcion')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText value="#{actaContratoMB.objeto.lugarRecepcion}" styleClass="form-control-static"  />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.observaciones')}:" />
+                        <div class="col-sm-8">
+                            <h:outputText  value="#{actaContratoMB.objeto.observaciones}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+
+                    <!--FACTURAS -->
+                    <div class="grupoCampos">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Facturas/Recibos')}" />
+                            </div>
+                            <div class="col-sm-6 clearfix">
+                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                 update="fomrFactura"
+                                                 oncomplete="$('#addFactura').modal('show');"
+                                                 immediate="true"
+                                                 actionListener="#{actaContratoMB.initTempFactura(null)}"
+                                                 rendered="#{actaContratoMB.objeto.quedan eq null}"/>
+                            </div>
+                        </div>
+                        <h:panelGroup layout="block" id="panelTabla">
+                            <p:dataTable  id="facturasTabla"
+                                          var="item" 
+                                          value="#{actaContratoMB.objeto.facturas}" 
+                                          emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                          rowIndexVar="rowIndex">
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.numero')}">
+                                    <h:outputText value="#{item.numero}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.fecha')}">
+                                    <h:outputText value="#{item.fecha}" converter="dateConverter" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.importe')}" styleClass="numericos">
+                                    <h:outputText value="#{item.importe}"  >
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.observacion')}">
+                                    <h:outputText value="#{item.observacion}" />
+                                </p:column>
+
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"   rendered="#{actaContratoMB.objeto.quedan eq null}">
+                                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                     update="fomrFactura"
+                                                     oncomplete="$('#addFactura').modal('show');"
+                                                     immediate="true"
+                                                     actionListener="#{actaContratoMB.initTempFactura(item)}">
+                                    </p:commandButton>                        
+                                </p:column> 
+
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones"    rendered="#{actaContratoMB.objeto.quedan eq null}">
+                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                     styleClass="btn btn-danger btn-icono" 
+                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                 return false" 
+                                                     action="#{actaContratoMB.eliminarFactura(item.id)}"
+                                                     update="@form confirmModalCallBackBody"
+                                                     immediate="true">
+                                    </p:commandButton>                        
+                                </p:column> 
+                            </p:dataTable>
+                        </h:panelGroup>
+                    </div>
+                </p:outputPanel>
+            </div>
+
+            <div class="form-group sin-color">
+                <div class="col-sm-offset-4 col-sm-8">
+                    <h:outputLink styleClass="btn btn-link" value="consultaActasPago.xhtml?faces-redirect=true" >
+                        <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                </div>
+            </div>
+        </h:form>
+
+
+        <!-- Modal para añadir planificacion -->
+        <div class="modal fade"  id="addFactura" tabindex="-1" role="dialog" aria-labelledby="addLineaEstrategica">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="fomrFactura" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.factura/recibos')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="itemToAdd">
+                                <div class="form-horizontal">
+                                    <h:messages id="mensajesTurno" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                    <div class="form-group" >
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.tipo')}:" for="tipoF" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneRadio  id="tipoF"   styleClass="radio" value="#{actaContratoMB.tempFactura.tipo}" >
+                                                <f:selectItems value="#{utilsMB.getTiposFacturas()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                            </h:selectOneRadio>                                            
+                                            <h:message for="tipoF" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group" >
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.numero')}:" for="numero" />
+                                        <div class="col-sm-8">
+                                            <h:inputText id="numero"   value="#{actaContratoMB.tempFactura.numero}" styleClass="textoCorto form-control" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  />
+                                            <h:message for="numero" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group" >
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.fecha')}:" for="fecha" />
+                                        <div class="col-sm-8">
+                                            <p:calendar id="fecha"   value="#{actaContratoMB.tempFactura.fecha}" styleClass="textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                            <h:message for="fecha" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group" >
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.importe')}:" for="importe" />
+                                        <div class="col-sm-8">
+                                            <div class="input-group textoMedio">
+                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:inputText   id="importe" value="#{actaContratoMB.tempFactura.importe}" styleClass=" form-control numericos" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:inputText>
+                                            </div> 
+                                            <h:message for="importe" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group" >
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.observacion')}:" for="observacion" />
+                                        <div class="col-sm-8">
+                                            <h:inputTextarea id="observacion" value="#{actaContratoMB.tempFactura.observacion}" styleClass="form-control textoLargo"   rows="10" />
+                                            <h:message for="observacion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{actaContratoMB.guardarFactura()}"   update="@form facturasTabla"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL CONFIRMAR  ELIMINAR -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+    </ui:composition>
+</html>

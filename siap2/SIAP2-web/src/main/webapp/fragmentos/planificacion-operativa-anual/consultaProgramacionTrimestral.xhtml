@@ -1,0 +1,245 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.gestionProgramacionTrimestral')}" /> 
+                </h2>
+
+               <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.programacionTrimestral')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                
+                <div class="btn-group pull-right">
+                    <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.Crear')}" 
+                                                 action="#{programacionTrimestral.crearPeriodoSeguimientoPOA()}" 
+                                                 update="modalForm"
+                                                 oncomplete="$('#editModal').modal('show');"/>
+                </div>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+ 
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.anio')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu  id="anioId" value="#{programacionTrimestral.anioFiscalId}"  styleClass="form-control textoMedio" required="false" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}"  />
+                                    </h:selectOneMenu>
+                                    <h:message for="anioId" styleClass="help-inline msj-danger" />
+                                </div>
+                             </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{programacionTrimestral.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{programacionTrimestral.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>    
+        </h:form>
+        <h:form id="tableForm" >
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', programacionTrimestral.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="talbaUnidadTecnica"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{programacionTrimestral.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.anio')}" sortBy="#{anio.anio}">
+                        <h:outputText value="#{item.propertyMap['anio.anio']}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.rangoPrimerTrimestre')}" >
+                        <h:outputText value="#{item.propertyMap['fechaDesdePrimerTrimestre']}" converter="dateConverter"/> - <h:outputText value="#{item.propertyMap['fechaHastaPrimerTrimestre']}" converter="dateConverter"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.rangoSegundoTrimestre')}" >
+                        <h:outputText value="#{item.propertyMap['fechaDesdeSegundoTrimestre']}" converter="dateConverter"/> - <h:outputText value="#{item.propertyMap['fechaHastaSegundoTrimestre']}" converter="dateConverter"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.rangoTercerTrimestre')}" >
+                        <h:outputText value="#{item.propertyMap['fechaDesdeTercerTrimestre']}" converter="dateConverter"/> - <h:outputText value="#{item.propertyMap['fechaHastaTercerTrimestre']}" converter="dateConverter"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.rangoCuartoTrimestre')}" >
+                        <h:outputText value="#{item.propertyMap['fechaDesdeCuartoTrimestre']}" converter="dateConverter"/> - <h:outputText value="#{item.propertyMap['fechaHastaCuartoTrimestre']}" converter="dateConverter"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         action="#{programacionTrimestral.editar(item.propertyMap['id'])}"  
+                                         update="modalForm"
+                                         oncomplete="$('#editModal').modal('show');"/>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">    
+                        <p:commandButton icon="glyphicon glyphicon-remove"
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         actionListener="#{programacionTrimestral.verificarEliminar(item.propertyMap['id'])}"
+                                         update="confirmModalCallBackBody" />
+                    </p:column>
+                    
+                </p:dataTable>
+            </div>
+        </h:form>
+        
+        
+            <!-- Modal de editar -->
+            <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+                <div class="modal-dialog modal-lg" role="document">
+                    <p:outputPanel styleClass="modal-content">
+                        <h:form id="modalForm"  prependId="false">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                                </button>
+                                <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.habilitacionProgramacionTrimestral')}" /> </span>
+                            </div>
+                            <div class="modal-body">
+                                <h:panelGroup layout="block" id="contentModal" styleClass="form-horizontal">
+                                    <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.anio')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu  id="anioId" value="#{programacionTrimestral.anioFiscalIdNew}"  styleClass="form-control textoMedio" required="false" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}"  />
+                                            </h:selectOneMenu>
+                                            <h:message for="anioId" styleClass="help-inline msj-danger" />
+                                        </div>
+                                     </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3  control-label" value="#{textMB.obtenerTexto('labels.habilitacionProgramacionTrimestral')}:" />
+                                        <div class="col-sm-9">
+                                            <!-- POR TABLAS -->
+                                            <div class="table-responsive">
+                                                <table class="table table-hover tabla-campos">
+                                                    <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.PrimerTrimestre')}"/></th>
+                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.SegundoTrimestre')}"/></th>
+                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.TercerTrimestre')}"/></th>
+                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.CuartoTrimestre')}"/></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><h:outputText  value="#{textMB.obtenerTexto('labels.FechaDesde')}" /></td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaDesdePrimerTrimestre}" styleClass="textoMedio" id="fechaDesdeT1" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" maxdate="#{programacionTrimestral.editando.fechaHastaPrimerTrimestre}"/>
+                                                            </td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaDesdeSegundoTrimestre}" styleClass="textoMedio" id="fechaDesdeT2" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" maxdate="#{programacionTrimestral.editando.fechaHastaSegundoTrimestre}"/>
+                                                            </td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaDesdeTercerTrimestre}" styleClass="textoMedio" id="fechaDesdeT3" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" maxdate="#{programacionTrimestral.editando.fechaHastaTercerTrimestre}"/>
+                                                            </td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaDesdeCuartoTrimestre}" styleClass="textoMedio" id="fechaDesdeT4" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" maxdate="#{programacionTrimestral.editando.fechaHastaCuartoTrimestre}"/>
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr>
+                                                            <td><h:outputText  value="#{textMB.obtenerTexto('labels.FechaHasta')}" /></td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaHastaPrimerTrimestre}" styleClass="textoMedio" id="fechaHastaT1" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                                            </td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaHastaSegundoTrimestre}" styleClass="textoMedio" id="fechaHastaT2" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                                            </td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaHastaTercerTrimestre}" styleClass="textoMedio" id="fechaHastaT3" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                                            </td>
+                                                            <td class="numericos">
+                                                                <p:calendar value="#{programacionTrimestral.editando.fechaHastaCuartoTrimestre}" styleClass="textoMedio" id="fechaHastaT4" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </h:panelGroup>
+                            </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{programacionTrimestral.guardar()}"  update="tableForm:talbaUnidadTecnica contentModal"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </p:outputPanel>
+            </div>
+        </div>
+        
+        <!-- MODAL PARA CONFIRMACION DE ELIMINAR-->
+        <h:form id="formEliminar" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" />
+                            </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}" 
+                                             actionListener="#{programacionTrimestral.eliminar()}"
+                                             update="formfiltro tableForm"
+                                             onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:composition>
+</html>

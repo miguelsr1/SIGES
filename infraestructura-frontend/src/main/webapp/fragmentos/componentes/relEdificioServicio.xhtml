@@ -1,0 +1,144 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="edificio" value="#{edificio}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relEdificioServicioBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relEdificioServicioBean.setEntidadEnEdicion(edificio)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relEdificioServicioBean.entidadEnEdicion}">
+
+        <p:fieldset id="servicioSanitario" legend="#{msg.hserviciosSanitarios}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_servicio_sanitario" >                       
+                <p:outputPanel styleClass="col-sm-12">
+                    <p:dataTable id="listaServicioSanitario"  
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relEdificioServicioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_SERVICIO_BASICO))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndexEdif"
+                                 var="espacio" selection="#{relEdificioServicioBean.edificioServicioSanitarioSeleccionados}" 
+                                 value="#{relEdificioServicioBean.edificioServicioSanitario}" rowKey="#{espacio.retServicioSanitario.tssPk}" style="margin-bottom:0"
+                                 >
+                        <p:ajax event="toggleSelect" listener="#{relEdificioServicioBean.toggleSelect}" update=":form:tabs:seleccionarServicio:listaServicioSanitario"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relEdificioServicioBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:listaServicioSanitario"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relEdificioServicioBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:listaServicioSanitario" /> 
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column colspan="2">
+                                </p:column>
+                                <p:column colspan="4">
+                                    <f:facet name="header"><h:outputText value="#{msg.condiciones}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="5">
+                                    <f:facet name="header"><h:outputText   value="#{msg.tipoUsuario}"/></f:facet>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column  selectionMode="multiple" style="width:16px;text-align:center" />
+                                
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="#{msg.hnombre}"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Bueno"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Regular"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Malo"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Total"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Niños"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Niñas"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Maestros"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Administrativos"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Total"/></f:facet>
+                                </p:column>
+                            </p:row>
+                        
+                           </p:columnGroup>
+                        <p:column id="eleccionServicioSanitario"  selectionMode="multiple" style="width:16px;text-align:center" />
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{espacio.retServicioSanitario.tssNombre}" />
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.retBueno}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalCondiciones" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.retMalo}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalCondiciones" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.retRegular}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalCondiciones" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalCondiciones" value="#{espacio.totalCondiciones}" />
+                        </p:column>  
+                        <p:column style="width: 75px;text-align:center" headerText="Niños"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.retNinos}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Niñas"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.retNinas}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Maestros"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.retMaestros}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Administrativos"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.retAdministrativos}" disabled="#{relEdificioServicioBean.soloLectura or !relEdificioServicioBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalTipoUsuario" value="#{espacio.totalTipoUsuario}" />
+                        </p:column>  
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>
+
+        <p:fieldset id="servicioBasico" legend="#{msg.otrosServicios}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_espacios_comunes" >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaServicios"    
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relEdificioServicioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_EDIFICIO_SERVICIO))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 var="espacio" selection="#{relEdificioServicioBean.edificioServicioSeleccionados}" 
+                                 value="#{relEdificioServicioBean.edificioServicio}" rowKey="#{espacio.resServicio.sbaPk}" style="margin-bottom:0" >
+                        <p:column id="eleccionServicio"  selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{espacio.resServicio.sbaNombre}" />
+                        </p:column>
+
+
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardarServicio" value="#{msg.guardar}" action="#{relEdificioServicioBean.guardar()}" rendered="#{!relEdificioServicioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_EDIFICIO_SERVICIO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardarServicio" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

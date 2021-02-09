@@ -1,0 +1,240 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hmatriculaSiguienteAnio}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hmatriculaSiguienteAnio}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.MATRICULA_SIGUIENTE_ANIO)}" />
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel>
+
+
+            <p:panel header="#{msg.seccionDestino}"  toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel>
+
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{asignacionSeccionesBean}" />
+                            <ui:param name="actionParam" value="seleccionarSeccion" />
+                            <ui:param name="seccion" value="#{asignacionSeccionesBean.seccionDestino}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_MATRICULA}" />
+                        </ui:include>
+                    </f:subview>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_ingreso">
+                        <h:outputLabel value="#{msg.fechaIngreso}" for="input_fecha_ingreso" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_fecha_ingreso" styleClass="form-control" 
+                                        value="#{asignacionSeccionesBean.matFechaIngreso}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        disabled="#{asignacionSeccionesBean.seccionDestino == null}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_fecha_ingreso" styleClass="msj-danger"/> 
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+
+                </p:outputPanel>
+            </p:panel>
+
+            <p:blockUI block="@form" widgetVar="tabsBlocker" />  
+            <p:accordionPanel activeIndex="#{asignacionSeccionesBean.tabMatriculasSelected}" onTabChange="PF('tabsBlocker').show()" rendered="#{asignacionSeccionesBean.seccionDestino != null}">
+                <p:ajax event="tabChange" listener="#{asignacionSeccionesBean.tabSelected}" update="@form" />
+                <p:tab title="Ver estudiantes matriculados en la sección destino" >
+                    <p:dataTable id="basicDT2"
+                                 widgetVar="widResultad2"
+                                 var="elem"
+                                 rendered="#{asignacionSeccionesBean.listEstudiantesMatriculadosDestino != null}"
+                                 value="#{asignacionSeccionesBean.listEstudiantesMatriculadosDestino}"
+                                 emptyMessage="#{msg.noHayResultados}" rowKey="#{elem.matPk}"
+                                 sortField="matEstudiante.estPersona.perNombreCompleto"
+                                 rowIndexVar="rowIndex">
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row"> 
+                                <p:outputPanel styleClass="col-md-6">
+                                    <h3><h:outputText value="Matriculados:" /><h:outputText styleClass="cantidad" value="#{asignacionSeccionesBean.listEstudiantesMatriculadosDestino.size()}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="estudiantes" /></h3>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-6">
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+
+                        <p:column headerText="#{msg.hnie}" sortBy="#{elem.matEstudiante.estPersona.perNie}" >
+                            <h:outputText value="#{elem.matEstudiante.estPersona.perNie}" />
+                        </p:column>
+                        <p:column headerText="#{msg.nombreEstudiante}" sortBy="#{elem.matEstudiante.estPersona.perNombreCompleto}">
+                            <h:outputText styleClass="strong" value="#{elem.matEstudiante.estPersona.perNombreCompleto}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsexo}" sortBy="#{elem.matEstudiante.estPersona.perSexo.sexNombre}">
+                            <h:outputText value="#{elem.matEstudiante.estPersona.perSexo.sexNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hfechaNacimiento}">
+                            <h:outputText value="#{elem.matEstudiante.estPersona.perFechaNacimiento}" converter="#{localDateConverter}"/>
+                        </p:column>
+
+                    </p:dataTable>
+                </p:tab>
+
+            </p:accordionPanel>
+            
+            <p:outputPanel rendered="#{asignacionSeccionesBean.seccionDestino!=null and (asignacionSeccionesBean.calendarioSede.calPermiteMatricularSiguienteAnio==null or asignacionSeccionesBean.calendarioSede.calPermiteMatricularSiguienteAnio==false)}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li>
+                            <h:outputText styleClass="ui-messages-warn-summary" value="El calendario de la sede no está habilitado para matricular." />
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel rendered="#{asignacionSeccionesBean.seccionDestino != null}" styleClass="separador" />
+            
+            <p:outputPanel id="pnlResultado" >
+
+                <p:dataTable id="basicDT1"
+                             widgetVar="widResultado1"
+                             var="elem"
+                             rendered="#{asignacionSeccionesBean.listEstudiantesPromovidos != null}"
+                             value="#{asignacionSeccionesBean.listEstudiantesPromovidos}"
+                             rowSelectMode="checkbox"
+                             selection="#{asignacionSeccionesBean.listEstudiantesPromovidosSelected}" 
+                             emptyMessage="#{msg.noHayResultados}" rowKey="#{elem.matPk}"
+                             sortField="matEstudiante.estPersona.perNombreCompleto"
+                             rowIndexVar="rowIndex">
+
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row"> 
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="Promovidos grado anterior:" /><h:outputText styleClass="cantidad" value="#{asignacionSeccionesBean.listEstudiantesPromovidos.size()}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="estudiantes" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+
+                    <p:column selectionMode="multiple" style="width:16px;text-align:center" />  
+                    <p:column headerText="#{msg.hnie}" sortBy="#{elem.matEstudiante.estPersona.perNie}" >
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perNie}" />
+                    </p:column>
+                    <p:column headerText="#{msg.nombreEstudiante}" sortBy="#{elem.matEstudiante.estPersona.perNombreCompleto}">
+                        <h:outputText styleClass="strong" value="#{elem.matEstudiante.estPersona.perNombreCompleto}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hsexo}" sortBy="#{elem.matEstudiante.estPersona.perSexo.sexNombre}">
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perSexo.sexNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaNacimiento}">
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perFechaNacimiento}" converter="#{localDateConverter}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hseccionAnterior}" filterBy="#{elem.matSeccion.secNombre}" filterMatchMode="contains">
+                        <h:outputText value="#{elem.matSeccion.nombreSeccion}" />
+                    </p:column>
+                </p:dataTable>
+
+                <p:dataTable id="basicDT2"
+                             widgetVar="widResultado2"
+                             var="elem"
+                             rendered="#{asignacionSeccionesBean.listEstudiantesRepetidores != null}"
+                             value="#{asignacionSeccionesBean.listEstudiantesRepetidores}"
+                             rowSelectMode="checkbox"
+                             selection="#{asignacionSeccionesBean.listEstudiantesRepetidoresSelected}" 
+                             emptyMessage="#{msg.noHayResultados}" rowKey="#{elem.matPk}"
+                             sortField="matEstudiante.estPersona.perNombreCompleto"
+                             rowIndexVar="rowIndex">
+
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row"> 
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="Repetidores grado actual:" /><h:outputText styleClass="cantidad" value="#{asignacionSeccionesBean.listEstudiantesRepetidores.size()}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="estudiantes" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+
+                    <p:column  selectionMode="multiple" style="width:16px;text-align:center" />  
+                    <p:column headerText="#{msg.hnie}" sortBy="#{elem.matEstudiante.estPersona.perNie}" >
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perNie}" />
+                    </p:column>
+                    <p:column headerText="#{msg.nombreEstudiante}" sortBy="#{elem.matEstudiante.estPersona.perNombreCompleto}">
+                        <h:outputText styleClass="strong" value="#{elem.matEstudiante.estPersona.perNombreCompleto}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hsexo}" sortBy="#{elem.matEstudiante.estPersona.perSexo.sexNombre}">
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perSexo.sexNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaNacimiento}">
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perFechaNacimiento}" converter="#{localDateConverter}"/>
+                    </p:column>
+                    <p:column headerText="Sección anterior"  filterBy="#{elem.matSeccion.secNombre}" filterMatchMode="contains">
+                        <h:outputText value="#{elem.matSeccion.nombreSeccion}" />
+                    </p:column>
+                </p:dataTable>
+
+            </p:outputPanel>
+
+            <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                <h:panelGroup rendered="#{asignacionSeccionesBean.seccionDestino != null and asignacionSeccionesBean.calendarioSede.calPermiteMatricularSiguienteAnio}">
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardar" value="#{msg.guardar}"
+                                         onclick="PF('confirmDialog').show()"
+                                         update="confirmDialog"
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>    
+                    </p:outputPanel>                    
+                </h:panelGroup>
+            </p:outputPanel>
+
+            <p:dialog header="#{msg.hconfirmar}" widgetVar="confirmDialog" modal="true" showEffect="fade" 
+                      hideEffect="fade" resizable="false" closable="false" >       
+                <h:panelGroup id="confirmDialog">
+                    <h:outputFormat value="#{msg.confirmacionNuevasMatriculasSiguienteAnio}">
+                        <f:param value="#{asignacionSeccionesBean.listEstudiantesPromovidosSelected.size() + asignacionSeccionesBean.listEstudiantesRepetidoresSelected.size()}"/>
+                        <f:param value="#{asignacionSeccionesBean.seccionDestino.nombreSeccion}"/>
+                    </h:outputFormat>
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                         oncomplete="PF('confirmDialog').hide()"
+                                         styleClass="btn btn-primary"
+                                         rendered="#{asignacionSeccionesBean.seccionDestino != null}"
+                                         action="#{asignacionSeccionesBean.guardar()}"  />
+                        <p:blockUI block="@form" trigger="confirmDelete"/>
+                        <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                                       onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:dialog>
+
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

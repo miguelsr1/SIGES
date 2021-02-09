@@ -1,0 +1,189 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consultaAsignacionesNoProgramables')}" /> 
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.consultaAsignacionesNoProgramables')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <div class="btn-group  pull-right" role="group" aria-label="Opciones"> 
+                    <h:outputLink  styleClass="btn btn-default" value="crearEditarAsignacionNoProgramable.xhtml"  rendered="#{permisosMB.permisos['CREAR_EDITAR_ASIGNACION_NP']   }">
+                        <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                    </h:outputLink>
+                    <div class="btn-group">
+                        <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-triangle-bottom"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.MasOpciones')}" />                             
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" >
+                            <li>
+                                <h:outputLink value="cargaTechosAsignacionNoProgramables.xhtml" rendered="#{permisosMB.permisos['CARGA_TECHOS_ASIGNACIONES_NO_PROGRAMABLES']  }">
+                                    <span class="glyphicon glyphicon-pencil"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.cargaTechosAsignacionNoProgramables')}" />
+                                </h:outputLink>
+                            </li>
+                            <li>
+                                <h:outputLink value="verTechosAsignacionNoProgramables.xhtml" rendered="#{permisosMB.permisos['VER_TECHOS_ASIGNACIONES_NO_PROGRAMABLES']  }">
+                                    <span class="glyphicon glyphicon-eye-open"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.verTechosAsignacionNoProgramables')}" />
+                                </h:outputLink>
+                            </li>
+                            <li role="separator" class="divider"></li>
+                            <li>
+                                <h:outputLink value="cargaProgramacionFinancieraAsignacionNoProgramable.xhtml" rendered="#{permisosMB.permisos['CARGA_PROGRAMACION_FINANCIERA_ASIGNACION_NO_PROGRAMABLE']  }">
+                                    <span class="glyphicon glyphicon-pencil"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.cargaProgramacionFinancieraAsignacionNoProgramable')}" />
+                                </h:outputLink>
+                            </li>
+                            <li>
+                                <h:outputLink value="verProgramacionFinancieraAsignacionNoProgramable.xhtml" rendered="#{permisosMB.permisos['VER_PROGRAMACION_FINANCIERA_ASIGNACION_NO_PROGRAMABLE']  }">
+                                    <span class="glyphicon glyphicon-eye-open"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.verProgramacionFinancieraAsignacionNoProgramable')}" />
+                                </h:outputLink>
+                            </li>
+                            <li role="separator" class="divider"></li>
+                            <li>
+                                <p:commandLink actionListener="#{asignacionNoProgramableConsulta.descargarReporte()}" ajax="false">
+                                    <span class="glyphicon glyphicon-download"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Descargar')}" /> 
+                                </p:commandLink>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.consultaAsignacionesNoProgramables')}" escape="false" />
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.nombre')}:" />
+                                <div class="col-sm-9">
+                                    <h:inputText  value="#{asignacionNoProgramableConsulta.nombre}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Planificacion')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu id="planificacion" value="#{asignacionNoProgramableConsulta.planificacionEstrategicaId}"  styleClass="form-control textoMedio"  >
+                                        <f:ajax render="formfiltro:linea"/> 
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getPlanificacionesEstrategicasVigetnes()}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="planificacion" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Linea')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu id="linea" value="#{asignacionNoProgramableConsulta.lineaEstrategicaId}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getLineasEstrategicasVigetnes(asignacionNoProgramableConsulta.planificacionEstrategicaId)}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="linea" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{asignacionNoProgramableConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{asignacionNoProgramableConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', asignacionNoProgramableConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{asignacionNoProgramableConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="AsignacionesNoProgramables" />
+                        </h:commandLink> 
+                    </f:facet>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}"  sortBy="#{dummy.nombre}" >
+                        <h:outputText value="#{item.propertyMap['nombre']}" />
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerPOA')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_CONSOLIDADO_PORA_ACCION_CENTRAL_ASIG_NP'] }" >
+                        <h:outputLink  value="verConsolidadoPOAporACoANP.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.VerPOA')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <f:param name="tipo" value="#{item.propertyMap['tipo']}" />
+                            <span class="glyphicon glyphicon-list-alt"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.VerPOA')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerANP')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_ASIGNACION_NP'] }" >
+                        <h:outputLink  value="verAsignacionNoProgramable.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.VerANP')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.VerANP')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_ASIGNACION_NP'] }">
+                        <h:outputLink  value="crearEditarAsignacionNoProgramable.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CREAR_EDITAR_ASIGNACION_NP'] }">
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         onclick="if (!existeConfirmacion(this.id))
+                                                     return false" 
+                                         action="#{asignacionNoProgramableConsulta.eliminar(item.propertyMap['id'])}"
+                                         update="tableForm confirmModalCallBackBody"
+                                         immediate="true">
+                        </p:commandButton>                      
+                    </p:column>
+                </p:dataTable>       
+            </div>
+        </h:form>
+        <!-- Modal de eliminar -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+    </ui:composition>
+</html>
+

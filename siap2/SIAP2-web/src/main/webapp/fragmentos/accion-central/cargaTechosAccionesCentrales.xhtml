@@ -1,0 +1,78 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.cargaTechosAccionesCentrales')}" />
+                </h2>
+                
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.cargaTechosAccionesCentrales')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.cargaTechosAccionesCentrales')}" escape="false" /> 
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false" >
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.planificacion')}:" />
+                        <div class="col-sm-9 ">                      
+                            <h:selectOneMenu  value="#{cargaTechosAccionCentralCE.idPlanificacion}"  styleClass="form-control textoMedio" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                <f:ajax render="tablaTechos"   listener="#{cargaTechosAccionCentralCE.loadProgramas()}"/>
+                                <f:selectItems value="#{utilsMB.getPlanificacionesEstrategicasVigetnes()}"  />
+                            </h:selectOneMenu>
+                        </div>
+                    </div>
+                    <!-- tabla de montos de direcciones -->
+                    <div style="margin-top: 20px;">
+                        <p:dataTable id="tablaTechos"
+                                     value="#{cargaTechosAccionCentralCE.montosUT}" 
+                                     emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                     var="item">
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Direccion')}" >
+                                <h:outputText value="#{item.ut.nombre}" />
+                            </p:column>
+                            <p:columns value="#{cargaTechosAccionCentralCE.aniosPlanificacion}" var="column" columnIndexVar="colIndex">
+                                <f:facet name="header">
+                                    <h:outputText rendered="#{colIndex!=0 and colIndex!= cargaTechosAccionCentralCE.aniosPlanificacion.size()-1}" value="#{column}" />
+                                    <h:outputText rendered="#{colIndex==0 }" value="#{cargaTechosAccionCentralCE.planificacion.desde}"  converter="dateConverter" />
+                                    <h:outputText rendered="#{colIndex==cargaTechosAccionCentralCE.aniosPlanificacion.size()-1}"   value="#{cargaTechosAccionCentralCE.planificacion.hasta}"  converter="dateConverter"  />                                                      
+                                </f:facet>
+                                <h:inputText  id="monto" 
+                                              value="#{item.montoAnios[colIndex].monto}" 
+                                              styleClass="textoCorto numericos form-control"  
+                                              disabled="#{!utilsMB.habilitadaAnioTechoCategoriaPresupuestal(column)}"
+                                              validatorMessage="#{textMB.obtenerTexto('labels.MontoIncorrecto')}">
+                                    <f:validateLongRange minimum="0"/>
+                                </h:inputText>
+                                <h:message for="monto" styleClass="help-inline msj-danger" />
+                            </p:columns>
+                        </p:dataTable>
+                    </div>
+                </p:outputPanel>
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{cargaTechosAccionCentralCE.guardar}"  update="bloqueNoModal"/>
+                        <h:outputLink styleClass="btn btn-link" value="consultaAccionCentral.xhtml" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:composition>
+</html>

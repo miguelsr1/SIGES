@@ -1,0 +1,417 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumDesembolsoEstado"/>
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        <f:passThroughAttribute name="autocomplete" value="off"/>          
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">             
+                <li class="breadcrumb-item active" ><a href="#{ConstantesPaginas.DESEMBOLSOS}.xhtml">#{msg.desembolsos}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.nuevoDesembolso}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{desembolsoBean.getTituloPagina()}"/></h2>
+            <p:outputPanel styleClass="float-right">
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="desembolsoPanel">
+            <p:outputPanel>
+                <p:fieldset id="datos" legend="#{msg.datosgenerales}">                   
+
+                    <h:panelGroup rendered="#{not empty desembolsoBean.entidadEnEdicion}"  >                               
+                        <p:outputPanel id="formularioDesembolsoDetalle">   
+
+                            <p:outputPanel styleClass="form-group row" id="fila_numero_desembolso">
+                                <h:outputLabel value="#{msg.hnumeroDesembolso}" for="output_pk" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-3" id="output_pk">
+                                    <h:outputText styleClass="form-control texto-medio" id="b_num_desembolso" value="#{desembolsoBean.entidadEnEdicion.dsbPk}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_estado">
+                                <h:outputLabel value="#{msg.estado}"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-3" id="output_estado">
+                                    <h:outputText value="#{desembolsoBean.entidadEnEdicion.dsbEstado.text}" styleClass="form-control"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="form-group row col-sm-3 offset-4">
+                                    <p:commandButton value="#{msg.importarDesembolsos}" icon="glyphicon glyphicon-plus" 
+                                        update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                        id="btnImport" styleClass="btn btn-secondary"  
+                                        actionListener="#{desembolsoBean.nuevoImport()}"
+                                        style="margin-left: 0.5em;"
+                                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CARGAR_DESEMBOLSOS) and desembolsoBean.entidadEnEdicion.dsbEstado eq EnumDesembolsoEstado.EN_PROCESO}"/>
+                            </p:outputPanel>
+                            
+                        </p:outputPanel>         
+                    </h:panelGroup>          
+
+                </p:fieldset>    
+
+            </p:outputPanel>            
+        </p:outputPanel>
+        
+        <p:outputPanel id="pnlResultadoDet">
+            <h3><h:outputText value="#{msg.importeDesembolsos}" rendered="#{not empty desembolsoBean.tablaReqsPorRecurso}" /></h3>
+            <p:dataTable id="detalleDT"
+                         rendered="#{not empty desembolsoBean.tablaReqsPorRecurso}"
+                         widgetVar="widResultadoDet"                         
+                         var="elem"                          
+                         value="#{desembolsoBean.tablaReqsPorRecurso}"     
+                         rowKey="#{elem.reqPk}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="reqPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{desembolsoBean.paginado}"
+                         reflow="true"
+                         editable="true" editMode="cell">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{desembolsoBean.totalResultadosReq lt (desembolsoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTablaDet" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{desembolsoBean.totalResultadosReq} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="detalleDT" fileName="detalleRequerimiento" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                
+                
+                <p:column sortBy="#{elem.reqPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroReq}" title="#{msg.hnroRequerimiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.reqPk}" />
+                </p:column>
+                <p:column sortBy="#{elem.codDep}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.codDepartamento}" title="#{msg.hCodigoDep}"/>
+                    </f:facet>
+                    <h:outputText title="#{elem.nomDep}" value="#{elem.codDep}" />
+                </p:column>
+                <p:column sortBy="#{elem.compromiso}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hcompromisoPresupuestario}" title="#{msg.compromisoPresupuestario}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.compromiso}" />
+                </p:column>
+                <p:column headerText="#{msg.hsacUFI}" sortBy="#{elem.sacUfi}">
+                    <h:outputText value="#{elem.sacUfi}" />
+                </p:column>
+                <p:column headerText="#{msg.hsacGOES}" sortBy="#{elem.sacGoes}">
+                    <h:outputText value="#{elem.sacGoes}" />
+                </p:column>
+                <p:column headerText="#{msg.estadoRequerimiento}">
+                    <h:outputText value="#{elem.reqEstado}"/>
+                </p:column>
+                <p:column sortBy="#{elem.finaciamiento}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.fuenteFin}" title="#{msg.hfuenteFinanciamiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.finaciamiento}"/>
+                </p:column>
+                <p:column sortBy="#{elem.recurso}" headerText="#{msg.hFuenteRecursos}">
+                    <h:outputText value="#{elem.recurso}"/>
+                </p:column>
+                <p:column headerText="#{msg.hmonto}" sortBy="#{elem.totalRecurso}" styleClass="align-right">
+                    <h:outputText value="#{elem.totalRecurso}" >
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hPorcentaje}" sortBy="#{elem.porcentaje}" styleClass="align-right">
+                    <h:outputText value="#{elem.porcentaje}" >
+                        <f:convertNumber pattern="#{applicationBean.formatPorcentaje}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hDesembolso}" styleClass="align-right">
+                    <p:cellEditor>
+                        <f:facet name="output"><h:outputText value="#{elem.montoDesembolso}"><f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" /></h:outputText></f:facet>
+                        <f:facet name="input">
+                            <p:inputNumber minValue="0" decimalPlaces="2"  decimalSeparator="." thousandSeparator="," style="width:100%" value="#{elem.montoDesembolso}"/>
+                        </f:facet>
+                    </p:cellEditor>
+                </p:column>
+                <p:columnGroup type="footer">
+                    <p:row styleClass="align-right">
+                        <p:column colspan="10">
+                            <f:facet name="footer"><h:outputText value="#{msg.totalDesembolso}"/></f:facet>
+                        </p:column>
+                        <p:column>
+                            <f:facet name="footer">
+                                <h:outputText value="#{desembolsoBean.totalImporte}">
+                                    <f:convertNumber type="currency" currencySymbol="$" />
+                                </h:outputText>
+                            </f:facet>
+                        </p:column>
+                    </p:row>
+                </p:columnGroup>
+                
+            </p:dataTable>
+            
+            <p:outputPanel styleClass="control-group" rendered="#{not empty desembolsoBean.tablaReqsPorRecurso and desembolsoBean.desembolsosGuardados==false}">
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnActualizarCuentas" value="#{msg.generarMovimientoCuentaBancaria}" 
+                     action="#{desembolsoBean.nuevosMovs()}"
+                     update="@form" oncomplete="PF('generarMovsDialog').show()" styleClass="btn btn-primary"/>                             
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="@form" trigger="btnGenerarMovs" /> 
+            
+        </p:outputPanel>
+        
+        <p:outputPanel styleClass="col-md-10 offset-2">
+            <div class="form-action-buttons">
+                
+            </div>
+        </p:outputPanel>
+        
+        
+        <p:outputPanel  id="pnlResultadoDetDesembolso">
+            <h3><h:outputText value="#{msg.desembolsosGuardados}" rendered="#{desembolsoBean.desembolsosGuardados}" /></h3>
+                
+            <p:dataTable id="detDesembolsoDT"
+                         widgetVar="widResultadoDetDesembolso"
+                         rendered="#{desembolsoBean.desembolsosGuardados}"
+                         var="elem"                          
+                         value="#{desembolsoBean.listDetDesembolsos}"     
+                         rowKey="#{elem.dedPk}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="dedPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{desembolsoBean.paginadoDet}"
+                         reflow="true">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{desembolsoBean.totalResultadosDet lt (desembolsoBean.paginadoDet +1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTablaDetDesembolso" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{desembolsoBean.totalResultadosDet} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="detalleDT" fileName="detalleRequerimiento" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                
+                
+                <p:column sortBy="#{elem.dedPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hnumero}" title="#{msg.hnumero}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedPk}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedReqFondoFk.strPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroReq}" title="#{msg.hnroRequerimiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedReqFondoFk.strPk}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedReqFondoFk.strCompromisoPresupuestario}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hcompromisoPresupuestario}" title="#{msg.compromisoPresupuestario}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedReqFondoFk.strCompromisoPresupuestario}" />
+                </p:column>
+                <p:column headerText="#{msg.hsacUFI}" sortBy="#{elem.dedReqFondoFk.strSacUFI}">
+                    <h:outputText value="#{elem.dedReqFondoFk.strSacUFI}" />
+                </p:column>
+                <p:column headerText="#{msg.hsacGOES}" sortBy="#{elem.dedReqFondoFk.strSacGOES}">
+                    <h:outputText value="#{elem.dedReqFondoFk.strSacGOES}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedFuenteRecursosFk.fuenteFinanciamiento.nombre}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.fuenteFin}" title="#{msg.hfuenteFinanciamiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedFuenteRecursosFk.fuenteFinanciamiento.nombre}"/>
+                </p:column>
+                <p:column sortBy="#{elem.dedFuenteRecursosFk.nombre}" headerText="#{msg.hFuenteRecursos}">
+                    <h:outputText value="#{elem.dedFuenteRecursosFk.nombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hPorcentaje}" sortBy="#{elem.dedPorcentaje}">
+                    <h:outputText value="#{elem.dedPorcentaje}" >
+                        <f:convertNumber pattern="#{applicationBean.formatPorcentaje}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hDesembolso}" styleClass="align-right">
+                    <h:outputText value="#{elem.dedMonto}" >
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_DESEMBOLSO) and desembolsoBean.entidadEnEdicion.dsbEstado eq EnumDesembolsoEstado.EN_PROCESO}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}"
+                                     action="#{desembolsoBean.preEliminar(elem)}"/>
+                </p:column>
+                <p:columnGroup type="footer">
+                    <p:row styleClass="align-right">
+                        <p:column colspan="8">
+                            <f:facet name="footer"><h:outputText value="#{msg.totalDesembolso}"/></f:facet>
+                        </p:column>
+                        <p:column>
+                            <f:facet name="footer">
+                                <h:outputText value="#{desembolsoBean.totalDesembolsos()}">
+                                    <f:convertNumber type="currency" currencySymbol="$" />
+                                </h:outputText>
+                            </f:facet>
+                        </p:column>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+        </p:outputPanel>
+        
+        
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{desembolsoBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+        <p:dialog header="#{msg.importarDesembolsos}" widgetVar="itemDialog" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false" closable="false" style="min-height: 200px;">             
+            <p:outputPanel id="itemDetail">                  
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>     
+                
+                <h:panelGroup id="uploading">
+                    <p:outputPanel styleClass="form-group row" id="fila_archivo" 
+                                   rendered="#{!desembolsoBean.uploading}">
+                        <h:outputLabel value="#{msg.archivo}" for="file_upload_archivo" 
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8" id="inputfile">
+                            <p:fileUpload fileUploadListener="#{desembolsoBean.handleFileUpload}"
+                                          id="file_upload_archivo"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar archivo"
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoXLSX} "
+                                          update=":form:itemDetail"
+                                          cancelLabel="#{msg.cancelar}" 
+                                          auto="true"
+                                          sizeLimit="#{desembolsoBean.tamanioImportArchivo}" 
+                                          allowTypes="#{desembolsoBean.tipoImportArchivo}"
+                                          rendered="#{desembolsoBean.file == null}"/>
+                            <h:outputText styleClass="form-control-plaintext" value="#{desembolsoBean.nombreFile}"
+                                          rendered="#{desembolsoBean.file!=null}"/>
+                            <p:commandLink action="#{desembolsoBean.eliminarFile()}" 
+                                           update=":form:itemDetail" value="#{msg.eliminar}" 
+                                           rendered="#{desembolsoBean.file!=null}" 
+                                           style="margin-top:1px;margin-bottom: 6px; display: block;" />
+                            <o:graphicImage name="/imagenes/fileXLSX.png" width="100"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel style="width: 100%;text-align: center;padding-bottom: 5em;padding-top: 5em;" 
+                                    rendered="#{desembolsoBean.uploading}">
+                        <o:graphicImage name="/imagenes/loading-cloud.gif" width="50" /> 
+                        <h:outputText style="display: block;font-size: 10px;font-style: italic;" value="Importando archivo..."/>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="control-group">
+                        <p:outputPanel styleClass="float-right">
+                            <p:remoteCommand name="inicio" update="form:itemDetail" action="#{desembolsoBean.renderLoading()}" />
+                            <p:remoteCommand name="fin" update="@form" action="#{desembolsoBean.renderLoading()}" />
+                            <p:commandButton id="btnGuardarImport"  value="#{msg.importar}" 
+                                             onclick="inicio()" 
+                                             onsuccess="fin()" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-cloud-upload"
+                                             rendered="#{!desembolsoBean.uploading and desembolsoBean.file!=null}"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  
+                                           update="form:itemDetail" styleClass="btn btn-link"
+                                           rendered="#{!desembolsoBean.uploading}"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>   
+                </h:panelGroup>
+            </p:outputPanel>        
+        </p:dialog> 
+        
+        <p:dialog header="#{msg.generarMovimientoCuentaBancariaDD}" widgetVar="generarMovsDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="generarMovsDialog">                                                             
+                <h:panelGroup>                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formGenerarMovsCBancaria">                                               
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                            <h:outputLabel value="#{msg.fechaMovimiento}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha" showMinute="false" showHour="false" value="#{desembolsoBean.fechaMovs}" pattern="#{applicationBean.patternFechaHora}" converter="#{localDateTimeConverter}" ></p:calendar>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel style="width: 100%;text-align: center;padding-bottom: 5em;padding-top: 5em;" 
+                                       rendered="#{desembolsoBean.saving}">
+                            <o:graphicImage name="/imagenes/loading-cloud.gif" width="50" /> 
+                            <h:outputText style="display: block;font-size: 10px;font-style: italic;" value="Generando movimientos..."/>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group">
+                            <p:outputPanel styleClass="float-right">
+                                <p:remoteCommand name="inicioMovs" update="form:generarMovsDialog" action="#{desembolsoBean.renderLoadingGenerarMovs()}" />
+                                <p:remoteCommand name="finMovs" update="@form" action="#{desembolsoBean.renderLoadingGenerarMovs()}" />
+                                <p:commandButton id="btnGenerarMovs"  value="#{msg.generarMovimientos}" 
+                                                 onclick="inicioMovs()" 
+                                                 onsuccess="finMovs()" 
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-cloud-upload"
+                                                 rendered="#{!desembolsoBean.saving}"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('generarMovsDialog').hide();"  
+                                               update="form:generarMovsDialog" styleClass="btn btn-link"
+                                               rendered="#{!desembolsoBean.saving}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel> 						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+        
+    </h:form>
+</ui:composition>

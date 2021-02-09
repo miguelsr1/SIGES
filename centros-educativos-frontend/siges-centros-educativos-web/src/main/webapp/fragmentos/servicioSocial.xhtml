@@ -1,0 +1,183 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado" />
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.servicioSocial}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.servicioSocial}"/></h2>
+
+            <p:outputPanel styleClass="float-right">               
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SERVICIO_SOCIAL)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel>
+
+
+            <p:panel toggleable="false" styleClass="panel-filtro">                        
+                <p:outputPanel>
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{servicioSocialBean}" />
+                            <ui:param name="actionParam" value="seccionSeleccionada" />
+                            <ui:param name="seccion" value="#{servicioSocialBean.seccionEnEdicion}" />
+                            <ui:param name="retornarSoloSeccionesAbiertas" value="#{false}" />
+                        </ui:include>
+                    </f:subview>
+
+                </p:outputPanel>
+            </p:panel>  
+
+
+            <p:outputPanel id="pnlResultado" >
+
+
+
+                <h:panelGroup rendered="#{servicioSocialBean.seccionEnEdicion != null}"  >
+
+                    <p:outputPanel rendered="#{!servicioSocialBean.debeIngresarServicioSocial}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.seccionNoRequiereIngresoServicioSocial}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{servicioSocialBean.debeIngresarServicioSocial and servicioSocialBean.listEstudiantes.size() == 0}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.noHayEstudiantesMatriculaAbierta}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+
+                    <p:dataTable id="basicDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"      
+                                 rendered="#{servicioSocialBean.debeIngresarServicioSocial and servicioSocialBean.listEstudiantes.size() gt 0}"
+                                 value="#{servicioSocialBean.listEstudiantes}"                              
+                                 emptyMessage="#{msg.noHayResultados}"	 
+                                 rowStyleClass="#{servicioSocialBean.colorRow(elem)}"
+                                 paginator="false"
+                                 reflow="true"
+                                 rowIndexVar="rowIndex">              
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">                        
+                                <p:outputPanel styleClass="col-md-12">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="basicDT" fileName="servicioSocial" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.hnie}" sortBy="#{elem.estPersona.perNie}" >
+                            <h:outputText value="#{elem.estPersona.perNie}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.estPersona.perPrimerApellido}">
+                            <h:outputText value="#{elem.estPersona.perPrimerApellido}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.estPersona.perSegundoApellido}">
+                            <h:outputText value="#{elem.estPersona.perSegundoApellido}" />
+                        </p:column>  
+                        <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.estPersona.perPrimerNombre}">
+                            <h:outputText value="#{elem.estPersona.perPrimerNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.estPersona.perSegundoNombre}">
+                            <h:outputText value="#{elem.estPersona.perSegundoNombre}" />
+                        </p:column>         
+                        <p:column headerText="#{msg.hrealizado}" >
+                            <p:selectOneRadio layout="responsive" columns="3" id="b_servicio_social" 
+                                              value="#{elem.estRealizoServicioSocial}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax event="change" update="fecha_servicio cant_horas descripcion" listener="#{servicioSocialBean.seleccionadoServicioSocial(elem)}"/>
+                            </p:selectOneRadio>        
+
+                        </p:column>
+
+                        <p:column headerText="#{msg.hfecha}" id="columFecha" >
+                            <p:outputPanel id="fecha_servicio">
+                                <p:calendar id="input_fecha_servicio_social" autocomplete="off" styleClass="form-control" 
+                                            value="#{elem.estFechaServicioSocial}" 
+                                            pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"
+                                            converter="#{localDateConverter}"
+                                            rendered="#{elem.estRealizoServicioSocial}"
+                                            mask="true"
+                                            maxdate="#{applicationBean.today()}"/>   
+                            </p:outputPanel>                            
+                        </p:column>                         
+                        <p:column headerText="#{msg.hcantidadHoras}">
+                            <p:outputPanel id="cant_horas">
+                                <p:inputNumber autocomplete="off" 
+                                               decimalPlaces="0"
+                                               thousandSeparator=""
+                                               emptyValue="empty"
+                                               minValue="0"
+                                               maxValue="500"
+                                               styleClass="form-control"
+                                               rendered="#{elem.estRealizoServicioSocial}"
+                                               value="#{elem.estCantidadHorasServicioSocial}" />
+                            </p:outputPanel>
+
+                        </p:column>
+                        <p:column headerText="#{msg.hdescripcion}" >
+                            <p:outputPanel id="descripcion">
+                                <h:inputTextarea  id="input_descripcion"
+                                                  rendered="#{elem.estRealizoServicioSocial}"
+                                                  styleClass="form-control"
+                                                  value="#{elem.estDescripcionServicioSocial}" />       
+                            </p:outputPanel>
+                        </p:column>
+
+                    </p:dataTable>
+
+
+
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton value="#{msg.guardar}" 
+                                         rendered="#{!servicioSocialBean.soloLectura and servicioSocialBean.listEstudiantes.size() gt 0}"
+                                         action="#{servicioSocialBean.guardar()}" update="@form"
+                                         id="btnGuardar" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>      
+
+    </h:form>
+</ui:composition>

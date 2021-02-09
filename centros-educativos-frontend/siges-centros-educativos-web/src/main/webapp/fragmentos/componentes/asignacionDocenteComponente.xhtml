@@ -1,0 +1,116 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumCalculoNotaInstitucional" />
+
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="horarioEscolar" value="#{horarioEscolar}" scope="request"/>
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{asignacionDocenteComponenteBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{asignacionDocenteComponenteBean.setHorarioEscolarEnEdicion(horarioEscolar)}"/>
+    </f:metadata>       
+
+    <p:outputPanel styleClass="form-group row" id="fila_input_es_docente" rendered="#{not asignacionDocenteComponenteBean.soloLectura}">
+        <p:outputPanel styleClass="col-sm-4 texto-right">
+            <h:selectBooleanCheckbox id="input_es_docente" styleClass="form-check-input" 
+                                     value="#{asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesUnicoDocente}" >
+                <p:ajax update="panel_docente panel_componentes_docentes" process="@this"/>
+            </h:selectBooleanCheckbox>
+        </p:outputPanel>                         
+        <h:outputLabel value="#{msg.unicoDocente}" for="input_es_docente" styleClass="col-sm-8 texto-left"/>
+    </p:outputPanel>
+
+    <h:panelGroup id="panel_docente">
+        <p:outputPanel styleClass="form-group row" id="fila_input_docente" rendered="#{asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesUnicoDocente}">
+            <h:outputLabel value="#{msg.docente}" for="input_docente" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8 control-inline" >
+                <h:outputText value="#{asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesDocente.psePersona.perDuiNombreCompleto}" styleClass="form-control-plaintext" />
+                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:itemDetail" action="#{asignacionDocenteComponenteBean.editarDocente()}" rendered="#{(sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_COMPONENTE_DOCENTE))and(not asignacionDocenteComponenteBean.soloLectura)}" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-plus" styleClass="btn btn-icono" title="#{msg.hAsignarDocente}" />
+            </p:outputPanel>                         
+        </p:outputPanel>
+    </h:panelGroup>
+
+    <h:panelGroup  id="panel_componentes_docentes" >
+        <p:outputPanel rendered="#{not asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesUnicoDocente}">    
+            <p:dataTable id="basicDTDocentes"                         
+                         widgetVar="widResultadoDocentes"                    
+                         value="#{asignacionDocenteComponenteBean.listCompDocDeHorario}"  
+                         var="elem"                               
+                         rowIndexVar="rowIndex" >                
+
+                <p:column headerText="#{msg.hcomponentePlanEstudio}">
+                    <h:outputText value="#{elem.cdoComponente.cpeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hDocente}">
+                    <h:outputText value="#{(elem.cdoDocente !=null) ? elem.cdoDocente.pseDuiNombreCompleto : 'Sin asignar'}"  />
+                </p:column>               
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{(sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_COMPONENTE_DOCENTE))and(not asignacionDocenteComponenteBean.soloLectura)}">
+                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:itemDetail" oncomplete="PF('itemDialog').show()"  icon="glyphicon glyphicon-plus" styleClass="btn btn-icono" title="#{msg.hAsignarDocente}" action="#{asignacionDocenteComponenteBean.editarComponenteDocente(elem)}"/>
+                </p:column>    
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{(sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_COMPONENTE_DOCENTE))and(not asignacionDocenteComponenteBean.soloLectura)}">
+                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:itemDetail" oncomplete="PF('confirmDialog').show()" rendered="#{elem.cdoDocente !=null}" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.desasignarDocente}" action="#{asignacionDocenteComponenteBean.editarComponenteDocente(elem)}"/>
+                </p:column>  
+
+            </p:dataTable>
+        </p:outputPanel>
+    </h:panelGroup>
+
+    <p:confirmDialog id="confirmDialog"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update=":#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:panel_componentes_docentes :form:tab_actividades:fila_text_docente :#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:panel_docente"
+                             oncomplete="PF('confirmDialog').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{asignacionDocenteComponenteBean.eliminarDocente()}"  />
+            <p:blockUI block="@form" trigger="confirmDelete"/>
+            <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:dialog header="#{msg.hAsignarDocente}" widgetVar="itemDialog" modal="true" showEffect="fade"    onHide="PF('dialogTable').clearFilters();" hideEffect="fade" resizable="false">             
+        <p:outputPanel id="itemDetail">                                                             
+            <h:panelGroup rendered="#{(not empty asignacionDocenteComponenteBean.componenteDocenteEnEdicion) or asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesUnicoDocente}"  >                    
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                <p:outputPanel id="formularioCargo">                   
+                    <p:dataTable id="radioDT" 
+                                 value="#{asignacionDocenteComponenteBean.listaDocentes}" 
+                                 selection="#{asignacionDocenteComponenteBean.docenteSeleccionado}" 
+                                 rowKey="#{docente.psePk}"
+                                 filteredValue="#{asignacionDocenteComponenteBean.listaDocentesAux}" 
+                                 emptyMessage="No hay docentes con contratos vigentes para asignar."                                 
+                                 styleClass="table-scroll"
+                                 var="docente"
+                                 widgetVar="dialogTable"
+                                 >
+                        <p:column headerText="#{msg.hdui}" sortBy="#{docente.psePersona.perDui}" filterBy="#{docente.psePersona.perDui}">
+                            <h:outputText value="#{docente.psePersona.perDui}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hnombre}" sortBy="#{docente.psePersona.perNombreCompleto}"   filterBy="#{docente.psePersona.perNombreCompleto}" filterMatchMode="contains">
+                            <h:outputText value="#{docente.psePersona.perNombreCompleto}" />
+                        </p:column>
+                        <p:column selectionMode="single" style="width:16px;text-align:center"/>                                         
+                    </p:dataTable>
+
+
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardar"  value="#{msg.guardar}" rendered="#{not empty asignacionDocenteComponenteBean.listaDocentes }"  action="#{asignacionDocenteComponenteBean.guardarComponenteDocente()}" update=":#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:panel_componentes_docentes :#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:panel_docente :#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:itemDetail :form:tab_actividades:fila_text_docente" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide(); PF('dialogTable').clearFilters();"  update=":#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:itemDetail" styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardar" />  
+                    <p:defaultCommand target="btnGuardar" scope="itemDetail"/>       
+                </p:outputPanel>         
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>  
+
+
+</ui:composition>

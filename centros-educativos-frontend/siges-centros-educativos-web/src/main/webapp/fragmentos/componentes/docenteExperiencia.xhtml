@@ -1,0 +1,190 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+    <c:set var="personalSede" value="#{personalSede}" scope="request"/>
+    <c:set var="soloLecturaExperiencia" value="#{soloLecturaExperiencia}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{docenteExperienciaBean.setSoloLectura(soloLecturaExperiencia)}"/>
+    </f:metadata>   
+
+
+    <p:outputPanel id="formularioDocenteExperiencia">
+        <p:outputPanel rendered="#{docenteExperienciaBean.entidadEnEdicion.demPk != null}">
+            <fieldset >
+                <legend><h:outputText value="#{msg.experienciaLaboral}"/></legend>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_laboral" >
+                    <p:outputPanel styleClass="col-sm-12">  
+                        <p:outputPanel styleClass="form-action-buttons margen-sup">
+                            <p:commandButton value="#{msg.agregarExperiencia}" icon="glyphicon glyphicon-plus" 
+                                             action="#{docenteExperienciaBean.agregarExperiencia()}" 
+                                             update="experienciaDetalle" oncomplete="PF('experienciaDialog').show()"  
+                                             id="btnAgregarExperienciaLaboral" styleClass="btn btn-secondary" 
+                                             rendered="#{!docenteExperienciaBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_EXPERIENCIA_LABORAL)}"/>
+                        </p:outputPanel>                            
+
+                        <p:outputPanel id="pnlExperienciaLaboral">
+                            <p:dataTable id="tablaExperienciaLaboral" var="experiencia"  emptyMessage="#{msg.noHayResultados}" 
+                                         value="#{docenteExperienciaBean.entidadEnEdicion.demExperienciaLaboral}">
+
+                                <p:column headerText="#{msg.hInstitucion}">
+                                    <h:outputText value="#{experiencia.elaInstitucion}" />
+                                </p:column>
+                                <p:column headerText="#{msg.htipo}">
+                                    <h:outputText value="#{experiencia.elaTipoInstitucion.tipNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hDesde}">
+                                    <h:outputText value="#{experiencia.elaDesde}"  converter="#{localDateConverter}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hHasta}">
+                                    <h:outputText value="#{experiencia.elaHasta}" converter="#{localDateConverter}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hcargoDesempenado}">
+                                    <h:outputText value="#{experiencia.elaCargo}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hvalidado}">
+                                    <p:selectOneRadio layout="responsive" columns="3" 
+                                                      value="#{experiencia.elaValidada}"  
+                                                      rendered="#{!(docenteExperienciaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_INFORMACION_FICHA_DOCENTE))}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <p:ajax event="change" process="@this" listener="#{docenteExperienciaBean.validarExperiencia(experiencia)}"/>
+                                    </p:selectOneRadio>
+                                    <h:outputText rendered="#{docenteExperienciaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_INFORMACION_FICHA_DOCENTE)}"
+                                                  value="#{experiencia.elaValidada}" converter="#{booleanConverter}"/>
+                                </p:column>
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!docenteExperienciaBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_EXPERIENCIA_LABORAL)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:experienciaDetalle"  
+                                                     oncomplete="PF('experienciaDialog').show()" 
+                                                     icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{msg.editar}" action="#{docenteExperienciaBean.editarExperiencia(experiencia)}">
+                                    </p:commandButton>
+                                </p:column>    
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{docenteExperienciaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_EXPERIENCIA_LABORAL)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:experienciaDetalle"  
+                                                     oncomplete="PF('experienciaDialog').show()" 
+                                                     icon="glyphicon glyphicon-search" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{msg.ver}" action="#{docenteExperienciaBean.editarExperiencia(experiencia)}">
+                                    </p:commandButton>
+                                </p:column>    
+
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!docenteExperienciaBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_EXPERIENCIA_LABORAL)}">
+                                    <p:commandButton oncomplete="PF('confirmDialogEXP').show()"
+                                                     icon="glyphicon glyphicon-trash" 
+                                                     styleClass="btn btn-icono rojo" 
+                                                     title="#{msg.eliminar}" 
+                                                     action="#{docenteExperienciaBean.actualizarExperiencia(experiencia)}"/>
+                                </p:column>                                         
+                            </p:dataTable>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </fieldset>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:confirmDialog id="confirmDialogEXP"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogEXP">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDeleteEXP" value="#{msg.hconfirmar}" update="pnlExperienciaLaboral"
+                             oncomplete="PF('confirmDialogEXP').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{docenteExperienciaBean.eliminarExperiencia()}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteEXP"/>
+            <p:commandLink id="cancelarDeleteEXP" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogEXP').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:dialog id="experienciaDialog" header="#{msg.experienciaLaboral}" widgetVar="experienciaDialog" modal="true" 
+              showEffect="fade" hideEffect="fade" resizable="false" closable="true" >
+        <p:outputPanel id="experienciaDetalle"> 
+            <p:messages id="popupmsgExperiencia" showDetail="true" globalOnly="false" for="popupmsgExperiencia" closable="true"/>   
+
+            <p:outputPanel styleClass="ui-messages" rendered="#{docenteExperienciaBean.entidadEnEdicionExperiencia.elaValidada}">                                
+                <div class="ui-messages-info messages-info-azul ui-corner-all">                                   
+                    <ul>
+                        <li class="control-inline">
+                            <h:outputText styleClass="ui-messages-info-summary" value="#{msg.guardarPierdeValidacion}" style="padding-right: 15px"/>
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_institucion">
+                <h:outputLabel value="#{msg.institucion}" for="input_experiencia_institucion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <h:inputText id="input_experiencia_institucion" disabled="#{docenteExperienciaBean.soloLecturaExperiencia}"
+                                 value="#{docenteExperienciaBean.entidadEnEdicionExperiencia.elaInstitucion}"  
+                                 styleClass="form-control" 
+                                 maxlength="255"/>
+                </p:outputPanel>    
+            </p:outputPanel>  
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_tipo_institucion">
+                <h:outputLabel value="#{msg.tipoInstitucion}" for="input_experiencia_tipo_institucion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <h:selectOneMenu id="input_experiencia_tipo_institucion" value="#{docenteExperienciaBean.comboTipoInstitucionPagaExp.selected}" disabled="#{docenteExperienciaBean.soloLecturaExperiencia}"  styleClass="form-control" >
+                        <f:selectItems value="#{docenteExperienciaBean.comboTipoInstitucionPagaExp.items}" />
+                    </h:selectOneMenu>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_direccion_institucion">
+                <h:outputLabel value="#{msg.direccionInstitucion}" for="input_experiencia_direccion_institucion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <h:inputText id="input_experiencia_direccion_institucion" disabled="#{docenteExperienciaBean.soloLecturaExperiencia}"
+                                 value="#{docenteExperienciaBean.entidadEnEdicionExperiencia.elaDireccion}"  
+                                 styleClass="form-control" 
+                                 maxlength="500"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_cargo">                        
+                <h:outputLabel value="#{msg.cargoDesempenado}" for="input_experiencia_cargo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <h:inputText id="input_experiencia_cargo" disabled="#{docenteExperienciaBean.soloLecturaExperiencia}"
+                                 value="#{docenteExperienciaBean.entidadEnEdicionExperiencia.elaCargo}"  
+                                 styleClass="form-control" 
+                                 maxlength="100"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_desde">
+                <h:outputLabel value="#{msg.desde}" for="input_experiencia_desde" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <p:calendar autocomplete="off" styleClass="fomr-control" id="input_experiencia_desde" value="#{docenteExperienciaBean.entidadEnEdicionExperiencia.elaDesde}" 
+                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" disabled="#{docenteExperienciaBean.soloLecturaExperiencia}"
+                                converter="#{localDateConverter}" maxdate="#{applicationBean.today()}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_experiencia_hasta">                        
+                <h:outputLabel value="#{msg.hasta}" for="input_experiencia_hasta" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <p:calendar autocomplete="off" styleClass="fomr-control" id="input_experiencia_hasta" value="#{docenteExperienciaBean.entidadEnEdicionExperiencia.elaHasta}" 
+                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" disabled="#{docenteExperienciaBean.soloLecturaExperiencia}"
+                                converter="#{localDateConverter}" maxdate="#{applicationBean.today()}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarExperiencia"   value="#{msg.guardar}" action="#{docenteExperienciaBean.agregarExperienciaDatosEmpleados()}" update="experienciaDetalle pnlExperienciaLaboral" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"  rendered="#{!docenteExperienciaBean.soloLecturaExperiencia}"/>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('experienciaDialog').hide();"  styleClass="btn btn-link"/>                        
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="experienciaDetalle" trigger="btnGuardarExperiencia" />
+            <p:defaultCommand target="btnGuardarExperiencia" scope="experienciaDetalle"/>   
+        </p:outputPanel>
+    </p:dialog>
+</ui:composition>

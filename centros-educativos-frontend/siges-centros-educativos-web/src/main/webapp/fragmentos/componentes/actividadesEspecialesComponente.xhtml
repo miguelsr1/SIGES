@@ -1,0 +1,286 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumCalculoNotaInstitucional" />
+    #{actividadesEspecialesComponenteBean.forceInit()}
+    <c:set var="soloLecturaActividadesEspeciales" value="#{soloLecturaActividadesEspeciales}" scope="request"/>
+    <c:set var="seccion" value="#{seccion}" scope="request"/>
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{actividadesEspecialesComponenteBean.setSoloLectura(soloLecturaActividadesEspeciales)}"/>
+    </f:metadata>       
+
+    <p:outputPanel id="formularioEstudiante" rendered="#{actividadesEspecialesComponenteBean.seccion != null}">
+
+        <p:outputPanel id="pnlResultadoCPG" >
+            <p:outputPanel styleClass="float-right" style="padding-bottom:5px">
+                        <p:commandButton value="#{msg.agregarActividadEspecial}" icon="glyphicon glyphicon-plus" 
+                                         action="#{actividadesEspecialesComponenteBean.agregar()}" 
+                                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACTIVIDAD_ESPECIAL) and (not actividadesEspecialesComponenteBean.soloLectura) }"
+                                         update=":#{component.namingContainer.parent.namingContainer.clientId}:actividadEspecial:itemDetail" oncomplete="PF('itemDialogActividad').show()"  
+                                         styleClass="btn btn-secondary" />
+                    </p:outputPanel>
+            <p:dataTable  id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{actividadesEspecialesComponenteBean.listCpg}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="cpgPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{actividadesEspecialesComponenteBean.paginado}"
+                         reflow="true" >
+                <p:column headerText="Nombre" >
+                    <h:outputText value="#{elem.cpgNombrePublicable}" />
+                </p:column>   
+                <p:column headerText="#{msg.hhorasSemanales}" sortBy="#{elem.cpgCantidadHorasSemanales}">
+                    <h:outputText value="#{elem.cpgCantidadHorasSemanales}" />
+                </p:column>
+                <p:column id="colPerCal"  sortBy="#{elem.cpgPeriodosCalificacion}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.percal}"/>
+                        <p:tooltip position="bottom" value="#{msg.hcpgPeriodosCalificacion}" for="colPerCal" trackMouse="true" />
+                    </f:facet>     
+                    <h:outputText value="#{elem.cpgPeriodosCalificacion}" />
+                </p:column>
+                <p:column id="colPP" sortBy="#{elem.cpgCantidadPrimeraPrueba}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.pp}"/>
+                        <p:tooltip position="bottom" value="#{msg.hcpgPrimeraPrueba}" for="colPP" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.cpgCantidadPrimeraPrueba}"/>
+                </p:column>
+                <p:column id="colPS"  sortBy="#{elem.cpgCantidadPrimeraSuficiencia}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.ps}"/>
+                        <p:tooltip position="bottom" value="#{msg.hcpgPrimeraSuficiencia}" for="colPS" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.cpgCantidadPrimeraSuficiencia}"/>
+                </p:column>
+                <p:column id="colSP"  sortBy="#{elem.cpgCantidadSegundaPrueba}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.sp}"/>
+                        <p:tooltip position="bottom" value="#{msg.hcpgSegundaPrueba}" for="colSP" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.cpgCantidadSegundaPrueba}"/>
+                </p:column>
+                <p:column id="colSS" sortBy="#{elem.cpgCantidadSegundaSuficiencia}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.ss}"/>
+                        <p:tooltip position="bottom" value="#{msg.hcpgSegundaSuficiencia}" for="colSS" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.cpgCantidadSegundaSuficiencia}"/>
+                </p:column>
+                <p:column headerText="#{msg.hescalaCalificacion}" sortBy="#{elem.cpgEscalaCalificacion.ecaNombre}">
+                    <h:outputText value="#{elem.cpgEscalaCalificacion.ecaNombre}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_ACTIVIDAD_ESPECIAL) and (not actividadesEspecialesComponenteBean.soloLectura)}">
+                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:itemDetail" oncomplete="PF('itemDialogActividad').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{actividadesEspecialesComponenteBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ACTIVIDAD_ESPECIAL) and (not actividadesEspecialesComponenteBean.soloLectura)}">
+                    <p:commandButton oncomplete="PF('confirmDialogActividadEsp').show()" update=":#{component.namingContainer.parent.namingContainer.clientId}:confirmDialogActividadEsp" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{actividadesEspecialesComponenteBean.prepararParaEliminar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+        
+        
+        <p:confirmDialog id="confirmDialogActividadEsp"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogActividadEsp">
+            <p:outputPanel styleClass="float-right" >
+                <p:messages id="eliminarMsg" showDetail="true" globalOnly="false" for="eliminarMsg" closable="true"/>
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogActividadEsp').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{actividadesEspecialesComponenteBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogActividadEsp').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+        <p:dialog header="#{msg.actividadEspecial}" widgetVar="itemDialogActividad" modal="true" showEffect="fade" hideEffect="fade" resizable="false">  
+
+            <p:outputPanel id="itemDetail">   
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>   
+                
+                <h:panelGroup rendered="#{not empty actividadesEspecialesComponenteBean.entidadEnEdicion}"  > 
+
+
+                <p:tabView>
+                    <p:tab title="#{msg.datosGenerales}">
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_sede">
+                            <h:outputLabel value="#{msg.tipo}"  styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                                <h:outputText value="#{actividadesEspecialesComponenteBean.tipoActividadEspecial.text}" />                              
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo_actividad" >                        
+                            <h:outputLabel value="#{msg.codigoActividad}" for="input_codigo_actividad"  styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                            
+                                <h:inputText autocomplete="off" id="input_codigo_actividad" styleClass="form-control" value="#{actividadesEspecialesComponenteBean.actividadEspecial.cpeCodigo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_actividad">
+                            <h:outputLabel value="#{msg.nombreActividad}" for="input_nombre_actividad" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" id="input_nombre_actividad" styleClass="form-control" value="#{actividadesEspecialesComponenteBean.actividadEspecial.cpeNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_escala">
+                            <h:outputLabel value="#{msg.escalaCalificacion}" for="input_cpgEscalaCalificacion" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_cpgEscalaCalificacion" value="#{actividadesEspecialesComponenteBean.comboEscalaCalificacion.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{actividadesEspecialesComponenteBean.comboEscalaCalificacion.items}" />  
+                                    <p:ajax event="change" listener="#{actividadesEspecialesComponenteBean.eleccionEscalaCalificacion()}" update="fila_input_calculo_nota_institucional"/>
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_horas_semanales">
+                            <h:outputLabel value="#{msg.horasSemanales}" for="input_horas_semanales" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber autocomplete="off" id="input_horas_semanales" decimalPlaces="0" value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgCantidadHorasSemanales}" styleClass="form-control texto-extra-corto"/>
+                                <h:message for="input_horas_semanales" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cpgPeriodosCalificacion">
+                            <h:outputLabel value="#{msg.cpgPeriodosCalificacion}" for="input_cpgPeriodosCalificacion" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber autocomplete="off" decimalPlaces="0" id="input_cpgPeriodosCalificacion" 
+                                               value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgPeriodosCalificacion}" 
+                                               styleClass="form-control texto-extra-corto"/>
+                                <h:message for="input_cpgPeriodosCalificacion" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cpgCantidadPrimeraPrueba">
+                            <h:outputLabel value="#{msg.cpgCantidadPrimeraPrueba}" for="input_cpgCantidadPrimeraPrueba" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber  maxValue="99" decimalPlaces="0" emptyValue="zero" autocomplete="off" id="input_cpgCantidadPrimeraPrueba"
+                                                value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgCantidadPrimeraPrueba}" 
+                                                styleClass="form-control texto-extra-corto"/>
+                                <h:message for="input_cpgCantidadPrimeraPrueba" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cpgCantidadPrimeraSuficiencia">
+                            <h:outputLabel value="#{msg.cpgCantidadPrimeraSuficiencia}" for="input_cpgCantidadPrimeraSuficiencia" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber  maxValue="99" decimalPlaces="0" autocomplete="off" id="input_cpgCantidadPrimeraSuficiencia" 
+                                                value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgCantidadPrimeraSuficiencia}" 
+                                                styleClass="form-control  texto-extra-corto"/>
+                                <h:message for="input_cpgCantidadPrimeraSuficiencia" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cpgCantidadSegundaPrueba">
+                            <h:outputLabel value="#{msg.cpgCantidadSegundaPrueba}" for="input_cpgCantidadSegundaPrueba" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber  maxValue="99" decimalPlaces="0" autocomplete="off" id="input_cpgCantidadSegundaPrueba" 
+                                                value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgCantidadSegundaPrueba}" 
+                                                styleClass="form-control texto-extra-corto"/>
+                                <h:message for="input_cpgCantidadSegundaPrueba" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>                  
+
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cpgCantidadSegundaSuficiencia">
+                            <h:outputLabel value="#{msg.cpgCantidadSegundaSuficiencia}" for="input_cpgCantidadSegundaSuficiencia" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber  maxValue="99" decimalPlaces="0" autocomplete="off" id="input_cpgCantidadSegundaSuficiencia" 
+                                                value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgCantidadSegundaSuficiencia}" 
+                                                styleClass="form-control texto-extra-corto"/>
+                                <h:message for="input_cpgCantidadSegundaSuficiencia" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>                           
+
+                        
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_calculo_nota_institucional" >
+                            <h:outputLabel value="#{msg.calculoNotaInstitucional}" for="input_cpgCalculoNotaInstitucional" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_cpgCalculoNotaInstitucional" value="#{actividadesEspecialesComponenteBean.comboCalculoNotaInstitucional.selected}" disabled="#{actividadesEspecialesComponenteBean.comboEscalaCalificacion.selectedT==null}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{actividadesEspecialesComponenteBean.comboCalculoNotaInstitucional.items}"/>
+                                    <p:ajax event="change" update="fila_precision fila_input_funcion_redondeo"/>
+                                </h:selectOneMenu> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel  id="fila_precision">
+                            <p:outputPanel styleClass="form-group row" rendered="#{actividadesEspecialesComponenteBean.comboCalculoNotaInstitucional.selectedT eq EnumCalculoNotaInstitucional.PROM}">
+                                <h:outputLabel value="#{msg.precision}" for="input_cpgprecision" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <p:inputNumber  maxValue="5" decimalPlaces="0" autocomplete="off" id="input_cpgprecision" 
+                                                    value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgPrecision}" 
+                                                    styleClass="form-control texto-extra-corto"/>
+                                </p:outputPanel> 
+                            </p:outputPanel>
+                        </p:outputPanel>   
+
+                        <p:outputPanel  id="fila_input_funcion_redondeo">
+                            <p:outputPanel styleClass="form-group row" rendered="#{actividadesEspecialesComponenteBean.comboCalculoNotaInstitucional.selectedT eq EnumCalculoNotaInstitucional.PROM}">
+                                <h:outputLabel value="#{msg.funcionRedondeo}" for="input_cpgFuncionRedondeo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="input_cpgFuncionRedondeo" value="#{actividadesEspecialesComponenteBean.comboFuncionRedondeo.selected}"  styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{actividadesEspecialesComponenteBean.comboFuncionRedondeo.items}"/>
+                                    </h:selectOneMenu> 
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>  
+
+                        <p:outputPanel  id="fila_input_formula">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.formulaAprobacion}" for="input_formula" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="input_formula" value="#{actividadesEspecialesComponenteBean.comboFormulas.selected}"  styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{actividadesEspecialesComponenteBean.comboFormulas.items}"/>
+                                    </h:selectOneMenu> 
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel> 
+
+                    </p:tab>
+                    <p:tab title="#{msg.otrosDatos}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_contenido_tem">
+                            <h:outputLabel value="#{msg.contenidoTematico}" for="input_contenido_tem" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:scrollPanel style="height: 100%;width: 100%;padding-bottom: 0.2em;padding-top: 0.2em;">
+                                    <p:inputTextarea id="input_contenido_tem" styleClass="form-control" 
+                                                     value="#{actividadesEspecialesComponenteBean.entidadEnEdicion.cpgContenidoTematico}" 
+                                                     rows="20"
+                                                     counter="displayContenidoTematico" maxlength="4000" 
+                                                     counterTemplate="{0} caracteres restantes." />
+                                </p:scrollPanel>
+                                <h:outputText id="displayContenidoTematico" />
+                                <h:message for="input_contenido_tem" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:tab>
+                </p:tabView>
+                <br/>
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{actividadesEspecialesComponenteBean.guardar()}" update=":#{component.namingContainer.parent.namingContainer.clientId}:actividadEspecial:pnlResultadoCPG  :#{component.namingContainer.parent.namingContainer.clientId}:actividadEspecial:itemDetail :#{component.namingContainer.parent.namingContainer.clientId}:asignacionDocente:panel_componentes_docentes" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogActividad').hide();" update=":#{component.namingContainer.parent.namingContainer.clientId}:actividadEspecial:itemDetail" styleClass="btn btn-link"/>                        
+                    </p:outputPanel>                    
+                </p:outputPanel>                     
+                <p:blockUI block="itemDetail" trigger="btnGuardar" />  
+                </h:panelGroup> 
+            </p:outputPanel>        
+        </p:dialog> 
+        
+        
+        
+    </p:outputPanel>
+
+
+</ui:composition>

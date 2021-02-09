@@ -1,0 +1,288 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hnominaDocente}</li>
+            </ol>       
+        </nav> 
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hnominaDocente}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.NOMINA_DOCENTE)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.departamento}" for="b_deptoNac" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_deptoNac" value="#{nominaDocentesBean.comboDepartamento.selected}" 
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{nominaDocentesBean.comboDepartamento.items}"/>
+                                <p:ajax listener="#{nominaDocentesBean.seleccionarDepartamento}" event="change"  
+                                        process="@this" update="fila_municipio"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row" id="fila_municipio">
+                        <h:outputLabel value="#{msg.municipio}" for="b_municNac" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_municNac" value="#{nominaDocentesBean.comboMunicipio.selected}" 
+                                             disabled="#{nominaDocentesBean.comboDepartamento.selectedT==null}" 
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{nominaDocentesBean.comboMunicipio.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="b_centroEducativo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="b_centroEducativo" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{nominaDocentesBean.sedeSeleccionado}" 
+                                            completeMethod="#{nominaDocentesBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                            itemValue="#{sed}" 
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            onclick="PF('b_inst_resp_autocomplete').search(PF('b_inst_resp_autocomplete').input.val())" 
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.comboEmptyItem}" >
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.incluirSedesAdscritas}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="input_inc_adsc" styleClass="form-check-input" value="#{nominaDocentesBean.incluirAdscritas}" />
+                                <h:outputLabel for="input_inc_adsc" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nip}" for="b_nip" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nip" 
+                                         value="#{nominaDocentesBean.filtro.perNip}" maxlength="50" /> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.dui}" for="b_dui" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_dui" 
+                                         value="#{nominaDocentesBean.filtro.perDui}" maxlength="50" /> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nie}" for="b_nie" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nie" 
+                                         value="#{nominaDocentesBean.filtro.perNie}" maxlength="50" /> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.codigoEmpleado}" for="b_codigo_empleado" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_codigo_empleado" 
+                                         value="#{nominaDocentesBean.filtro.perCodigoEmpleado}" maxlength="50" /> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombresApellidos}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <div class="ui-inputgroup">
+                                <h:inputText autocomplete="off" styleClass="form-control" 
+                                             style="display: inline-block;"
+                                             value="#{nominaDocentesBean.filtro.perNombreCompleto}" rendered="#{nominaDocentesBean.filtroNombreCompleto.nombreCompleto == null}"/>
+                                <h:inputText autocomplete="off" styleClass="form-control"
+                                             style="display: inline-block;"
+                                             disabled="true"
+                                             rendered="#{nominaDocentesBean.filtroNombreCompleto.nombreCompleto != null}"
+                                             value="#{nominaDocentesBean.filtroNombreCompleto.nombreCompleto}" /> 
+                                <f:subview id="busquedaNombre">
+                                    <ui:include src="componentes/busquedaNombreComponente.xhtml"  >   
+                                        <ui:param name="controllerParam" value="#{personalSedesEducativaBean}" />
+                                        <ui:param name="actionParam" value="filtroNombreCompletoSeleccionar" />
+                                        <ui:param name="filtroNombreCompleto" value="#{nominaDocentesBean.filtroNombreCompleto}" />
+                                    </ui:include>
+                                </f:subview>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="false">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.especialidad}" for="b_especialidad" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="b_especialidad" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{nominaDocentesBean.especialidadesSeleccionadas}" 
+                                            completeMethod="#{nominaDocentesBean.completeEspecialidad}"
+                                            var="esp" itemLabel="#{esp.espNombre}" 
+                                            itemValue="#{esp}" 
+                                            multiple="true"
+                                            widgetVar="b_especialidad_autocomplete"
+                                            onclick="PF('b_especialidad_autocomplete').search(PF('b_especialidad_autocomplete').input.val())" 
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            converter="#{especialidadConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}" >
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+            </p:outputPanel>
+        </p:panel>
+
+
+        <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+            <p:outputPanel styleClass="form-group row">
+                <p:outputPanel styleClass="col-sm-12 texto-right">
+                    <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{nominaDocentesBean.buscar()}" update="pnlResultado"/> 
+                    <p:commandLink value="#{msg.limpiar}" action="#{nominaDocentesBean.limpiar()}" 
+                                   update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                        <p:resetInput target="pnlSearch pnlResultado" />
+                    </p:commandLink>
+                    <p:defaultCommand target="btnBuscar" scope="form"/>
+                    <p:blockUI block="@form" trigger="btnBuscar" />
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="pnlResultado" style="margin-top: 20px;" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"     
+                         rendered="#{nominaDocentesBean.lazyDataModel != null}"
+                         value="#{nominaDocentesBean.lazyDataModel}"
+                         emptyMessage="#{msg.noHayResultados}"	
+                         lazy="true"
+                         paginator="true"
+                         sortField="psePk"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="10,25,50"
+                         rows="#{nominaDocentesBean.paginado}"
+                         reflow="true" 
+                         styleClass="myTable" rowIndexVar="rowIndex"> 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{nominaDocentesBean.totalResultados lt (nominaDocentesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{nominaDocentesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="PersonalSedeEducativa" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>                
+                <p:column headerText="#{msg.hnip}">
+                    <h:outputText value="#{elem.nomPersonal.psePersona.perNip}" />
+                </p:column>
+                <p:column headerText="#{msg.hdui}">                     
+                    <h:outputText value="#{elem.nomPersonal.psePersona.perDui}" />
+                </p:column>
+                <p:column headerText="#{msg.hnie}">                     
+                    <h:outputText value="#{elem.nomPersonal.psePersona.perNie}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombreDocente}">                     
+                    <h:outputText value="#{elem.nomPersonal.psePersona.perNombreCompleto}" />
+                </p:column>
+                <p:column headerText="#{msg.especialidades}">                     
+                    <h:outputText value="#{elem.nomPersonal.especialidadesNombres}" />
+                </p:column>
+                <p:column headerText="#{msg.hgradosAsignados}">                     
+                    <h:outputText value="#{elem.gradosNombres}" />
+                </p:column>
+                <p:column headerText="#{msg.hmateriasAsignadas}">      
+                    <h:outputText value="#{elem.materiasPorGrado}" escape="false"/>
+                </p:column>
+                <p:column headerText="#{msg.htipoContrato}">                     
+                    <h:outputText value="#{elem.nomPersonal.pseDatoEmpleado.demTiposContratos}" />
+                </p:column>
+                <p:column headerText="#{msg.hinstitucionPagaSalario}">                     
+                    <h:outputText value="#{elem.nomPersonal.pseDatoEmpleado.demInstitucionesPagan}" />
+                </p:column>
+                <p:column headerText="#{msg.htipoNombramiento}">                     
+                    <h:outputText value="#{elem.nomPersonal.pseDatoEmpleado.demTiposNombramiento}" />
+                </p:column>
+
+
+            </p:dataTable>              
+        </p:outputPanel>       
+
+
+    </h:form>
+</ui:composition>

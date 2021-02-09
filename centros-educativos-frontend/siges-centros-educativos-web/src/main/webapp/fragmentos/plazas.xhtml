@@ -1,0 +1,417 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoSolicitudPlaza" />
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.plazasAprobadas}</li>
+            </ol>
+        </nav>        
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.plazasAprobadas}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.agregarPlazas}" icon="glyphicon glyphicon-plus" 
+                                 action="#{plazasBean.agregar()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarPlaza" styleClass="btn btn-secondary" 
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PLAZA)}"/>
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.PLAZA)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro" collapsed="false">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-12">
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.idPuesto}" for="b_codigo_plaza" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:inputText styleClass="form-control texto-corto" id="b_codigo_plaza" 
+                                             value="#{plazasBean.filtro.idPuesto}"/>
+                            </p:outputPanel>
+
+                            <h:outputLabel value="#{msg.anioPartida}" for="b_sede" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:inputText styleClass="form-control texto-corto" id="b_sede" 
+                                             value="#{plazasBean.filtro.anioPartida}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>                             
+
+
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.estado}" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <p:outputPanel styleClass="form-check">
+                                    <p:selectOneRadio layout="responsive" columns="3" 
+                                                      value="#{plazasBean.filtro.estado}">
+                                        <f:selectItems value="#{plazasBean.comboEstado}" var="estado" 
+                                                       itemLabel="#{estado.text}" itemValue="#{estado}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>       
+
+                            <h:outputLabel value="#{msg.situacion}" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <p:outputPanel styleClass="form-check">
+                                    <p:selectOneRadio layout="responsive" columns="3" 
+                                                      value="#{plazasBean.filtro.situacion}">
+                                        <f:selectItems value="#{plazasBean.comboSituacion}" var="situacion" 
+                                                       itemLabel="#{situacion.text}" itemValue="#{situacion}"/>
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>    
+
+
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                            <h:outputLabel value="#{msg.departamento}" for="b_departamento" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4  ">
+                                <h:selectOneMenu   id="b_departamento" value="#{plazasBean.comboDepartamentos.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{plazasBean.comboDepartamentos.items}" />
+                                    <p:ajax listener="#{plazasBean.departamentoElegido}" event="change" 
+                                            process="@this" update="fila_input_departamento"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                            <h:outputLabel value="#{msg.municipio}" for="b_municipio" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4 ">
+                                <h:selectOneMenu   id="b_municipio" value="#{plazasBean.comboMunicipio.selected}" 
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{plazasBean.comboMunicipio.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_filtro" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <p:autoComplete id="input_sede_autocomplete_filtro" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{plazasBean.sedeSeleccionadaFiltro}"
+                                                completeMethod="#{plazasBean.completeSede}"
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                                itemValue="#{sed}" 
+                                                widgetVar="b_inst_resp_autocomplete_filtro"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{sedesConverter}"
+                                                multiple="false">
+                                </p:autoComplete>
+                            </p:outputPanel> 
+
+                        </p:outputPanel>
+
+
+                    </p:outputPanel>
+
+                </p:outputPanel>
+            </p:panel>	
+        </h:panelGroup>
+
+        <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+            <p:outputPanel styleClass="form-group row">
+                <p:outputPanel styleClass="col-sm-12 texto-right">
+                    <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{plazasBean.buscar()}" update="pnlResultado"/>
+                    <p:commandLink value="#{msg.limpiar}" action="#{plazasBean.limpiar()}" 
+                                   update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                        <p:resetInput target="pnlSearch pnlResultado" />
+                    </p:commandLink>
+                    <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                    <p:blockUI block="@form" trigger="btnBuscar" />
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="pnlResultado" >            
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{plazasBean.plazaLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="plaPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{plazasBean.paginado}"
+                         reflow="true"> 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{plazasBean.totalResultados lt (plazasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{plazasBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="plazas" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hsede}">
+                    <h:outputText value="#{elem.plaSedeFk.sedCodigo}" id="textSede"/>
+                    <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >                           
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.plaSedeFk.sedNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.plaSedeFk.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.plaSedeFk.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.plaSedeFk.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>  
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.plaNombre}">                     
+                    <h:outputText value="#{elem.plaNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hidPuesto}" sortBy="#{elem.plaIdPuesto}">                     
+                    <h:outputText value="#{elem.plaIdPuesto}" />
+                </p:column>
+                <p:column headerText="#{msg.hcodigoPlaza}">                     
+                    <h:outputText value="#{elem.plaCodigoPlaza}" />
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.plaEstado}">                     
+                    <h:outputText value="#{elem.plaEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.hsituacion}">    
+                    <h:outputText value="#{elem.plaSituacion.text}" />
+                </p:column>
+                <p:column headerText="#{msg.hanioPartida}">    
+                    <h:outputText value="#{elem.plaAnioPartida}" />
+                </p:column> 
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PLAZA)}">
+                    <p:commandButton update=":form:itemDetail" 
+                                     oncomplete="PF('itemDialog').show()" 
+                                     icon="glyphicon glyphicon-pencil" 
+                                     styleClass="btn btn-icono" title="#{msg.editar}" 
+                                     action="#{plazasBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{plazasBean.historial(elem.plaPk)}"  
+                                     update=":form:historialDetail" oncomplete="PF('historialDialog').show()" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_PLAZA)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{plazasBean.actualizar(elem)}"/>
+
+                </p:column>
+            </p:dataTable>              
+        </p:outputPanel>
+
+        <p:dialog header="#{plazasBean.verHistorico?'Histórico plaza': msg.plaza}" widgetVar="itemDialog" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioPlaza">                                             
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_puesto" >                        
+                            <h:outputLabel value="#{msg.nombrePlaza}" for="input_nombre_puesto"  
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_nombre_puesto" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{plazasBean.entidadEnEdicion.plaNombre}" disabled="#{plazasBean.verHistorico}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                                             
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_id_puesto" >                        
+                            <h:outputLabel value="#{msg.idPuesto}" for="input_id_puesto"  
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <p:inputText autocomplete="off" id="input_id_puesto" styleClass="form-control texto-corto" 
+                                             value="#{plazasBean.entidadEnEdicion.plaIdPuesto}" disabled="#{plazasBean.verHistorico}">
+                                    <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/> 
+                                </p:inputText>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.codigoPlaza}" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:panelGroup >
+                                    <p:inputNumber styleClass="form-control texto-extra-corto" autocomplete="false" decimalPlaces="0" 
+                                                   value="#{plazasBean.entidadEnEdicion.plaPartida}" style="display: inline-block"  disabled="#{plazasBean.verHistorico}"/>-
+                                    <p:inputNumber styleClass="form-control texto-extra-corto" autocomplete="false" decimalPlaces="0" 
+                                                   value="#{plazasBean.entidadEnEdicion.plaSubpartida}" style="display: inline-block" disabled="#{plazasBean.verHistorico}"/>
+                                </h:panelGroup>
+                            </p:outputPanel>                
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_estado_plaza">
+                            <h:outputLabel value="#{msg.estado}" for="input_estado_plaza" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:panelGroup >
+                                    <p:selectOneRadio layout="responsive" columns="2" id="input_estado_plaza"  
+                                                      value="#{plazasBean.entidadEnEdicion.plaEstado}" disabled="#{plazasBean.verHistorico}">
+                                        <f:selectItems value="#{plazasBean.listEstadoPlaza}" 
+                                                       var="list" itemLabel="#{list.text}" itemValue="#{list}" />
+                                    </p:selectOneRadio>
+                                </h:panelGroup>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_situacion_plaza">
+                            <h:outputLabel value="#{msg.situacion}" for="input_situacion_plaza" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:panelGroup >
+                                    <p:selectOneRadio layout="responsive" columns="2" id="input_situacion_plaza"  
+                                                      value="#{plazasBean.entidadEnEdicion.plaSituacion}" disabled="#{plazasBean.verHistorico}">
+                                        <f:selectItems value="#{plazasBean.listSituacionPlaza}" 
+                                                       var="list" itemLabel="#{list.text}" itemValue="#{list}" />
+                                    </p:selectOneRadio>
+                                </h:panelGroup>
+                            </p:outputPanel>
+                        </p:outputPanel>                                               
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_anio_partida" >                        
+                            <h:outputLabel value="#{msg.anioPartida}" for="input_anio_partida"  
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_anio_partida" styleClass="form-control texto-corto" 
+                                             value="#{plazasBean.entidadEnEdicion.plaAnioPartida}" disabled="#{plazasBean.verHistorico}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_sede_autocomplete" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{plazasBean.entidadEnEdicion.plaSedeFk}"
+                                                completeMethod="#{plazasBean.completeSede}"
+                                                var="sede" itemLabel="#{sede.sedCodigoNombre}" 
+                                                itemValue="#{sede}" 
+                                                widgetVar="b_inst_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{sedesConverter}"
+                                                disabled="#{plazasBean.verHistorico}"
+                                                multiple="false">
+                                </p:autoComplete>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{plazasBean.guardar()}" 
+                                                 update="form:pnlResultado form:itemDetail" 
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!plazasBean.verHistorico}"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  
+                                               update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+
+        <p:dialog header="#{msg.historial}" widgetVar="historialDialog" modal="true"  showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="historialDetail">                
+                <h:panelGroup rendered="#{not empty plazasBean.historialPlaza}"  >                     
+                    <p:dataTable value="#{plazasBean.historialPlaza}" var="hist" reflow="true">                                       
+                        <p:column headerText="#{msg.husuarioMod}" sortBy="#{hist.revEntity.usuario}">                             
+                            <h:outputText value="#{hist.revEntity.usuario}"/>                         
+                        </p:column>                         
+                        <p:column headerText="#{msg.hfecha}" sortBy="#{hist.revEntity.revtstmp}">                             
+                            <h:outputText value="#{hist.revEntity.revtstmp}" converter="#{longToDateTimeConverter}" />
+                        </p:column>
+                        <p:column headerText="#{msg.htipo}">                            
+                            <h:outputText value="#{hist.revType.text}"/>                         
+                        </p:column> 
+                        <p:column styleClass="columnaAcciones" exportable="false" >
+                            <p:commandButton update=":form:itemDetail" 
+                                     oncomplete="PF('itemDialog').show()" 
+                                     icon="glyphicon glyphicon-eye-open" 
+                                     styleClass="btn btn-icono" title="#{msg.editar}" 
+                                     action="#{plazasBean.buscarRevEntity(hist)}"/>
+                        </p:column> 
+                    </p:dataTable>                
+                </h:panelGroup>            
+            </p:outputPanel> 
+        </p:dialog>   
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{plazasBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+    </h:form>
+</ui:composition>

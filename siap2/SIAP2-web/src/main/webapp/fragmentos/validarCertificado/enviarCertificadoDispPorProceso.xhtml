@@ -1,0 +1,154 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.enviarCertificadoDispPorProceso')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.enviarCertificadoDispPorProceso')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.enviarCertificadoDispPorProceso')}" escape="false" /> 
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false" >     
+            <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <div class="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText  value="#{enviarCertificadoDispPorProceso.ut.nombre}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProcesoAdquisicion')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText   value="#{enviarCertificadoDispPorProceso.proceso.nombre}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="grupoCampos tabla-enviar-fuente-para-cert-disp-pres">
+                    <!-- tabla de montos de direcciones -->
+                    <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                    <p:dataTable id="distribuccionCertificadoEnInsumo"
+                                 emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                 styleClass="table table-padding tabla-resultados"
+                                 value="#{enviarCertificadoDispPorProceso.montosFuenteInsumos}" var="monto"
+                                 selection="#{enviarCertificadoDispPorProceso.montosSeleccionadosParaReporte}"
+                                 disabledSelection="#{not enviarCertificadoDispPorProceso.estaMontoFuenteDisponibleParaEnviar(monto.id)}"                                 
+                                 rowKey="#{monto.id}">
+
+                        <p:ajax event="rowSelectCheckbox"  />
+                        <p:ajax event="rowUnselectCheckbox"  />
+                        <p:ajax event="toggleSelect"  />
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.Programa/AC/ANP')}">
+                            <h:outputText  value="#{utilsMB.getCodigoProgramaACoANPDePoInsumo(monto.insumo.id)[0]}" title="#{utilsMB.getCodigoProgramaACoANPDePoInsumo(monto.insumo.id)[1]}" />
+                        </p:column>
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.SubPrograma')}">
+                            <h:outputText  value="#{utilsMB.getCodigoSubprogramaDePoInsumo(monto.insumo.id)[0]}" title="#{utilsMB.getCodigoSubprogramaDePoInsumo(monto.insumo.id)[1]}"/>
+                        </p:column>
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.Proyecto')}">
+                            <h:outputText  value="#{utilsMB.getCodigoProyectoDePoInsumo(monto.insumo.id)[0]}" title="#{utilsMB.getCodigoProyectoDePoInsumo(monto.insumo.id)[1]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{textMB.obtenerTexto('labels.Fuente')}" sortBy="#{monto.fuente.fuenteRecursos.nombre}">
+                            <h:outputText  value="#{monto.fuente.fuenteRecursos.nombre}" />
+                        </p:column>
+
+                        <p:column headerText="#{textMB.obtenerTexto('labels.Categoria')}" sortBy="#{monto.fuente.categoriaConvenio.nombre}">
+                            <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}" />
+                        </p:column>
+
+                        <p:column headerText="#{textMB.obtenerTexto('labels.OEG')}" sortBy="#{monto.insumo.insumo.objetoEspecificoGasto.clasificador}">
+                            <h:outputText  value="#{monto.insumo.insumo.objetoEspecificoGasto.clasificador} " />
+                        </p:column>
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.IdDeInsumo')}" sortBy="#{monto.insumo.id}">
+                            <h:outputText  value="#{monto.insumo.id}" />
+                        </p:column>
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.CodigoInsumo')}" sortBy="#{monto.insumo.insumo.codigo}">
+                            <h:outputText  value="#{monto.insumo.insumo.codigo}" />
+                        </p:column>
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.NombreInsumo')}" sortBy="#{monto.insumo.insumo.nombre}">
+                            <h:outputText  value="#{monto.insumo.insumo.nombre}" />
+                        </p:column>
+
+                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoFuente')}" styleClass="numericos" sortBy="#{monto.monto}">
+                            <h:outputText  value="#{monto.monto}" >
+                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="#{textMB.obtenerTexto('labels.Copiar')}" styleClass="numericos" sortBy="#{monto.monto}">
+                            <p:commandButton rendered="#{ enviarCertificadoDispPorProceso.estaMontoFuenteDisponibleParaEnviar(monto.id)}"    
+                                             icon="glyphicon glyphicon-paste" 
+                                             styleClass="btn btn-icono" 
+                                             title="#{textMB.obtenerTexto('labels.CopiarMonto')}"  
+                                             immediate="true"
+                                             update="distribuccionCertificadoEnInsumo"
+                                             action="#{enviarCertificadoDispPorProceso.copiarMonto(monto)}">
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column  headerText="#{textMB.obtenerTexto('labels.MontoCertificado')}" styleClass="numericos" sortBy="#{monto.certificado}">
+                            <h:panelGroup  styleClass="input-group textoMedio pull-right" layout="block">
+                                <p:inputText  id="certificado-monto-fuente" value="#{monto.certificado}"  styleClass="form-control numericos" 
+                                              disabled="#{not enviarCertificadoDispPorProceso.estaMontoFuenteDisponibleParaEnviar(monto.id)}">
+                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    <p:ajax event="keyup" />
+                                </p:inputText>	
+                            </h:panelGroup> 
+                            <h:message for="certificado-monto-fuente" styleClass="help-inline msj-danger" />
+                        </p:column>                       
+                        <p:column selectionMode="multiple" exportable="false" style="width:16px;text-align:center" headerText="#{textMB.obtenerTexto('labels.SeleccionarParaEnviar')}"/>
+                    </p:dataTable>
+
+                </div>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton icon="glyphicon glyphicon-saved" 
+                                         styleClass="btn btn-primary"  
+                                         value="#{textMB.obtenerTexto('labels.EnviarAValidar')}" 
+                                         action="#{enviarCertificadoDispPorProceso.guardar}"  
+                                         update="@form"/>
+<!--                        <p:commandLink actionListener="#{enviarCertificadoDispPorProceso.generarCertificadoDisponibilidadProceso()}"
+                                       rendered="#{not empty enviarCertificadoDispPorProceso.montosFuenteInsumos and false}"
+                                       ajax="false" 
+                                       styleClass="btn btn-link">
+                            <span class="glyphicon glyphicon-download"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.GenerarCertificadoDisponibilidadProceso')}" /> 
+                        </p:commandLink>-->
+                        <h:outputLink styleClass="btn btn-link" value="#{enviarCertificadoDispPorProceso.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+
+            </h:panelGroup>
+        </h:form>
+
+    </ui:composition>
+</html>

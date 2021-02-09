@@ -1,0 +1,354 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.gestionPOA')}" /> 
+                </h2>
+
+               <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearEditarPOA')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                <div class="btn-group pull-right">
+                    <h:outputLink styleClass="btn btn-default" value="crearEditarPlanOperativoAnual.xhtml" rendered="#{permisosMB.permisos['CREAR_EDITAR_PLAN_OPERATIVO_ANUAL']   }">
+                        <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                    </h:outputLink>
+                </div>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.anio')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu  id="anioIdFiltro" value="#{poaConsulta.filtroAnioId}"  styleClass="form-control textoMedio" required="false" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}"  />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.programaInstitucional')}:" />
+                                <div class="col-sm-8">
+                                    <p:autoComplete id="filtro_programa_autocomplete" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{poaConsulta.filtroProgramaInstitucionalSelected}"  
+                                            completeMethod="#{poaConsulta.completeProgramasInstitucionales}" 
+                                            maxResults="10"
+                                            var="prog" itemLabel="#{prog.nombre}"  
+                                            itemValue="#{prog}" 
+                                            onclick="PF('filtro_programa_autocomplete').search(PF('filtro_programa_autocomplete').input.val())" 
+                                            widgetVar="filtro_programa_autocomplete" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{programaConverter}"
+                                            multiple="false">
+                                    </p:autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.unidad_tecnica_especifica')}:" />
+                                <div class="col-sm-8">
+                                    <p:autoComplete id="filtro_unidad_tecnica_autocomplete" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{poaConsulta.filtroUnidadTecnicaSelected}"  
+                                            completeMethod="#{poaConsulta.completeUnidadesTecnicas}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('filtro_unidadtecnica_autocomplete').search(PF('filtro_unidadtecnica_autocomplete').input.val())" 
+                                            widgetVar="filtro_unidadtecnica_autocomplete" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{unidadTecnicaConverter}"
+                                            multiple="false">
+                                    </p:autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="estadoIdFiltro"  value="#{poaConsulta.comboEstadosPOA.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{poaConsulta.comboEstadosPOA.items}"/>
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{poaConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{poaConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>    
+        </h:form>
+        <h:form id="tableForm" >
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', poaConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="talbaUnidadTecnica"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{poaConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" sortBy="#{dummy.nombre}">
+                        <h:outputText value="#{item.propertyMap['nombre']}" styleClass="cortarTexto"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.unidad_tecnica_especifica')}" sortBy="#{dummy.unidadTecnica.nombre}">
+                        <h:outputText value="#{item.propertyMap['unidadTecnica.nombre']}" styleClass="cortarTexto"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.programaInstitucional')}"  styleClass="cortarTexto" sortBy="#{dummy.programaInstitucional.nombre}">
+                        <h:outputText value="#{item.propertyMap['programaInstitucional.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.anio')}" sortBy="#{anio.nombre}">
+                        <h:outputText value="#{item.propertyMap['anio.anio']}" styleClass="cortarTexto"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.estado')}"  sortBy="#{dummy.estado}">
+                        <h:outputText value="#{item.propertyMap['estado'].label}"  styleClass="cortarTexto" />
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_PLAN_OPERATIVO_ANUAL'] }" >
+                        <h:outputLink  value="verPlanOperativoAnual.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Ver')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_PLAN_OPERATIVO_ANUAL']}">
+                        <h:outputLink  value="crearEditarPlanOperativoAnual.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}" rendered="#{item.propertyMap['estado'] eq 'EN_ELABORACION' }">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Evaluar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['EVALUAR_PLAN_OPERATIVO_ANUAL']}">
+                        <h:outputLink  value="validarPlanOperativoAnual.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Evaluar')}" rendered="#{item.propertyMap['estado'] eq 'ENVIADO' }">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-check"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Evaluar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['ELIMINAR_PLAN_OPERATIVO_ANUAL']}">    
+                        <p:commandButton icon="glyphicon glyphicon-remove"  rendered="#{item.propertyMap['estado'] eq 'EN_ELABORACION' }"
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         actionListener="#{poaConsulta.verificarEliminar(item.propertyMap['id'])}"
+                                         update="confirmModalCallBackBody" />
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+        <h:form id="modalForm"  prependId="false">
+            <!-- Modal de editar -->
+            <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarPOA')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <h:panelGroup layout="block" id="contentModal" styleClass="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                    <div class="col-sm-9">
+                                        <p:autoComplete id="input_unidad_tecnica_autocomplete" 
+                                                            styleClass="form-control textoLargo" 
+                                                            value="#{poaConsulta.editando.unidadTecnica}"  
+                                                            completeMethod="#{poaConsulta.completeUnidadesTecnicas}" 
+                                                            maxResults="10"
+                                                            var="ut" itemLabel="#{ut.nombre}"  
+                                                            itemValue="#{ut}" 
+                                                            onclick="PF('unidadtecnica_autocomplete').search(PF('unidadtecnica_autocomplete').input.val())" 
+                                                            widgetVar="unidadtecnica_autocomplete" 
+                                                            forceSelection="true" 
+                                                            queryDelay="500" 
+                                                            converter="#{unidadTecnicaConverter}"
+                                                            multiple="false">
+                                            </p:autoComplete>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.programaInstitucional')}:" />
+                                    <div class="col-sm-9">
+                                        <p:autoComplete id="input_programa_autocomplete" 
+                                                            styleClass="form-control textoLargo" 
+                                                            value="#{poaConsulta.editando.programaInstitucional}"  
+                                                            completeMethod="#{poaConsulta.completeProgramasInstitucionales}" 
+                                                            maxResults="10"
+                                                            var="prog" itemLabel="#{prog.nombre}"  
+                                                            itemValue="#{prog}" 
+                                                            onclick="PF('programa_autocomplete').search(PF('programa_autocomplete').input.val())" 
+                                                            widgetVar="programa_autocomplete" 
+                                                            forceSelection="true" 
+                                                            queryDelay="500" 
+                                                            converter="#{programaConverter}"
+                                                            multiple="false">
+                                            </p:autoComplete>
+                                    </div>
+                                </div>
+
+                                 <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.anio')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu  id="anioId" value="#{poaConsulta.anioFiscalId}"  styleClass="form-control textoMedio" required="false" >
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}"  />
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Estado')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="estadoId"  value="#{poaConsulta.comboEstadosPOANEW.selected}" styleClass="form-control textoMedio">
+                                            <f:selectItems value="#{poaConsulta.comboEstadosPOANEW.items}"/>
+                                        </h:selectOneMenu> 
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{poaConsulta.guardarEditando()}"  update="tableForm:talbaUnidadTecnica contentModal"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+        
+        <!-- MODAL PARA CONFIRMACION DE ELIMINAR-->
+        <h:form id="formEliminar" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" />
+                            </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}" 
+                                             actionListener="#{poaConsulta.eliminar()}"
+                                             update="formfiltro tableForm"
+                                             onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+        
+        <!-- HISTORICO -->
+        <div class="modal fade"  id="historicoModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalHistoricoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.ConsultaHistorica')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tablaConScroll">
+                                <p:dataTable
+                                    id="dataTableHistorico"
+                                    var="item" 
+                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                    value="#{areasInversionMB.listaHistoricoAreasInversion}" 
+                                    styleClass="table" >
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Orden')}">
+                                        <h:outputText value="#{item.orden}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                                        <h:outputText value="#{item.codigo}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                        <h:outputText value="#{item.nombre}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}">
+                                        <h:outputText value="#{item.habilitado}"  converter="booleanConverter"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaModificacion')}">
+                                        <h:outputText value="#{item.ultMod}"  converter="dateConverterHastaSegundos"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}">
+                                        <h:outputText value="#{item.ultUsuario}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-primary" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cerrar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+    </ui:composition>
+</html>

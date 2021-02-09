@@ -1,0 +1,196 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <c:set var="personalSede" value="#{personalSede}" scope="request"/>
+    <c:set var="soloLecturaDocenteDocumento" value="#{soloLecturaDocenteDocumento}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{docenteDocumentoBean.setSoloLectura(soloLecturaDocenteDocumento)}"/>
+    </f:metadata>   
+
+
+    <p:outputPanel id="formularioDocenteDocumentos">
+        <p:outputPanel rendered="#{docenteDocumentoBean.personalSede.psePk != null}">
+            <p:outputPanel styleClass="form-group row" >
+                <p:outputPanel styleClass="col-sm-12">  
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="#{msg.agregarDocumento}" icon="glyphicon glyphicon-plus" 
+                                         action="#{docenteDocumentoBean.agregar()}" 
+                                         update="documentoDetalle" oncomplete="PF('documentoDialog').show()"  
+                                         id="btnAgregarDocumento" styleClass="btn btn-secondary" 
+                                         rendered="#{!docenteDocumentoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_DOCENTE_DOCUMENTO)}"/>
+                    </p:outputPanel>                            
+
+                    <p:outputPanel id="pnlDocumento">
+                        <p:dataTable id="tablaDocumento" var="documento"  emptyMessage="#{msg.noHayResultados}" 
+                                     value="#{docenteDocumentoBean.listaDocumentos}">
+
+                            <p:column headerText="#{msg.htipoDocumento}" sortBy="#{documento.ddoTipoDocumento.tddNombre}">
+                                <h:outputText value="#{documento.ddoTipoDocumento.tddNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hArchivo}" sortBy="#{documento.ddoArchivo.achNombre}">
+                                <h:outputText value="#{documento.ddoArchivo.achNombre}" />
+
+                                <p:commandButton value="#{msg.verArchivo}" ajax="false" 
+                                                 onclick="this.form.target = '_blank';" 
+                                                 styleClass="btn btn-link">
+                                    <p:fileDownload contentDisposition="inline" 
+                                                    value="#{handleArchivoBean.descargarArchivo(documento.ddoArchivo)}" />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column headerText="#{msg.hdescripcion}" sortBy="#{documento.ddoDescripcion}">
+                                <h:outputText value="#{documento.ddoDescripcion}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfecha}" sortBy="#{documento.ddoUltModFecha}">
+                                <h:outputText value="#{documento.ddoUltModFecha}" converter="#{localDateTimeToDateConverter}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hvalidado}">
+                                <p:selectOneRadio layout="responsive" columns="3" 
+                                                  value="#{documento.ddoValidado}"  
+                                                  rendered="#{!(docenteDocumentoBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_INFORMACION_FICHA_DOCENTE))}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <p:ajax event="change" process="@this" update=":#{component.namingContainer.parent.namingContainer.clientId}:pnlDocumento" listener="#{docenteDocumentoBean.validarDocumento(documento)}"/>
+                                </p:selectOneRadio>
+                                <h:outputText rendered="#{docenteDocumentoBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_INFORMACION_FICHA_DOCENTE)}" value="#{documento.ddoValidado}" converter="#{booleanConverter}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones"  exportable="false" 
+                                      rendered="#{!docenteDocumentoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_DOCENTE_DOCUMENTO)}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:documentoDetalle"  
+                                                 oncomplete="PF('documentoDialog').show()" 
+                                                 icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono" 
+                                                 title="#{msg.editar}" action="#{docenteDocumentoBean.editarDocumento(documento)}">
+                                </p:commandButton>
+                            </p:column>    
+                            <p:column styleClass="columnaAcciones"  exportable="false" 
+                                      rendered="#{docenteDocumentoBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_DOCENTE_DOCUMENTO)}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:documentoDetalle"  
+                                                 oncomplete="PF('documentoDialog').show()" 
+                                                 icon="glyphicon glyphicon-search" 
+                                                 styleClass="btn btn-icono" 
+                                                 title="#{msg.ver}" action="#{docenteDocumentoBean.editarDocumento(documento)}">
+                                </p:commandButton>
+                            </p:column>    
+
+                            <p:column styleClass="columnaAcciones"  exportable="false" 
+                                      rendered="#{!docenteDocumentoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_DOCENTE_DOCUMENTO)}">
+                                <p:commandButton icon="glyphicon glyphicon-trash" 
+                                                 oncomplete="PF('confirmDialogEliminarDocDocente').show()" 
+                                                 styleClass="btn btn-icono rojo" 
+                                                 title="#{msg.eliminar}" action="#{docenteDocumentoBean.actualizar(documento)}"/>
+                            </p:column>                                         
+                        </p:dataTable>   
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:confirmDialog message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogEliminarDocDocente">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDeleteDocDocente" value="#{msg.hconfirmar}" update="pnlDocumento"
+                             oncomplete="PF('confirmDialogEliminarDocDocente').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{docenteDocumentoBean.eliminarDocumento}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteDocDocente"/>
+            <p:commandLink value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogEliminarDocDocente').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+
+    <p:dialog id="documentoDialog" header="#{msg.hdocumento}" widgetVar="documentoDialog" modal="true" 
+              showEffect="fade" hideEffect="fade" resizable="false" closable="true" >
+        <p:outputPanel id="documentoDetalle"> 
+            <p:messages id="popupmsgDocumento" showDetail="true" globalOnly="false" for="popupmsgDocumento" closable="true"/>   
+
+            <p:outputPanel styleClass="ui-messages" rendered="#{docenteDocumentoBean.entidadEnEdicion.ddoValidado}">                                
+                <div class="ui-messages-info messages-info-azul ui-corner-all">                                   
+                    <ul>
+                        <li class="control-inline">
+                            <h:outputText styleClass="ui-messages-info-summary" value="#{msg.guardarPierdeValidacion}" style="padding-right: 15px"/>
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_tipo_documento">
+                <h:outputLabel value="#{msg.tipoDocumento}" for="input_tipo_documento" 
+                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <h:selectOneMenu id="input_tipo_documento" value="#{docenteDocumentoBean.comboTipoDocumento.selected}" 
+                                     disabled="#{docenteDocumentoBean.soloLecturaDocumento}"
+                                     styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{docenteDocumentoBean.comboTipoDocumento.items}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>    
+            </p:outputPanel>  
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_archivo">
+                <h:outputLabel value="#{msg.archivo}" for="input_archivo" 
+                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <p:fileUpload fileUploadListener="#{docenteDocumentoBean.handlePartidaFileUpload}"
+                                  id="input_archivo"
+                                  mode="advanced" 
+                                  dragDropSupport="true"
+                                  label="Cargar documento"
+                                  rendered="#{!docenteDocumentoBean.soloLecturaDocumento and docenteDocumentoBean.entidadEnEdicion.ddoArchivo == null}"
+                                  uploadLabel="#{msg.confirmar}"
+                                  invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                  invalidFileMessage="#{msg.formatoNoPermitidoImgPdf} "
+                                  update="@parent"
+                                  cancelLabel="#{msg.cancelar}"
+                                  auto="true"
+                                  sizeLimit="#{applicationBean.fotosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png|pdf)$/" />
+                    <h:outputText value="#{docenteDocumentoBean.entidadEnEdicion.ddoArchivo.achNombre}" 
+                                  style="display: block;"
+                                  rendered="#{docenteDocumentoBean.entidadEnEdicion.ddoArchivo != null}"/>
+                    <p:commandLink action="#{docenteDocumentoBean.eliminarArchivo()}" 
+                                   update="@parent" value="#{msg.eliminar}" 
+                                   rendered="#{!docenteDocumentoBean.soloLectura and docenteDocumentoBean.entidadEnEdicion.ddoArchivo != null}" />
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">
+                <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" 
+                               styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-6">
+                    <p:scrollPanel style="height: 100%;width: 100%;padding-bottom: 0.1em;padding-top: 0.2em;" 
+                                   rendered="#{!docenteDocumentoBean.soloLecturaDocumento}">
+                        <p:inputTextarea id="input_descripcion" styleClass="form-control" 
+                                         value="#{docenteDocumentoBean.entidadEnEdicion.ddoDescripcion}" 
+                                         rows="15"
+                                         counter="displayDescripcionArchivo" maxlength="255" 
+                                         counterTemplate="{0} caracteres restantes." />
+                    </p:scrollPanel>
+                    <h:outputText id="displayDescripcionArchivo" />
+                    <h:outputText value="#{docenteDocumentoBean.entidadEnEdicion.ddoDescripcion}" 
+                                  styleClass="form-control-plaintext" rendered="#{docenteDocumentoBean.soloLecturaDocumento}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarDocumento"   value="#{msg.guardar}" 
+                                     action="#{docenteDocumentoBean.guardar()}" 
+                                     update="documentoDetalle pnlDocumento" styleClass="btn btn-primary" 
+                                     icon="glyphicon glyphicon-floppy-disk"  
+                                     rendered="#{!docenteDocumentoBean.soloLecturaDocumento}"/>
+                    <p:blockUI block="@form" trigger="btnGuardarDocumento" />    
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('documentoDialog').hide();"  
+                                   styleClass="btn btn-link"/>                        
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="documentoDetalle" trigger="btnGuardarDocumento" />
+            <p:defaultCommand target="btnGuardarDocumento" scope="documentoDetalle"/>   
+        </p:outputPanel>
+    </p:dialog>
+</ui:composition>

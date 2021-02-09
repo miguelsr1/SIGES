@@ -1,0 +1,569 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:sc="http://java.sun.com/jsf/composite/siapComponent">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaUsuarios')}" /> 
+                </h2>
+                <p:commandButton styleClass="btn btn-default pull-right"  
+                                 icon="glyphicon glyphicon-plus"
+                                 value="#{textMB.obtenerTexto('labels.Crear')}" 
+                                 oncomplete="$('#editModal').modal('show');" 
+                                 action="#{usuariosConsulta.crearUsuario()}"  
+                                 update="modalEditar"/>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" for="filtroCodigo"/>
+                                <div class="col-sm-8">
+                                    <h:inputText id="filtroCodigo" value="#{usuariosConsulta.filtroCodigo}" styleClass="form-control textoMedio"  />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre1')}:" for="filtroNombre"/>
+                                <div class="col-sm-8">
+                                    <h:inputText id="filtroNombre" value="#{usuariosConsulta.filtroNombre1}" styleClass="form-control textoMedio"  />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Apellido1')}:" for="filtroApellido"/>
+                                <div class="col-sm-8">
+                                    <h:inputText id="filtroApellido" value="#{usuariosConsulta.filtroApellido1}" styleClass="form-control textoMedio"  />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" for="filtroEstado" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="filtroEstado" value="#{usuariosConsulta.filtroEstado}"  styleClass="form-control textoMedio">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}" />
+                                        <f:selectItem itemValue="#{usuariosConsulta.ESTADO_USUARIO_BLOQUEADO}" itemLabel="#{textMB.obtenerTexto('labels.Bloqueado')}" />
+                                        <f:selectItem itemValue="#{usuariosConsulta.ESTADO_USUARIO_DESBLOQUEADO}" itemLabel="#{textMB.obtenerTexto('labels.Desloqueado')}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Rol')}:" for="filtroRol"/>
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="filtroRol" value="#{usuariosConsulta.filtroIdRol}"  styleClass="form-control textoMedio">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}" />
+                                        <f:selectItems value="#{usuariosConsulta.roles}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{usuariosConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{usuariosConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm" prependId="false">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', usuariosConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="tablaUsuarios"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{usuariosConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+                    
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tablaUsuarios" fileName="Usuarios" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}" sortBy="#{dummy.usuCod}" >
+                        <h:outputText value="#{item.propertyMap['usuCod']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre1')}" sortBy="#{dummy.usuPrimerNombre}" >
+                        <h:outputText value="#{item.propertyMap['usuPrimerNombre']}" />
+                    </p:column>
+
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Apellido1')}" sortBy="#{dummy.usuPrimerApellido}" >
+                        <h:outputText value="#{item.propertyMap['usuPrimerApellido']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Email')}" sortBy="#{dummy.usuCorreoElectronico}" >
+                        <h:outputText value="#{item.propertyMap['usuCorreoElectronico']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Telefono')}" sortBy="#{dummy.usuTelefono}" >
+                        <h:outputText value="#{item.propertyMap['usuTelefono']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Desde')}" sortBy="#{dummy.usuDesde}" >
+                        <h:outputText value="#{item.propertyMap['usuDesde']}"  >
+                            <f:convertDateTime pattern="#{aplicacionMB.patronFechas}" locale="#{aplicacionMB.locale}"
+                                               timeZone="#{aplicacionMB.timeZone}"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Hasta')}" sortBy="#{dummy.usuHasta}" >
+                        <h:outputText value="#{item.propertyMap['usuHasta']}"   >
+                            <f:convertDateTime pattern="#{aplicacionMB.patronFechas}" locale="#{aplicacionMB.locale}" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Bloqueado')}" sortBy="#{dummy.usuCuentaBloqueada}" >
+                        <h:outputText  value="#{item.propertyMap['usuCuentaBloqueada']}" converter="booleanConverter" >
+                             
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono "  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         oncomplete="$('#editModal').modal('show');" 
+                                         action="#{usuariosConsulta.cargarToEditar(item.propertyMap['usuId'])}"  
+                                         update="modalEditar"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.EditarRoles')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-link" styleClass="btn btn-icono "  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         oncomplete="$('#editModalRol').modal('show');" 
+                                         action="#{usuariosConsulta.cargarToEditar(item.propertyMap['usuId'])}"  
+                                         update="modalEditarRol"/>
+                    </p:column>
+
+                    <p:column  exportable="false" headerText="#{textMB.obtenerTexto('labels.PermisosADM')}" styleClass="columnaAcciones" 
+                              rendered="#{usuariosConsulta.renderCheckADM}">
+                        <p:commandButton icon="glyphicon glyphicon-exclamation-sign" styleClass="btn btn-icono "  
+                                         title="#{textMB.obtenerTexto('labels.PermisosADM')}"  
+                                         oncomplete="$('#admModal').modal('show');" 
+                                         action="#{usuariosConsulta.cargarToADM(item.propertyMap['usuId'])}"  
+                                         update="formAdm"/>
+                    </p:column>
+
+<!--                <p:column headerText="#{textMB.obtenerTexto('labels.CambioPassword')}" styleClass="columnaAcciones">
+                    <p:commandButton icon="glyphicon glyphicon-lock" styleClass="btn btn-icono "  
+                                     title="#{textMB.obtenerTexto('labels.CambioPassword')}"  
+                                     oncomplete="$('#passwdModal').modal('show');" 
+                                     action="#{usuariosConsulta.cargarToCambioPassword(item.propertyMap['usuId'])}"  
+                                     update="formPasswd"/>
+                </p:column>-->
+                </p:dataTable>     
+            </div>
+        </h:form>
+        <!-- Modal de editar -->
+        <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditar" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarUsuario')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <h:panelGroup layout="block" id="contentModal" styleClass="form-horizontal">
+                                <h:messages id="mensajes"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" for="usucodigo"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usucodigo" disabled="#{usuariosConsulta.editando.usuId != null}" value="#{usuariosConsulta.editando.usuCod}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                        <h:message for="usucodigo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Prefijo')}:" for="prefijo"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="prefijo" value="#{usuariosConsulta.editando.usuPrefijo}" styleClass="form-control" />
+                                        <h:message for="prefijo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div> 
+                               
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre1')}:" for="usunombre1" />
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usunombre1" value="#{usuariosConsulta.editando.usuPrimerNombre}" styleClass="form-control"    />
+                                        <h:message for="usunombre1" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre2')}:" for="usunombre2"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usunombre2" value="#{usuariosConsulta.editando.usuSegundoNombre}" styleClass="form-control"    />
+                                        <h:message for="usunombre2" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Apellido1')}:" for="usuapellido1"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usuapellido1" value="#{usuariosConsulta.editando.usuPrimerApellido}" styleClass="form-control"    />
+                                        <h:message for="usuapellido1" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Apellido2')}:" for="usuapellido2"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usuapellido2" value="#{usuariosConsulta.editando.usuSegundoApellido}" styleClass="form-control" />
+                                        <h:message for="usuapellido2" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Cargo')}:" for="cargo"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="cargo" value="#{usuariosConsulta.editando.usuCargo}" styleClass="form-control" />
+                                        <h:message for="cargo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                 
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Email')}:" for="usuemail"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usuemail" value="#{usuariosConsulta.editando.usuCorreoElectronico}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"/>
+                                        <h:message for="usuemail" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Telefono')}:" for="usutelefono"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usutelefono" value="#{usuariosConsulta.editando.usuTelefono}" styleClass="form-control" />
+                                        <h:message for="usutelefono" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.NroDoc')}:" for="usunrodoc"/>
+                                    <div class="col-sm-8">
+                                        <h:inputText id="usunrodoc" value="#{usuariosConsulta.editando.usuNroDoc}" styleClass="form-control" />
+                                        <h:message for="usunrodoc" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Desde')}:" for="desde"/>
+                                    <div class="col-sm-8">
+                                        <p:calendar id="desde" value="#{usuariosConsulta.editando.usuDesde}" styleClass="form-control" 
+                                                    locale="#{aplicacionMB.locale}"
+                                                    pattern="#{aplicacionMB.patronFechas}"/>
+                                        <h:message for="desde" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                 <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Hasta')}:" for="hasta"/>
+                                    <div class="col-sm-8">
+                                        <p:calendar id="hasta" value="#{usuariosConsulta.editando.usuHasta}" styleClass="form-control" 
+                                                    locale="#{aplicacionMB.locale}"
+                                                    pattern="#{aplicacionMB.patronFechas}"/>
+                                        <h:message for="hasta" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                               
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-4 col-sm-8">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox id="usuCuentaBloqueada" value="#{usuariosConsulta.editando.usuCuentaBloqueada}" />
+                                                #{textMB.obtenerTexto('labels.CuentaBloqueada')}
+                                            </label>
+                                        </div>
+                                        <h:message for="usuCuentaBloqueada" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{usuariosConsulta.guardarEditando()}"  update="tablaUsuarios contentModal"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+        <!--Fin Modal editar -->
+
+        <!-- Modal de editar rol -->
+        <div class="modal fade"  id="editModalRol" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarRol" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarRolUsuario')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <h:panelGroup layout="block" id="contentModalRol" styleClass="form-horizontal">
+                                <h:messages id="mensajesRol"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Rol')}:" for="selectRol"/>
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="selectRol" value="#{usuariosConsulta.selectedRol}"  styleClass="form-control textoMedio">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.SelecioneUno')}" itemValue="#{null}" />
+                                            <f:selectItems value="#{usuariosConsulta.roles}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+
+                                <!--<div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Oficina')}:" />
+                                    <div class="col-sm-8">
+                                        <h:selectOneMenu  value="#{usuariosConsulta.selectedOficina}"  styleClass="form-control textoMedio">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.SelecioneUno')}" itemValue="#{null}" />
+                                            <f:selectItems value="#{usuariosConsulta.oficinas}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>-->
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                    <div class="col-sm-9">
+                                        <sc:UnidadesTecnicasTree selected="#{usuariosConsulta.selectedNode}"
+                                                                 documento="#{unidadesTecnicasTree.root}"
+                                                                 backing="#{unidadesTecnicasTree}" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-9 col-sm-offset-3">
+                                        <p:commandButton styleClass="btn btn-default"  value="#{textMB.obtenerTexto('labels.AgregarRol')}" 
+                                                         actionListener="#{usuariosConsulta.agregarOficinaRol()}"  
+                                                         update="contentModalRol" icon="glyphicon glyphicon-plus"/>
+                                        <!--<p:commandButton styleClass="btn btn-primary"  value="#{textMB.obtenerTexto('labels.AgregarOficinaRol')}" 
+                                                         actionListener="#{unidadesTecnicasTree.agregarOficinaRol()}"  
+                                                         update="tablaRoles"/>-->
+                                    </div>
+                                </div>
+
+                                <div class="separador"></div>
+
+                                <p:dataTable  id="tablaRoles"
+                                              var="item" 
+                                              value="#{usuariosConsulta.listaUsuOfiRoles}" 
+                                              emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                              rowIndexVar="rowIndex">
+
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Rol')}">
+                                        <h:outputText value="#{item.usuOfiRolesRol.rolNombre}" />
+                                    </p:column>
+                                    <!--<p:column headerText="#{textMB.obtenerTexto('labels.Oficina')}">
+                                        <h:outputText value="#{item.usuOfiRolesOficina.ofiNombre}" />
+                                    </p:column>-->
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadTecnica')}">
+                                        <h:outputText value="#{item.usuOfiRolesUnidadTecnica.nombre}" />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                         styleClass="btn btn-icono btn-danger"  
+                                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                         action="#{usuariosConsulta.removeUsuOfiRoles(item.usuOfiRolesRol.rolId, item.usuOfiRolesUnidadTecnica.id)}" 
+                                                         update="tablaRoles"
+                                                         immediate="true"/>
+                                    </p:column>
+                                </p:dataTable>
+
+                            </h:panelGroup>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                             actionListener="#{usuariosConsulta.guardarEditandoRoles()}"  
+                                             update="tablaUsuarios contentModalRol"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+        <!--Fin Modal editar rol -->
+
+
+        <!-- Modal de adm -->
+        <div class="modal fade"  id="admModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="formAdm" prependId="false">
+
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarPermisosADM')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="contentModalAdm" styleClass="form-horizontal">
+                                <h:messages id="mensajesADM"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+
+                                <div>
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText value="#{usuariosConsulta.editando.usuCod}" styleClass="form-control-static"  />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p:outputPanel rendered="#{usuariosConsulta.renderCheckADM}">
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <h:selectBooleanCheckbox id="usuAdmGeneral" value="#{usuariosConsulta.editando.usuAdmGeneral}"  
+                                                                             valueChangeListener="#{usuariosConsulta.onCheckBoxUsuAdmGeneralChanged}">
+                                                        <f:ajax render="panelSubAdministrador panelAdmOtrosRoles"/>
+                                                    </h:selectBooleanCheckbox>
+                                                    #{textMB.obtenerTexto('labels.AdministradorGeneral')}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </p:outputPanel>
+
+                                <p:outputPanel id="panelSubAdministrador">
+                                    <p:outputPanel styleClass="form-group" rendered="#{usuariosConsulta.renderCheckADM and not usuariosConsulta.editando.usuAdmGeneral}">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <h:selectBooleanCheckbox id="usuAdmOtrosRoles" value="#{usuariosConsulta.usuarioAdminOtrosRoles}"  
+                                                                             valueChangeListener="#{usuariosConsulta.onCkeckBoxUsuAdmOtrosRolesChanged}">
+                                                        <f:ajax render="panelAdmOtrosRoles"/>
+                                                    </h:selectBooleanCheckbox>
+                                                    #{textMB.obtenerTexto('labels.SubAdministrador')}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel id="panelAdmOtrosRoles">
+                                    <p:outputPanel rendered="#{usuariosConsulta.usuarioAdminOtrosRoles and not usuariosConsulta.editando.usuAdmGeneral}">
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Rol')}:" />
+                                            <div class="col-sm-9">
+                                                <h:selectOneMenu  value="#{usuariosConsulta.selectedRol}"  styleClass="form-control textoMedio">
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.SelecioneUno')}" itemValue="#{null}" />
+                                                    <f:selectItems value="#{usuariosConsulta.roles}" />
+                                                </h:selectOneMenu>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-9 col-sm-offset-3">
+                                                <p:commandButton styleClass="btn btn-default" value="#{textMB.obtenerTexto('labels.AgregarRol')}" 
+                                                                 actionListener="#{usuariosConsulta.agregarRolADM()}"  
+                                                                 update="contentModalAdm" icon="glyphicon glyphicon-plus"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="separador"></div>
+
+                                        <p:dataTable  id="tablaRolesADM"
+                                                      var="item" 
+                                                      value="#{usuariosConsulta.listaRolesADM}" 
+                                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                                      rowIndexVar="rowIndex">
+
+
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Rol')}">
+                                                <h:outputText value="#{item.rolNombre}" />
+                                            </p:column>
+
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                 styleClass="btn btn-icono btn-danger"  
+                                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                 action="#{usuariosConsulta.removeRol(item.rolId)}" 
+                                                                 update="contentModalAdm"
+                                                                 immediate="true"/>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{usuariosConsulta.guardarRolesADM}"  update="tablaUsuarios contentModalAdm"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+        <!--Fin Modal adm -->
+
+
+        <!-- Modal cambio password -->
+        <div class="modal fade"  id="passwdModal" tabindex="-1" role="dialog" aria-labelledby="passwdModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">                        
+                    <h:form id="formPasswd" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.ModificarPassword')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <h:panelGroup layout="block" id="contentModal2" styleClass="form-horizontal">
+
+                                <h:messages id="mensajesPasswd" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="usucodigo2" value="#{usuariosConsulta.editando.usuCod}" styleClass="form-control"  />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Password')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputSecret id="usupassword" value="#{usuariosConsulta.passwd}" styleClass="form-control"    />
+                                        <h:message for="usupassword" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{usuariosConsulta.guardarCambioPassword()}"  update="tablaUsuarios contentModal2"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+        <!--Fin Modal cambio password -->
+
+    </ui:composition>
+</html>
+

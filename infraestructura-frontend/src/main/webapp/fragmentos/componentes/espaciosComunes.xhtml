@@ -1,0 +1,72 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+ 
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+    
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relInmuebleEspacioComunBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relInmuebleEspacioComunBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relInmuebleEspacioComunBean.entidadEnEdicion}">
+        
+                   <p:outputPanel styleClass="form-group row" id="fila_input_espacios_comunes" >                       
+                        <p:outputPanel styleClass="col-sm-12" >
+                            <p:dataTable id="listaEspaciosComunes"       
+                                         
+                                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                         disabledSelection="#{not (!relInmuebleEspacioComunBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ESPACIO_COMUN))}"
+                                         emptyMessage="#{msg.noHayResultados}"
+                                         rowSelectMode="checkbox"
+                                         rowIndexVar="rowIndex"
+                                         var="espacio" selection="#{relInmuebleEspacioComunBean.inmueblesEspacioSeleccionados}" 
+                                         value="#{relInmuebleEspacioComunBean.inmueblesEspacio}" rowKey="#{espacio.rieEspacioComun.ecoPk}" style="margin-bottom:0" >
+                                <p:ajax event="toggleSelect" listener="#{relInmuebleEspacioComunBean.toggleSelect}" update=":form:tabs:seleccionarEspacio:listaEspaciosComunes"/>
+                                <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleEspacioComunBean.checkboxSelect}" update=":form:tabs:seleccionarEspacio:listaEspaciosComunes"/>
+                                <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleEspacioComunBean.checkboxUnselect}" update=":form:tabs:seleccionarEspacio:listaEspaciosComunes" /> 
+                                <p:column id="eleccionEspacio"  selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                                <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                                    <h:outputText styleClass="strong" value="#{espacio.rieEspacioComun.ecoNombre}" />
+                                </p:column> 
+                                <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                                    <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{espacio.rieDescripcion}" rendered="#{espacio.rieEspacioComun.ecoPermiteIngresarDescripcion}" disabled="#{ (relInmuebleEspacioComunBean.soloLectura or !relInmuebleEspacioComunBean.habilitarEntradaTexto[rowIndex])}"/>
+                                </p:column>   
+                                <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                                    <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.rieBueno}" disabled="#{ (relInmuebleEspacioComunBean.soloLectura or !relInmuebleEspacioComunBean.habilitarEntradaTexto[rowIndex])}" >
+                                        <p:ajax event="keyup"  update=":form:tabs:seleccionarEspacio:listaEspaciosComunes:total" />
+                                    </p:inputNumber>
+                                </p:column>
+                                <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                                    <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.rieMalo}" disabled="#{ (relInmuebleEspacioComunBean.soloLectura or !relInmuebleEspacioComunBean.habilitarEntradaTexto[rowIndex])}" >
+                                        <p:ajax event="keyup"  update=":form:tabs:seleccionarEspacio:listaEspaciosComunes:total" />
+                                    </p:inputNumber>                                        
+                                </p:column>
+                                <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                                    <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.rieRegular}" disabled="#{ (relInmuebleEspacioComunBean.soloLectura or !relInmuebleEspacioComunBean.habilitarEntradaTexto[rowIndex])}" >
+                                        <p:ajax event="keyup"  update=":form:tabs:seleccionarEspacio:listaEspaciosComunes:total" />
+                                    </p:inputNumber>
+                                </p:column>
+                                <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                                    <h:outputText  id="total"  value="#{espacio.total}" />
+                                </p:column> 
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:outputPanel>
+             
+                
+                <div class="form-action-buttons">
+                    <p:commandButton  id="btnGuardarEspacio" value="#{msg.guardar}" action="#{relInmuebleEspacioComunBean.guardar()}" rendered="#{!relInmuebleEspacioComunBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ESPACIO_COMUN)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    <p:blockUI block="@form" trigger="btnGuardarEspacio" /> 
+                </div>
+            
+        
+    </h:panelGroup>
+</ui:composition>

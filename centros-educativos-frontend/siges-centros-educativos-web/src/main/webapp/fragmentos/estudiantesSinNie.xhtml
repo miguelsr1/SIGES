@@ -1,0 +1,206 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionEstudiantesSinNie}</li>
+            </ol>       
+        </nav> 
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionEstudiantesSinNie}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.ESTUDIANTES)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+    <h:panelGroup id="searchPanels">
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombresApellidos}" for="b_nombre_completo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre_completo" 
+                                         value="#{estudiantesSinNIEBean.filtro.perNombreCompleto}" /> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <p:outputPanel styleClass="col-sm-3 "></p:outputPanel>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="filto_estudiantes_matricula_abierta" styleClass="form-check-input" 
+                                                         value="#{estudiantesSinNIEBean.buscarMatAbierta}" />
+                                <h:outputLabel for="filto_estudiantes_matricula_abierta" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.incluirEstudiantesConMatriculaAbierta}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+        
+        <p:panel header="#{msg.filtrosAvanzados}" id="panelAvanzado" 
+                     styleClass="panel-filtro"
+                     closable="true"
+                     rendered="#{estudiantesSinNIEBean.panelAvanzado}">
+
+            <p:outputPanel styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.departamento}" for="b_deptoNac" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_deptoNac" value="#{estudiantesSinNIEBean.comboDepartamento.selected}" 
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{estudiantesSinNIEBean.comboDepartamento.items}"/>
+                                <p:ajax listener="#{estudiantesSinNIEBean.seleccionarDepartamento}" event="change"  
+                                        process="@this" update="fila_municipio"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_municipio">
+                        <h:outputLabel value="#{msg.municipio}" for="b_municNac" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_municNac" value="#{estudiantesSinNIEBean.comboMunicipio.selected}" 
+                                             disabled="#{estudiantesSinNIEBean.comboDepartamento.selectedT==null}" 
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{estudiantesSinNIEBean.comboMunicipio.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            
+                <p:outputPanel styleClass="row">
+                    <f:subview id="viewFiltroSeccion">
+                        <ui:include src="componentes/filtrosSeccion.xhtml">
+                        </ui:include>
+                    </f:subview>
+                </p:outputPanel>
+            </p:panel>
+        
+        </h:panelGroup>
+        
+        <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+            <p:outputPanel styleClass="form-group row">
+                <p:outputPanel styleClass="col-sm-12 texto-right">
+                    <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{estudiantesSinNIEBean.buscar()}" update="pnlResultado"/>
+                    <p:commandLink value="#{estudiantesSinNIEBean.txtFiltroAvanzado}" 
+                                   action="#{estudiantesSinNIEBean.verPanelAvanzado()}" 
+                                   update="searchPanels @this" styleClass="btn btn-link" />
+                    <p:commandLink value="#{msg.limpiar}" action="#{estudiantesSinNIEBean.limpiar()}" 
+                                   update="pnlSearch panelAvanzado pnlResultado" immediate="true" styleClass="btn btn-link">
+                        <p:resetInput target="pnlSearch panelAvanzado pnlResultado" />
+                    </p:commandLink>
+                    <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                    <p:blockUI block="@form" trigger="btnBuscar" />
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="pnlResultado" >            
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                       
+                         rendered="#{estudiantesSinNIEBean.estudianteLazyModel != null}"
+                         value="#{estudiantesSinNIEBean.estudianteLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"	
+                         lazy="true"
+                         paginator="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{estudiantesSinNIEBean.paginado}"
+                         reflow="true"> 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{estudiantesSinNIEBean.totalResultados lt (estudiantesSinNIEBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                           <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{estudiantesSinNIEBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="estudiantes" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.estPersona.perPrimerNombre}">                     
+                    <h:outputText value="#{elem.estPersona.perPrimerNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.estPersona.perSegundoNombre}">                     
+                    <h:outputText value="#{elem.estPersona.perSegundoNombre}" />
+                </p:column>                
+                <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.estPersona.perPrimerApellido}">                     
+                    <h:outputText value="#{elem.estPersona.perPrimerApellido}" />
+                </p:column>
+                <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.estPersona.perSegundoApellido}">                     
+                    <h:outputText value="#{elem.estPersona.perSegundoApellido}" />
+                </p:column>    
+                <p:column headerText="#{msg.hSedeEducativa}" >                     
+                    <h:outputText value="#{elem.estUltimaMatricula.matSeccion.secServicioEducativo.sduSede.sedCodigoNombre}" />
+                </p:column>         
+                <p:column headerText="#{msg.hdepartamento}">                     
+                    <h:outputText value="#{elem.estUltimaMatricula.matSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}" />
+                </p:column>     
+                <p:column headerText="#{msg.hmunicipio}">                     
+                    <h:outputText value="#{elem.estUltimaMatricula.matSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}" />
+                </p:column> 
+                <p:column styleClass="columnaAcciones"  exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.ESTUDIANTE}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.estPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+
+            </p:dataTable>              
+        </p:outputPanel>        
+
+
+        <p:dialog header="#{msg.historial}" widgetVar="historialDialog" modal="true" positionType="absolute" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{estudiantesSinNIEBean.historialTipoCalendario}" /> 
+                <ui:param name="navegacion" value="#{ConstantesPaginas.ESTUDIANTE}" /> 
+            </ui:include>  
+        </p:dialog>   
+
+    </h:form>
+</ui:composition>

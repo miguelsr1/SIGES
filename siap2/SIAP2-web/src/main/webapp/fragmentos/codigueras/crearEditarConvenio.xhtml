@@ -1,0 +1,211 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText rendered="#{!convenioCE.update}" value="#{textMB.obtenerTexto('labels.CrearConvenio')}" />
+                    <h:outputText rendered="#{convenioCE.update}" value="#{textMB.obtenerTexto('labels.EditarConvenio')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearConvenio')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.CrearConvenio')}" escape="false" /> 
+            </div>
+        </ui:fragment> 
+
+        <h:form id="crear"  >          
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <h:panelGroup layout="block" id="bloqueNoModal" styleClass="grupoCampos" >
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" for="codigo"/>
+                        <div class="col-sm-9">
+                            <h:inputText id="codigo"  maxlength="255"  value="#{convenioCE.objeto.codigo}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:validateLength maximum="255" />
+                            </h:inputText>
+                            <h:message for="codigo" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" for="nombre"/>
+                        <div class="col-sm-9">
+                            <h:inputText id="nombre"  maxlength="255"  value="#{convenioCE.objeto.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:validateLength maximum="255" />
+                            </h:inputText>
+                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.habilitado')}:" for="habilitado"/>
+                        <div class="col-sm-9">
+                            <h:selectOneMenu value="#{convenioCE.objeto.habilitado}" styleClass="form-control textoMedio" id="habilitado">
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Habilitado')}" itemValue="#{convenioConsulta.habilitadoValue}"/>
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Inhabilitado')}" itemValue="#{convenioConsulta.inhabilitadoValue}"/>
+                            </h:selectOneMenu>
+                        </div>
+                    </div>
+
+                </h:panelGroup>
+
+
+                <div class="grupoCampos">
+                    <div class="form-group">
+                        <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.CategoriasConvenio')}" />
+                        </div>
+                        <div class="col-sm-6 clearfix">
+                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                             icon="glyphicon glyphicon-plus"
+                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                             oncomplete="$('#addLineaEstrategica').modal('show');"
+                                             update="anadir"   
+                                             action="#{convenioCE.initCategoriaNueva()}"
+                                             immediate="true">
+                                <f:setPropertyActionListener target="#{convenioCE.categoriaNueva}" value="#{null}" />
+                            </p:commandButton>
+                        </div>
+                    </div>
+                    <h:panelGroup layout="block" id="panelTabla">
+                        <p:dataTable  id="lineaTabla"
+                                      var="item" 
+                                      value="#{convenioCE.objeto.categorias}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.codigo')}">
+                                <h:outputText value="#{item.codigo}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.tipo')}">
+                                <h:outputText rendered="#{item.tipo ne null}" value="#{textMB.obtenerTexto(item.tipo.label)}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                 update="anadir"
+                                                 action="#{convenioCE.initCategoriaNueva()}"
+                                                 oncomplete="$('#addLineaEstrategica').modal('show');"
+                                                 immediate="true">
+                                    <f:setPropertyActionListener target="#{convenioCE.categoriaNueva}" value="#{item}" />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_LINEA_ESTRATEGICA'] }">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 action="#{convenioCE.eliminarLinea(item)}"
+                                                 update="lineaTabla confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>                        
+                            </p:column> 
+                        </p:dataTable>
+                    </h:panelGroup>
+                </div>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{convenioCE.guardar}"  update="crear"/>
+                        <h:outputLink styleClass="btn btn-link" value="#{convenioCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+        </h:form>   
+        <!-- Modal para añadir planificacion -->
+        <div class="modal fade"  id="addLineaEstrategica" tabindex="-1" role="dialog" aria-labelledby="addLineaEstrategica">
+            <div class="modal-dialog"  role="document" >
+                <div class="modal-content">
+                    <h:form id="anadir" > 
+                        <!-- desde -->
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.CategoriaConvenio')}" /> </span>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <p:outputPanel id="itemToAdd">
+
+                                    <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputText id="codigo" value="#{convenioCE.categoriaNueva.codigo}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:validateLength maximum="255" />
+                                            </h:inputText>
+                                            <h:message for="codigo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputText id="nombre" value="#{convenioCE.categoriaNueva.nombre}" styleClass="form-control"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:validateLength maximum="255" />
+                                            </h:inputText>
+                                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="tipoAporte" value="#{convenioCE.categoriaNueva.tipo}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <!--<f:ajax render="tablaDeTramos" /> -->
+                                                <f:selectItems value="#{utilsMB.getTiposAportesProyecto()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="tipoAporte" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </p:outputPanel>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{convenioCE.addLinea()}"   update="crear:panelTabla anadir:itemToAdd"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                        <!-- hasta -->
+                    </h:form>
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+
+        <!-- MODAL CONFIRMAR  ELIMINAR -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+
+
+
+    </ui:composition>
+</html>

@@ -1,0 +1,504 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearAsignacionNoProgramable')}" rendered="#{!asignacionNoProgramableCE.update}"/>
+                    <h:outputText value="#{textMB.obtenerTexto('labels.EditarAsignacionNoProgramable')}" rendered="#{asignacionNoProgramableCE.update}" />
+                </h2>
+                
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearAsignacionNoProgramable')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.CrearAsignacionNoProgramable')}" escape="false" /> 
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false" >     
+            <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <div class="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                        <div class="col-sm-9">
+                            <h:inputText id="nombre" maxlength="255" value="#{asignacionNoProgramableCE.objeto.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:validateLength maximum="255" />
+                            </h:inputText>
+                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                        <div class="col-sm-9">
+                            <p:inputText id="codigo" 
+                                         maxlength="10" 
+                                         value="#{asignacionNoProgramableCE.objeto.codigo}" 
+                                         styleClass="form-control textoLargo"  
+                                         required="true"  
+                                         validatorMessage="#{textMB.obtenerTexto('labels.CodigoDebeSerNumeroPositivo')}"
+                                         requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                <f:validateLongRange minimum="0"  />
+                            </p:inputText>
+                            <h:message for="codigo" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Planificacion')}:" />
+                        <div class="col-sm-9">
+                            <h:selectOneMenu id="planificacion" value="#{asignacionNoProgramableCE.idPlanificacion}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:ajax render="linea" listener="#{asignacionNoProgramableCE.loadLineasDisponibles(false)}"/> 
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                <f:selectItems value="#{utilsMB.getPlanificacionesEstrategicasVigetnes()}" />
+                            </h:selectOneMenu> 
+                            <h:message for="planificacion" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.LineasEstrategicas')}:" />                        
+                        <h:panelGroup layout="block"  id="linea" styleClass="col-sm-9" >                             
+                            <p:pickList id="pickList" value="#{asignacionNoProgramableCE.lineasEstrategicas}" 
+                                        var="linea" itemLabel="#{linea.nombre}" itemValue="#{linea}" 
+                                        responsive="true" >
+                                <f:facet name="sourceCaption">#{textMB.obtenerTexto('labels.Disponibles')}</f:facet>
+                                <f:facet name="targetCaption">#{textMB.obtenerTexto('labels.Seleccionadas')}</f:facet>
+                                <f:converter  binding="#{lineaEstrategicaConverter}" />     
+                            </p:pickList>
+                        </h:panelGroup>
+                        <h:message for="linea" styleClass="help-inline msj-danger" />
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnicaResponsable')}:" />
+                        <div class="col-sm-9">
+                            <h:selectOneMenu id="idUnidadTecnica" value="#{asignacionNoProgramableCE.idUnidadTecnica}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                <f:selectItems value="#{utilsMB.unidadesTecnicas}" />
+                            </h:selectOneMenu> 
+                            <h:message for="idUnidadTecnica" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group" >
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ClasificadorFuncional')}:" />
+                        <div class="col-sm-9">
+                            <h:selectOneMenu id="clasificadorF" value="#{asignacionNoProgramableCE.idClasificadorFuncional}"  styleClass="form-control textoLargo" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                <f:selectItems value="#{utilsMB.getClasificadoresAsignables()}" />
+                            </h:selectOneMenu>
+                            <h:message for="clasificadorF" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                        <div class="col-sm-9">
+                            <h:inputTextarea id="objetivo" value="#{asignacionNoProgramableCE.objeto.descripcion}" styleClass="form-control textoLargo"   rows="10" />
+                            <h:message for="objetivo" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                </div>
+
+                <!--tabla de montos -->
+                <!--                <div class="grupoCampos">
+                                    <div class="form-group">
+                                        <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Montos')}" />
+                </div>
+                                        <div class="col-sm-6 clearfix">                        
+                                                                    <button type="button" class="btn btn-default pull-right " data-toggle="modal" data-target="#addMonto">
+                                                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span><h:outputText value="#{textMB.obtenerTexto('labels.AnadirMonto')}" />
+                                                                    </button>
+                                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                                             icon="glyphicon glyphicon-plus"
+                                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                             update="anadirAnioMontoAnioFiscal"
+                                                             action="#{asignacionNoProgramableCE.loadAnioFiscal(null)}"
+                                                             oncomplete="$('#addMontoAnioFiscal').modal('show');" 
+                                                             immediate="true"/>
+                                        </div>
+                                    </div>
+                                    <h:panelGroup id="panelTabla">                           
+                                        <p:dataTable  var="item" 
+                                                      value="#{asignacionNoProgramableCE.objeto.anioFiscales}" 
+                                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                                      rowIndexVar="rowIndex">
+                
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.anio')}">
+                                                <h:outputText value="#{item.anio.anio}" />
+                                            </p:column>
+                
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.monto')}">
+                                                <h:outputText value="#{item.monto}" />
+                                            </p:column>
+                
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.MontoPorAnioFiscal')}" styleClass="columnaAcciones">
+                                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                 styleClass="btn btn-icono"  
+                                                                 title="#{textMB.obtenerTexto('labels.Editar')}" 
+                                                                 oncomplete="$('#addMontoAnioFiscal').modal('show');"  
+                                                                 action="#{asignacionNoProgramableCE.loadAnioFiscal(item.anio.id)}"                                                       
+                                                                 update="anadirAnioMontoAnioFiscal"
+                                                                 immediate="true"/>
+                                            </p:column>
+                
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.MontoPorUnidadTecnica')}" styleClass="columnaAcciones">
+                                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                 styleClass="btn btn-icono"  
+                                                                 title="#{textMB.obtenerTexto('labels.MontoPorUnidadTecnica')}"  
+                                                                 oncomplete="$('#addMontoUnidadTecnica').modal('show');" 
+                                                                 action="#{asignacionNoProgramableCE.loadAnioFiscal(item.anio.id)}"  
+                                                                 update="anadirMontoUnidadTecnica"
+                                                                 immediate="true"/>
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                
+                                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                 styleClass="btn btn-danger btn-icono" 
+                                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                             onclick="if (!existeConfirmacion(this.id)) return false" 
+                                                                 actionListener="#{asignacionNoProgramableCE.eliminarItem(rowIndex)}"
+                                                                 update="panelTabla confirmModalCallBackBody"
+                                                                 immediate="true">
+                                                </p:commandButton>
+                
+                                            </p:column>
+                                        </p:dataTable>
+                                    </h:panelGroup>
+                                </div>-->
+
+                <!--tabla de actividades -->
+                <div class="grupoCampos">
+                    <div class="form-group">
+                        <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Subctividades')}" />
+                        </div>
+                        <div class="col-sm-6 clearfix">                        
+                            <!--                        <button type="button" class="btn btn-default pull-right " data-toggle="modal" data-target="#addMonto">
+                                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span><h:outputText value="#{textMB.obtenerTexto('labels.AnadirMonto')}" />
+                                                    </button>-->
+                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                             icon="glyphicon glyphicon-plus"
+                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                             update="anadirActividad"
+                                             action="#{asignacionNoProgramableCE.loadActividad(null)}"
+                                             oncomplete="$('#addActividad').modal('show');" 
+                                             immediate="true"/>
+                        </div>
+                    </div>
+                    <h:panelGroup id="panelTabla2" layout="block">                           
+                        <p:dataTable  var="item" 
+                                      value="#{asignacionNoProgramableCE.objeto.actividadesNP}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.Editar')}" 
+                                                 oncomplete="$('#addActividad').modal('show');"  
+                                                 action="#{asignacionNoProgramableCE.loadActividad(rowIndex)}"                                                       
+                                                 update="panelTabla2 anadirActividad"
+                                                 immediate="true"/>
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                             onclick="if (!existeConfirmacion(this.id)) return false" 
+                                                 actionListener="#{asignacionNoProgramableCE.eliminarActividad(rowIndex)}"
+                                                 update="panelTabla2 confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+                    </h:panelGroup>
+                </div>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{asignacionNoProgramableCE.guardar}"  update="bloqueNoModal"/>
+<!--                         <p:commandLink 
+                            styleClass="btn btn-link"  
+                            actionListener="#{asignacionNoProgramableCE.descargarReporte()}"
+                            ajax="false">
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Descargar')}" /> 
+                        </p:commandLink>-->
+                        
+                        <h:outputLink styleClass="btn btn-link" value="#{asignacionNoProgramableCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </h:panelGroup>
+        </h:form>
+
+
+        <!-- MODAL CONFIRMACION DE ELIMINAR-->
+        <h:form prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" onclick="confirmar();"  />
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+        <!-- js que setea la variable del modal-->
+        <h:outputScript library="js" name="confirmModal.js" /> 
+
+
+        <!-- MODAL PRA MONTOS POR ANIO FISCAL-->  
+        <!--        <h:panelGroup id="anadirAnioMontoAnioFiscal"  layout="block">
+                    <div class="modal fade"  id="addMontoAnioFiscal" tabindex="-1" role="dialog" aria-labelledby="addMontoAnioFiscal">
+                        <div class="modal-dialog" role="document">
+                            <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalAnioFiscal">
+                                PASO-1 LISTA DE MONTOS 
+                                <h:form id="anadirMontoForm1"  prependId="false" rendered="#{asignacionNoProgramableCE.tempMontoUnidadTecnica==null}"> 
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                        <span class="modal-title">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.MontoAnio')}" /> 
+                                        </span>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-horizontal">
+                                            <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+        
+                                            <div class="form-group">
+                                                <h:outputLabel for="aniofiscalanio" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:selectOneMenu id="aniofiscalanio" value="#{asignacionNoProgramableCE.idAnioFiscal}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{asignacionNoProgramableCE.getAniosFiscales()}" />
+                                                    </h:selectOneMenu> 
+                                                    <h:message for="aniofiscalanio" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>                                    
+        
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.monto')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText id="aniofiscalmonto" value="#{asignacionNoProgramableCE.tempAnioFiscal.monto}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                                    <h:message for="aniofiscalmonto" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{asignacionNoProgramableCE.addAnioFiscal()}"   update="panelTabla contenidoModalAnioFiscal"/>
+                                        <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                    </div>
+                                </h:form> 
+                            </h:panelGroup>
+                        </div>
+                    </div> 
+                </h:panelGroup>-->
+
+        <!-- MODAL PARA ACTIVIDADES-->  
+        <h:panelGroup id="anadirActividad"  layout="block">
+            <div class="modal fade"  id="addActividad" tabindex="-1" role="dialog" aria-labelledby="addActividad">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalActividad">
+                        <h:form id="anadirActividadForm1"  prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Subctividades')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.nombre')}:" for="nombreActividad"/>
+                                        <div class="col-sm-9">
+                                            <h:inputText id="nombreActividad" value="#{asignacionNoProgramableCE.tempActividadAsignacionNP.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                            <h:message for="nombreActividad" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.descripcion')}:" for="descripcionActividad"/>
+                                        <div class="col-sm-9">
+                                            <h:inputTextarea id="descripcionActividad" value="#{asignacionNoProgramableCE.tempActividadAsignacionNP.descripcion}"  rows="10"  styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                            <h:message for="descripcionActividad" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{asignacionNoProgramableCE.addActividad()}"   update="panelTabla2 contenidoModalActividad"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+        <!-- MODAL PARA MONTOS POR UNIDAD TECNICA-->  
+        <!--        <h:panelGroup id="anadirMontoUnidadTecnica"  layout="block">
+                    <div class="modal fade"  id="addMontoUnidadTecnica" tabindex="-1" role="dialog" aria-labelledby="addMontoUnidadTecnica">
+                        <div class="modal-dialog" role="document">
+                            <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalMontoUnidadTecnica">
+                                PASO-1 LISTA DE MONTOS 
+                                <h:form id="anadirMontoForm2"  prependId="false" rendered="#{asignacionNoProgramableCE.tempMontoUnidadTecnica==null}"> 
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                        <span class="modal-title">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.MontoAnio')}" /> 
+                                        </span>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-horizontal row">
+                                            <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.anio')}:" />
+                                                    <div class="col-sm-9">
+                                                        <h:outputText value="#{asignacionNoProgramableCE.tempAnioFiscal.anio.anio}" styleClass="form-control-static"  />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.monto')}:" />
+                                                    <div class="col-sm-9">
+                                                        <h:outputText  value="#{asignacionNoProgramableCE.tempAnioFiscal.monto}" styleClass="form-control-static"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <div class="form-group">
+                                                    <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.MontosUnidadesTecnicas')}" />
+        </div>
+                                                    <div class="col-sm-6 clearfix">                        
+                                                        <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                         icon="glyphicon glyphicon-plus"
+                                                                         value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                                         update="contenidoModalMontoUnidadTecnica"
+                                                                         action="#{asignacionNoProgramableCE.loadMontoUnidadTecnica(null)}"
+                                                                         immediate="true"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <p:dataTable  id="tablaMontos"
+                                                              var="item" 
+                                                              value="#{asignacionNoProgramableCE.tempAnioFiscal.montoUnidadesTecnicas}" 
+                                                              emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                                              rowIndexVar="rowIndex">
+        
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadTecnica')}">
+                                                        <h:outputText value="#{item.unidadTecnica.nombre}" />
+                                                    </p:column>
+        
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.monto')}">
+                                                        <h:outputText value="#{item.monto}" />
+                                                    </p:column>
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                         styleClass="btn btn-icono"  
+                                                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                         action="#{asignacionNoProgramableCE.loadMontoUnidadTecnica(item.unidadTecnica.id)}"  
+                                                                         update="contenidoModalMontoUnidadTecnica"
+                                                                         immediate="true"/>
+                                                    </p:column>
+        
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                         styleClass="btn btn-icono"  
+                                                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                         action="#{asignacionNoProgramableCE.removeMontoUnidadTecnica(item.unidadTecnica.id)}"  
+                                                                         update="contenidoModalMontoUnidadTecnica"
+                                                                         immediate="true"/>
+                                                    </p:column>
+                                                </p:dataTable>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}"   update="panelTabla contenidoModalMontoUnidadTecnica" oncomplete="$('#addMontoUnidadTecnica').modal('hide');" />
+                                        <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                    </div>
+                                </h:form> 
+                                PASO-2 ANADIR UNIDAD TECNICA 
+                                <h:form id="anadirUnidadTecnica"  prependId="false" rendered="#{asignacionNoProgramableCE.tempMontoUnidadTecnica!=null}">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                        <span class="modal-title">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.MontoUnidadTecnica')}" /> 
+                                        </span>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-horizontal">
+                                            <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:selectOneMenu id="idUnidadTecnica" value="#{asignacionNoProgramableCE.idUnidadTecnica}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{asignacionNoProgramableCE.unidadesTecnicas}" />
+                                                    </h:selectOneMenu> 
+                                                    <h:message for="idUnidadTecnica" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.monto')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText id="montoUnidadTecnica" value="#{asignacionNoProgramableCE.tempMontoUnidadTecnica.monto}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                                    <h:message for="montoUnidadTecnica" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+        
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{asignacionNoProgramableCE.addMontoUnidadTecnica()}"   update="contenidoModalMontoUnidadTecnica"/>
+                                    </div>
+                                </h:form> 
+                            </h:panelGroup>
+                        </div>
+                    </div> 
+                </h:panelGroup>-->
+
+    </ui:composition>
+</html>

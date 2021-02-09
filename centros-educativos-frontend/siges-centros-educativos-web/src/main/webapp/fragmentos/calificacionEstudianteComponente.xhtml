@@ -1,0 +1,322 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTiposPeriodosCalificaciones" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoEscalaCalificacion" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumMatriculaEstado" />
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.calificacionPorEstudiante}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.calificacionPorEstudiante}"/></h2>
+
+            <p:outputPanel styleClass="float-right">               
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CALIFICACIONES)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+
+
+            <p:panel  toggleable="false" styleClass="panel-filtro">                        
+                <p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                        <h:outputLabel value="#{msg.nie}" for="input_nie" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-4">
+                            <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control" id="input_nie"
+                                           value="#{calificacionEstudianteComponenteBean.estudianteNie}" />
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-sm-5">
+                            <p:commandButton value="#{msg.buscar}"
+                                             action="#{calificacionEstudianteComponenteBean.buscarEstudiante()}" 
+                                             update="@form" 
+                                             id="btnbuscarEstudianteNie" styleClass="btn btn-primary" icon="glyphicon glyphicon-search"  />
+                            <p:blockUI block="@form" trigger="btnbuscarEstudianteNie"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel  id="nombre">
+                        <p:outputPanel styleClass="form-group row" rendered="#{calificacionEstudianteComponenteBean.estudianteEnEdicion.estPk!=null}">
+                            <h:outputLabel value="#{msg.nombre}" for="nombre" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control-plaintext" value="#{calificacionEstudianteComponenteBean.estudianteEnEdicion.estPersona.perNombreCompleto}" />
+                            </p:outputPanel>   
+                        </p:outputPanel> 
+                    </p:outputPanel>
+
+                    <p:outputPanel class="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3" id="fila_boton_reporte" 
+                                       rendered="#{calificacionEstudianteComponenteBean.componentePlanGradoTotalEstudianteList != null and calificacionEstudianteComponenteBean.componentePlanGradoTotalEstudianteList.size() gt 0}">
+                            <p:outputPanel>
+                                <p:link id="btnGenerarReporte"
+                                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACION_ESTUDIANTE)}"
+                                        href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CALIFICACIONES_ESTUDIANTES}#{calificacionEstudianteComponenteBean.urlReporte}" target="_blank" 
+                                        title="#{msg.generarreportecalificaciones}" 
+                                        styleClass="btn btn-secondary">
+                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                    <h:outputText value="#{msg.reporteCalificaciones}"/>
+                                </p:link>
+                                <p:link rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}"
+                                        href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_FICHA_ESTUDIANTE}?id=#{calificacionEstudianteComponenteBean.estudianteEnEdicion.estPk}" 
+                                        target="_blank" styleClass="btn btn-secondary" style="margin-left:10px;">
+                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                    <h:outputText styleClass="" value="#{msg.hfichaEstudiante}"/>
+                                </p:link>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel  id="select_one">
+                        <p:outputPanel styleClass="form-group row" rendered="#{calificacionEstudianteComponenteBean.estudianteEnEdicion.estPk!=null 
+                                                                               and !calificacionEstudianteComponenteBean.deshabilitadoPorNoTenerProvisional 
+                                                                               and !calificacionEstudianteComponenteBean.deshabilitadoPorNoTenerValidada}">
+                            <h:outputLabel value="#{msg.tipoPeriodo}" for="select_tipo_calendario" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio disabled="#{true}" layout="responsive" columns="2" id="select_tipo_calendario"  value="#{calificacionEstudianteComponenteBean.filtro.caeTipoPeriodoCalificacion}" >
+                                    <f:selectItems value="#{calificacionEstudianteComponenteBean.periodoOrdinarioList}" var="periodo" itemLabel="#{periodo.text}" itemValue="#{periodo}" />
+                                    <p:ajax update="@form" listener="#{calificacionEstudianteComponenteBean.cargarPeriodoCalificacion()}"  />
+                                </p:selectOneRadio>
+                            </p:outputPanel>   
+                        </p:outputPanel> 
+                    </p:outputPanel>
+
+
+
+                    <p:outputPanel  id="periodo_ordinario">
+                        <p:outputPanel rendered="#{(calificacionEstudianteComponenteBean.estudianteEnEdicion.estPk!=null) and (calificacionEstudianteComponenteBean.filtro.caeTipoPeriodoCalificacion eq EnumTiposPeriodosCalificaciones.ORD)}">
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_pcal">
+                                <h:outputLabel value="#{msg.periodoCalificacion}" for="combo_pcal" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="combo_pcal" value="#{calificacionEstudianteComponenteBean.comboPeriodoCalificacion.selected}" rendered="#{calificacionEstudianteComponenteBean.calificacionId == null}"  styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionEstudianteComponenteBean.comboPeriodoCalificacion.items}" />  
+                                        <p:ajax update="@form" onstart="PF('blockerPeriodo').show()" oncomplete="PF('blockerPeriodo').hide()" listener="#{calificacionEstudianteComponenteBean.cargarRangoFecha()}"  />
+                                        <p:blockUI block="@form" widgetVar="blockerPeriodo" /> 
+                                    </h:selectOneMenu>  
+
+                                </p:outputPanel>                    
+                            </p:outputPanel>                    
+
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fecha">
+                                <h:outputLabel value="#{msg.rangoFecha}" for="combo_rango_fecha" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="combo_rango_fecha" value="#{calificacionEstudianteComponenteBean.comboRangoFecha.selected}" rendered="#{calificacionEstudianteComponenteBean.calificacionId == null}" disabled="#{calificacionEstudianteComponenteBean.comboPeriodoCalificacion.selectedT==null}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionEstudianteComponenteBean.comboRangoFecha.items}" />  
+                                        <p:ajax update="@form" onstart="PF('blockerOrd').show()" oncomplete="PF('blockerOrd').hide()" listener="#{calificacionEstudianteComponenteBean.cargaTabla()}"  />
+                                        <p:blockUI block="@form" widgetVar="blockerOrd" /> 
+                                    </h:selectOneMenu>  
+
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel  rendered="#{(calificacionEstudianteComponenteBean.estudianteEnEdicion.estPk!=null) and (calificacionEstudianteComponenteBean.filtro.caeTipoPeriodoCalificacion eq EnumTiposPeriodosCalificaciones.EXORD)}">
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_pcalescolar">
+                                <h:outputLabel value="#{msg.periodoCalificacion}" for="combo_pcalescolar" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="combo_pcalescolar" value="#{calificacionEstudianteComponenteBean.comboTipoPeriodoCalendario.selected}" rendered="#{calificacionEstudianteComponenteBean.calificacionId == null}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionEstudianteComponenteBean.comboTipoPeriodoCalendario.items}" />  
+                                        <p:ajax update="@form" listener="#{calificacionEstudianteComponenteBean.cargarRangoFechaCalendarioEscolar()}"  />
+                                    </h:selectOneMenu>
+
+                                </p:outputPanel>                    
+                            </p:outputPanel>  
+
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fechaescolar">
+                                <h:outputLabel value="#{msg.rangoFecha}" for="combo_rango_fechaescolar" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="combo_rango_fechaescolar" value="#{calificacionEstudianteComponenteBean.comboPeriodoSeleccionado}" rendered="#{calificacionEstudianteComponenteBean.calificacionId == null}" disabled="#{calificacionEstudianteComponenteBean.comboTipoPeriodoCalendario.selectedT==null}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionEstudianteComponenteBean.comboPeriodos}" />  
+                                        <p:ajax update="@form" listener="#{calificacionEstudianteComponenteBean.cargaTabla()}"  />
+                                    </h:selectOneMenu>  
+
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel  id="area">
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_area" rendered="#{(calificacionEstudianteComponenteBean.estudianteEnEdicion.estPk!=null) and (calificacionEstudianteComponenteBean.filtro.caeTipoPeriodoCalificacion !=null)}">
+                                <h:outputLabel value="#{msg.harea}" for="combo_area" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="combo_area" value="#{calificacionEstudianteComponenteBean.comboArea.selected}" disabled="#{ not ((calificacionEstudianteComponenteBean.comboRangoFecha != null and calificacionEstudianteComponenteBean.comboRangoFecha.getSelectedT() != null) or calificacionEstudianteComponenteBean.comboPeriodoSeleccionado gt 0)}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionEstudianteComponenteBean.comboArea.items}" />  
+                                        <p:ajax update="@form" onstart="PF('blockerArea').show()" oncomplete="PF('blockerArea').hide()" listener="#{calificacionEstudianteComponenteBean.cargaTabla()}"  />
+                                        <p:blockUI block="@form" widgetVar="blockerArea" /> 
+                                    </h:selectOneMenu>  
+
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>    
+
+                    </p:outputPanel>
+
+                </p:outputPanel>
+            </p:panel>  
+
+
+            <p:outputPanel id="pnlResultado" >
+
+
+                <p:outputPanel styleClass="ui-messages" rendered="#{calificacionEstudianteComponenteBean.deshabilitadoPorNoTenerProvisional}">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.hdeshabilitadoMatriculaProvisional} " />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="ui-messages" rendered="#{calificacionEstudianteComponenteBean.deshabilitadoPorNoTenerValidada}">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.hdeshabilitadoMatriculaNoValidada} " />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+
+                <h:panelGroup rendered="#{!calificacionEstudianteComponenteBean.deshabilitadoPorNoTenerProvisional 
+                                          and !calificacionEstudianteComponenteBean.deshabilitadoPorNoTenerValidada
+                                          and ((calificacionEstudianteComponenteBean.comboRangoFecha != null and calificacionEstudianteComponenteBean.comboRangoFecha.getSelectedT() != null)
+                                          or calificacionEstudianteComponenteBean.comboPeriodoSeleccionado gt 0)}"  >
+
+
+                    <p:dataTable id="basicDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"      
+                                 rendered="#{calificacionEstudianteComponenteBean.componentePlanGradoList.size() gt 0}"
+                                 value="#{calificacionEstudianteComponenteBean.calEstudianteResultados}"                              
+                                 emptyMessage="#{msg.noHayResultados}"	
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"                     
+                                 rowIndexVar="rowIndex">              
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">                        
+                                <p:outputPanel styleClass="col-md-12">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="basicDT" fileName="calificacion" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.harea}" >
+                            <h:outputText value="#{elem.caeCalificacion.calComponentePlanEstudio.nombreArea}" />
+                        </p:column> 
+                        <p:column headerText="#{msg.hcomponentePlanEstudio}" >
+                            <h:outputText value="#{elem.caeCalificacion.calComponentePlanEstudio.cpeNombre}" />
+                        </p:column>                      
+                        <p:column headerText="#{msg.fechaCalificado}">
+                            <p:calendar id="input_fecha_desde" styleClass="form-control" 
+                                        value="#{elem.caeFechaRealizado}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        disabled="#{calificacionEstudianteComponenteBean.soloLectura}"
+                                        converter="#{localDateConverter}"
+                                        maxdate="#{applicationBean.today()}" 
+                                        mask="true"/>
+                        </p:column>                        
+                        <p:column headerText="#{msg.calificacion}" styleClass="#{calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaTipoEscala eq TipoEscalaCalificacion.NUMERICA ?texto-right:''}">
+                            <h:selectOneMenu id="combo_cpe" rendered="#{not (calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaTipoEscala eq TipoEscalaCalificacion.NUMERICA) and !calificacionEstudianteComponenteBean.soloLectura}" value="#{calificacionEstudianteComponenteBean.comboCalificacionConceptual[rowIndex].selected}"  styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{calificacionEstudianteComponenteBean.comboCalificacionConceptual[rowIndex].items}" />  
+                                <p:ajax listener="#{calificacionEstudianteComponenteBean.calificacionSelected(elem, rowIndex)}" event="change"/>
+                            </h:selectOneMenu> 
+                            <h:outputText rendered="#{not (calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaTipoEscala eq TipoEscalaCalificacion.NUMERICA)  and calificacionEstudianteComponenteBean.soloLectura}" value="#{elem.caeCalificacionConceptualEstudiante.calValor}" />
+                            <p:inputNumber rendered="#{(calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaTipoEscala eq TipoEscalaCalificacion.NUMERICA)  and !calificacionEstudianteComponenteBean.soloLectura}"
+                                           emptyValue="empty" 
+                                           styleClass="form-control texto-medio" 
+                                           inputStyle="text-align: right" minValue="0"  
+                                           decimalSeparator="." thousandSeparator=","
+                                           maxValue="#{calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaMaximo}"  
+                                           decimalPlaces="#{calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaPrecision}" 
+                                           value="#{elem.caeCalificacionNumericaEstudiante}" 
+                                           disabled="#{calificacionEstudianteComponenteBean.soloLectura}"/>
+                            <h:outputText rendered="#{(calificacionEstudianteComponenteBean.escalaCalificacion[rowIndex].ecaTipoEscala eq TipoEscalaCalificacion.NUMERICA)  and calificacionEstudianteComponenteBean.soloLectura}" value="#{elem.caeCalificacionNumericaEstudiante}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hObservacion}" >
+                            <h:inputText id="input_orden_mod" styleClass="form-control" value="#{elem.caeObservacion}" disabled="#{calificacionEstudianteComponenteBean.soloLectura}" />                   
+                        </p:column>
+
+                    </p:dataTable>                    
+
+
+                    <p:dataTable id="calificacionOtraSeccion"                         
+                                 widgetVar="widResultadoOtraSeccion"                         
+                                 var="elem"      
+                                 rendered="#{calificacionEstudianteComponenteBean.calificacionNoPertenecenSeccion.size() gt 0}"
+                                 value="#{calificacionEstudianteComponenteBean.calificacionNoPertenecenSeccion}"                              
+                                 emptyMessage="#{msg.noHayResultados}"	
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}" >
+                        <f:facet name="header">
+                            <p:outputPanel styleClass="row">       
+                                <p:outputPanel styleClass="col-md-8">
+                                    <p:outputPanel styleClass="form-inline" style="margin-top:10px">
+                                        <strong>El estudiante fue calificado en otra sección para los siguientes componentes plan grado.</strong>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-4">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="calificacionOtraSeccion" fileName="calificacion" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.hsede}">
+                            <h:outputText value="#{elem.caeCalificacion.calSeccion.secServicioEducativo.sduSede.sedCodigoNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hcomponentePlanEstudio}" >
+                            <h:outputText value="#{elem.caeCalificacion.calComponentePlanEstudio.cpeNombre}" />
+                        </p:column>                      
+                        <p:column headerText="#{msg.fechaCalificado}">
+                            <h:outputText value="#{elem.caeFechaRealizado}" />
+                        </p:column>
+                        <p:column headerText="#{msg.calificacion}">
+                            <h:outputText  value="#{elem.caeCalificacionValor}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hObservacion}" >
+                            <h:outputText  value="#{elem.caeObservacion}"  />                   
+                        </p:column>
+
+                    </p:dataTable>      
+
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton value="#{msg.guardar}" 
+                                         rendered="#{!calificacionEstudianteComponenteBean.soloLectura and calificacionEstudianteComponenteBean.componentePlanGradoList.size() gt 0 }"
+                                         action="#{calificacionEstudianteComponenteBean.guardar()}" 
+                                         id="btnAgregarCalificacion" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                        <p:blockUI block="@form" trigger="btnAgregarCalificacion" /> 
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

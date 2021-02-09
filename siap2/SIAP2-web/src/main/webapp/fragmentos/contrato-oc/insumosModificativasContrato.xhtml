@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" id="panelInsumosModificativasContrato" >
+        <div class="margenInf clearfix">
+            <p:commandButton styleClass="btn btn-default pull-right"  
+                             icon="glyphicon glyphicon-plus"
+                             value="#{textMB.obtenerTexto('labels.AnadirInsumoAModificativa')}"
+                             action="#{contratoCE.cargarAniadirInsumoAModificativas()}"
+                             update="@form"
+                             rendered="#{not contratoCE.habilitarAnadirInsumo and contratoCE.tempModificativa.estado ne 'APROBADA'}"> 
+            </p:commandButton>
+        </div>
+
+        <h:panelGroup id="panelTablaPoInsumosModificativa" layout="block" rendered="#{not contratoCE.habilitarAnadirInsumo}">
+            
+            <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" />
+            <p:dataTable
+                id="tablaInsumosModificativa"
+                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"                
+                paginator="true" rows="25"
+                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} "
+                rowsPerPageTemplate="5,10,25,50"
+                styleClass="table"
+                value="#{contratoCE.tempModificativa.poInsumos}" var="poInsumo">
+
+                <f:facet name="{Exporters}">
+                    <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                        <span class="glyphicon glyphicon-export"></span>
+                        <p:dataExporter type="csv" target="tablaInsumosModificativa" fileName="insumosDeLaModificativa" />
+                    </h:commandLink> 
+                </f:facet>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NroInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.id}" /> 
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NombreInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.insumo.nombre}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.ObservacionesInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.observacion}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.UTInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.unidadTecnica.nombre}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.CantidadInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.cantidad}" />
+                </p:column>   
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.PrecioUnitInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.montoUnit}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>   
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.montoTotal}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.MontoCertInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.montoTotalCertificado}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column/>
+                        <p:column/>
+                        <p:column/>
+                        <p:column/>
+                        <p:column/>
+                        <p:column/>
+                        <p:column footerText="#{utilsMB.formatNumber(contratoCE.calcularMontoTotalInsumosModificativa())}" styleClass=" numericos"/>
+                        <p:column footerText="#{utilsMB.formatNumber(contratoCE.calcularMontoCertInsumosModificativa())}" styleClass=" numericos"/>
+                        <p:column/>
+                    </p:row>
+                </p:columnGroup>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                    <p:commandButton 
+                        rendered="#{contratoCE.tempModificativa.estado ne 'APROBADA'}"
+                        styleClass="btn btn-danger btn-icono" 
+                        icon="glyphicon glyphicon-remove" 
+                        title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                        onclick="if (!existeConfirmacion(this.id))
+                                    return false" 
+                        actionListener="#{contratoCE.eliminarPoInsumoDeModificativa(poInsumo)}"
+                        update="tablaInsumosModificativa"/>
+                </p:column>
+
+            </p:dataTable>
+        </h:panelGroup>
+
+        <h:panelGroup id="panelAgregarPoInsumoModificativa" layout="block" rendered="#{contratoCE.habilitarAnadirInsumo}">
+
+            <p:dataTable id="tablaInsumosAAgregarEnModificatiba"
+                         emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                         styleClass="table table-padding tabla-resultados"
+                         value="#{contratoCE.poInusmosDisponiblesParaModificativa}" var="poInsumo"
+                         selection="#{contratoCE.poInsumosSeleccionadosParaAgregarAModificativa}"
+                         rowKey="#{poInsumo.id}">
+
+                <p:ajax event="rowSelectCheckbox"  />
+                <p:ajax event="rowUnselectCheckbox"  />
+                <p:ajax event="toggleSelect"  />
+
+                <p:column selectionMode="multiple"/>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NroInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.id}" /> 
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NombreInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.insumo.nombre}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.ObservacionesInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.observacion}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.UTInsumoModificativa')}"  >
+                    <h:outputText value="#{poInsumo.unidadTecnica.nombre}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.CantidadInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.cantidad}" />
+                </p:column>   
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.PrecioUnitInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.montoUnit}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>  
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalInsumoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{poInsumo.montoTotal}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>   
+
+
+            </p:dataTable>
+            <div class="row">
+                <h:panelGroup  layout="block" styleClass="col-sm-9 col-sm-offset-3 botones-derecha">
+                    <p:commandButton styleClass="btn btn-primary"
+                                     value="#{textMB.obtenerTexto('labels.AgregarInsumoAModificativa')}" 
+                                     actionListener="#{contratoCE.agregarPoInsumosSelecionadosAModificativa()}"  
+                                     update="@form" />
+                    <p:commandButton styleClass="btn btn-link"  
+                                     value="#{textMB.obtenerTexto('labels.Cancelar')}" 
+                                     actionListener="#{contratoCE.cancelArgregarPoInsumosSelecionados()}"
+                                     update="@form" />
+                </h:panelGroup>
+            </div>   
+        </h:panelGroup>
+
+    </h:panelGroup>
+
+
+
+</ui:composition>

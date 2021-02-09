@@ -1,0 +1,648 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <p:outputPanel rendered="#{not procesoAdqMain.usuarioActualCorrespondeConTecnicoUACISelect}">
+            <h:outputText value="#{textMB.obtenerTexto('labels.TecnicoUACIAsignadoDistintoUsuarioActual')}"/>
+        </p:outputPanel>
+        <h:panelGroup layout="block" id="mainPanel" rendered="#{not procesoAdqMain.estaDesiertoOSinEfecto() and procesoAdqMain.usuarioActualCorrespondeConTecnicoUACISelect}">
+
+            <h:form id="formPrincipal" prependId="false" >  
+
+                <h:panelGroup class="panelTituloPagina" id="tituloPanel" layout="block">
+                    <h2 id="overview" class="page-header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.ProcesoAdquisicion')}" styleClass="proceso-adq-verde"  rendered="#{procesoAdqMain.colorSegunFechaPlanificada eq 'VERDE'}"/>
+                        <h:outputText value="#{textMB.obtenerTexto('labels.ProcesoAdquisicion')}" styleClass="proceso-adq-amarillo" rendered="#{procesoAdqMain.colorSegunFechaPlanificada eq 'AMARILLO'}"/>
+                        <h:outputText value="#{textMB.obtenerTexto('labels.ProcesoAdquisicion')}" styleClass="proceso-adq-rojo" rendered="#{procesoAdqMain.colorSegunFechaPlanificada eq 'ROJO'}"/>
+                    </h2>
+
+
+                    <h:panelGroup layout="block" id="seccionPausaProceso" class="pull-right" >
+
+                        <h:panelGroup layout="block" styleClass="form-horizontal pausa-adquisicion" rendered="#{procesoAdqMain.procesoEstaEnPausa()}">
+                            <h:outputText styleClass="control-label" value="#{textMB.obtenerTexto('labels.DiasProcesoEnPausa')}:" />
+                            <h:outputText  value="#{procesoAdqMain.diasProcesoEnPausa}"/>
+
+                        </h:panelGroup>
+
+                        <div class="btn-group btn-pro-adquisicion">
+                            <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown">
+                                <span class="glyphicon glyphicon-triangle-bottom"></span>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.MasOpciones')}" />                             
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-right" >
+                                <li>
+                                    <p:commandButton styleClass="btn btn-default" 
+                                                     value="#{textMB.obtenerTexto('labels.verificarConsistenciaProcesoAdquisicion')}" 
+                                                     actionListener="#{procesoAdqMain.verificarConsistencia()}" 
+                                                     update="formPrincipal"
+                                                     icon="glyphicon glyphicon-check"
+                                                     rendered="#{permisosMB.permisos['PROCESO_ADQ_VERIFICAR_CONSISTENCIA'] }"/>  
+                                </li>
+                                <li role="separator" class="divider"></li>
+                                <li>   
+                                    <p:commandButton styleClass="btn btn-default" 
+                                                     value="#{textMB.obtenerTexto('labels.Pausa')}" 
+                                                     action="#{procesoAdqMain.pausarProceso()}"
+                                                     rendered="#{not procesoAdqMain.procesoEstaEnPausa() and permisosMB.permisos['PROCESO_ADQ_PAUSAR']}"
+                                                     disabled="#{procesoAdqMain.estaDesiertoOSinEfecto()}"
+                                                     update="seccionPausaProceso" 
+                                                     icon="glyphicon glyphicon-pause"/>                        
+                                </li>
+
+                                <li>
+                                    <p:commandButton styleClass="btn btn-default" 
+                                                     value="#{textMB.obtenerTexto('labels.Reanudar')}" 
+                                                     action="#{procesoAdqMain.reanudarProceso()}"
+                                                     rendered="#{procesoAdqMain.procesoEstaEnPausa()  and permisosMB.permisos['PROCESO_ADQ_REANUDAR']}"
+                                                     disabled="#{procesoAdqMain.estaDesiertoOSinEfecto()}"
+                                                     update="seccionPausaProceso"
+                                                     icon="glyphicon glyphicon-play"/>     
+                                </li>
+                                <li>
+                                    <p:commandButton styleClass="btn btn-default" 
+                                                     value="#{textMB.obtenerTexto('labels.Desierto')}" 
+                                                     onclick="$('#modalDeclararDesierto').modal('show');"
+                                                     disabled="#{procesoAdqMain.estaDesiertoOSinEfecto()}"
+                                                     update="seccionPausaProceso datosPrincipales"
+                                                     icon="glyphicon glyphicon-unchecked" 
+                                                     rendered="#{permisosMB.permisos['PROCESO_ADQ_DECLARAR_DESIERTO']}"/>             
+                                </li>
+                                <li>
+                                    <p:commandButton styleClass="btn btn-default" 
+                                                     value="#{textMB.obtenerTexto('labels.SinEfecto')}" 
+                                                     onclick="$('#modalDeclararSinEfecto').modal('show');"
+                                                     disabled="#{procesoAdqMain.estaDesiertoOSinEfecto()}"
+                                                     update="seccionPausaProceso datosPrincipales"
+                                                     icon="glyphicon glyphicon-remove-circle"
+                                                     rendered="#{permisosMB.permisos['PROCESO_ADQ_DECLARAR_SIN_EFECTO']}"/>     
+                                </li>                            
+                            </ul>
+
+                        </div>
+                    </h:panelGroup>
+                </h:panelGroup>
+
+                <h:messages id="mensajesDeErrorGenerales" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                <h:panelGroup id="datosPrincipales" layout="block" styleClass="row">
+                    <div class="col-sm-7">
+                        <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+
+                        <div class="grupoCampos form-horizontal" style="min-height: 299px;">
+                            <div class="form-group">
+                                <h:outputLabel for="anioFiscal" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="anioFiscal" value="#{procesoAdqMain.comboAnioFiscal.selected}"  styleClass="form-control textoMedio">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{procesoAdqMain.comboAnioFiscal.items}" />
+                                        <p:ajax update="formPrincipal tabsContents"/>
+                                    </h:selectOneMenu>
+                                    <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                            <h:panelGroup class="form-group" layout="block">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nro')}:" />
+                                <h:panelGroup class="col-sm-8" layout="block" rendered="#{procesoAdqMain.objeto.id eq null}">
+                                    <h:outputText  value="#{procesoAdqMain.getSecueniaObjeto()}" styleClass="form-control-static" />
+                                </h:panelGroup>
+                                <h:panelGroup class="col-sm-8" layout="block" rendered="#{procesoAdqMain.objeto.id ne null}">
+                                    <div class="input-group">
+                                        <span class="input-group-addon textoCorto" id="basic-addon1">#{procesoAdqMain.objeto.anio.anio} - </span>
+                                        <h:inputText value="#{procesoAdqMain.objeto.secuenciaNumero}" styleClass="form-control textoHyperCorto" />
+                                    </div>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.NombreDelProceso')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText id="grupoNombre" maxlength="255" value="#{procesoAdqMain.objeto.nombre}" styleClass="form-control textoMedio">
+                                        <f:validateLength maximum="255" />
+                                    </h:inputText>
+                                    <h:message for="grupoNombre" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                            <h:panelGroup class="form-group" layout="block" rendered="#{procesoAdqMain.habilitarCampoTecnicoUACI()}">
+                                <h:outputLabel for="idUsuarioActividad" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.TecnicoUACI')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="idUsuarioActividad" value="#{procesoAdqMain.comboUsuarios.selected}" styleClass="form-control textoMedio">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{procesoAdqMain.comboUsuarios.items}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="idUsuarioActividad" styleClass="help-inline msj-danger" />
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup class="form-group" layout="block" rendered="#{not empty procesoAdqMain.objeto.id and permisosMB.permisos['PROCESO_ADQ_CARGAR_VER_TDR']}">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TDR/ET')}" />
+                                <div class="col-sm-8">
+                                    <p:commandLink   value="#{procesoAdqMain.objeto.tdr eq null?textMB.obtenerTexto('labels.cargarTDR/ET'):textMB.obtenerTexto('labels.verTDR/ET')}" 
+                                                     update="anadirTDRProcesoForm verTDRProcesoForm"
+                                                     action="#{procesoAdqMain.cargarProcesoTDR()}"
+                                                     immediate="true"
+                                                     style="margin-top:5px; display: inline-block;"
+                                                     >
+                                    </p:commandLink>                                
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" styleClass="form-group" rendered="#{not empty procesoAdqMain.objeto.id}">
+                                <h:outputLabel for="idMetodoAdquisision" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.MetodoDeAdquisicion')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="idMetodoAdquisision" value="#{procesoAdqMain.selectedMetodoId}" styleClass="form-control textoMedio">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}" />
+                                        <f:selectItems value="#{procesoAdqMain.getMetodosAdquisicion()}" />
+                                        <p:ajax listener="#{procesoAdqMain.regenerarGantt}" update="ta tabsContents"
+                                                oncomplete="repintarGantt();" />
+                                    </h:selectOneMenu> 
+                                    <!--<h:message for="idMetodoAdquisision" styleClass="help-inline msj-danger" />-->
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" id="fechaInicialDelCronograma" styleClass="form-group" rendered="#{not empty procesoAdqMain.objeto.id}">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.FechaInicialDelCronograma')}:" for="menorFechaGantt"/>
+                                <div class="col-sm-8">
+                                    <p:calendar value="#{procesoAdqMain.fechaInicioGantt}" styleClass="textoMedio" id="menorFechaGantt" locale="es" navigator="true" pattern="dd/MM/yyyy"
+                                                readonlyInput="true">
+                                        <p:ajax event="dateSelect" 
+                                                listener="#{procesoAdqMain.regenerarGantt}" 
+                                                update="ta tabsContents fechaInicialDelCronograma mensajesDeErrorGenerales" 
+                                                oncomplete="repintarGantt();" />
+                                    </p:calendar>
+                                    <!--                                    <h:message for="menorFechaGantt" styleClass="help-inline msj-danger" />-->
+                                </div>
+                            </h:panelGroup>
+                            <div id="taZone" class="hidden">
+                                <h:inputTextarea value="#{procesoAdqMain.ganttJson}" rows="8" cols="150" id="ta" />
+                            </div>
+                            <div class="form-group sin-color">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary"
+                                                     value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                                     icon="glyphicon glyphicon-saved"
+                                                     update="@form tabsPanel tituloPanel"
+                                                     onclick=" guardarGantt()"
+                                                     action="#{procesoAdqMain.guardar()}">
+                                    </p:commandButton>
+                                    <h:outputLink  value="consultaProcesoAdquisicion.xhtml" class="btn btn-link">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                    </h:outputLink>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-5">
+                        <p:panel id="otrosDatos" header="#{textMB.obtenerTexto('labels.DatosConsolidados')}"  rendered="#{not empty procesoAdqMain.objeto.id}">
+                            <div class="form-horizontal condensado">
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-12 col-md-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}:"/>
+                                    <div class="col-sm-12 col-md-9">
+
+                                        <div class="estado" role="group" aria-label="Cambiar Estado Grupo">
+                                            <p:commandButton  rendered="#{permisosMB.permisos['RETROCEDER_ESTADO_PROCESO_ADQ'] and permisosMB.permisos[procesoAdqMain.getPermisoParaCambioDeEstados()]  }"
+                                                              disabled="#{procesoAdqMain.esPrimerEstado()}"
+                                                              icon="glyphicon glyphicon-menu-left" 
+                                                              styleClass="btn btn-default btn-icono"  
+                                                              title="#{textMB.obtenerTexto('labels.RetrocederEstado')}"  
+                                                              update="mainPanel tituloPanel"
+                                                              action="#{procesoAdqMain.anteriorEstadoProceso()}"
+                                                              immediate="true">
+                                                <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{0}" />
+                                            </p:commandButton>
+                                            <h:outputText styleClass="form-control-static" value="#{textMB.obtenerTexto(procesoAdqMain.objeto.estado.label)}" />
+                                            <p:commandButton  rendered="#{permisosMB.permisos['AVANZAR_ESTADO_PROCESO_ADQ'] and permisosMB.permisos[procesoAdqMain.getPermisoParaCambioDeEstados()] }"
+                                                              disabled="#{procesoAdqMain.esUltimoEstado()}"  
+                                                              icon="glyphicon glyphicon-menu-right" 
+                                                              styleClass="btn btn-default btn-icono"  
+                                                              title="#{textMB.obtenerTexto('labels.AdelatarEstado')}"  
+                                                              update="mainPanel tablaDeInsumos tituloPanel"
+                                                              action="#{procesoAdqMain.siguienteEstadoProceso()}"
+                                                              immediate="true">
+                                                <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{0}" />
+                                            </p:commandButton>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </div>
+                            <div class="separador condensado"/>
+                            <div class="form-horizontal condensado">
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-7 col-lg-6 control-label" value="#{textMB.obtenerTexto('labels.PresupuestoPlanificado')}:" />
+                                    <div class="col-sm-5 col-lg-6">
+                                        <h:outputText  value="#{procesoAdqMain.objeto.montoTotal}" styleClass="form-control-static numericos" >
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-7 col-lg-6 control-label" value="#{textMB.obtenerTexto('labels.PresupuestoAdjudicado')}:" />
+                                    <div class="col-sm-5 col-lg-6">
+                                        <h:outputText  value="#{procesoAdqMain.montoAdjudicado}" styleClass="form-control-static numericos" >
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-7 col-lg-6 control-label" value="#{textMB.obtenerTexto('labels.PresupuestoEjecutado')}:" />
+                                    <div class="col-sm-5 col-lg-6">
+                                        <h:outputText  value="#{procesoAdqMain.objeto.montoEjecutado != null?procesoAdqMain.objeto.montoEjecutado:'0.00'}" styleClass="form-control-static numericos" >
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="separador condensado"/>
+                            <div class="form-horizontal condensado">
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-7 col-lg-6 control-label" value="#{textMB.obtenerTexto('labels.FechaPlanificacion(PAC)')}:" />
+                                    <div class="col-sm-5 col-lg-6">
+                                        <h:outputText  value="#{procesoAdqMain.objeto.menorFechaInsumo}" styleClass="form-control-static" converter="dateConverter"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-7 col-lg-6 control-label" value="#{textMB.obtenerTexto('labels.FechaEstimada')}:" />
+                                    <div class="col-sm-5 col-lg-6">
+                                        <h:outputText  value="#{procesoAdqMain.objeto.menorFechaGantt}" styleClass="form-control-static" converter="dateConverter"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-7 col-lg-6 control-label" value="#{textMB.obtenerTexto('labels.FechaRealProyectada')}:" />
+                                    <div class="col-sm-5 col-lg-6">
+                                    </div>
+                                </div>
+                            </div>
+                        </p:panel>
+                    </div>
+                </h:panelGroup>
+            </h:form>
+
+
+
+
+
+            <!--tabla de montos -->
+            <h:panelGroup layout="block" id="tabsPanel">
+                <ui:fragment rendered="#{not empty procesoAdqMain.objeto.id}">
+                    <h:form >
+                        <ul class="nav nav-tabs" role="tablist">
+                            <ui:fragment rendered="#{permisosMB.permisos['INSUMOS_DEL_PROCESO_ADQ'] }">
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==0) ? 'active' : '' }" >
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="1-#{textMB.obtenerTexto('labels.InsumosDelProceso')}"  
+                                                   update="tabsPanel divNotificarUTSobreTDR"
+                                                   immediate="true" >
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{0}" />
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{(procesoAdqMain.objeto.estado.posicion le 1) and permisosMB.permisos['AGREGAR_INSUMOS_PROCESO_ADQ'] }">
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==1) ? 'active' : '' }">                          
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="2-#{textMB.obtenerTexto('labels.AgregarInsumo')}"  
+                                                   update="tabsPanel"
+                                                   immediate="true">
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{1}" />
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{permisosMB.permisos['CRONOGRAMA_DEL_PROCESO_ADQ'] }" >
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==2) ? 'active' : '' }">                                            
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="3-#{textMB.obtenerTexto('labels.cronogramaDelProceso')}"  
+                                                   update="tabsPanel"
+                                                   immediate="true" 
+                                                   oncomplete="repintarGantt();"
+                                                   >
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{2}"/>
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{(procesoAdqMain.objeto.estado.posicion ge 3 and procesoAdqMain.objeto.estado.posicion le 5) and permisosMB.permisos['GESTIONAR_LOTE_ITEM_PROCESO_ADQ'] }">
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==3) ? 'active' : '' }">                                            
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="4-#{textMB.obtenerTexto('labels.GestionItemsLotes')}"  
+                                                   update="tabsPanel"
+                                                   immediate="true" >
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{3}" />
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{(procesoAdqMain.objeto.estado.posicion ge 4 and procesoAdqMain.objeto.estado.posicion le 6)  and permisosMB.permisos['PROVEEDORES_PROCESO_ADQ']}">
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==4) ? 'active' : '' }">                                            
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="5-#{textMB.obtenerTexto('labels.Proveedores')}"  
+                                                   update="tabsPanel"
+                                                   immediate="true" >
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{4}" />
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+
+                            <ui:fragment rendered="#{(procesoAdqMain.objeto.estado.posicion gt 5 and procesoAdqMain.objeto.estado.posicion le 8) and permisosMB.permisos['EVALUACION_ADJUDICACION_PROCESO_ADQ']}">
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==5) ? 'active' : '' }">                                            
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="6-#{textMB.obtenerTexto('labels.EvaluacionAdjudicacion')}"  
+                                                   update="tabsPanel"
+                                                   immediate="true" >
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{5}" />
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+
+                            <ui:fragment  rendered="#{(procesoAdqMain.objeto.estado.posicion ge 9) and permisosMB.permisos['CONTRATO_OC_PROCESO_ADQ']}">
+                                <li role="presentation" class="#{(procesoAdqMain.openTab ==6) ? 'active' : '' }">                                            
+                                    <p:commandLink styleClass="btn btn-link"  
+                                                   value="7-#{textMB.obtenerTexto('labels.Contrato/OC')}"  
+                                                   update="tabsPanel"
+                                                   immediate="true" >
+                                        <f:setPropertyActionListener target="#{procesoAdqMain.openTab}" value="#{6}" />
+                                    </p:commandLink>
+                                </li>
+                            </ui:fragment>
+                        </ul>
+                    </h:form>
+
+                    <!--  Tab panes  -->
+                    <h:panelGroup id="tabsContents" styleClass="tab-content" layout="block">
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==0 and permisosMB.permisos['INSUMOS_DEL_PROCESO_ADQ'] }" >
+                            <ui:include src="./insumosDelProceso.xhtml"></ui:include>
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==1 and permisosMB.permisos['AGREGAR_INSUMOS_PROCESO_ADQ']}" >
+                            <ui:include src="./agregarInsumoAdquisicion.xhtml"></ui:include>
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==2 and permisosMB.permisos['CRONOGRAMA_DEL_PROCESO_ADQ']}">
+                            <ui:include src="./cronogramaDelProceso.xhtml"></ui:include>
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==3 and permisosMB.permisos['GESTIONAR_LOTE_ITEM_PROCESO_ADQ']}" >
+                            <ui:include src="./gestionarLoteItems.xhtml"></ui:include>
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==4 and permisosMB.permisos['PROVEEDORES_PROCESO_ADQ']}" >
+                            <ui:include src="./proveedores.xhtml"></ui:include>
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==5 and permisosMB.permisos['EVALUACION_ADJUDICACION_PROCESO_ADQ']}" >
+                            <ui:include src="./evaluacionAdjudicacionProceso.xhtml"></ui:include>
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" rendered="#{procesoAdqMain.openTab ==6 and permisosMB.permisos['CONTRATO_OC_PROCESO_ADQ']}" >
+                            <ui:include src="./contratoOrdenCompra.xhtml"></ui:include>
+                        </h:panelGroup>
+                    </h:panelGroup>
+
+
+
+
+                </ui:fragment>
+            </h:panelGroup>
+
+
+        </h:panelGroup>
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+        
+        <div>
+            <h:outputScript>
+                function repintarGantt(){
+                if (typeof loadFromLocalStorage !== "undefined"){
+                loadFromLocalStorage();
+                }
+                }
+
+                function guardarGantt(){
+                if (typeof saveInLocalStorage !== "undefined"){
+                saveInLocalStorage();
+                }
+                }
+
+
+
+            </h:outputScript>
+
+        </div>
+        <!--</h:panelGroup>-->
+
+        <h:panelGroup id="blockTDRProceso"  layout="block">
+            <div class="modal fade"  id="anadirTDRProceso" tabindex="-1" role="dialog" aria-labelledby="anadirTDRProceso">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalTDRProceso">
+                        <h:form id="anadirTDRProcesoForm"  prependId="false"  enctype="multipart/form-data"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirTDRProceso')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+
+
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="TDRProcesoArchivoAsubir" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                        <div class="col-sm-9">
+                                            <p:fileUpload label="#{textMB.obtenerTexto('labels.Selecionar')}"
+                                                          value="#{procesoAdqMain.uploadedFile}"
+                                                          mode="advanced"
+                                                          multiple="false"
+                                                          auto="true"
+                                                          fileUploadListener="#{procesoAdqMain.fileUploadListener}"
+                                                          update="TDRProcesoArchivoAsubir" />     
+
+                                            <h:panelGroup layout="block" id="TDRProcesoArchivoAsubir" >
+                                                <ui:fragment rendered="#{procesoAdqMain.tempTDR.tempUploadedFile != null}">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoAGuardar')}:" />
+                                                    <h:outputText value="#{procesoAdqMain.uploadedFile.fileName}" />                                         
+                                                </ui:fragment>
+                                            </h:panelGroup>
+
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="anadirTDRProcesoContenido" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Contenido')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputTextarea id="anadirTDRProcesoContenido" value="#{procesoAdqMain.tempTDR.contenido}"  styleClass="form-control textoLargo"   rows="10" />
+                                            <h:message for="anadirTDRProcesoContenido" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{procesoAdqMain.guardarTDR()}" update="@form" />
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+        <h:panelGroup id="verTDRProceso"  layout="block">
+            <div class="modal fade"  id="verTDRProcesoModal" tabindex="-1" role="dialog" aria-labelledby="verTDRProcesoModal">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="verTDRProcesoContenidoModal">
+                        <h:form id="verTDRProcesoForm"  prependId="false" > 
+                            <p:outputPanel rendered="#{not procesoAdqMain.modificandoTDR}">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                    <span class="modal-title">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.VerTDR')}" /> 
+                                    </span>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-horizontal">
+                                        <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                        <h:panelGroup layout="block" styleClass="form-group" rendered="#{procesoAdqMain.tempTDR.archivo != null}">
+                                            <h:outputLabel for="verTDRProcesofileUpload" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                            <div class="col-sm-9">
+                                                <p:commandLink  id="verTDRProcesofileUpload"  actionListener="#{procesoAdqMain.downloadFile(procesoAdqMain.tempTDR.archivo)}" ajax="false">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.DescargarAdjunto')}" />
+                                                </p:commandLink>
+                                                <h:panelGroup layout="block">
+                                                    <ui:fragment>
+                                                        <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoAGuardado')}:" />
+                                                        <h:outputText value="#{procesoAdqMain.tempTDR.archivo.nombreOriginal}" />                                         
+                                                    </ui:fragment>
+                                                </h:panelGroup>
+                                            </div>
+                                        </h:panelGroup>
+                                        <div class="form-group">
+                                            <h:outputLabel for="verTDRContenido" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Contenido')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText id="verTDRProcesoContenido" value="#{procesoAdqMain.tempTDR.contenido}"  styleClass="form-control-static"   />
+                                                <h:message for="verTDRProcesoContenido" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-refresh" value="#{textMB.obtenerTexto('labels.Modificar')}" actionListener="#{procesoAdqMain.modificarTDR()}"   update="@form"/>
+                                    <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                </div>
+
+                            </p:outputPanel>
+                            <p:outputPanel rendered="#{procesoAdqMain.modificandoTDR}">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                    <span class="modal-title">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.modificarTDRProceso')}" /> 
+                                    </span>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-horizontal">
+
+                                        <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="modificarTDRProcesoArchivoAsubir" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                            <div class="col-sm-9">
+                                                <p:fileUpload label="#{textMB.obtenerTexto('labels.Selecionar')}"
+                                                              value="#{procesoAdqMain.uploadedFile}"
+                                                              mode="advanced"
+                                                              multiple="false"
+                                                              auto="true"
+                                                              fileUploadListener="#{procesoAdqMain.fileUploadListener}"
+                                                              update="modificarTDRProcesoArchivoAsubir" />     
+
+                                                <h:panelGroup layout="block" id="modificarTDRProcesoArchivoAsubir" >
+                                                    <ui:fragment rendered="#{procesoAdqMain.tempTDR.tempUploadedFile != null}">
+                                                        <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoAGuardar')}:" />
+                                                        <h:outputText value="#{procesoAdqMain.uploadedFile.fileName}" />                                         
+                                                    </ui:fragment>
+                                                </h:panelGroup>
+
+
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel for="modificarTDRProcesoContenido" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Contenido')}:" />
+                                            <div class="col-sm-9">
+                                                <h:inputTextarea id="modificarTDRProcesoContenido" value="#{procesoAdqMain.tempTDR.contenido}"  styleClass="form-control textoLargo"   rows="10" />
+                                                <h:message for="modificarTDRProcesoContenido" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{procesoAdqMain.guardarTDR()}"  update="@form" />
+                                    <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                </div>
+                            </p:outputPanel>
+
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="modalDeclararDesierto" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" >
+                        <h:form   prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.DeclararDesierto')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.SeguroDeseaDeclararDesierto')}" />
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton styleClass="btn btn-secundary"
+                                                 title="#{textMB.obtenerTexto('labels.Confirmar')}"
+                                                 action="#{procesoAdqMain.declararDesierto()}"
+                                                 value="#{textMB.obtenerTexto('labels.Confirmar')}"
+                                                 onclick="$('#modalDeclararDesierto').modal('hide');"
+                                                 ajax="false"
+                                                 update="@form">
+                                </p:commandButton>   
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="modalDeclararSinEfecto" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" >
+                        <h:form   prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.DeclararSinEfecto')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.SeguroDeseaDeclararSinEfecto')}" />
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton styleClass="btn btn-secundary"
+                                                 title="#{textMB.obtenerTexto('labels.Confirmar')}"
+                                                 action="#{procesoAdqMain.declararSinEfecto()}"
+                                                 value="#{textMB.obtenerTexto('labels.Confirmar')}"
+                                                 onclick="$('#modalDeclararSinEfecto').modal('hide');"
+                                                 ajax="false"
+                                                 update="@form">
+                                </p:commandButton>   
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+    </ui:composition>
+</html>

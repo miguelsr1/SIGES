@@ -1,0 +1,425 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+    <!-- parametros
+    parameterBean
+    poa
+    items
+    habilitarLineas
+    habilitarEditar
+    habilitarMasOpciones
+    -->
+
+
+
+    <table class="table"> 
+        <thead> 
+            <tr>  
+                <th>#{textMB.obtenerTexto('labels.Insumos')}</th>
+                <ui:fragment  rendered="#{habilitarLineas}" >
+                    <th>#{textMB.obtenerTexto('labels.Linea')}</th>
+                    <th>#{textMB.obtenerTexto('labels.Componente')} / #{textMB.obtenerTexto('labels.MacroActividad')} </th>
+                    <th>#{textMB.obtenerTexto('labels.Producto')}</th>
+                </ui:fragment>
+                <th>#{textMB.obtenerTexto('labels.Actividades')}</th>
+
+                <th>#{textMB.obtenerTexto('labels.Insumos')}</th>
+                <th class="numericos" >#{textMB.obtenerTexto('labels.MontoTotal')}</th>
+<!--                <ui:fragment  rendered="#{habilitarMasOpciones}" >
+                    <th class="columnaAcciones">#{textMB.obtenerTexto('labels.MasOpciones')}</th>
+                </ui:fragment>-->
+                <ui:fragment  rendered="#{habilitarEditar}" >
+                    <th class="columnaAcciones">#{textMB.obtenerTexto('labels.Editar')}</th>
+                    <th class="columnaAcciones">#{textMB.obtenerTexto('labels.Eliminar')}</th>
+                </ui:fragment>
+                <th>#{textMB.obtenerTexto('labels.Insumos')}</th>
+            </tr> 
+        </thead>
+        <tbody>   
+            <ui:repeat  var="item" value="#{poaProyectoCE.lineasTablaPOA}" varStatus="status">
+                <tr> 
+
+                    <td>
+                        <h:outputText value="#{item.tipo}" />
+                    </td>
+
+
+
+                    <ui:fragment  rendered="#{habilitarLineas}" >
+                        <td>
+                            <h:outputText value="#{item.numeroLinea}" />
+                        </td>
+
+
+                        <td class="bold">
+                            <h:outputText value="#{item.componenteMacroActividad}" />
+                        </td>
+
+
+                        <td>
+                            <h:outputText value="#{item.producto}" />
+                        </td>
+                    </ui:fragment>
+
+                    <td>
+                        <div>
+                            <h:outputText value="#{item.actividad}" />
+                            <ui:fragment rendered="#{item.soyLinea()}" >
+                                <p:commandButton  
+                                    styleClass="btn btn-default btn-actividad" 
+                                    icon="glyphicon glyphicon-plus"
+                                    value="#{textMB.obtenerTexto('labels.AnadirActividad')}" 
+                                    update="contenidoModalActividad"
+                                    actionListener="#{parameterBean.initActividad()}"
+                                    oncomplete="$('#anadirActividad').modal('show');">
+                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{null}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                </p:commandButton>
+                            </ui:fragment>
+                        </div>
+                    </td>
+
+
+
+                    <td>
+                        <div>
+                            <h:outputText value="#{item.insumo}" />
+                            <ui:fragment rendered="#{item.soyActividad()}" >
+                                <p:commandButton 
+                                                 styleClass="btn btn-default btn-insumo"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.AnadirInsumo')}" 
+                                                 update="contenidoModalInsumo"
+                                                 action="#{parameterBean.initInsumo()}"
+                                                 oncomplete="$('#anadirInsumo').modal('show');" 
+                                                 >
+                                    <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{null}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                </p:commandButton>
+                            </ui:fragment>
+                        </div>
+                    </td>
+
+
+
+                    <td>
+                        <h:outputText value="#{item.montoTotal}" >
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </td>
+
+
+<!--                    <ui:fragment  rendered="#{habilitarMasOpciones}" >
+                        <td>
+                            <p:outputPanel styleClass="btn-group" rendered="#{item.soyInsumo()}">
+                                <p:commandButton id="dynaButton" title="Otras Acciones" type="button" icon="glyphicon glyphicon-option-vertical" styleClass="btn btn-icono"/>
+                                <p:menu overlay="true" trigger="dynaButton" my="left top" at="left bottom" styleClass="menuDesplegable">
+                                    <p:menuitem value="#{textMB.obtenerTexto('labels.TDR')}" 
+                                                update="anadirTDRcontenidoModal verTDRcontenidoModal"
+                                                action="#{parameterBean.initTDR()}"
+                                                >
+                                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                    </p:menuitem>
+                                    <p:separator/>
+                                    <p:menuitem value="#{textMB.obtenerTexto('labels.DisponibilidadPresupuestaria')}" 
+                                                oncomplete="$('#anadirDisponibilidadPresModal').modal('show');" 
+
+                                                update="anadirDisponibilidadPresModalContenidoModal"
+                                                action="#{parameterBean.initInsumo()}">
+                                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                    </p:menuitem>
+                                </p:menu>
+                            </p:outputPanel>
+                        </td>
+                    </ui:fragment>-->
+
+
+
+
+                    <ui:fragment  rendered="#{habilitarEditar}" >
+
+                        <td>
+                            <div>
+                                <p:outputPanel>
+                                    <ui:fragment rendered="#{item.soyLinea()}" >
+                                        <p:commandButton 
+                                            styleClass="btn btn-icono"  
+                                            icon="glyphicon glyphicon-pencil"
+                                            title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                            update="contenidoModalLinea"
+                                            action="#{parameterBean.initLinea()}"
+                                            oncomplete="$('#anadirLinea').modal('show');" 
+                                            >
+                                            <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                        </p:commandButton>
+                                    </ui:fragment>
+                                    <p:commandButton rendered="#{item.soyActividad()}" 
+                                                     styleClass="btn btn-icono"  
+                                                     icon="glyphicon glyphicon-pencil"
+                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                     update="contenidoModalActividad"
+                                                     action="#{parameterBean.initActividad()}"
+                                                     oncomplete="$('#anadirActividad').modal('show');" 
+                                                     >
+                                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{item.soyInsumo()}" 
+                                                     styleClass="btn btn-icono"  
+                                                     icon="glyphicon glyphicon-pencil"
+                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                     update="contenidoModalInsumo"
+                                                     action="#{parameterBean.initInsumo()}"
+                                                     oncomplete="$('#anadirInsumo').modal('show');" 
+                                                     >
+                                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                    </p:commandButton>
+                                </p:outputPanel>
+                            </div>
+                        </td>
+
+
+                        <td>
+                            <div>
+                                <p:commandButton rendered="#{item.soyActividad()}" 
+                                                 icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 action="#{parameterBean.eliminarActividadLinea()}"
+                                                 update="tablaLineas confirmModalCallBackBody"
+                                                 >
+                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                </p:commandButton>   
+                                <p:commandButton rendered="#{item.soyInsumo()}" 
+                                                 icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 action="#{parameterBean.eliminarInsumoActividad()}"
+                                                 update="tablaLineas confirmModalCallBackBody"
+                                                 >
+                                    <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                                </p:commandButton>
+                            </div>
+                        </td>
+
+                        <td>
+                            <h:outputText value="#{item.tipo}" />
+                        </td>
+
+
+
+                    </ui:fragment>
+
+                </tr> 
+            </ui:repeat> 
+        </tbody> 
+    </table> 
+
+
+
+
+
+
+
+    <!--    <h:panelGroup   layout="block">      
+            <p:dataTable  id="tablaDeLineasDelProyecto"
+                          var="item" 
+                          value="#{items}" 
+                          emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                          rowStyleClass="#{item.getCssClass()}" >
+    
+                <p:column headerText="#{textMB.obtenerTexto('labels.tipo')}" >
+                    <h:outputText value="#{item.tipo}" />
+                </p:column>
+            
+                <p:column headerText="#{textMB.obtenerTexto('labels.Linea')}" rendered="#{habilitarLineas}" >
+                    <h:outputText value="#{item.numeroLinea}" />
+                </p:column>
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.Componente/MacroActividad')}"  rendered="#{habilitarLineas}" >
+                    <h:outputText value="#{item.componenteMacroActividad}"  styleClass="bold" />
+                </p:column>
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.Producto')}"  rendered="#{habilitarLineas}" >
+                    <h:outputText value="#{item.producto}" />
+                </p:column>
+      
+                <p:column  headerText="#{textMB.obtenerTexto('labels.Actividades')}">
+                    <p:outputPanel>
+                        <h:outputText value="#{item.actividad}" />
+                        <p:commandButton  rendered="#{item.soyLinea()}"
+                                          styleClass="btn btn-default btn-actividad" 
+                                          icon="glyphicon glyphicon-plus"
+                                          value="#{textMB.obtenerTexto('labels.AnadirActividad')}" 
+                                          update="contenidoModalActividad"
+                                          actionListener="#{parameterBean.initActividad()}"
+                                          oncomplete="$('#anadirActividad').modal('show');">
+                            <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{null}" />
+                            <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                        </p:commandButton>
+                    </p:outputPanel>
+                </p:column>                
+      
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.Insumos')}">
+                    <h:outputText value="#{item.insumo}" />
+    
+                    <p:commandButton rendered="#{item.soyActividad()}" 
+                                     styleClass="btn btn-default btn-insumo"  
+                                     icon="glyphicon glyphicon-plus"
+                                     value="#{textMB.obtenerTexto('labels.AnadirInsumo')}" 
+                                     update="contenidoModalInsumo"
+                                     action="#{parameterBean.initInsumo()}"
+                                     oncomplete="$('#anadirInsumo').modal('show');" 
+                                     >
+                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{null}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                    </p:commandButton>
+                </p:column>
+    
+    
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.MontoTotal')}" styleClass="numericos">
+                    <h:outputText value="#{item.montoTotal}" >
+                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                    </h:outputText>
+                </p:column>
+    
+    
+    
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.MasOpciones')}" styleClass="columnaAcciones" rendered="#{habilitarMasOpciones}">
+                    <p:outputPanel styleClass="btn-group" rendered="#{item.soyInsumo()}">
+                        <p:commandButton id="dynaButton" title="Otras Acciones" type="button" icon="glyphicon glyphicon-option-vertical" styleClass="btn btn-icono"/>
+                        <p:menu overlay="true" trigger="dynaButton" my="left top" at="left bottom" styleClass="menuDesplegable">
+                            <p:menuitem value="#{textMB.obtenerTexto('labels.TDR')}" 
+                                        update="anadirTDRcontenidoModal verTDRcontenidoModal"
+                                        action="#{parameterBean.initTDR()}"
+                                        >
+                                <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                                <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                            </p:menuitem>
+                            <p:separator/>
+                            <p:menuitem value="#{textMB.obtenerTexto('labels.DisponibilidadPresupuestaria')}" 
+                                        oncomplete="$('#anadirDisponibilidadPresModal').modal('show');" 
+                                        
+                                        update="anadirDisponibilidadPresModalContenidoModal"
+                                        action="#{parameterBean.initInsumo()}">
+                                <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                                <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                                <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                            </p:menuitem>
+                        </p:menu>
+                    </p:outputPanel>
+                </p:column>
+    
+    
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.ver')}" styleClass="columnaAcciones"  rendered="#{not habilitarEditar}" >
+                    <h:outputText value="#{item.montoTotal}" >
+                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                    </h:outputText>
+                </p:column>
+    
+    
+    
+                <p:column  headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{habilitarEditar}">
+                    <p:commandButton rendered="#{item.tipo eq  'TIPO_LINEA'}" 
+                                     styleClass="btn btn-icono"  
+                                     icon="glyphicon glyphicon-pencil"
+                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                     update="contenidoModalLinea"
+                                     action="#{parameterBean.initLinea()}"
+                                     oncomplete="$('#anadirLinea').modal('show');" 
+                                     >
+                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                    </p:commandButton>
+                    <p:commandButton rendered="#{item.soyActividad()}" 
+                                     styleClass="btn btn-icono"  
+                                     icon="glyphicon glyphicon-pencil"
+                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                     update="contenidoModalActividad"
+                                     action="#{parameterBean.initActividad()}"
+                                     oncomplete="$('#anadirActividad').modal('show');" 
+                                     >
+                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                    </p:commandButton>
+                    <p:commandButton rendered="#{item.soyInsumo()}" 
+                                     styleClass="btn btn-icono"  
+                                     icon="glyphicon glyphicon-pencil"
+                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                     update="contenidoModalInsumo"
+                                     action="#{parameterBean.initInsumo()}"
+                                     oncomplete="$('#anadirInsumo').modal('show');" 
+                                     >
+                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                    </p:commandButton>
+                </p:column>
+    
+    
+                
+                <p:column  headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones"  rendered="#{habilitarEditar}">
+                    <p:commandButton rendered="#{item.soyActividad()}" 
+                                     icon="glyphicon glyphicon-remove" 
+                                     styleClass="btn btn-danger btn-icono" 
+                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                     onclick="if (!existeConfirmacion(this.id))
+                                                 return false" 
+                                     action="#{parameterBean.eliminarActividadLinea()}"
+                                     update="tablaLineas confirmModalCallBackBody"
+                                     >
+                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                    </p:commandButton>   
+                    <p:commandButton rendered="#{item.soyInsumo()}" 
+                                     icon="glyphicon glyphicon-remove" 
+                                     styleClass="btn btn-danger btn-icono" 
+                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                     onclick="if (!existeConfirmacion(this.id))
+                                                                     return false" 
+                                     action="#{parameterBean.eliminarInsumoActividad()}"
+                                     update="tablaLineas confirmModalCallBackBody"
+                                     >
+                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{item.poIsumo}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{item.poActividad}" />
+                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{item.poLinea}" />
+                    </p:commandButton>
+                </p:column>
+    
+                
+                
+                
+                <p:column headerText="#{textMB.obtenerTexto('labels.tipo')}" >
+                    <h:outputText value="#{item.tipo}" />
+                </p:column>
+    
+            </p:dataTable>
+        </h:panelGroup>-->
+
+
+</ui:composition>

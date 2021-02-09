@@ -1,0 +1,386 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" >
+        <h:form prependId="false" styleClass="form-horizontal">
+            <div class="margenInf clearfix">
+                <p:commandButton styleClass="btn btn-default pull-right"  
+                                 icon="glyphicon glyphicon-plus"
+                                 value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                 update="anadirPagoForm mensajesGeneralesContrato"
+                                 action="#{contratoCE.reloadPago()}"
+                                 oncomplete="$('#anadirPago').modal('show');" 
+                                 immediate="true">
+                    <f:setPropertyActionListener target="#{contratoCE.tempActa}" value="#{null}" />
+                </p:commandButton>
+            </div>
+
+            <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" />
+            <p:dataTable
+                id="tablaDePagos"
+                var="item" 
+                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                value="#{contratoCE.objeto.pagos}"
+                paginator="true" rows="25"
+                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} "
+                rowsPerPageTemplate="5,10,25,50"
+                styleClass="table">
+
+                <f:facet name="{Exporters}">
+                    <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                        <span class="glyphicon glyphicon-export"></span>
+                        <p:dataExporter type="csv" target="tablaDePagos" fileName="pagos" />
+                    </h:commandLink> 
+                </f:facet>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NroActa')}"  >
+                    <h:outputText value="#{item.contratoOC.id}" /> - <h:outputText value="#{item.nroActa}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.TipoActa')}"  >
+                    <h:outputText value="#{textMB.obtenerTexto(item.tipo.labelAbreviado)}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.PagoAsociado')}"  >
+                    <h:outputText value="#{contratoCE.cargarTextoPago(item)}" />
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.FechaGeneracionActa')}" title="#{textMB.obtenerTexto('labels.FechaGeneracionActaTooltip')}"/>
+                    </f:facet>  
+                    <h:outputText value="#{item.fechaGeneracion}" converter="dateConverter"/>
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.LugarRecepcionActa')}" title="#{textMB.obtenerTexto('labels.LugarRecepcionActaTooltip')}"/>
+                    </f:facet>  
+                    <h:outputText value="#{item.lugarRecepcion}" />
+                </p:column>
+
+
+                <p:column styleClass="numericos">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CantidadRecibidaActa')}" title="#{textMB.obtenerTexto('labels.CantidadRecibidaActaTooltip')}"/>
+                    </f:facet>  
+                    <h:outputText value="#{item.cantidadRecibida}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.MontoRecibido')}"  styleClass="numericos">
+                    <h:outputText value="#{item.montoRecibido}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.EstadoActa')}"  >
+                    <h:outputText value="#{textMB.obtenerTexto(item.estado)}" />
+                </p:column>
+
+
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.ImprimirActa')}" styleClass="columnaAcciones">
+                    <p:commandLink
+                        rendered="#{item.estado eq 'APROBADA' and item.tipo eq 'ANTICIPO'}"
+                        styleClass="btn btn-icono"  
+                        actionListener="#{contratoCE.generarReporteActaDeAnticipo(item.id)}"
+                        ajax="false"
+                        update="mensajesGeneralesContrato"
+                        title="#{textMB.obtenerTexto('labels.ImprimirActaDeAnticipo')}">
+                        <h:outputText styleClass="glyphicon glyphicon-print"/>
+                    </p:commandLink>
+                    <p:commandLink
+                        rendered="#{item.estado eq 'APROBADA' and item.tipo eq 'RECEPCION'}"
+                        styleClass="btn btn-icono"  
+                        actionListener="#{contratoCE.generarReporteActaDeRecepcion(item.id)}"
+                        ajax="false"
+                        update="mensajesGeneralesContrato"
+                        title="#{textMB.obtenerTexto('labels.ImprimirActaDeRecepcion')}">
+                        <h:outputText styleClass="glyphicon glyphicon-print"/>
+                    </p:commandLink>
+                    <p:commandLink
+                        rendered="#{item.estado eq 'APROBADA' and item.tipo eq 'DEVOLUCION'}"
+                        styleClass="btn btn-icono"  
+                        actionListener="#{contratoCE.generarReporteActaDeDevolucion(item.id)}"
+                        ajax="false"
+                        update="mensajesGeneralesContrato"
+                        title="#{textMB.obtenerTexto('labels.ImprimirActaDeDevolucion')}">
+                        <h:outputText styleClass="glyphicon glyphicon-print"/>
+                    </p:commandLink>
+                </p:column>        
+                <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                    <p:commandButton rendered="#{item.estado eq 'EN_DIGITACION' or item.estado eq 'REVERTIDA'}"
+                                     icon="glyphicon glyphicon-pencil" 
+                                     styleClass="btn btn-icono"  
+                                     title="#{textMB.obtenerTexto('labels.Editar')}"
+                                     action="#{contratoCE.reloadPago()}"
+                                     update="anadirPagoForm mensajesGeneralesContrato"
+                                     onclick="$('#anadirPago').modal('show');" 
+                                     immediate="true">
+                        <f:setPropertyActionListener target="#{contratoCE.tempActa}" value="#{item}" />
+                    </p:commandButton>
+                </p:column>
+                <p:column styleClass="columnaAcciones">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.AprobarRevertirActa')}" title="#{textMB.obtenerTexto('labels.AprobarRevertirActaTooltip')}"/>
+                    </f:facet> 
+                        <p:commandButton rendered="#{item.estado eq 'EN_DIGITACION' or item.estado eq 'REVERTIDA'}"
+                                     styleClass="btn btn-icono" 
+                                     icon="glyphicon glyphicon-ok"
+                                     title="#{textMB.obtenerTexto('labels.Aprobar')}" 
+                                     onclick="if (!existeConfirmacionConParametros(this.id, 'Aprobar', '¿Seguro desea aprobar?'))
+                                                 return false"
+                                     actionListener="#{contratoCE.aprobarActa(item)}"
+                                     update="tablaDePagos tablaDeInsumos tablaDeFlujoCajaMensual mensajesConfirmConParametrosCallBack datosPrincipales mensajesGeneralesContrato formMasOpciones"
+                                     immediate="true"/>
+                    <p:commandButton rendered="#{item.estado eq 'APROBADA'}"
+                                     styleClass="btn btn-icono" 
+                                     icon="glyphicon glyphicon-repeat espejo"
+                                     title="#{textMB.obtenerTexto('labels.Revertir')}" 
+                                     onclick="if (!existeConfirmacionConParametros(this.id, 'Revertir', '¿Seguro desea revertir?'))
+                                                 return false"
+                                     actionListener="#{contratoCE.revertirActa(item)}"
+                                     update="tablaDePagos tablaDeInsumos tablaDeFlujoCajaMensual mensajesConfirmConParametrosCallBack datosPrincipales mensajesGeneralesContrato"
+                                     immediate="true"/>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                    <p:commandButton 
+                        styleClass="btn btn-danger btn-icono" 
+                        icon="glyphicon glyphicon-remove" 
+                        title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                        onclick="if (!existeConfirmacion(this.id))
+                                    return false" 
+                        actionListener="#{contratoCE.eliminarPago(item)}"
+                        update="tablaDePagos tablaDeInsumos tablaDeFlujoCajaMensual confirmModalCallBackBody datosPrincipales  mensajesGeneralesContrato alertaBienesAFGenerados"
+                        immediate="true" />
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </h:panelGroup>
+ 
+
+    <!--MODAL PARA AÑADIR ACTA DE CONTRATO-->
+    <h:panelGroup id="blockProrroga"  layout="block">
+        <div class="modal fade"  id="anadirPago" tabindex="-1" role="dialog" aria-labelledby="anadirPago">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content" id="anadirPagoContenidoModal">
+                    <h:form id="anadirPagoForm" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.anadirActa')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" rendered="#{contratoCE.tempActa.tipo eq 'RECEPCION'}"/>
+                                <div class="form-group">
+                                    <p:outputLabel for="tipoActa" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                    <div class="col-sm-8">                      
+                                        <h:selectOneMenu value="#{contratoCE.tempActa.tipo}" styleClass="form-control textoMedio" id="tipoActa" required="true" requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" rendered="#{contratoCE.tempActa.id eq null}">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{utilsMB.getTiposActasContrato(contratoCE.objeto)}" var="tipo" itemValue="#{tipo}" itemLabel="#{textMB.obtenerTexto(tipo.label)}" />
+                                            <p:ajax listener="#{contratoCE.mostrarOcultarTablaPagoItems()}" update="tablaDePagosDeItems @form"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{textMB.obtenerTexto(contratoCE.tempActa.tipo.label)}" rendered="#{contratoCE.tempActa.id ne null}" styleClass="form-control-static"/>
+                                        <h:message for="tipoActa" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <h:panelGroup styleClass="form-group" layout="block" rendered="#{contratoCE.tempActa.tipo eq 'RECEPCION'}">
+                                    <p:outputLabel for="pagosActa" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Pago')}:" />
+                                    <div class="col-sm-8">                      
+                                        <h:selectOneMenu value="#{contratoCE.idPOFlujoCajaMenusal}" styleClass="form-control textoMedio" id="pagosActa" required="true" requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{contratoCE.cargarPagosAnioMes()}"/>
+                                            <p:ajax listener="#{contratoCE.cargarDatosActaConSinDetalle()}" update="tablaDePagosDeItems tablaDePagosDeItems"/>
+                                        </h:selectOneMenu>
+                                        <h:message for="pagosActa" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </h:panelGroup>
+                                <h:panelGroup styleClass="form-group" layout="block" rendered="#{contratoCE.tempActa.tipo eq 'RECEPCION'}">
+                                    <div class="col-sm-offset-4 col-sm-8">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox value="#{contratoCE.tempActa.conDetalle}" styleClass="textoMedio">
+                                                    <p:ajax listener="#{contratoCE.cargarDatosActaConSinDetalle()}" update="tablaDePagosDeItems"/>
+                                                </h:selectBooleanCheckbox>
+                                                #{textMB.obtenerTexto('labels.conDetalle')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </h:panelGroup>
+                                <h:panelGroup styleClass="form-group" layout="block" rendered="#{contratoCE.tempActa.tipo ne null}">
+                                    <h:outputLabel for="fechaGeneracion" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.fechaGeneracionActa')}:"/>
+                                    <div class="col-sm-8">
+                                        <p:calendar id="fechaGeneracion" value="#{contratoCE.tempActa.fechaGeneracion}" pattern="dd 'de' MMMM 'de' yyyy" locale="es" required="true" requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                        <h:message for="fechaGeneracion" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </h:panelGroup>
+                                <h:panelGroup styleClass="form-group" layout="block" rendered="#{contratoCE.tempActa.tipo ne null and contratoCE.tempActa.tipo eq 'RECEPCION'}">
+                                    <h:outputLabel for="lugarRecepcion" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.lugarRecepcionAprobacionEntregable')}:" />
+                                    <div class="col-sm-8">
+                                        <h:inputText id="lugarRecepcion"  value="#{contratoCE.tempActa.lugarRecepcion}" styleClass="form-control textoLargo" required="true" requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  />		
+                                        <h:message for="lugarRecepcion" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </h:panelGroup>
+                                <h:panelGroup styleClass="form-group" layout="block" rendered="#{contratoCE.tempActa.tipo eq 'ANTICIPO'or contratoCE.tempActa.tipo eq 'DEVOLUCION'}">
+                                    <h:outputLabel for="descripcionActa" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.DescripcionActa')}:"/>
+                                    <div class="col-sm-8">
+                                        <h:inputTextarea id="descripcionActa" value="#{contratoCE.tempActa.observaciones}" styleClass="form-control textoLargo"   rows="10"/>
+                                    </div>
+                                </h:panelGroup>
+                                <h:panelGroup styleClass="form-group" layout="block" rendered="#{contratoCE.tempActa.tipo eq 'ANTICIPO' or contratoCE.tempActa.tipo eq 'DEVOLUCION'}">
+                                    <h:outputLabel for="tipoPagoActa" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.TipoPagoActa')}:"/>
+                                    <div class="col-sm-8">
+                                        <h:selectOneRadio styleClass="radio"
+                                                          id="tipoPagoActa"
+                                                          value="#{contratoCE.tempActa.tipoPago}" 
+                                                          required="true"                                                          
+                                                          requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:selectItems value="#{utilsMB.getTiposPagoActa()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                            <f:ajax render="tiposDePagoActa" listener="#{contratoCE.calcularPorcentajeMontoFijo()}" /> 
+                                        </h:selectOneRadio>
+                                    </div>
+                                </h:panelGroup>
+                                <h:panelGroup styleClass="form-group" layout="block" id="tiposDePagoActa" rendered="#{contratoCE.tempActa.tipo eq 'ANTICIPO' or contratoCE.tempActa.tipo eq 'DEVOLUCION'}">
+                                    <h:panelGroup layout="block" rendered="#{contratoCE.tempActa.tipoPago eq 'PORCENTAJE'}">
+                                        <h:outputLabel for="porcentaje" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.porcentajeActa')}:"/>
+                                        <div class="col-sm-8">
+                                            <h:inputText id="porcentaje"  
+                                                         value="#{contratoCE.tempActa.porcentaje}" 
+                                                         styleClass="form-control textoCorto numericos" 
+                                                         required="true" 
+                                                         requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:convertNumber minFractionDigits="2" />
+                                                <f:ajax listener="#{contratoCE.calcularPorcentajeMontoFijo()}" /> 
+                                            </h:inputText>
+                                            <h:message for="porcentaje" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </h:panelGroup>
+                                    <h:panelGroup layout="block" rendered="#{contratoCE.tempActa.tipoPago eq 'MONTO_FIJO'}" >
+                                        <h:outputLabel for="montoFijo" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.montoFijoActa')}:"/>
+                                        <div class="col-sm-8">
+                                            <h:inputText id="montoFijo"  
+                                                         value="#{contratoCE.tempActa.montoRecibido}" 
+                                                         styleClass="form-control textoCorto numericos" 
+                                                         required="true" 
+                                                         requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">		
+                                                <f:convertNumber minFractionDigits="2" />
+                                                <f:ajax listener="#{contratoCE.calcularPorcentajeMontoFijo()}" /> 
+                                            </h:inputText>
+                                            <h:message for="montoFijo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                                
+                                <p:treeTable 
+                                    styleClass="margenSup"
+                                    id="tablaDePagosDeItems"
+                                    var="item" 
+                                    value="#{contratoCE.rootNodePagos}" 
+                                    rendered="#{contratoCE.tempActa.tipo eq 'RECEPCION'}">                                
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}"  >
+                                        <h:outputText value="#{item.objeto.item.id}" rendered="#{item.tipo eq 'ITEM'}" styleClass="item-tabla"/>
+                                        <h:outputText value="#{item.objeto.relacionItemInsumo.insumo.poInsumo.id}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                        <h:outputText value="#{item.objeto.item.nombre}" rendered="#{item.tipo eq 'ITEM'}" styleClass="item-tabla"/>
+                                        <h:outputText value="#{item.objeto.relacionItemInsumo.insumo.insumo.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UT')}">
+                                        <h:outputText value="#{item.objeto.relacionItemInsumo.insumo.unidadTecnica.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.cantAdjudicada')}" styleClass="numericos" >
+                                        <h:outputText value="#{item.objeto.cantidad}"  rendered="#{item.tipo eq 'ITEM'}" styleClass="item-tabla"/>
+                                        <h:outputText value="#{item.objeto.relacionItemInsumo.cantidadAdjudicada}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoUnitario')}" styleClass="numericos"  >
+                                        <h:outputText value="#{item.objeto.montoUnitAdjudicado}" rendered="#{item.tipo eq 'ITEM'}" styleClass="item-tabla">                                                
+                                            <f:convertNumber minFractionDigits="2"  />
+                                        </h:outputText>
+                                        <h:outputText value="#{item.objeto.relacionItemInsumo.montoUnitAdjudicado}" rendered="#{item.tipo eq 'INSUMO'}">                                                
+                                            <f:convertNumber minFractionDigits="2"  />
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotal')}"  styleClass="numericos">
+                                        <h:outputText value="#{item.objeto.montoTotal}" rendered="#{item.tipo eq 'ITEM'}" styleClass="item-tabla">                                                
+                                            <f:convertNumber minFractionDigits="2"  />
+                                        </h:outputText>
+                                        <h:outputText value="#{item.objeto.relacionItemInsumo.montoTotalAdjudicado}" rendered="#{item.tipo eq 'INSUMO'}">                                                
+                                            <f:convertNumber minFractionDigits="2"  />
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.DescripciónPago')}">
+                                        <h:inputTextarea value="#{item.objeto.relActaItem.descripcion}" styleClass="form-control item-tabla" rendered="#{item.tipo eq 'ITEM'}"/>
+                                        <h:inputTextarea value="#{item.objeto.descripcion}" styleClass="form-control" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.CantidadRecibida')}"  >
+                                        <h:inputText   value="#{item.objeto.cantRecibida}" styleClass="textoCorto numericos form-control item-tabla" rendered="#{item.tipo eq 'ITEM'}" disabled="#{not contratoCE.tempActa.conDetalle}"/>
+                                        <p:outputPanel rendered="#{item.tipo eq 'INSUMO'}" >
+                                            <h:inputText id="cantidad-recibida"  value="#{item.objeto.cantRecibida}" 
+                                                         styleClass="textoCorto numericos form-control" disabled="#{not contratoCE.tempActa.conDetalle}">
+    <!--                                                         validator="#{contratoCE.validarCantidadInsumo}" >-->
+                                                <f:attribute name="idRelacion" value="#{item.objeto.relacionItemInsumo.id}" />
+                                                <p:ajax listener="#{contratoCE.actualizarCantidadEImporteRecibidosItem()}" update="@form"/>
+                                            </h:inputText> 
+                                            <h:message for="cantidad-recibida" styleClass="help-inline msj-danger" />       
+                                        </p:outputPanel>
+
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.ImporteUnitario')}"  >
+                                        <p:outputPanel rendered="#{item.tipo eq 'ITEM'}" >
+                                            <h:inputText value="#{item.objeto.importeUnit}" styleClass="textoCorto numericos form-control item-tabla" disabled="#{not contratoCE.tempActa.conDetalle}">                                              
+                                                <f:convertNumber minFractionDigits="#{utilsMB.inputNumberMinFractionDigits}" maxFractionDigits="#{utilsMB.inputNumberMaxFractionDigits}" />
+                                            </h:inputText> 
+                                        </p:outputPanel>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Importe')}"  >
+                                        <p:outputPanel rendered="#{item.tipo eq 'ITEM'}" >
+                                            <h:inputText value="#{item.objeto.importe}" styleClass="textoCorto numericos form-control item-tabla" disabled="true">                                           
+                                                <f:convertNumber minFractionDigits="2"  />
+                                            </h:inputText> 
+                                        </p:outputPanel>
+                                        <p:outputPanel rendered="#{item.tipo eq 'INSUMO'}" >
+                                            <h:inputText id="monto-recibido" value="#{item.objeto.importe}" styleClass="textoCorto numericos form-control" disabled="#{not contratoCE.tempActa.conDetalle}"> 
+                                                         <!--validator="#{contratoCE.validarMontoTotalInsumo}" >-->
+                                                <f:attribute name="idRelacion" value="#{item.objeto.relacionItemInsumo.id}" />                                                 
+                                                <f:convertNumber minFractionDigits="#{utilsMB.inputNumberMinFractionDigits}" maxFractionDigits="#{utilsMB.inputNumberMaxFractionDigits}" />
+                                                <p:ajax listener="#{contratoCE.actualizarCantidadEImporteRecibidosItem()}" update="@form"/>
+                                            </h:inputText> 
+                                            <h:message for="monto-recibido" styleClass="help-inline msj-danger" />
+                                        </p:outputPanel>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Distribuir')}" styleClass="columnaAcciones">
+                                        <p:commandButton disabled="#{not contratoCE.tempActa.conDetalle}"
+                                                         rendered="#{item.tipo eq 'ITEM'}" 
+                                                         icon="glyphicon glyphicon-equalizer"
+                                                         styleClass="btn btn-icono"  
+                                                         title="#{textMB.obtenerTexto('labels.Distribuir')}"
+                                                         action="#{contratoCE.distribuirItem()}"
+                                                         update="anadirPagoForm:tablaDePagosDeItems @form">
+                                            <f:setPropertyActionListener target="#{contratoCE.itemADistribuir}" value="#{item}" />
+                                        </p:commandButton>
+                                    </p:column>
+                                </p:treeTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{contratoCE.guardarPago()}"   update="@form tablaDePagos tablaDeInsumos tablaDeFlujoCajaMensual datosPrincipales alertaBienesAFGenerados"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </div>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+</ui:composition>

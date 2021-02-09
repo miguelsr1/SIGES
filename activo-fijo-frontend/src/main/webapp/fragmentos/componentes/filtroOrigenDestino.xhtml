@@ -1,0 +1,139 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+           
+            <c:set var="controllerParam" value="#{controllerParam}" scope="request"/>
+            <c:set var="actionParam" value="#{actionParam}" scope="request"/>
+            <c:set var="filtroBienesDepreciables" value="#{filtroBienesDepreciables}" scope="request"/>
+    
+            <f:metadata>
+                <f:event type="preRenderView" listener="#{filtroOrigenDestinoBean.setSoloLectura(soloLectura)}"/>
+                <f:event type="preRenderView" listener="#{filtroOrigenDestinoBean.setFiltroBienesDepreciables(filtroBienesDepreciables)}"/>  
+                <f:event type="preRenderView" listener="#{filtroOrigenDestinoBean.setCargarDefault(cargarDefault)}"/>  
+            </f:metadata>
+            <h:panelGrid columns="2" cellpadding="2">
+                <p:fieldset  legend="#{msg.origen}" styleClass="panel-filtro"  rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_PANEL_ORIGEN)}">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipounidadorigen">
+                        <h:outputLabel value="#{msg.tipoUnidad}" for="filtro_tipoUnidad_origen" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_tipoUnidad_origen"  styleClass="form-control dropdown texto-medio" value="#{filtroOrigenDestinoBean.comboTiposUnidadOrigen.selected}" >
+                                <f:selectItems value="#{filtroOrigenDestinoBean.comboTiposUnidadOrigen.items}" />
+                                <p:ajax event="change" listener="#{filtroOrigenDestinoBean.seleccionarTipoUnidadAF(0)}" process="@this" update="filtro_municipio_origen filtro_activofijoorigen fila_filtro_unidadadministrativa_origen"/>
+                            </h:selectOneMenu>
+                            <p:blockUI block="@form" trigger="filtro_tipoUnidad_origen" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_activofijoorigen">
+                        <h:outputLabel value="#{msg.unidadActivoFijo}" for="filtro_activofijoorigen" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_activofijoorigen"  styleClass="form-control texto-medio" value="#{filtroOrigenDestinoBean.comboUnidadesActivoFijoOrigen.selected}" >
+                                <f:selectItems value="#{filtroOrigenDestinoBean.comboUnidadesActivoFijoOrigen.items}" />
+                                <p:ajax event="change" listener="#{filtroOrigenDestinoBean.seleccionarUnidadActivoFijo(0)}" process="@this" update="filtro_municipio_origen fila_filtro_unidadadministrativa_origen"/>
+                            </h:selectOneMenu>
+                            <p:blockUI block="@form" trigger="filtro_activofijoorigen" />
+                        </p:outputPanel>
+                    </p:outputPanel> 
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio_origen">
+                        <h:outputLabel value="#{msg.municipio}" for="filtro_municipio_origen" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_municipio_origen"  styleClass="form-control dropdown texto-medio" value="#{filtroOrigenDestinoBean.comboMunicipiosOrigen.selected}" >
+                                <f:selectItems value="#{filtroOrigenDestinoBean.comboMunicipiosOrigen.items}" />
+                                <p:ajax event="change" listener="#{filtroOrigenDestinoBean.seleccionarMunicipio(0)}" process="@this" update="fila_filtro_unidadadministrativa_origen"/>
+                            </h:selectOneMenu>
+                            <p:blockUI block="@form" trigger="filtro_municipio_origen" />
+                        </p:outputPanel>
+                    </p:outputPanel> 
+                    <p:outputPanel styleClass="form-group row" id="fila_input_unidadadministrativaorigen">
+                        <h:outputLabel value="#{msg.unidadAdministrativa}" for="filtro_unidadadministrativaorigen" styleClass="col-sm-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:panelGroup id="fila_filtro_unidadadministrativa_origen">
+                                <p:selectOneMenu rendered="#{filtroOrigenDestinoBean.esUnidadAdministrativaOrigen}" id="filtro_unidadadministrativa_origen"  
+                                                 value="#{filtroOrigenDestinoBean.unidadOrigenSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                    effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                     <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                     <f:selectItems value="#{filtroOrigenDestinoBean.unidadesAdministrativasOrigen}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                   <p:column>
+                                       <h:outputText value="#{u.codigoNombre}" />
+                                   </p:column>
+                               </p:selectOneMenu>
+                                <p:selectOneMenu rendered="#{!filtroOrigenDestinoBean.esUnidadAdministrativaOrigen}" id="filtro_sede_origen" value="#{filtroOrigenDestinoBean.sedeOrigenSeleccionada}" converter="#{sedeConverter}"
+                                            effect="fade" var="s"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                       <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                       <f:selectItems value="#{filtroOrigenDestinoBean.sedesOrigen}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                       <p:column>
+                                           <h:outputText value="#{s.sedCodigoNombre}" />
+                                       </p:column>
+                                   </p:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_unidadadministrativa_origen filtro_sede_origen" />
+                            </h:panelGroup>
+                            
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:fieldset>
+
+                <p:fieldset legend="#{msg.destino}" styleClass="panel-filtro">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipounidaddestino">
+                            <h:outputLabel value="#{msg.tipoUnidad}" for="input_tipounidaddestino" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_tipounidaddestino"  styleClass="form-control texto-medio" value="#{filtroOrigenDestinoBean.comboTiposUnidadDestino.selected}" >
+                                    <f:selectItems value="#{filtroOrigenDestinoBean.comboTiposUnidadDestino.items}" />
+                                    <p:ajax event="change" listener="#{filtroOrigenDestinoBean.seleccionarTipoUnidadAF(1)}" process="@this" update="filtro_municipio_destino input_activofijodestino fila_filtro_unidadadministrativa_destino"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="input_tipounidaddestino" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_activofijodestino">
+                            <h:outputLabel value="#{msg.unidadActivoFijo}" for="input_activofijodestino" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_activofijodestino"  styleClass="form-control texto-medio"  value="#{filtroOrigenDestinoBean.comboUnidadesActivoFijoDestino.selected}" >
+                                    <f:selectItems value="#{filtroOrigenDestinoBean.comboUnidadesActivoFijoDestino.items}" />
+                                    <p:ajax event="change" listener="#{filtroOrigenDestinoBean.seleccionarUnidadActivoFijo(1)}" process="@this" update="filtro_municipio_destino fila_filtro_unidadadministrativa_destino"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="input_activofijodestino" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio_destino">
+                            <h:outputLabel value="#{msg.municipio}" for="filtro_municipio_destino" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_municipio_destino"  styleClass="form-control dropdown texto-medio" value="#{filtroOrigenDestinoBean.comboMunicipiosDestino.selected}"  >
+                                    <f:selectItems value="#{filtroOrigenDestinoBean.comboMunicipiosDestino.items}" />
+                                    <p:ajax event="change" listener="#{filtroOrigenDestinoBean.seleccionarMunicipio(1)}" process="@this" update="fila_filtro_unidadadministrativa_destino"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_municipio_destino" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_unidadadministrativadestino">
+                            <h:outputLabel value="#{msg.unidadAdministrativa}" for="filtro_unidadadministrativadestino" styleClass="col-sm-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:panelGroup id="fila_filtro_unidadadministrativa_destino">
+                                    <p:selectOneMenu rendered="#{filtroOrigenDestinoBean.esUnidadAdministrativaDestino}" id="filtro_unidadadministrativa_destino"  
+                                                     value="#{filtroOrigenDestinoBean.unidadDestinoSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                        effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                         <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                         <f:selectItems value="#{filtroOrigenDestinoBean.unidadesAdministrativasDestino}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                       <p:column>
+                                           <h:outputText value="#{u.codigoNombre}" />
+                                       </p:column>
+                                   </p:selectOneMenu>
+                                    <p:selectOneMenu rendered="#{!filtroOrigenDestinoBean.esUnidadAdministrativaDestino}" id="filtro_sede_destino" value="#{filtroOrigenDestinoBean.sedeDestinoSeleccionada}" converter="#{sedeConverter}"
+                                                effect="fade" var="s"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                           <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                           <f:selectItems value="#{filtroOrigenDestinoBean.sedesDestino}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                           <p:column>
+                                               <h:outputText value="#{s.sedCodigoNombre}" />
+                                           </p:column>
+                                       </p:selectOneMenu>
+                                    <p:blockUI block="@form" trigger="filtro_unidadadministrativa_destino filtro_sede_destino" />
+                                </h:panelGroup>
+                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                </p:fieldset>
+            </h:panelGrid>
+                 
+
+</ui:composition>

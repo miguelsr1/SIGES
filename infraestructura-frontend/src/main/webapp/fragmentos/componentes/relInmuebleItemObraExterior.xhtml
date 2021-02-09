@@ -1,0 +1,78 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+          
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relInmuebleItemObraExteriorBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relInmuebleItemObraExteriorBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <p:repeat var="obraExterior" varStatus="statusVar" value="#{relInmuebleItemObraExteriorBean.listAuxiliarObra}">
+        <p:inputText   id="index" style="visibility: hidden" readonly="true" value="#{statusVar.index}"/>
+        <p:fieldset id="obraExterior" legend="#{obraExterior.rixObra.oexNombre}">
+            <p:outputPanel styleClass="form-group row"  >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaObraExterior"       
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relInmuebleItemObraExteriorBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ITEM_OBRA_EXTERIOR))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndex"                                 
+                                 var="espacio" selection="#{obraExterior.rixItemObraExteriorSeleccionado}"                                  
+                                 value="#{obraExterior.rixItemObraExterior}"  rowKey="#{espacio.rixItemObraExterior.ioePk}" style="margin-bottom:0" >
+                        <p:ajax event="toggleSelect"   listener="#{relInmuebleItemObraExteriorBean.toggleSelect}"  update="@this"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleItemObraExteriorBean.checkboxSelect}" update="@this"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleItemObraExteriorBean.checkboxUnselect}" update="@this" /> 
+                        
+                        <p:column    selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{espacio.rixItemObraExterior.ioeNombre}" />
+                        </p:column> 
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                            <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{espacio.rixDescripcion}" rendered="#{espacio.rixItemObraExterior.ioeAplicaOtros}" disabled="#{ (relInmuebleItemObraExteriorBean.soloLectura or !relInmuebleItemObraExteriorBean.habilitarEntradaTexto[statusVar.index][rowIndex])}"/>
+                        </p:column>   
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.rixBueno}" disabled="#{ (relInmuebleItemObraExteriorBean.soloLectura  or !relInmuebleItemObraExteriorBean.habilitarEntradaTexto[statusVar.index][rowIndex])}" >
+                                <p:ajax event="keyup"  update="@this:totalObra" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.rixMalo}" disabled="#{ (relInmuebleItemObraExteriorBean.soloLectura  or !relInmuebleItemObraExteriorBean.habilitarEntradaTexto[statusVar.index][rowIndex])}" >
+                                <p:ajax event="keyup"  update="@this:totalObra" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.rixRegular}" disabled="#{ (relInmuebleItemObraExteriorBean.soloLectura  or !relInmuebleItemObraExteriorBean.habilitarEntradaTexto[statusVar.index][rowIndex])}" >
+                                <p:ajax event="keyup"  update="@this:totalObra" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalObra"  value="#{espacio.total}" />
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </p:fieldset>
+        
+       
+
+    
+    
+    </p:repeat>
+    
+     <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardarObra" value="#{msg.guardar}" action="#{relInmuebleItemObraExteriorBean.guardar()}" rendered="#{!relInmuebleItemObraExteriorBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_SERVICIO_BASICO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardarObra" /> 
+        </div>
+</ui:composition>

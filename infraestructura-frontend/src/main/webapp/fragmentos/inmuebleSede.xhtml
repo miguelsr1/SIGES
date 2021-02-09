@@ -1,0 +1,209 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.INMUEBLES_O_TERRENOS_SEDE}.xhtml">#{msg.gestionInmueblesOTerreno}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{inmuebleSedesBean.entidadEnEdicion.tisPk!= null}" value="#{msg.edicionInmueble}"/>
+                    <h:outputText rendered="#{inmuebleSedesBean.entidadEnEdicion.tisPk == null}" value="#{msg.nuevoInmueble}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionInmueblesOTerreno}"/></h2>
+            <p:outputPanel styleClass="float-right">
+           
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.INMUEBLE)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{inmuebleSedesBean.entidadEnEdicion.tisPk != null}" value="#{msg.edicionInmueble} #{inmuebleSedesBean.entidadEnEdicion.tisPk}"/>
+            <h:outputText rendered="#{inmuebleSedesBean.entidadEnEdicion.tisPk == null}" value="#{msg.nuevoInmueble}" />
+        </h3>
+
+
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup>
+                <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+                <p:tabView id="tabs"  dynamic="false" onTabChange="PF('tabsBlocker').show()">
+                    <p:ajax event="tabChange" listener="#{inmuebleSedesBean.changeTab}" update="@form" process="@form" />
+                    <p:tab id="tabDatosPersona" title="#{msg.datosGenerales}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_inmueble">
+                            <p:outputPanel styleClass="col-md-12">
+                                <f:subview id="seleccionarInmueble">
+                                    <ui:include src="componentes/inmueble.xhtml" > 
+                                        <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                        <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                    </p:tab>
+                    <p:tab id="tabLegalizacion" title="#{msg.legalizacion}" disabled="#{inmuebleSedesBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_LEGALIZACION)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_legalizacion">
+                            <p:outputPanel styleClass="col-md-12">
+                               <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabLegalizacion'}">
+                                    <f:subview id="seleccionarEstado">
+                                        <ui:include src="componentes/legalizacion.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>                    
+                    <p:tab id="tabEdificio" title="#{msg.edificioAula}" disabled="#{inmuebleBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_EDIFICIO)}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_edificio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabEdificio'}">
+                                    <f:subview id="edificios">
+                                        <ui:include src="componentes/inmuebleEdificios.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabServicio" title="#{msg.serviciosBasicos}" disabled="#{inmuebleSedesBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_INMUEBLE_SERVICIO_BASICO)}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_servicio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabServicio'}">
+                                    <f:subview id="seleccionarServicio">
+                                        <ui:include src="componentes/servicios.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                    <p:tab id="tabEspacioComun" title="#{msg.espacioComplementario}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_INMUEBLE_ESPACIO_COMUN)}" disabled="#{inmuebleBean.entidadEnEdicion.tisPk== null}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_espacio">
+                            <p:outputPanel styleClass="col-md-12">
+                               <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabEspacioComun'}">
+                                    <f:subview id="seleccionarEspacio">
+                                        <ui:include src="componentes/espaciosComunes.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>  
+                    <p:tab id="tabOtrosServicios" title="#{msg.otrosServicios}" disabled="#{inmuebleSedesBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_INMUEBLE_SERVICIO_BASICO)}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_otros_servicio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabOtrosServicios'}">
+                                    <f:subview id="seleccionarServicio">
+                                        <ui:include src="componentes/relInmuebleOtrosServicios.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>                                      
+                    <p:tab id="tabGaleriaImagenes" title="#{msg.galeriaImagenes}" disabled="#{inmuebleSedesBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_INMUEBLE_ARCHIVO)}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_galeria">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabGaleriaImagenes'}">
+                                    <f:subview id="galeriaImagenes">
+                                        <ui:include src="componentes/relInmuebleArchivo.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabGaleriaDocumentos" title="#{msg.documentos}" disabled="#{inmuebleBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_EDIFICIO_DOCUMENTOS)}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_galeria_documentos">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabGaleriaDocumentos'}">
+                                    <f:subview id="galeriaDocumentos">
+                                        <ui:include src="componentes/relInmuebleDocumento.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab id="tabMejoras" title="#{msg.mejoras}" disabled="#{inmuebleSedesBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_MEJORAS)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_mejoras">
+                            <p:outputPanel styleClass="col-md-12">
+                               <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabMejoras'}">
+                                    <f:subview id="seleccionarMejora">
+                                        <ui:include src="componentes/mejoras.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                    <p:tab id="tabObrasExteriores" title="#{msg.obrasExteriores}" disabled="#{inmuebleSedesBean.entidadEnEdicion.tisPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_OBRAS_EXTERIORES)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_obras">
+                            <p:outputPanel styleClass="col-md-12">
+                               <c:if test="#{inmuebleSedesBean.tabActiveId == 'tabObrasExteriores'}">
+                                    <f:subview id="seleccionarObra">
+                                        <ui:include src="componentes/relInmuebleItemObraExterior.xhtml" > 
+                                            <ui:param name="inmueble" value="#{inmuebleSedesBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{inmuebleSedesBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                    
+                </p:tabView>   
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

@@ -1,0 +1,976 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="./../js/chartjs-gauge.js"></script>
+
+    <p:blockUI block="@form" widgetVar="blocker" />
+
+    <p:outputPanel rendered="#{estudianteEvolucionBean.entidadEnEdicion != null}">
+
+        <p:outputPanel styleClass="ui-messages" rendered="#{estudianteEvolucionBean.mensajeEvolucionEstudiante != null}">
+            <div class="ui-messages-warn ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-warn-summary" value="#{estudianteEvolucionBean.mensajeEvolucionEstudiante}" style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+
+
+        <h3>Calificaciones numéricas</h3>
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoCalificacionesNumericas}">
+
+            <p:outputPanel styleClass="form-group row">
+                <h:outputLabel value="#{msg.componentePlanEstudio}" styleClass="col-sm-3 col-md-2 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9 col-md-10">
+                    <h:selectOneMenu value="#{estudianteEvolucionBean.comboComponentePlanEstudioNumericos.selected}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{estudianteEvolucionBean.comboComponentePlanEstudioNumericos.items}" />
+                        <p:ajax onstart="PF('blocker').show()" update="refreshCalificacionesNumericas" listener="#{estudianteEvolucionBean.recargarYRenderizarCalificacionesNumericas()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <div id="calificacionesNumericasContainer" style="width: 100%; height: 500px;"></div>
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderGraficoCalificacionesNumericas}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de calificaciones numéricas" style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+        <div class="separador" ></div>
+
+        <h3>Estado de la matrícula actual</h3>
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderComboCalificacionesNumericasORDActuales}">
+
+            <p:outputPanel styleClass="form-group row">
+                <h:outputLabel value="#{msg.componentePlanEstudio}" styleClass="col-sm-3 col-md-2 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9 col-md-10">
+                    <h:selectOneMenu value="#{estudianteEvolucionBean.comboComponentePlanEstudioNumericosORDActuales.selected}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{estudianteEvolucionBean.comboComponentePlanEstudioNumericosORDActuales.items}" />
+                        <p:ajax onstart="PF('blocker').show()" update="@parent refreshCalificacionesNumericasORDActuales calificacionesNumericasORDActualesParentContainer" listener="#{estudianteEvolucionBean.recargarYRenderizarCalificacionesNumericasORDActuales()}"/>
+                    </h:selectOneMenu>
+                    <h:outputText style="display:block; margin-top:5px; font-weight: bolder" rendered="#{estudianteEvolucionBean.comboComponentePlanEstudioNumericosORDActuales.selectedT != null}" value="Mínimo de aprobación: #{estudianteEvolucionBean.comboComponentePlanEstudioNumericosORDActuales.selectedT.cpeMinimoAprobacion}" />
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel id="calificacionesNumericasORDActualesParentContainer">
+                <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoCalificacionesNumericasORDActuales}">
+                    <div id="calificacionesNumericasORDActualesContainer" style="width: 100%;"></div>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderComboCalificacionesNumericasORDActuales}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de calificaciones numéricas ordinarias" style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+        <div class="separador" ></div>
+
+        <h3>Calificaciones conceptuales</h3>
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoCalificacionesConceptuales}">
+            <p:outputPanel styleClass="form-group row">
+                <h:outputLabel value="#{msg.componentePlanEstudio}" styleClass="col-sm-3 col-md-2 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9 col-md-10">
+                    <h:selectOneMenu value="#{estudianteEvolucionBean.comboComponentePlanEstudioConceptuales.selected}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{estudianteEvolucionBean.comboComponentePlanEstudioConceptuales.items}" />
+                        <p:ajax onstart="PF('blocker').show()" update="refreshCalificacionesConceptuales" listener="#{estudianteEvolucionBean.recargarYRenderizarCalificacionesConceptuales()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <div id="calificacionesConceptualesContainer" style="width: 100%; height: 500px;"></div>
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderGraficoCalificacionesConceptuales}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de calificaciones conceptuales." style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+        <div class="separador" ></div>
+
+        <h3>Media de calificaciones numéricas</h3>
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoPromedioCalificacionesNumericas}">
+            <div id="calificacionesNumericasPromedioContainer" style="width: 100%;"></div>
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderGraficoPromedioCalificacionesNumericas}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de calificaciones numéricas." style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+        <div class="separador" ></div>
+
+        <h3>Asistencias</h3>
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoAsistencias}">
+
+            <p:outputPanel styleClass="form-group row">
+                <h:outputLabel value="Desglose de año en meses:" styleClass="col-sm-3 col-md-2 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9 col-md-10">
+                    <h:selectOneMenu value="#{estudianteEvolucionBean.comboAnioAsistenciasSeleccionado}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{estudianteEvolucionBean.comboAniosAsistencia}" />
+                        <p:ajax onstart="PF('blocker').show()" update="refreshAsistenciasMesEnAnio refreshAsistencias" listener="#{estudianteEvolucionBean.anioAsistenciaSelected()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <div id="asistenciasContainer" style="width: 100%; height: 500px;"></div>
+
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderGraficoAsistencias}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de asistencias." style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+
+        <div class="separador" ></div>
+
+
+
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoAsistencias and estudianteEvolucionBean.renderGraficoMotivosInasistencias}">
+
+            <h3>Motivos inasistencias</h3>
+            <p:outputPanel styleClass="form-group row">
+                <h:outputLabel value="Desglose de año en meses:" styleClass="col-sm-3 col-md-2 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9 col-md-10">
+                    <h:selectOneMenu value="#{estudianteEvolucionBean.comboAnioInasistenciasSeleccionado}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{estudianteEvolucionBean.comboAniosInasistencia}" />
+                        <p:ajax onstart="PF('blocker').show()" update="refreshMotInasistenciasMesEnAnio refreshMotInasistencias" listener="#{estudianteEvolucionBean.anioMotInasistenciaSelected()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <div id="motivosInasistenciasContainer" style="width: 100%; height: 500px;"></div>
+
+            <div class="separador" ></div>
+        </p:outputPanel>
+
+
+
+        <h3>Alertas tempranas</h3>
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoAlertas}">
+
+            <p:outputPanel styleClass="row">
+                <p:outputPanel styleClass="col-lg-6">
+
+                    <table style="max-width:600px;">
+                        <tbody>
+                            <tr style="background:#00498d; color:white;">
+                                <td>Riesgo medio</td>
+                                <td>Riesgo alto</td>
+                                <td>Riesgo muy alto</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>2</td>
+                                <td>3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <canvas id="alertasContainer" style="max-width:800px; margin-top:10px;"></canvas>
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-lg-6">
+
+                    <p:outputPanel styleClass="ui-messages" style="margin-top:15px;" rendered="#{estudianteEvolucionBean.mensajeAlertasTempranas != null}">
+                        <div class="ui-messages-info messages-info-azul ui-corner-all">
+                            <ul>
+                                <li class="control-inline">
+                                    <h:outputText styleClass="ui-messages-info-summary" value="#{estudianteEvolucionBean.mensajeAlertasTempranas}" escape="false" style="padding-right: 15px"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+
+
+            </p:outputPanel>
+
+
+
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderGraficoAlertas}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de alertas tempranas." style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+
+        <div class="separador" ></div>
+
+        <h3>Trastornos de aprendizaje</h3>
+        <p:outputPanel styleClass="ui-messages" rendered="#{estudianteEvolucionBean.listTrastornos.size() eq 0}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de trastornos." style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{estudianteEvolucionBean.listTrastornos.size() gt 0}">
+
+            <p:dataTable
+                var="elem"
+                styleClass="col-md-4"
+                value="#{estudianteEvolucionBean.listTrastornos}"
+                emptyMessage="#{msg.noHayResultados}">
+                <p:column headerText="Trastorno">
+                    <h:outputText value="#{elem.traNombre}" />
+                </p:column>
+
+            </p:dataTable>
+
+        </p:outputPanel>
+
+        <div class="separador" ></div>
+
+        <h3>Predictibilidad de deserción</h3>
+
+        <p:outputPanel rendered="#{estudianteEvolucionBean.renderGraficoPredictibilidadDesercion}">
+
+            <p:outputPanel styleClass="row">
+                <p:outputPanel styleClass="col-lg-6">
+                    <table style="max-width:600px;">
+                        <tbody>
+                            <tr style="color:white;">
+                                <td style="background-color:#8CC63F">Sin riesgo</td>
+                                <td style="background-color:#F1C40F">Riesgo medio</td>
+                                <td style="background-color:#BE2857">Riesgo alto</td>
+                            </tr>
+                            <tr>
+                                <td>0-#{estudianteEvolucionBean.rangoColoresGauge[0]}</td>
+                                <td>#{estudianteEvolucionBean.rangoColoresGauge[0]}-#{estudianteEvolucionBean.rangoColoresGauge[1]}</td>
+                                <td>#{estudianteEvolucionBean.rangoColoresGauge[1]}-#{estudianteEvolucionBean.rangoColoresGauge[2]}</td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <canvas id="predictibilidadDesercionContainer" style="max-width:390px; margin-top:10px;"></canvas>
+                    <h:outputText value="#{estudianteEvolucionBean.probabilidadDesercion}" style="font-family: Roboto; font-size: 20px; margin-left: 185px; color:black;"/>
+
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-lg-6">
+                    <p:outputPanel styleClass="ui-messages" rendered="#{estudianteEvolucionBean.mensajePredictibilidadDesercion != null}">
+                        <div class="ui-messages-info messages-info-azul ui-corner-all">
+                            <ul>
+                                <li class="control-inline">
+                                    <h:outputText styleClass="ui-messages-info-summary" value="#{estudianteEvolucionBean.mensajePredictibilidadDesercion}" escape="false" style="padding-right: 15px"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </p:outputPanel>
+        <p:outputPanel styleClass="ui-messages" rendered="#{!estudianteEvolucionBean.renderGraficoPredictibilidadDesercion}">
+            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                <ul>
+                    <li class="control-inline">
+                        <h:outputText styleClass="ui-messages-info-summary" value="No hay registros de predictibilidad para deserción" style="padding-right: 15px"/>
+                    </li>
+                </ul>
+            </div>
+        </p:outputPanel>
+
+
+
+
+
+
+
+        <div class="separador" ></div>
+
+        <p:outputPanel rendered="#{estudianteEvolucionBean.entidadEnEdicion.estPersona.perTrabaja}">
+            <h3>#{msg.tipoDeTrabajo} #{estudianteEvolucionBean.entidadEnEdicion.estPersona.perTipoTrabajo.ttrNombre}</h3>
+        </p:outputPanel>
+
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshAlertas">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarAlertas() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoAlertas};
+
+                var chartData = #{estudianteEvolucionBean.graficoAlertas.chartData};
+                var chartLabels = #{estudianteEvolucionBean.graficoAlertas.chartLabels};
+
+                if (render) {
+
+                    var container = document.getElementById('alertasContainer');
+
+                    var data = {
+                        labels: chartLabels,
+                        datasets: [{
+                                data: chartData, fill: true, backgroundColor: 'rgba(255, 99, 132, 0.2)', borderColor: 'rgb(255, 99, 132)',
+                                pointBackgroundColor: 'rgb(255, 99, 132)', pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgb(255, 99, 132)'
+                            }]
+                    }
+
+                    var myRadarChart = new Chart(container, {
+                        type: 'radar',
+                        data: data,
+                        options: {legend: {
+                                display: false
+                            },
+                            scale: {
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    });
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+
+
+    <p:outputPanel id="refreshAsistencias">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarAsistencias() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoAsistencias and !estudianteEvolucionBean.renderGraficoAsistenciasPorMesEnAnio};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoAsistencias.chartData}
+                    ]);
+
+                    var container = document.getElementById('asistenciasContainer');
+                    var width = 300 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+                    var options = {
+                        width: width,
+                        isStacked: true,
+                        chartArea: {left: 50, top: 30, bottom: 30, right: 220},
+                        fontSize: 12,
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshAsistenciasMesEnAnio">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarAsistenciasMesEnAnio() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoAsistencias and estudianteEvolucionBean.renderGraficoAsistenciasPorMesEnAnio};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoAsistenciasMesEnAnio.chartData}
+                    ]);
+
+                    var container = document.getElementById('asistenciasContainer');
+                    var width = 300 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+                    var options = {
+                        width: width,
+                        isStacked: true,
+                        chartArea: {left: 50, top: 30, bottom: 30, right: 220},
+                        fontSize: 12,
+                        vAxis: {format: '0'},
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshMotInasistencias">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarMotInasistencias() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoMotivosInasistencias and !estudianteEvolucionBean.renderGraficoMotivosInastenciasPorMesEnAnio};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoMotInasistencias.chartData}
+                    ]);
+
+                    var container = document.getElementById('motivosInasistenciasContainer');
+                    var width = 300 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+                    var options = {
+                        width: width,
+                        isStacked: true,
+                        chartArea: {left: 50, top: 30, bottom: 30, right: 220},
+                        fontSize: 12,
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+
+    <p:outputPanel id="refreshMotInasistenciasMesEnAnio">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarMotInasistenciasMesEnAnio() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoMotivosInasistencias and estudianteEvolucionBean.renderGraficoMotivosInastenciasPorMesEnAnio};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoMotInasistenciasMesEnAnio.chartData}
+                    ]);
+
+                    var container = document.getElementById('motivosInasistenciasContainer');
+                    var width = 300 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+                    var options = {
+                        width: width,
+                        isStacked: true,
+                        chartArea: {left: 50, top: 30, bottom: 30, right: 220},
+                        fontSize: 12,
+                        vAxis: {format: '0'},
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+
+    <p:outputPanel id="refreshCalificacionesNumericas">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarCalificacionesNumericas() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoCalificacionesNumericas};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoCalificacionesNumericas.chartData}
+                    ]);
+
+                    var container = document.getElementById('calificacionesNumericasContainer');
+                    var width = 300 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+                    var options = {
+                        width: width,
+                        theme: 'material',
+                        chartArea: {left: 50, top: 30, bottom: 30, right: 280},
+                        vAxis: {minValue: 0, maxValue: 10},
+                        fontSize: 12,
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    google.visualization.events.addListener(chart, 'ready', function () {
+                        //configureBarOptions(chart, data);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshCalificacionesNumericasORDActuales">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarCalificacionesNumericasORDActuales() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoCalificacionesNumericasORDActuales};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoCalificacionesORDActuales.chartData}
+                    ]);
+
+                    var container = document.getElementById('calificacionesNumericasORDActualesContainer');
+                    var width = 350 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+                    var options = {
+                        width: width,
+                        height: 500,
+                        theme: 'material',
+                        chartArea: {left: 50, top: 30, bottom: 30, right: 280},
+                        vAxis: {minValue: 0, maxValue: 10},
+                        fontSize: 12,
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    google.visualization.events.addListener(chart, 'ready', function () {
+                        //configureBarOptions(chart, data);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshCalificacionesNumericasPromedio">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarCalificacionesNumericasPromedio() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoPromedioCalificacionesNumericas};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoPromedioCalificacionesNumericas.chartData}
+                    ]);
+
+                    var container = document.getElementById('calificacionesNumericasPromedioContainer');
+                    var height = 100 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (height > 600) {
+                        height = 600;
+                    }
+
+                    var width = 800;
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth;
+                    }
+
+                    var options = {
+                        width: width,
+                        height: height,
+                        chartArea: {left: 80, top: 10, bottom: 30, right: 180},
+                        hAxis: {minValue: 0, maxValue: 10},
+                        fontSize: 12,
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.BarChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    google.visualization.events.addListener(chart, 'ready', function () {
+                        // configureBarOptions(chart, data);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshCalificacionesConceptuales">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarCalificacionesConceptuales() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoCalificacionesConceptuales};
+
+                if (render) {
+
+                    var data = google.visualization.arrayToDataTable([
+            #{estudianteEvolucionBean.graficoCalificacionesConceptuales.chartData}
+                    ]);
+
+                    var container = document.getElementById('calificacionesConceptualesContainer');
+
+                    var width = 300 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+                    }
+
+                    var options = {
+                        theme: 'material',
+                        width: width,
+                        legend: {position: 'top'},
+                        chartArea: {left: 50, top: 50, bottom: 30, right: 50},
+                        fontSize: 12,
+                        series: #{estudianteEvolucionBean.graficoCalificacionesConceptuales.seriesData},
+                        vAxes: #{estudianteEvolucionBean.graficoCalificacionesConceptuales.VAxesData},
+                        colors: ['#00498D',
+                            '#BE2857',
+                            '#8CC63F',
+                            '#F1C40F',
+                            '#29ABE2',
+                            '#9628C6',
+                            '#F78C00',
+                            '#008E33',
+                            '#ED1B2E',
+                            '#3A81D6']
+                    };
+
+
+                    var chart = new google.visualization.ColumnChart(container);
+                    // listen for error
+                    google.visualization.events.addListener(chart, 'error', function (err) {
+                        // check error
+                        console.log(err.id, err.message);
+                        // remove error
+                        google.visualization.errors.removeError(err.id);
+                        // remove all errors
+                        google.visualization.errors.removeAll(container);
+                    });
+
+                    google.visualization.events.addListener(chart, 'ready', function () {
+                        // configureBarOptions(chart, data);
+                    });
+
+                    chart.draw(data, options);
+
+                }
+
+
+
+            }
+
+            //]]>
+        </script>
+    </p:outputPanel>
+
+    <p:outputPanel id="refreshPredictibilidadDesercion">
+
+        <script type="text/javascript">
+            //<![CDATA[
+            function renderizarPredictibilidadDesercion() {
+
+                var render = #{estudianteEvolucionBean.renderGraficoPredictibilidadDesercion};
+
+                if (render) {
+
+                    var container = document.getElementById('predictibilidadDesercionContainer');
+
+                    var config = {
+                        type: 'gauge',
+                        data: {
+                            datasets: [{
+                                    data: [#{estudianteEvolucionBean.rangoColoresGauge[0]}, #{estudianteEvolucionBean.rangoColoresGauge[1]}, #{estudianteEvolucionBean.rangoColoresGauge[2]}],
+                                    value: #{estudianteEvolucionBean.probabilidadDesercion},
+                                    backgroundColor: ['#8CC63F', '#F1C40F', '#BE2857'],
+                                    borderWidth: 2
+                                }]
+                        },
+                        options: {
+                            responsive: true,
+                            needle: {
+                                // Needle circle radius as the percentage of the chart area width
+                                radiusPercentage: 2,
+                                // Needle width as the percentage of the chart area width
+                                widthPercentage: 3.2,
+                                // Needle length as the percentage of the interval between inner radius (0%) and outer radius (100%) of the arc
+                                lengthPercentage: 80,
+                                // The color of the needle
+                                color: 'rgba(0, 0, 0, 1)'
+                            },
+                            valueLabel: {
+                                display: false
+                            }
+                        }
+                    };
+
+
+                    var myRadarChart = new Chart(container, config);
+
+                }
+            }
+            //]]>
+
+        </script>
+    </p:outputPanel>
+
+    <script type="text/javascript">
+        google.charts.load('47', {'packages': ['corechart', 'bar']});
+        google.charts.setOnLoadCallback(renderizarCalificacionesNumericas);
+        google.charts.setOnLoadCallback(renderizarCalificacionesConceptuales);
+        google.charts.setOnLoadCallback(renderizarCalificacionesNumericasPromedio);
+        google.charts.setOnLoadCallback(renderizarAsistencias);
+        google.charts.setOnLoadCallback(renderizarAsistenciasMesEnAnio);
+        google.charts.setOnLoadCallback(renderizarMotInasistencias);
+        google.charts.setOnLoadCallback(renderizarMotInasistenciasMesEnAnio);
+        google.charts.setOnLoadCallback(renderizarCalificacionesNumericasORDActuales);
+        
+
+        $(document).ready(function () {
+            renderizarAlertas();
+            renderizarPredictibilidadDesercion();
+        });
+
+    </script>
+
+</ui:composition>

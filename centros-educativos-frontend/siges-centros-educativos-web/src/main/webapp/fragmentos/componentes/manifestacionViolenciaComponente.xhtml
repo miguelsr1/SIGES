@@ -1,0 +1,154 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+    <c:set var="estudiante" value="#{estudiante}" scope="request"/>
+    <c:set var="soloLecturaManifestacionViolencia" value="#{soloLecturaManifestacionViolencia}" scope="request"/>
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{manifestacionViolenciaBean.setSoloLectura(soloLecturaManifestacionViolencia)}"/>
+    </f:metadata>       
+
+
+    <p:outputPanel id="itemDetail">
+
+        <p:outputPanel id="formularioEstManifestacion">
+
+
+            <p:outputPanel id="pnlManifestaciones" >
+                <p:outputPanel styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <h4><h:outputText value="#{msg.tituloRegistroManifViol}" /></h4>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-action-buttons">
+                            <p:commandButton value="#{msg.agregarManifestacion}" icon="glyphicon glyphicon-plus" 
+                                             action="#{manifestacionViolenciaBean.agregarManifestacion()}" 
+                                             rendered="#{!manifestacionViolenciaBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_MANIFESTACIONES_VIOLENCIA)}"
+                                             update="manifestacionDetalle" 
+                                             oncomplete="PF('manifestacionDialog').show()"  
+                                             id="btnAgregarManifestacion" styleClass="btn btn-secondary" >
+                                <p:resetInput target="manifestacionDetalle" />
+                                <p:ajax update="manifestacionDetalle" process="@this" />
+                            </p:commandButton>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:dataTable id="dtManifestaciones" var="manifestacion" value="#{manifestacionViolenciaBean.manifestaciones}"
+                             emptyMessage="#{msg.noHayResultados}">
+                    <p:column headerText="#{msg.htipoManifestacion}">
+                        <h:outputText value="#{manifestacion.mviTipoManifestacion.tmaNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.categoriaViolencia}">
+                        <h:outputText value="#{manifestacion.mviTipoManifestacion.tmaCategoriaViolencia.cavNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfecha}">
+                        <h:outputText value="#{manifestacion.mviFecha}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hObservacion}">
+                        <h:outputText value="#{manifestacion.mviObservaciones}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hTratamiento}">
+                        <h:outputText value="#{manifestacion.mviTratamiento}" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones"  exportable="false">
+                        <p:commandButton update="@form   "
+                                         oncomplete="PF('manifestacionDialog').show()" 
+                                         icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" 
+                                         title="#{msg.ver}"
+                                         action="#{manifestacionViolenciaBean.verManifestacion(manifestacion)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!manifestacionViolenciaBean.soloLectura}">
+                        <p:commandButton update="@form   "
+                                         oncomplete="PF('manifestacionDialog').show()" 
+                                         icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" 
+                                         title="#{msg.editar}"
+                                         action="#{manifestacionViolenciaBean.editarManifestacion(manifestacion)}" 
+                                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_MANIFESTACIONES_VIOLENCIA)  or 
+                                                     (sessionBean.operaciones.contains(ConstantesOperaciones.MODIFICAR_MANIFESTACION_VIOLENCIA_PROPIA) and sessionBean.entidadUsuario.usuCodigo.equals(manifestacion.mviCreacionUsuario) )}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!manifestacionViolenciaBean.soloLectura}">
+                        <p:commandButton update="dtManifestaciones" icon="glyphicon glyphicon-trash" styleClass="btn btn-icono rojo" 
+                                         title="#{msg.eliminar}" action="#{manifestacionViolenciaBean.eliminarManifestacion(manifestacion)}" 
+                                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_MANIFESTACIONES_VIOLENCIA)  or 
+                                                     (sessionBean.operaciones.contains(ConstantesOperaciones.MODIFICAR_MANIFESTACION_VIOLENCIA_PROPIA) and sessionBean.entidadUsuario.usuCodigo.equals(manifestacion.mviCreacionUsuario))}"/>
+                    </p:column>                                     
+                </p:dataTable>                                                                    
+            </p:outputPanel>
+        </p:outputPanel>
+
+    </p:outputPanel>
+
+    <p:dialog id="manifestacionDialog" header="#{msg.tituloRegistroManifViol}" 
+              widgetVar="manifestacionDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+        <p:outputPanel id="manifestacionDetalle"  >
+            <p:messages id="popupmsgVio" showDetail="true" globalOnly="false" for="popupmsgVio" closable="true"/>   
+            <p:outputPanel styleClass="form-group row" id="fila_input_tipomanifestacion">                        
+                <h:outputLabel value="#{msg.tipoManifestacion}" for="input_tipomanifestacion" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-9">
+                    <h:selectOneMenu id="input_tipomanifestacion" value="#{manifestacionViolenciaBean.comboTipoManifestacion.selected}"
+                                     styleClass="form-control dropdown texto-medio" disabled="#{!manifestacionViolenciaBean.editManifestacion}" >
+                        <f:selectItems value="#{manifestacionViolenciaBean.comboTipoManifestacion.items}" />
+                    </h:selectOneMenu>                                    
+                    <h:message for="input_tipomanifestacion" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fecha">                        
+                <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:calendar id="input_fecha" autocomplete="off" styleClass="form-control" 
+                                value="#{manifestacionViolenciaBean.selectedManifestacion.mviFecha}" 
+                                disabled="#{!manifestacionViolenciaBean.editManifestacion}" 
+                                pattern="#{applicationBean.patternFecha}"
+                                converter="#{localDateConverter}" 
+                                locale="#{sessionBean.locale}" 
+                                maxdate="#{applicationBean.today()}" 
+                                converterMessage="#{msg.fechaInvalida}" 
+                                mask="true"
+                                />
+                    <h:message for="input_fecha" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_observacion">
+                <h:outputLabel value="#{msg.observacion} " for="input_observacion" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:inputTextarea  id="input_observacion" styleClass="form-control" 
+                                      value="#{manifestacionViolenciaBean.selectedManifestacion.mviObservaciones}" 
+                                      disabled="#{!manifestacionViolenciaBean.editManifestacion}" />
+                    <h:message for="input_observacion" styleClass="msj-danger"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_tratamiento">                        
+                <h:outputLabel value="#{msg.tratamiento} " for="input_tratamiento" styleClass="col-sm-3 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:inputTextarea  id="input_tratamiento" styleClass="form-control" 
+                                      value="#{manifestacionViolenciaBean.selectedManifestacion.mviTratamiento}" 
+                                      disabled="#{!manifestacionViolenciaBean.editManifestacion}" />
+                    <h:message for="input_tratamiento" styleClass="msj-danger"/>
+                </p:outputPanel>
+            </p:outputPanel>                
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarManifestacion"  value="#{msg.guardar}" 
+                                     action="#{manifestacionViolenciaBean.guardarManifestacion()}" 
+                                     update="manifestacionDetalle itemDetail" styleClass="btn btn-primary" 
+                                     icon="glyphicon glyphicon-floppy-disk" 
+                                     rendered="#{manifestacionViolenciaBean.editManifestacion}"/>                             
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('manifestacionDialog').hide();" 
+                                   update="manifestacionDetalle" styleClass="btn btn-link" />                        
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="@form" trigger="btnGuardarManifestacion" />     
+            <p:defaultCommand target="btnGuardarManifestacion" scope="manifestacionDetalle"/>                          
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>

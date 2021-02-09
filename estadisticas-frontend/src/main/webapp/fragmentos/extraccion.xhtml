@@ -1,0 +1,265 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoExtraccion"/>
+        <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hextraccion}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hextraccion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">              
+                 <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.EXTRACCION)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+
+        <p:panel toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro" style="margin-bottom: 10px;">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-12">
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_dataset">                        
+                        <h:outputLabel value="#{msg.dataset}" for="input_dataset" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_dataset" value="#{extraccionBean.comboDatasets.selected}" styleClass="form-control dropdown texto-medio" disabled="#{extraccionBean.entidadEnEdicion.extPk != null}">
+                                <f:selectItems value="#{extraccionBean.comboDatasets.items}" />
+                                <p:ajax update="pnlSearch" listener="#{extraccionBean.cargarArbol}"/>
+                            </h:selectOneMenu>    
+                            <h:message for="input_dataset" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nombre">                        
+                        <h:outputLabel value="#{msg.nombreextraccion}" for="input_nombre" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_nombre" value="#{extraccionBean.comboNombresExtr.selected}" styleClass="form-control dropdown texto-medio" disabled="#{extraccionBean.entidadEnEdicion.extPk != null}">
+                                <f:selectItems value="#{extraccionBean.comboNombresExtr.items}" />
+                            </h:selectOneMenu>    
+                            <h:message for="input_nombre" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                        <h:outputLabel value="#{msg.descripcion}" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputTextarea value="#{extraccionBean.entidadEnEdicion.extDescripcion}" styleClass="form-control" rendered="#{extraccionBean.entidadEnEdicion.extPk == null}"/>
+                            <h:outputText rendered="#{extraccionBean.entidadEnEdicion.extPk != null}" styleClass="form-control-plaintext"
+                                          value="#{extraccionBean.entidadEnEdicion.extDescripcion}"  />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.anio}" for="input_anio" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputMask id="input_anio" styleClass="form-control texto-corto" value="#{extraccionBean.entidadEnEdicion.extAnio}" 
+                                         disabled="#{extraccionBean.entidadEnEdicion.extPk != null}"
+                                         mask="9999"/>            
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" rendered="#{extraccionBean.entidadEnEdicion.extPk != null}">
+                        <h:outputLabel value="#{msg.estado}" for="output_estado" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText id="output_estado" styleClass="form-control-plaintext" value="#{extraccionBean.entidadEnEdicion.extEstado.text}"/>            
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" rendered="#{extraccionBean.comboDatasets.selectedT.datCodigo eq Constantes.DATASET_ESTUDIANTES_CODIGO}">
+                        <h:outputLabel value="#{msg.alcance}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+
+
+                            <p:treeTable value="#{extraccionBean.orgTree}" var="obj" nodeVar="node" selectionMode="checkbox" selection="#{extraccionBean.selectedNodes}">
+
+                                <p:column headerText="#{msg.halcance}">
+
+                                    <p:treeNode type="org" rendered="#{obj.type == 'org'}">
+                                        <h:outputText value="#{obj.objeto.ocuNombre}" />
+                                    </p:treeNode>
+
+                                    <p:treeNode type="nivel" rendered="#{obj.type == 'nivel'}">
+                                        <h:outputText value="#{obj.objeto.nivNombre}" />
+                                    </p:treeNode>
+
+                                    <p:treeNode type="ciclo" rendered="#{obj.type == 'ciclo'}">
+                                        <h:outputText value="#{obj.objeto.cicNombre}" />
+                                    </p:treeNode>
+
+                                    <p:treeNode type="modalidad" rendered="#{obj.type == 'modalidad'}">
+                                        <h:outputText value="#{obj.objeto.modNombre}" />
+                                    </p:treeNode>
+
+                                    <p:treeNode type="modalidad_atencion" rendered="#{obj.type == 'modalidad_atencion'}">
+                                        <h:outputText value="#{obj.objeto.matNombre}" />
+                                    </p:treeNode>
+
+                                    <p:treeNode type="submodalidad_atencion" rendered="#{obj.type == 'submodalidad_atencion'}">
+                                        <h:outputText value="#{obj.objeto.smoNombre}" />
+                                    </p:treeNode>
+
+                                    <p:treeNode type="grado" rendered="#{obj.type == 'grado'}">
+                                        <h:outputText value="#{obj.objeto.graNombre}" />
+                                    </p:treeNode>
+
+
+
+
+                                </p:column>
+                                <p:column headerText="#{msg.hfechaMatriculas}">
+                                    <h:panelGroup styleClass="update_class_fecha_matriculas" >
+                                        <p:calendar id="input_fecha_matriculas_node" value="#{obj.fechaMatricula}" maxdate="#{applicationBean.today()}"
+                                                    pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}" />
+                                        <h:message for="input_fecha_matriculas_node" styleClass="msj-danger"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{msg.hreportaEnGrado}">
+                                    <h:panelGroup rendered="#{obj.type == 'grado'}" >
+                                        <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                                         icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" 
+                                                         title="#{msg.editar}" action="#{extraccionBean.actualizarAlcanceEdicion(obj)}"/>
+                                        <h:outputText rendered="#{obj.reportaEnGrado != null}" value="#{obj.reportaEnGrado.gradoNivel}" />
+                                    </h:panelGroup>
+                                </p:column>
+
+                            </p:treeTable>    
+
+
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel styleClass="row" >
+            <p:outputPanel styleClass="col-sm-12" >
+
+                <p:outputPanel styleClass="ui-messages" rendered="#{extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.FINALIZADA or
+                                                                    extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.ERROR}">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.hextraccionRealizada}" />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="float-right">
+
+                    <p:commandButton rendered="#{extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.FINALIZADA or
+                                                 extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.PENDIENTE}"
+                                     value="#{msg.hduplicarExtraccion }" 
+                                     action="#{extraccionBean.inicializarDuplicarExtraccion()}"
+                                     oncomplete="PF('duplicarDialog').show()" 
+                                     styleClass="btn btn-primary"  
+                                     />
+
+                    <p:commandButton value="#{extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.FINALIZADA or
+                                              extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.ERROR or
+                                              extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.PENDIENTE
+                                              ? msg.hextrarNuevamente : msg.hextraer}" 
+                                     id="btnGuardar" styleClass="btn btn-primary"  action="#{extraccionBean.guardar()}" 
+                                     />
+                    <p:blockUI block="@form" trigger="btnGuardar" /> 
+                    <p:defaultCommand target="btnGuardar" scope="@form"/>
+
+                </p:outputPanel>
+            </p:outputPanel>   
+        </p:outputPanel>   
+
+        <p:dialog header="#{msg.hreportaEnGrado}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">  
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>
+                <h:panelGroup id="panel_campos" rendered="#{not empty extraccionBean.entidadEnEdicion}"  >        
+                    <p:outputPanel id="formularioReglaEquivalencia">                                               
+
+                        <f:subview id="seleccionarGrado">
+                            <ui:include src="componentes/seleccionarGradoDialog.xhtml" >   
+                                <ui:param name="controllerParam" value="#{extraccionBean}" />
+                                <ui:param name="actionParam" value="seleccionarGrado" />
+                            </ui:include>
+                        </f:subview>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnAceptar"  value="#{msg.aceptar}" action="#{extraccionBean.aceptarGrado()}" update="form:pnlSearch form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnAceptar" />  
+                        <p:defaultCommand target="btnAceptar" scope="itemDetail"/>       
+                    </p:outputPanel> 
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.hduplicarExtraccion}" widgetVar="duplicarDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="duplicarDetail">  
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>
+                <h:panelGroup rendered="#{not empty extraccionBean.entidadEnEdicion and (extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.FINALIZADA or
+                                          extraccionBean.entidadEnEdicion.extEstado eq EnumEstadoExtraccion.PENDIENTE)}"  >        
+                    <p:outputPanel>    
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.anio}"  styleClass="col-sm-3 obligatorio col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputMask styleClass="form-control texto-corto" value="#{extraccionBean.duplicarExtraccion.nuevoAnio}" 
+                                             mask="9999"/>   
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">                        
+                            <h:outputLabel value="#{msg.nombreextraccion}" styleClass="col-sm-3 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu  value="#{extraccionBean.comboNombresExtrDuplicar.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{extraccionBean.comboNombresExtrDuplicar.items}" />
+                                </h:selectOneMenu>    
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.descripcion}"  styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputTextarea value="#{extraccionBean.duplicarExtraccion.nuevaDescripcion}" 
+                                                 styleClass="form-control"/>
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnDuplicar"  value="#{msg.guardar}" action="#{extraccionBean.duplicar()}" update=":form:duplicarDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('duplicarDialog').hide();" update=":form:duplicarDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnDuplicar" />  
+                        <p:defaultCommand target="btnDuplicar" scope="duplicarDetail"/>       
+                    </p:outputPanel> 
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>   
+
+
+    </h:form>
+</ui:composition>

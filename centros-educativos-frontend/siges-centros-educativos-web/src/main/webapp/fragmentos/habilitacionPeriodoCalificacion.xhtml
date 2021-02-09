@@ -1,0 +1,549 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoHabilitacionPeriodoCalificacion" />
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTiposPeriodosCalificaciones" />
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.HABILITACIONES_PERIODOS_CALIFICACION}.xhtml">#{msg.hsolicitudesCambiosCalificacion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page" >#{habilitacionPeriodoCalificacionBean.tituloDialog()}</li>
+
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{habilitacionPeriodoCalificacionBean.tituloDialog()}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SOLICITUD_CAMBIO_CALIFICACION)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>   
+
+
+        <p:outputPanel id="panelEnt">
+
+            <h:panelGroup rendered="#{not empty habilitacionPeriodoCalificacionBean.entidadEnEdicion }"  >
+                <fieldset>
+
+                    <p:outputPanel id="formularioHabilitacionPeriodoCalificacion">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk != null}" >                        
+                            <h:outputLabel value="#{msg.nroSolicitud}" for="input_codigo"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:outputText  id="input_codigo" styleClass="form-control-plaintext" value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_estado" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk != null}" >                        
+                            <h:outputLabel value="#{msg.estado}" for="input_estado"  styleClass="col-sm-4 col-form-label "/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:outputText  id="input_estado" styleClass="form-control-plaintext" value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstado.text}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel id="busquedaEstudiante" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null and (!habilitacionPeriodoCalificacionBean.soloLectura)}">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                                <h:outputLabel value="#{msg.nie}" for="input_nie" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control" id="input_nie"
+                                                   value="#{habilitacionPeriodoCalificacionBean.estudianteNie}" />
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <p:commandButton value="#{msg.buscar}"
+                                                     action="#{habilitacionPeriodoCalificacionBean.buscarEstudiante()}" 
+                                                     update="form:panelEnt" 
+                                                     id="btnbuscarEstudianteNie" styleClass="btn btn-primary" icon="glyphicon glyphicon-search"  />
+                                    <p:blockUI block="@form" trigger="btnbuscarEstudianteNie"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel  id="nombre">
+                            <p:outputPanel styleClass="form-group row" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstudianteFk!=null}">
+                                <h:outputLabel value="#{msg.estudiante}" for="nombre" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:outputText styleClass="form-control-plaintext" value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstudianteFk.estPersona.nieNombre}" />
+                                </p:outputPanel>   
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel  id="matriculas">
+                            <p:outputPanel  rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstudianteFk!=null) and (habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null)}">
+                                <fieldset>
+                                    <legend><h:outputText value="#{msg.hmatriculas}"/></legend>
+                                           
+                                    <p:outputPanel rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null) and (not(habilitacionPeriodoCalificacionBean.mensajeMatricula eq null)) }" styleClass="ui-messages">
+                                        <div class="ui-messages-warn ui-corner-all">
+                                            <span class="ui-messages-warn-icon"></span>
+                                            <ul>
+                                                <li>
+                                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{habilitacionPeriodoCalificacionBean.mensajeMatricula}" />
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </p:outputPanel>
+                                    
+                                    <p:dataTable id="dtMatricula" var="matricula" 
+                                                 value="#{habilitacionPeriodoCalificacionBean.listMatriculas}" 
+                                                 rendered="#{habilitacionPeriodoCalificacionBean.listMatriculas.size() gt 0}"
+                                                 emptyMessage="#{msg.noHayResultados}" >
+
+                                        <p:column headerText="#{msg.hanioLectivo}" toggleable="false">
+                                            <h:outputText value="#{matricula.matSeccion.secAnioLectivo.aleAnio}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hSedeEducativa}" toggleable="false">
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedCodigo}" id="textSede" />
+                                            <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip">
+                                                <p:outputPanel styleClass="form-group row" >
+                                                    <h:outputLabel value="#{msg.nombre}" 
+                                                                   styleClass="col-sm-6 col-form-label " />
+                                                    <p:outputPanel styleClass="col-sm-6">
+                                                        <h:outputText styleClass="form-control-plaintext " 
+                                                                      value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedNombre}"/>
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                                <p:outputPanel styleClass="form-group row" >
+                                                    <h:outputLabel value="#{msg.telefono}" 
+                                                                   styleClass="col-sm-6 col-form-label "/>
+                                                    <p:outputPanel styleClass="col-sm-6">
+                                                        <h:outputText styleClass="form-control-plaintext "
+                                                                      value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedTelefono}"/>
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                                <p:outputPanel styleClass="form-group row" >
+                                                    <h:outputLabel value="#{msg.departamento}" 
+                                                                   styleClass="col-sm-6 col-form-label "/>
+                                                    <p:outputPanel styleClass="col-sm-6">
+                                                        <h:outputText styleClass="form-control-plaintext " 
+                                                                      value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                                <p:outputPanel styleClass="form-group row" >
+                                                    <h:outputLabel value="#{msg.municipio}" 
+                                                                   styleClass="col-sm-6 col-form-label "/>
+                                                    <p:outputPanel styleClass="col-sm-6">
+                                                        <h:outputText styleClass="form-control-plaintext " 
+                                                                      value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                            </p:tooltip>
+                                        </p:column>
+                                        <p:column headerText="#{msg.hnivel}" >
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hmodalidad}">
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" />
+                                        </p:column>
+                                        <p:column headerText="Modalidad de atención">
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" />
+                                        </p:column>
+                                        <p:column headerText="Submodalidad" >
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"  />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hgrado}">
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hopcion}" >
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduOpcion.opcNombre}" />
+                                        </p:column>
+                                        <p:column headerText="Programa educativo" >
+                                            <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduProgramaEducativo.pedNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hSeccion}">
+                                            <h:outputText value="#{matricula.matSeccion.secNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hestado}">
+                                            <h:outputText value="#{matricula.matEstado.text}" />
+                                        </p:column>
+                                        <p:column styleClass="columnaAcciones" exportable="false">
+                                            <p:commandButton id="btnMatricula" update="form:panelEnt" icon="glyphicon glyphicon-unchecked " rendered="#{not habilitacionPeriodoCalificacionBean.esMatriculaSeleccionada(matricula)}" styleClass="btn btn-icono" title="#{msg.seleccionar}" action="#{habilitacionPeriodoCalificacionBean.seleccionarMatricula(matricula)}"/>
+                                            <p:commandButton  icon="glyphicon glyphicon-check " rendered="#{habilitacionPeriodoCalificacionBean.esMatriculaSeleccionada(matricula)}" styleClass="btn btn-icono" />
+                                            <p:blockUI block="@form" trigger="btnMatricula"/>
+                                        </p:column>
+
+                                    </p:dataTable>
+
+
+                                </fieldset>
+                            </p:outputPanel>                        
+
+                        </p:outputPanel>
+
+                        <p:outputPanel  id="matriculasSeleccion">
+                            <p:outputPanel  rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstudianteFk!=null) and (habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk != null)}">
+                                <fieldset>
+                                    <legend><h:outputText value="#{msg.hmatriculaSeleccionada}"/></legend>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">                                        
+                                            <h:outputText styleClass="form-control-plaintext" value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduSede.sedCodigoNombre}"  />
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_nivel">
+                                        <h:outputLabel value="#{msg.niveles}" for="input_nivel" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}"
+                                                          styleClass="form-control-plaintext" />
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_modalidad">
+                                        <h:outputLabel value="#{msg.modalidadEducativa}" for="input_modalidad" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"
+                                                          styleClass="form-control-plaintext"  />
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_mod_aten">
+                                        <h:outputLabel value="Modalidad de atención" for="input_mod_aten" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"
+                                                          styleClass="form-control-plaintext" />
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>  
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_submod_aten" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion != null or seleccionarSeccionBean.comboSubModalidadAtencion != null}">
+                                        <h:outputLabel value="Submodalidad" for="input_submod_aten" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoCodigo}"
+                                                          styleClass="form-control-plaintext" />
+                                        </p:outputPanel>                    
+                                    </p:outputPanel> 
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_grado">
+                                        <h:outputLabel value="#{msg.grado}" for="input_grado" styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secServicioEducativo.sduGrado.graNombre}"
+                                                          styleClass="form-control-plaintext"  />
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                                        <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText styleClass="form-control-plaintext" value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.secAnioLectivo.aleAnio}"/>
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_seccion">
+                                        <h:outputLabel value="#{msg.secciones}" for="input_seccion" styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:outputText styleClass="form-control-plaintext" value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcMatriculaFk.matSeccion.nombreSeccion}"/>
+                                        </p:outputPanel>  
+
+                                    </p:outputPanel>
+
+                                </fieldset>  
+                            </p:outputPanel>                        
+
+                        </p:outputPanel>
+
+                        <p:outputPanel rendered="#{(habilitacionPeriodoCalificacionBean.matriculaSeleccionada!= null) or habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk != null}">
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.hcalificaciones}"/></legend>
+                                
+                                <p:outputPanel rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null) and (not(habilitacionPeriodoCalificacionBean.mensajeCalificacion eq null)) }" styleClass="ui-messages">
+                                        <div class="ui-messages-warn ui-corner-all">
+                                            <span class="ui-messages-warn-icon"></span>
+                                            <ul>
+                                                <li>
+                                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{habilitacionPeriodoCalificacionBean.mensajeCalificacion}" />
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </p:outputPanel>
+                                
+                                <p:outputPanel id="input_rango_fechas" rendered="#{ habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null}">
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_combo_cpg">
+                                        <h:outputLabel value="Componente Plan de Estudio:" for="combo_cpg" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:selectOneMenu id="combo_cpg" value="#{habilitacionPeriodoCalificacionBean.comboComponentePlanGrado.selected}"  styleClass="form-control dropdown texto-medio">
+                                                <f:selectItems value="#{habilitacionPeriodoCalificacionBean.comboComponentePlanGrado.items}" />  
+                                                <p:ajax update="form:periodo_ordinario form:select_one" listener="#{habilitacionPeriodoCalificacionBean.seleccionarComponentePlanGrado()}"  />
+                                            </h:selectOneMenu>  
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>     
+
+
+                                    <p:outputPanel styleClass="form-group row" id="select_one">
+                                        <h:outputLabel value="#{msg.tipoPeriodo}" for="select_tipo_calendario" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <p:selectOneRadio layout="responsive" columns="2" id="select_tipo_calendario"  value="#{habilitacionPeriodoCalificacionBean.tipoPeriodoSeleccionado}" >
+                                                <f:selectItems value="#{habilitacionPeriodoCalificacionBean.periodoOrdinarioList}" var="periodo" itemLabel="#{periodo.text}" itemValue="#{periodo}" />
+                                                <p:ajax update="form:periodo_ordinario" listener="#{habilitacionPeriodoCalificacionBean.seleccionarTipoPeriodo()}"  />
+                                            </p:selectOneRadio>
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+
+                                    <p:outputPanel  id="periodo_ordinario">
+                                        <p:outputPanel rendered="#{habilitacionPeriodoCalificacionBean.tipoPeriodoSeleccionado eq EnumTiposPeriodosCalificaciones.ORD}">
+                                            <p:outputPanel styleClass="form-group row" id="fila_combo_pcal">
+                                                <h:outputLabel value="#{msg.periodoCalificacion}" for="combo_pcal" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="combo_pcal" value="#{habilitacionPeriodoCalificacionBean.comboPeriodoCalificacion.selected}"  styleClass="form-control dropdown texto-medio">
+                                                        <f:selectItems value="#{habilitacionPeriodoCalificacionBean.comboPeriodoCalificacion.items}" />  
+                                                        <p:ajax update="form:periodo_ordinario" listener="#{habilitacionPeriodoCalificacionBean.seleccionarPeriodoCalificacion()}"  />
+                                                    </h:selectOneMenu>  
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>                    
+
+                                            <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fecha">
+                                                <h:outputLabel value="#{msg.rangoFecha}" for="combo_rango_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="combo_rango_fecha" value="#{habilitacionPeriodoCalificacionBean.comboRangoFecha.selected}"  styleClass="form-control dropdown texto-medio">
+                                                        <f:selectItems value="#{habilitacionPeriodoCalificacionBean.comboRangoFecha.items}" />  
+                                                        <p:ajax update="form:periodo_ordinario" onstart="PF('blockerOrd').show()"  listener="#{habilitacionPeriodoCalificacionBean.cargarCalificacionActual()}"  />
+
+                                                        <p:blockUI block="@form" widgetVar="blockerOrd" />  
+                                                    </h:selectOneMenu>  
+
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+
+                                        <p:outputPanel  rendered="#{habilitacionPeriodoCalificacionBean.tipoPeriodoSeleccionado eq EnumTiposPeriodosCalificaciones.EXORD}">
+                                            <p:outputPanel styleClass="form-group row" id="fila_combo_pcalescolar">
+                                                <h:outputLabel value="#{msg.periodoCalificacion}" for="combo_pcalescolar" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="combo_pcalescolar" value="#{habilitacionPeriodoCalificacionBean.comboCalendarioEscolar.selected}" styleClass="form-control dropdown texto-medio">
+                                                        <f:selectItems value="#{habilitacionPeriodoCalificacionBean.comboCalendarioEscolar.items}" />  
+                                                        <p:ajax update="form:periodo_ordinario" listener="#{habilitacionPeriodoCalificacionBean.cargarRangoFechaCalendarioEscolar()}"  />
+                                                    </h:selectOneMenu>
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>  
+
+                                            <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fechaescolar">
+                                                <h:outputLabel value="#{msg.rangoFecha}" for="combo_rango_fechaescolar" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="combo_rango_fechaescolar" value="#{habilitacionPeriodoCalificacionBean.comboPeriodoSeleccionadoExord}"  styleClass="form-control dropdown texto-medio">
+                                                        <f:selectItems value="#{habilitacionPeriodoCalificacionBean.comboPeriodosExord}" />  
+                                                        <p:ajax update="form:periodo_ordinario" onstart="PF('blockerExord').show()"  listener="#{habilitacionPeriodoCalificacionBean.cargarCalificacionActual()}"  />
+                                                        <p:blockUI block="@form" widgetVar="blockerExord" />  
+                                                    </h:selectOneMenu>  
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_calificacion_actual" rendered="#{habilitacionPeriodoCalificacionBean.calificacionActualValor !=null}">
+                                            <h:outputLabel value="#{msg.calificacionActual}" for="combo_calificacion" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:outputText value="#{habilitacionPeriodoCalificacionBean.calificacionActualValor}" styleClass="form-control-plaintext" />
+                                            </p:outputPanel>
+
+                                        </p:outputPanel>
+
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_calificacion" rendered="#{habilitacionPeriodoCalificacionBean.comboComponentePlanGrado.selectedT !=null}">
+                                            <h:outputLabel value="#{msg.calificacionNueva}" for="combo_calificacion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:selectOneMenu id="combo_cpe" rendered="#{not habilitacionPeriodoCalificacionBean.esEscalaNumerica()}" 
+                                                                 value="#{habilitacionPeriodoCalificacionBean.comboCalificacionConceptual.selected}" 
+                                                                 styleClass="form-control dropdown texto-corto">
+                                                    <f:selectItems value="#{habilitacionPeriodoCalificacionBean.comboCalificacionConceptual.items}" />  
+                                                </h:selectOneMenu> 
+                                                <p:inputNumber id="input_n_cal"
+                                                               rendered="#{habilitacionPeriodoCalificacionBean.esEscalaNumerica()}" 
+                                                               emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: right"  
+                                                               maxValue="#{habilitacionPeriodoCalificacionBean.comboComponentePlanGrado.selectedT.cpgEscalaCalificacion.ecaMaximo}" 
+                                                               minValue="0" 
+                                                               thousandSeparator="" 
+                                                               decimalSeparator="." 
+                                                               decimalPlaces="#{calificacionBean.escalaCalificacion.ecaPrecision}" 
+                                                               value="#{habilitacionPeriodoCalificacionBean.calificacionNumerica}"/>
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>                                  
+
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" >
+                                        <p:outputPanel styleClass="col-md-2"/>
+                                        <p:outputPanel styleClass="col-md-8"  style="text-align: right;">
+                                            <p:outputPanel styleClass="form-action-buttons">
+                                                <p:commandButton id="btnAgregar"  value="#{msg.agregarCalificacion}" action="#{habilitacionPeriodoCalificacionBean.agregarPeriodo()}" 
+                                                                 update="@form " styleClass="btn btn-secondary" icon="glyphicon glyphicon-plus"/>    
+                                                <p:blockUI block="@form" trigger="btnAgregar" /> 
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-2"/>
+                                    </p:outputPanel> 
+
+
+                                </p:outputPanel>    
+
+
+
+                                <p:outputPanel id="tablaPeriodos">
+                                    <p:outputPanel styleClass="form-group row" >
+                                        <p:outputPanel styleClass="col-sm-2"/>  
+                                        <p:outputPanel styleClass="col-sm-8"> 
+                                            <p:dataTable id="basicDT"                         
+                                                         widgetVar="widResultado"                         
+                                                         var="elem"                          
+                                                         value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.relPeriodosHabilitacionPeriodo}"    
+                                                         rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.relPeriodosHabilitacionPeriodo.size() gt 0}"    
+                                                         emptyMessage="#{msg.noHayResultados}"	
+                                                         reflow="true" >
+                                                <p:column headerText="#{msg.htipoPeriodo}" >
+                                                    <h:outputText value="#{elem.rphTipoPeriodoCalificacion.text}" />
+                                                </p:column>
+                                                <p:column headerText="#{msg.hperiodo}" >
+                                                    <h:outputText value="#{elem.nombrePeriodo}" />
+                                                </p:column>     
+                                                <p:column headerText="Componente plan estudio" >
+                                                    <h:outputText value="#{elem.rphComponentePlanGradoFk.cpgNombrePublicable}" />
+                                                </p:column>        
+                                                <p:column headerText="Calificación nueva" >
+                                                    <h:outputText value="#{elem.calificacionValor}" />
+                                                </p:column>
+                                                <p:column headerText="#{msg.hcalificacionActual}" >
+                                                    <h:outputText value="#{elem.rphCalificacionActualValor}" />
+                                                </p:column>
+                                                <p:column headerText="#{msg.hobservaciones}" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstado eq EnumEstadoHabilitacionPeriodoCalificacion.APROBADA}" >
+                                                    <h:outputText value="#{elem.rphInfoProcesamiento}"  />
+                                                </p:column>
+                                                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null}">
+                                                    <p:commandButton update="form:tablaPeriodos form:botones" icon="glyphicon glyphicon-remove " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{habilitacionPeriodoCalificacionBean.eliminarPeriodo(elem)}"/>
+                                                </p:column>
+                                            </p:dataTable>
+                                        </p:outputPanel>  
+                                        <p:outputPanel styleClass="col-sm-2"/>  
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+
+
+                            </fieldset>
+
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.hmotivoCorreccion}"/></legend>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_observacion_creacion">
+                                    <h:outputLabel value="Motivo:" for="input_observacion_creacion" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:inputTextarea  id="input_observacion_creacion" styleClass="form-control" 
+                                                          value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcObservacion}" 
+                                                          rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null and (!habilitacionPeriodoCalificacionBean.soloLectura)}"
+                                                          />
+                                        <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcObservacion}" styleClass="form-control-plaintext" 
+                                                      rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk != null or (habilitacionPeriodoCalificacionBean.soloLectura)}" />
+                                        <h:message for="input_observacion_creacion" styleClass="msj-danger"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </fieldset>   
+
+                        </p:outputPanel>             
+
+                        <p:outputPanel id="formulario_evaluacion" rendered="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk != null}">
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_observacion">
+                                <h:outputLabel value="#{msg.observacion} " for="input_observacion" styleClass="col-sm-4 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:inputTextarea  id="input_observacion" styleClass="form-control" 
+                                                      rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstado eq EnumEstadoHabilitacionPeriodoCalificacion.PENDIENTE) and (!habilitacionPeriodoCalificacionBean.soloLectura)}"
+                                                      value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcObservacionAprobacionRechazo}" 
+                                                      />
+                                    <h:message for="input_observacion" styleClass="msj-danger"/>
+                                    <h:outputText value="#{habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcObservacionAprobacionRechazo}"  styleClass="form-control-plaintext" 
+                                                  rendered="#{not (habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstado eq EnumEstadoHabilitacionPeriodoCalificacion.PENDIENTE) or (habilitacionPeriodoCalificacionBean.soloLectura)}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>  
+
+
+
+
+                    </p:outputPanel>  
+
+                    <p:outputPanel styleClass="control-group" id="botones">
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardar"  value="#{msg.enviar}"
+                                             rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcPk == null)and (habilitacionPeriodoCalificacionBean.entidadEnEdicion.relPeriodosHabilitacionPeriodo.size() gt 0) and (!habilitacionPeriodoCalificacionBean.soloLectura)}"
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"
+                                             oncomplete="PF('confirmDialogEnvio').show()"/>                             
+
+
+                            <p:commandButton id="btnAprobar" value="#{msg.aprobar}" 
+                                             oncomplete="PF('confirmDialogAprobar').show()"
+                                             rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstado eq EnumEstadoHabilitacionPeriodoCalificacion.PENDIENTE) and (!habilitacionPeriodoCalificacionBean.soloLectura)}"
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-ok"/>
+
+                            <p:commandButton id="btnRechazar" value="#{msg.rechazar}" oncomplete="PF('confirmDialogRechazar').show()"
+                                             rendered="#{(habilitacionPeriodoCalificacionBean.entidadEnEdicion.hpcEstado eq EnumEstadoHabilitacionPeriodoCalificacion.PENDIENTE) and (!habilitacionPeriodoCalificacionBean.soloLectura)}"
+                                             styleClass="btn btn-secondary" icon="glyphicon glyphicon-remove"/>                      
+                        </p:outputPanel>
+
+                    </p:outputPanel>     
+                    <p:blockUI block="@form" trigger="btnAprobar" /> 
+                    <p:blockUI block="@form" trigger="btnRechazar" /> 
+                    <p:blockUI block="@form" trigger="btnGuardar" /> 
+
+                </fieldset>
+            </h:panelGroup>    
+        </p:outputPanel> 
+
+        <p:confirmDialog id="confirmDialogEnvio"
+                         message="#{msg.textoConfirmacionEnvio}"
+                         header="#{msg.confirmacionEnviar}" severity="alert" widgetVar="confirmDialogEnvio">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmEnvio" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogEnvio').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionPeriodoCalificacionBean.guardar()}"  />
+                <p:blockUI block="@form" trigger="confirmEnvio"/>
+                <p:commandLink id="cancelarEnvio" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogEnvio').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>                
+
+        <p:confirmDialog id="confirmDialogAprobar"
+                         message="#{msg.textoConfirmacionAprobar}"
+                         header="#{msg.confirmacionAprobar}" severity="alert" widgetVar="confirmDialogAprobar">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmAprobar" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogAprobar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionPeriodoCalificacionBean.aprobar()}"  />
+                <p:blockUI block="@form" trigger="confirmAprobar"/>
+                <p:commandLink id="cancelarAprobar" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogAprobar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>            
+
+        <p:confirmDialog id="confirmDialogRechazar"
+                         message="#{msg.textoConfirmacionRechazo}"
+                         header="#{msg.confirmacionRechazo}" severity="alert" widgetVar="confirmDialogRechazar">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmRechazar" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialogRechazar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionPeriodoCalificacionBean.rechazar()}"  />
+                <p:blockUI block="@form" trigger="confirmRechazar"/>
+                <p:commandLink id="cancelarRechazo" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogRechazar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>    
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+    </h:form>
+</ui:composition>

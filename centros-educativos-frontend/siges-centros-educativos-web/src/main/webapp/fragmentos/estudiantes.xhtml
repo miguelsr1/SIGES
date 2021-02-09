@@ -1,0 +1,529 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionEstudiantes}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionEstudiantes}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.ESTUDIANTE}" title="#{msg.agregarEstudiante}"
+                        styleClass="btn btn-secondary" 
+                        rendered="false">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarEstudiante}"/>
+                </p:link>
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.MIS_ESTUDIANTES)}" />
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.nombresApellidos}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <div class="ui-inputgroup">
+                                    <h:inputText autocomplete="off" styleClass="form-control" 
+                                                 style="display: inline-block;"
+                                                 value="#{estudiantesBean.filtro.perNombreCompleto}" rendered="#{estudiantesBean.filtroNombreCompleto.nombreCompleto == null}"/>
+                                    <h:inputText autocomplete="off" styleClass="form-control"
+                                                 style="display: inline-block;"
+                                                 disabled="true"
+                                                 rendered="#{estudiantesBean.filtroNombreCompleto.nombreCompleto != null}"
+                                                 value="#{estudiantesBean.filtroNombreCompleto.nombreCompleto}" />
+                                    <f:subview id="busquedaNombre">
+                                        <ui:include src="componentes/busquedaNombreComponente.xhtml"  >   
+                                            <ui:param name="controllerParam" value="#{estudiantesBean}" />
+                                            <ui:param name="actionParam" value="filtroNombreCompletoSeleccionar" />
+                                            <ui:param name="filtroNombreCompleto" value="#{estudiantesBean.filtroNombreCompleto}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </div>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.nie}" for="b_nie" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control" id="b_nie"
+                                               value="#{estudiantesBean.filtro.nie}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.cun}" for="b_cun" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control" id="b_cun"
+                                               value="#{estudiantesBean.filtro.cun}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.dui}" for="b_dui" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_dui"
+                                             value="#{estudiantesBean.filtro.dui}" />
+                            </p:outputPanel>
+                        </p:outputPanel>                      
+
+                        <h:panelGroup id="checkboxes_estado">
+
+                            <p:outputPanel styleClass="form-group row" >
+                                <p:outputPanel styleClass="col-sm-3 "></p:outputPanel>
+                                <p:outputPanel styleClass="col-sm-9 ">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="filto_estudiantes_matricula_abierta" styleClass="form-check-input" 
+                                                                 value="#{estudiantesBean.buscarMatAbierta}">
+                                            <p:ajax update="checkboxes_estado" listener="#{estudiantesBean.buscarSoloMatAbiertaSelected}" />
+                                        </h:selectBooleanCheckbox>
+                                        <h:outputLabel for="filto_estudiantes_matricula_abierta" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.incluirEstudiantesConMatriculaAbierta}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_filto_estudiantes_retirados" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_BUSCAR_ESTUDIANTES_RETIRADOS)}">
+                                <p:outputPanel styleClass="col-sm-3 "></p:outputPanel>
+                                <p:outputPanel styleClass="col-sm-9 ">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="filto_estudiantes_retirados" styleClass="form-check-input" 
+                                                                 value="#{estudiantesBean.buscarSoloRetirados}" >
+                                            <p:ajax update="checkboxes_estado" listener="#{estudiantesBean.buscarSoloRetiradosSelected}" />
+                                        </h:selectBooleanCheckbox>
+                                        <h:outputLabel for="filto_estudiantes_retirados" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.incluirEstudiantesRetirados}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                    <h:message for="filtro_grado" styleClass="msj-danger"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" rendered="#{estudiantesBean.comboAmbito != null and estudiantesBean.comboAmbito.items.size() gt 1}">
+
+                                <h:outputLabel value="#{msg.trabajarCon}"  styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu value="#{estudiantesBean.comboAmbito.selected}" id="input_ambito" 
+                                                     rendered="#{estudiantesBean.comboAmbito != null and estudiantesBean.comboAmbito.items.size() gt 1}" 
+                                                     styleClass="form-control texto-medio">
+                                        <f:selectItems  value="#{estudiantesBean.comboAmbito.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+
+
+                        </h:panelGroup>
+
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6">
+
+                        <p:outputPanel styleClass="form-group row" id="fila_filto_departamento">
+                            <h:outputLabel value="#{msg.departamento}" for="filtro_departamento" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_departamento" value="#{estudiantesBean.comboDepartamentos.selected}" styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{estudiantesBean.comboDepartamentos.items}" />
+                                    <p:ajax listener="#{estudiantesBean.departamentoElegido()}" process="@this" update="fila_filtro_municipio"/>
+                                </h:selectOneMenu>
+                                <h:message for="filtro_departamento" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio">
+                            <h:outputLabel value="#{msg.municipio}" for="filtro_municipio" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_municipio" value="#{estudiantesBean.comboMunicipio.selected}" styleClass="form-control dropdown texto-medio" disabled="#{estudiantesBean.comboDepartamentos.selectedT == null}">
+                                    <f:selectItems value="#{estudiantesBean.comboMunicipio.items}" />
+                                </h:selectOneMenu>
+                                <h:message for="filtro_municipio" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_filto_sexo">
+                            <h:outputLabel value="#{msg.sexo}" for="filtro_sexo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_sexo" value="#{estudiantesBean.comboSexos.selected}" styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{estudiantesBean.comboSexos.items}" />
+                                </h:selectOneMenu>
+                                <h:message for="filtro_sexo" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="rango_filtro_fecha_desde">
+                            <h:outputLabel value="#{msg.rangoFechaNacimiento}" styleClass="col-sm-12"/>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_desde">
+                            <h:outputLabel value="#{msg.desde}" for="filtro_fecha_desde" styleClass="col-sm-3 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar id="filtro_fecha_desde" styleClass="form-control"
+                                            value="#{estudiantesBean.filtro.perFechaNacimientoDesde}"
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_dhasta">
+                            <h:outputLabel value="#{msg.hasta}" for="filtro_fecha_hasta" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar id="filtro_fecha_hasta" styleClass="form-control"
+                                            value="#{estudiantesBean.filtro.perFechaNacimientoHasta}"
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+
+
+            <p:panel header="#{msg.filtrosAvanzados}" id="panelAvanzado" 
+                     styleClass="panel-filtro"
+                     closable="true"
+                     rendered="#{estudiantesBean.panelAvanzado}">
+
+                <p:outputPanel styleClass="row">
+                    <f:subview id="viewFiltroSeccion">
+                        <ui:include src="componentes/filtrosSeccion.xhtml">
+                        </ui:include>
+                    </f:subview>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tiene_identificacion">
+                            <h:outputLabel value="#{msg.identificacionF}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="input_tiene_identificacion" 
+                                                      value="#{estudiantesBean.filtro.perTieneIdentificacion}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tiene_partida">
+                            <h:outputLabel value="#{msg.partidaF}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="input_tiene_partida" 
+                                                      value="#{estudiantesBean.filtro.perPresentaPartida}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_departamento_matricula">
+                            <h:outputLabel value="#{msg.departamento}" for="filtro_departamento_matricula" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_departamento_matricula" 
+                                                 value="#{estudiantesBean.comboDepartamentoMatricula.selected}" 
+                                                 styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{estudiantesBean.comboDepartamentoMatricula.items}" />
+                                    <p:ajax listener="#{estudiantesBean.departamentoElegidoMatricula()}" process="@this" update="fila_filtro_municipio_matricula"/>
+                                </h:selectOneMenu>
+                                <h:message for="filtro_departamento_matricula" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio_matricula">
+                            <h:outputLabel value="#{msg.municipio}" for="filtro_municipio_matricula" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_municipio_matricula" value="#{estudiantesBean.comboMunicipioMatricula.selected}" 
+                                                 styleClass="form-control dropdown texto-medio" 
+                                                 disabled="#{estudiantesBean.comboDepartamentoMatricula.selectedT == null}">
+                                    <f:selectItems value="#{estudiantesBean.comboMunicipioMatricula.items}" />
+                                </h:selectOneMenu>
+                                <h:message for="filtro_municipio_matricula" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+            </p:panel>
+
+        </h:panelGroup>
+
+        <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+            <p:outputPanel styleClass="form-group row">
+                <p:outputPanel styleClass="col-sm-12 texto-right">
+                    <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{estudiantesBean.buscar()}" update="pnlResultado"/>
+                    <p:commandButton id="btnConsultaGuardada" value="#{msg.consultasGuardadas}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CONSULTA_GUARDADA)}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{estudiantesBean.agregarConsultaGuardada()}" update="panelOverlay" />
+                    <p:overlayPanel id="pnlConsultaGuardada" widgetVar="consultaGuardada" dismissable="false" for="btnConsultaGuardada" hideEffect="fade">
+                        <p:panel id="panelOverlay">
+
+                            <h4> <h:outputText value="Consultas guardadas" /></h4>
+                            <div class="margen-inf">
+                                <h:outputLabel value="Guardar como"/>
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <h:inputText value="#{estudiantesBean.consultaGuardada.cgrNombre}" styleClass="form-control"/>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <p:commandButton id="saveButton" value="#{msg.guardar}" 
+                                                         action="#{estudiantesBean.guardarConsulta()}"
+                                                         update="pnlConsultaGuardada " styleClass="btn btn-primary btn-guardar" 
+
+                                                         icon="glyphicon glyphicon-floppy-disk"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h:outputLabel value="Recuperar consulta"/>
+                                <h:selectOneMenu id="sltConsultas" value="#{estudiantesBean.comboConsultaGuardada.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{estudiantesBean.comboConsultaGuardada.items}"/>
+                                </h:selectOneMenu>
+
+                                <p:commandButton id="buscarPanelBoton" value="#{msg.cargar}" 
+                                                 action="#{estudiantesBean.actualizarConsulta()}"
+                                                 update="panelAvanzado pnlSearch pnlResultado" styleClass="btn btn-primary btn-guardar" 
+                                                 icon="glyphicon glyphicon-search"/>
+                                <p:blockUI block="@form" trigger="buscarPanelBoton" />
+                                <p:commandButton id="eliminar" value="#{msg.eliminar}" oncomplete="PF('confirmDialog').show()"                                                      
+                                                 styleClass="btn btn-primary btn-guardar" 
+                                                 icon="glyphicon glyphicon-trash"/>
+                                <p:commandLink  value="#{msg.cancelar}"
+                                                onclick="PF('consultaGuardada').hide()" styleClass="btn btn-link" />
+
+                            </div>
+                        </p:panel>
+                    </p:overlayPanel>              
+                    <p:commandLink value="#{estudiantesBean.txtFiltroAvanzado}" 
+                                   action="#{estudiantesBean.verPanelAvanzado()}" 
+                                   update="searchPanels @this" styleClass="btn btn-link" />
+                    <p:commandLink value="#{msg.limpiar}" action="#{estudiantesBean.limpiar()}" 
+                                   update="pnlSearch panelAvanzado pnlResultado" immediate="true" styleClass="btn btn-link">
+                        <p:resetInput target="pnlSearch panelAvanzado pnlResultado" />
+                    </p:commandLink>
+                    <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                    <p:blockUI block="@form" trigger="btnBuscar" />
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"
+                         widgetVar="widResultado"
+                         var="elem"
+                         rendered="#{estudiantesBean.estudianteLazyModel != null}"
+                         value="#{estudiantesBean.estudianteLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"
+                         lazy="true"
+                         paginator="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{estudiantesBean.paginado}"
+                         reflow="true">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{estudiantesBean.totalResultados lt (estudiantesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row"> 
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{estudiantesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{msg.hnie}" sortBy="#{elem.estPersona.perNie}">
+                    <h:outputText value="#{elem.estPersona.perNie}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombrecompleto}">
+                    <h:outputText value="#{elem.estPersona.perNombreCompletoOrder}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaNacimiento}" sortBy="#{elem.estPersona.perFechaNacimiento}">
+                    <h:outputText value="#{elem.estPersona.perFechaNacimiento}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hsexo}" sortBy="#{elem.estPersona.perSexo.sexNombre}">
+                    <h:outputText value="#{elem.estPersona.perSexo.sexNombre}" />
+                </p:column>                
+                <p:column styleClass="columnaAcciones"  exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.ESTUDIANTE}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.estPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_ESTUDIANTE)}">
+                    <p:link outcome="#{ConstantesPaginas.ESTUDIANTE}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.estPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones"  toggleable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE) 
+                                                                                       or sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACION_ESTUDIANTE
+                                                                                       or sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE))}">
+                    <button type="button" title="Opciones" class="btn btn-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="glyphicon glyphicon-menu-hamburger"></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">                                               
+                        <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_PROMOCIONES_ESTUDIANTES}?seccionId=#{elem.estUltimaMatricula.matSeccion.secPk}&amp;estudianteId=#{elem.estPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE) and (elem.estUltimaMatricula !=null) and (elem.estUltimaMatricula.matSeccion!=null)}">
+                            <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            <h:outputText style="margin-left:6px;" value="#{msg.reportePromociones}"/>
+                        </p:link>
+                        <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CALIFICACIONES_ESTUDIANTES}?seccionId=#{elem.estUltimaMatricula.matSeccion.secPk}&amp;estudianteId=#{elem.estPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACION_ESTUDIANTE) and (elem.estUltimaMatricula !=null) and (elem.estUltimaMatricula.matSeccion!=null)}">
+                            <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            <h:outputText style="margin-left:6px;" value="#{msg.reporteCalificaciones}"/>
+                        </p:link>
+                        <p:link rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}"
+                                href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_FICHA_ESTUDIANTE}?id=#{elem.estPk}" 
+                                target="_blank" styleClass="dropdown-item btn btn-link">
+                            <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            <h:outputText styleClass="margin-left:6px;" value="#{msg.hfichaEstudiante}"/>
+                        </p:link>
+                    </div>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{estudiantesBean.buscarSoloRetirados and sessionBean.operaciones.contains(ConstantesOperaciones.ANULAR_RETIRO_MATRICULA)}" >
+                    <p:commandButton icon="glyphicon glyphicon-plus" styleClass="btn btn-icono"  
+                                     rendered="#{elem.estUltimaMatricula.matMotivoRetiro.mreDefinitivo and !elem.estHabilitado}" 
+                                     title="#{msg.anularRetiros}" action="#{estudiantesBean.seleccionarMatricula(elem.estUltimaMatricula.matPk)}"  
+                                     update=":form:itemDetailMatricula" oncomplete="PF('itemDialog').show()" />
+                </p:column>
+
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{estudiantesBean.cargarHistorial(elem.estPk)}"  
+                                     update=":form:historialDetail" oncomplete="PF('historialDialog').show()" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ESTUDIANTE)}">
+                    <p:commandButton oncomplete="PF('confirmDialogEliminarEst').show()" icon="glyphicon glyphicon-trash " 
+                                     update="form:confirmDialogEliminarEst"
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{estudiantesBean.prepararParaEliminar(elem)}"/>
+
+                </p:column>
+
+            </p:dataTable>
+
+        </p:outputPanel>
+
+
+        <p:confirmDialog id="confirmDialogEliminarEst"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogEliminarEst">
+            <p:outputPanel id="dialogElim">
+                <p:messages id="pupupMsg2" showDetail="true" globalOnly="false" for="pupupMsg2" closable="true"/>
+                <p:outputPanel  styleClass="float-right" >  
+                    <p:messages id="eliminarMsg" showDetail="true" globalOnly="false" for="eliminarMsg" closable="true"/>
+                    <p:commandButton id="confirmDeleteEstudiante" value="#{msg.hconfirmar}" 
+                                     update="form:dialogElim form:pnlResultado"
+                                     styleClass="btn btn-primary"
+                                     action="#{estudiantesBean.eliminar()}"  />
+                    <p:blockUI block="@form" trigger="confirmDeleteEstudiante"/>
+                    <p:commandLink value="#{msg.cancelar}"
+                                   onclick="PF('confirmDialogEliminarEst').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </p:outputPanel>    
+        </p:confirmDialog>
+
+
+        <p:dialog header="#{msg.historialEstudiante}" widgetVar="historialDialog" modal="true" positionType="absolute" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{estudiantesBean.historial}" />
+            </ui:include>
+        </p:dialog>
+
+        <p:confirmDialog id="confirmDialogEliminar"
+                         message="Eliminar consulta guardada"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{estudiantesBean.eliminarConsultaGuardada()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+        <p:dialog header="#{msg.anularRetiro}" widgetVar="itemDialog" modal="true" showEffect="fade" 
+                  hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailMatricula">       
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>         
+                <p:outputPanel id="formularioAnularRetiro"> 
+                    <p:outputPanel styleClass="form-group row texto-left" id="fila_anular_retiro">
+                        <h:outputText value="#{msg.headerAnularRetiro}" styleClass="col-sm-12"/>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_observacion">
+                        <h:outputLabel value="#{msg.observacion}" for="input_observacion" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:inputText autocomplete="off" id="input_observacion" styleClass="form-control"
+                                         value="#{estudiantesBean.matriculaAnular.matObsAnuRetiro}" />                     
+                        </p:outputPanel>                    
+                    </p:outputPanel>                    
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardarMat"  value="#{msg.hconfirmar}" 
+                                             action="#{estudiantesBean.anularRetiro()}" 
+                                             update="pnlResultado itemDetailMatricula" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" 
+                                           styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardarMat" />       
+                </p:outputPanel>    
+            </p:outputPanel>        
+        </p:dialog>
+
+
+
+    </h:form>
+</ui:composition>

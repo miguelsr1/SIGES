@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <script src="../resources/js/cookies.js" />
+    <script>
+<!-- El atributo expanded de los p:submenu no funcionan bien por lo que se agrega el script para que luego del login se vean los menú comprimidos. -->
+        $(document).ready(function () {
+            actualizarMenu()
+        });
+
+        function comprimirMenu() {
+            createCookie("expandedSubMenu", 1, null);
+            actualizarMenu();
+        }
+
+        function actualizarMenu() {
+            expandedSubMenu = readCookie("expandedSubMenu");
+            if (expandedSubMenu == 1) {
+                $("a.ss-submenu").parent().css("display", "none");
+                $(".ui-icon-triangle-1-s").removeClass("ui-icon-triangle-1-s").addClass("ui-icon-triangle-1-e");
+                createCookie("expandedSubMenu", 2, 1);
+            }
+        }
+    </script>
+
+    <h:form prependId="false">
+        <h2 class="ui-helper-hidden-accessible">Menú de navegación</h2>
+        <!-- menubar component / para escritorio -->
+        <p:menu toggleable="true" styleClass="sidebar-nav">               
+            <p:menuitem ajax="false" id="inicio" value="#{textMB.obtenerTexto('labels.menu.Inicio')}" 
+                        action="#{permisosMB.irAInicio()}" icon="glyphicon glyphicon-home ui-menuitem-icon-right"/>
+
+                <!-- del usuario -->
+                <p:menuitem ajax="false" id="bandejaTareas" value="#{textMB.obtenerTexto('labels.menu.BandejaDeTareas')}" 
+                            action="#{permisosMB.irANotificaciones()}" 
+                            rendered="#{permisosMB.permisos['CONSULTA_NOTIFICACIONES'] }" icon="glyphicon glyphicon-inbox ui-menuitem-icon-right"/>
+                
+                
+                <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.ManualUsuario')}" icon="glyphicon glyphicon-inbox ui-menuitem-icon-right" 
+                            url="#{textMB.URL_MANUAL_USUARIO}" target="_blank"/>
+                <!-- Planificacion -->
+                <p:submenu id="submenuPlannificacion"
+                           label="#{textMB.obtenerTexto('labels.menu.Planificacion')}" 
+                           rendered="#{permisosMB.permisos['MENU_PLAN_PLANIFICACION']}"
+                           styleClass="glyphicon glyphicon-knight ui-menuitem-icon-right open-menu"
+                           expanded="false">
+                    <p:menuitem ajax="false" id="lineaEstrategica" value="#{textMB.obtenerTexto('labels.menu.LineaEstrategica')}" action="#{permisosMB.irALineaEstrategica()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_LINEA_ESTRATEGICA'] }"/>
+                    <p:menuitem ajax="false" id="planificacionEstrategicaq" value="#{textMB.obtenerTexto('labels.menu.PlanificacionEstrategica')}" action="#{permisosMB.irAPlanificacionEstrategica()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PLANIFICACION_ESTRATEGICA'] }"/>
+                    <p:menuitem ajax="false" id="programaInstitucional" value="#{textMB.obtenerTexto('labels.menu.ProgramaInstitucional')}" action="#{permisosMB.irAProgramaInstitucional}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PROGRAMA_INSTITUCIONAL'] }" />
+                    <p:menuitem ajax="false" id="programaPresupuestario" value="#{textMB.obtenerTexto('labels.menu.ProgramaPresupuestario')}" action="#{permisosMB.irAProgramaPresupuestario}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PROGRAMA_PRESUPUESTARIO'] }" />
+                    <p:menuitem ajax="false" id="indicadoresPlanificacion" value="#{textMB.obtenerTexto('labels.menu.IndicadoresPlanificacion')}" action="#{permisosMB.irAProgramaIndicador()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PROGRAMA_INDICADOR'] }" />
+                    <p:menuitem ajax="false" id="iniciarFormulacion" value="#{textMB.obtenerTexto('labels.menu.AñosFiscales')}" action="#{permisosMB.irAFormulacionPorAnioFiscal()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_FORMULACION_POR_ANIO_FISCAL'] }" />
+
+
+                </p:submenu>
+
+                <!-- Plan de Proyectos -->
+                <p:submenu id="submenuPlanProyectos"
+                           label="#{textMB.obtenerTexto('labels.menu.Proyectos')}" 
+                           rendered="#{permisosMB.permisos['MENU_PLAN_PROYECTOS']}"
+                           styleClass="glyphicon glyphicon-list-alt ui-menuitem-icon-right open-menu"
+                           expanded="false">
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.MetasDeIndicadores')}" action="#{permisosMB.irAMetasDeIndicadores()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CARGA_METAS_INDICADORES'] }" />
+
+
+
+
+
+
+                    <!--planificacion de proyecto -->
+                    <p:menuitem ajax="false" id="proyectos" value="#{textMB.obtenerTexto('labels.menu.ProyectosAdministrativos')}" 
+                                action="#{permisosMB.irAProyectoAdministrativo()}" rendered="#{permisosMB.permisos['CONSULTA_PROYECTO_ADMINISTRATIVO'] }" 
+                                styleClass="ss-submenu"/>
+
+                    <p:menuitem ajax="false" id="proyectosINV" value="#{textMB.obtenerTexto('labels.menu.ProyectosDeInversion/NoInversion')}"
+                                action="#{permisosMB.irAProyectoInversion()}" rendered="#{permisosMB.permisos['CONSULTA_PROYECTO_INVERSION'] }" 
+                                styleClass="ss-submenu"/>
+
+                    <!--PROYECTOS Y UNIDAD TECNICA-->
+                    <p:menuitem ajax="false" id="programacionPOGProyectos" value="#{textMB.obtenerTexto('labels.menu.ProgramacionPOGparaproyectos')}" action="#{permisosMB.irProgramacionPOGProyectos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_POG_PARA_PROYECTOS'] }" />
+                    <p:menuitem ajax="false" id="programacionPOAProyectos" value="#{textMB.obtenerTexto('labels.menu.ProgramaciónPOAParaProyectos')}" action="#{permisosMB.irProgramacionPOAProyectos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_POA_PROYECTO'] }" />
+                    <p:menuitem ajax="false" id="consolidadoPOAporProyecto" value="#{textMB.obtenerTexto('labels.menu.consolidadoPoaProyecto')}" styleClass="ss-submenu"
+                                action="#{permisosMB.irAConsolidadoPOAporProyecto()}" rendered="#{permisosMB.permisos['CONSOLIDADO_POA_PROYECTO'] }" />
+
+
+
+
+
+                    <p:menuitem ajax="false" id="reprogramacionProyectos" value="#{textMB.obtenerTexto('labels.menu.ReprogramacionProyectos')}" 
+                                action="#{permisosMB.irAReprogramacionProyectos()}" 
+                                rendered="#{permisosMB.permisos['REPROGRAMACION_PROYECTOS_CONSULTA'] }" 
+                                styleClass="ss-submenu"/>
+
+                </p:submenu>
+
+                <!-- Presupuesto -->
+                <p:submenu id="submenuPresupuesto"
+                           label="#{textMB.obtenerTexto('labels.menu.presupuesto')}" 
+                           rendered="#{permisosMB.permisos['MENU_PRESUPUESTO']}"
+                           styleClass="glyphicon glyphicon-stats ui-menuitem-icon-right open-menu"
+                           expanded="false">
+
+                    <!-- presupuesto  -->  
+                    <p:menuitem ajax="false" id="accionCentral" value="#{textMB.obtenerTexto('labels.menu.AccionCentral')}" action="#{permisosMB.irAAccionCentral()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_ACCION_CENTRAL'] }" />
+                    <p:menuitem ajax="false" id="asignacionesNoProgrmables" value="#{textMB.obtenerTexto('labels.menu.AsignacionesNoProgramables')}" action="#{permisosMB.irAAsignacionesNoProgrmables()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_ASIGNACIONES_NO_PROGRAMABLES'] }" />
+    <!--                <p:menuitem ajax="false" id="techoPresupuestarioGoes" value="#{textMB.obtenerTexto('labels.menu.TechosPresupuestarioGOES')}" action="#{permisosMB.irATechosPresupuestarioGoes()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_TECHO_PRESUPUESTARIO_GOES'] }" />
+                    -->
+
+
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.ConsultaDePAC')}" action="#{permisosMB.irConsultaPAC()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PAC'] }" />
+
+
+                    <p:menuitem ajax="false" id="programaPresupuestario2" value="#{textMB.obtenerTexto('labels.menu.ProgramaPresupuestario')}" action="#{permisosMB.irAProgramaPresupuestario}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PROGRAMA_PRESUPUESTARIO'] }" />
+
+                    <!--PRESUPUESTO  Y UNIDAD TECNICA-->
+                    <p:menuitem ajax="false" id="programacionPOAAccionCentral" value="#{textMB.obtenerTexto('labels.menu.ProgramacionPOAParaAcciónCentral')}" styleClass="ss-submenu"
+                                action="#{permisosMB.irAPOAAccionCentral()}" rendered="#{permisosMB.permisos['CONSULTA_POA_ACCION_CENTRAL'] }" />
+                    <p:menuitem ajax="false" id="programacionPOAAsignacionNoProgramable" value="#{textMB.obtenerTexto('labels.menu.ProgramaciónPOAParaAsignacionesNoProgramables')}" styleClass="ss-submenu"
+                                action="#{permisosMB.irAPOAAsignacionesNoProgramables()}" rendered="#{permisosMB.permisos['CONSULTA_POA_ASIGNACIONES_NO_PROGRAMABLES'] }" />
+
+                    <!-- Consolidado POA -->
+                    <p:menuitem ajax="false" id="consolidadoPOAporACoANP" value="#{textMB.obtenerTexto('labels.menu.consolidadoPoaACyANP')}" styleClass="ss-submenu"
+                                action="#{permisosMB.irAConsolidadoPOAporAcoANP()}" rendered="#{permisosMB.permisos['CONSOLIDADO_POA_AC_ANP'] }" />
+
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.CompromisoPresupuestario')}" styleClass="ss-submenu"
+                                action="#{permisosMB.irACompromisoPresupuestario()}" rendered="#{permisosMB.permisos['CONSULTA_COMPROMISO_PRESUPUESTARIO'] }" />
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.SolicitarCertificadoDisponibilidadPresupuestaria')}" 
+                                action="#{permisosMB.irACertificadoDeDisponibilidadPresupuestaria()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_CERTIFICADO_DIPONIBILIDAD_PRESUPUESTARIA']}" />
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.CertificadoDisponibilidadPresupuestaria')}" 
+                                action="#{permisosMB.irAValidarCertificadoDeDisponibilidadPresupuestaria()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_VALIDAR_CERTIFICADO_DISPONIBILIDAD_PRESUPESTARIA']}" />
+
+                    <p:menuitem ajax="false" id="consultaReprogramacionAccionCentral" value="#{textMB.obtenerTexto('labels.menu.ConsultaReprogramacionAccionCentral')}" 
+                                action="#{permisosMB.irAConsultaReprogramacionAccionCentral()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['REPROGRAMACION_ACCION_CENTRAL_CONSULTA']}" />
+
+                    <p:menuitem ajax="false" id="consultaReprogramacionAsignacionNoProgramable" value="#{textMB.obtenerTexto('labels.menu.ConsultaReprogramacionAsignacionNoProgramable')}" 
+                                action="#{permisosMB.irAConsultaReprogramacionAsignacionNoProgramable()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['REPROGRAMACION_ASIGNACION_NO_PROGRAMABLE_CONSULTA']}" />
+
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.polizas')}" action="#{permisosMB.irAPolizas()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_POLIZAS'] }" />
+
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.consultaInsumosNoUACI')}" action="#{permisosMB.irAConsultaInsumosNoUACI()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_INSUMOS_NO_UACI'] }" />
+
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.generacionReportePEP')}" action="#{permisosMB.irAGeneracionReportePEP()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['EMITIR_REPORTE_PEP'] }" />
+                    
+                </p:submenu>
+
+                
+                <!-- TRANSFERENCIAS_ESCOLARES -->
+                <p:submenu id="submenuTransferenciasEscolares"
+                           label="#{textMB.obtenerTexto('labels.menu.TransferenciasEscolares')}" 
+                           rendered="#{permisosMB.permisos['MENU_TRANSFERENCIAS_ESCOLARES']}"
+                           styleClass="glyphicon glyphicon-random ui-menuitem-icon-right open-menu"
+                           expanded="false">
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.Componentes')}" action="#{permisosMB.irACategoriaPresupuestoEscolar()}" 
+                                rendered="#{permisosMB.permisos['CATEGORIA_PRESUPUESTO_ESCOLAR']}" styleClass="subitem ss-submenu"/>
+                
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.PresupuestoEscolar')}" action="#{permisosMB.irAGestionPresupuestoEscolar()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['COMPONENTE_GESTION_PRESUPUESTO_ESCOLAR'] }" />
+                
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.TechoPresupuestal')}" action="#{permisosMB.irATopePresupuestal()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['TOPE_PRESUPUESTAL'] }" />
+                    
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.DetalleTechoPresupuestal')}" action="#{permisosMB.irADetalleTopePresupuestal()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['TOPE_PRESUPUESTAL'] }" />
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.Transferencias')}" action="#{permisosMB.irATransferencias()}" 
+                                    rendered="#{permisosMB.permisos['CONSULTA_TRANSFERENCIAS']}" styleClass="subitem ss-submenu"/>
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.TransferenciasComponente')}" action="#{permisosMB.irATransferenciaComponente()}" 
+                                    rendered="#{permisosMB.permisos['CONSULTA_TRANSFERENCIA_COMPONENTE']}" styleClass="subitem ss-submenu"/>
+                    
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.TotalPresupuestos')}" action="#{permisosMB.irATotalPresupuestos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_TOTAL_PRESUPUESTOS'] }" />
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.TotalTransferencias')}" action="#{permisosMB.irATotalTransferencias()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_TOTAL_TRANSFERENCIAS'] }" />
+                    
+                </p:submenu>
+                
+                
+                <!-- Adquisiciones -->
+                <p:submenu id="submenuAdquisiciones"
+                           label="#{textMB.obtenerTexto('labels.menu.adquisiciones')}" 
+                           rendered="#{permisosMB.permisos['MENU_ADQUISICIONES']}"
+                           styleClass="glyphicon glyphicon-download-alt ui-menuitem-icon-right open-menu"
+                           expanded="false">
+
+                    <!--UACI-->
+                    <p:menuitem ajax="false" id="pac" value="#{textMB.obtenerTexto('labels.menu.ConsultaDePAC')}" action="#{permisosMB.irConsultaPAC()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PAC'] }" />
+
+                    <!--UACI, unidad tecnica, presupuesto, admin de contrato presupuesto-->
+                    <p:menuitem ajax="false" id="procesoAdquisicion" value="#{textMB.obtenerTexto('labels.menu.ProcesoAdquisición')}" action="#{permisosMB.irProcesoAdquisicion()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CREAR_EDITAR_PROCESO_ADQUISICION'] }" />
+
+
+
+                    <!-- Administrador de contratos-->
+                    <p:menuitem ajax="false" id="adminDecontratos" value="#{textMB.obtenerTexto('labels.menu.ConsultaContrato/OrdenDeCompra')}" 
+                                action="#{permisosMB.irConsultaContratoOC()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_CONTRATO_OC'] }" />
+
+                    <!-- Administrador de contratos-->
+                    <p:menuitem ajax="false" id="consultaProveedores" value="#{textMB.obtenerTexto('labels.menu.ConsultaContrato/Proveedores')}" 
+                                action="#{permisosMB.irAProveedores()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PROVEEDORES'] }" />
+
+
+
+                </p:submenu>
+
+                <!-- Tesoreria  -->
+                <p:submenu id="submenuTesoreria"
+                           label="#{textMB.obtenerTexto('labels.menu.Tesoreria')}" 
+                           rendered="#{permisosMB.permisos['MENU_TESORERIA']}"
+                           styleClass="glyphicon glyphicon-usd ui-menuitem-icon-right open-menu"
+                           expanded="false">
+
+                    <p:menuitem ajax="false" id="actasDePago" value="#{textMB.obtenerTexto('labels.menu.ConsultaActasPago')}" action="#{permisosMB.irActasDePago()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_ACTAS_DE_PAGO'] }" />
+
+                    <p:menuitem ajax="false" id="comprobanteRetencionIpuesto" value="#{textMB.obtenerTexto('labels.menu.ComprobanteDeRetencionDeImpuesto')}" action="#{permisosMB.irAComprobanteRetencionImpuestos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['EMITIR_COMPROBANTE_RETENCION_IMPUESTO'] }" />
+
+
+                    <p:menuitem ajax="false" id="retencionIpuestoPorProyecto" value="#{textMB.obtenerTexto('labels.menu.retencionesDeImpuestosPorProyecto')}" 
+                                action="#{permisosMB.irARetencionImpuestoPorProyecto()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['RETENCIONES_DE_IMPUESTOS_POR_PROYECTO'] }" />
+
+
+
+
+                    <p:menuitem ajax="false" id="retencionIpuestoPorProveedor" value="#{textMB.obtenerTexto('labels.menu.retencionesDeImpuestosPorProveedor')}"
+                                action="#{permisosMB.irARetencionImpuestoPorProveedor()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['RETENCIONES_DE_IMPUESTOS_POR_PROVEEDOR'] }" />
+
+
+
+
+
+
+
+
+                </p:submenu>
+
+                <!-- Seguimiento  -->
+                <p:submenu id="seguimiento" label="#{textMB.obtenerTexto('labels.menu.seguimiento')}" 
+                           rendered="#{permisosMB.permisos['MENU_SEGUIMIENTO']}" 
+                           styleClass="glyphicon glyphicon-play-circle ui-menuitem-icon-right open-menu"
+                           expanded="false" >
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.VerMetasDeIndicadores')}" action="#{permisosMB.irAVerMetasDeIndicadores()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_METAS_DE_INDICADORES'] }" />
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.VervValorestasDeIndicadores')}" action="#{permisosMB.irAVerValoresDeIndicadores()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_VALORES_DE_INDICADORES'] }" />
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.PeriodoDeSeguimientoDeIndicadores')}" action="#{permisosMB.irAPeriodoDeSeguimientoDeIndicadores()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_PERIODO_SEGUIMIENTO_INDICADORES']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.ValoresDeIndicadores')}" action="#{permisosMB.irAValoresDeIndicadores()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CARGA_VALORES_INDICADORES'] }" />
+                    <p:menuitem ajax="false" id="tiemposProcesoAdquisicion" value="#{textMB.obtenerTexto('labels.menu.TiemposProcesoAdquisición')}" action="#{permisosMB.irTiemposProcesoAdquisicion()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_TIEMPOS_PROCESO_ADQUISICION'] }" />
+                    <p:menuitem ajax="false" id="seguimientoPresupuesto" value="#{textMB.obtenerTexto('labels.menu.SeguimientoPresupuesto')}" action="#{permisosMB.irAConsultarEstadoInsumos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_ESTADO_INSUMOS'] }" />
+                    <p:menuitem ajax="false" id="resumenPresupuesto" value="#{textMB.obtenerTexto('labels.menu.ResumenPresupuestario')}"
+                                action="#{permisosMB.irAResumenPresupuestario()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['RESUMEN_PRESUPUESTARIO'] }" />
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.SeguimientoFinanciero')}" action="#{permisosMB.irAImportarInfCompromiso()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['IMPORTAR_INF_COMPROMISO'] }" />
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.ConsultaDatosSafi')}" action="#{permisosMB.irAConsultaDatosSafi()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_DATOS_SAFI'] }" />
+                    <p:menuitem ajax="false" id="cronogramaRecursos" value="#{textMB.obtenerTexto('labels.menu.cronogramaRecursos')}"
+                                action="#{permisosMB.irACronogramaRecursos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CRONOGRAMA_RECURSOS'] }" />
+                </p:submenu>
+                <p:submenu id="cierre" label="#{textMB.obtenerTexto('labels.menu.cierre')}" 
+                           rendered="#{permisosMB.permisos['MENU_CIERRE']}" 
+                           styleClass="glyphicon glyphicon-off ui-menuitem-icon-right open-menu"
+                           expanded="false" >
+                    <p:menuitem ajax="false" id="cierreTesoreria" value="#{textMB.obtenerTexto('labels.menu.CierreTesoreria')}" 
+                                action="#{permisosMB.irACierreTesoreria()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CIERRE_TESORERIA'] }" />
+                    <p:menuitem ajax="false" id="cierrePlanificacion" value="#{textMB.obtenerTexto('labels.menu.cierrePlanificacion')}" 
+                                action="#{permisosMB.irACierrePlanificacion()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CIERRE_PLANIFICACION'] }" />
+                    <p:menuitem ajax="false" id="cierrePresupuesto" value="#{textMB.obtenerTexto('labels.menu.cierrePresupuesto')}" 
+                                action="#{permisosMB.irACierrePresupuesto()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CIERRE_PRESUPUESTO'] }" />
+                    <p:menuitem ajax="false" id="cierreInversion" value="#{textMB.obtenerTexto('labels.menu.cierreInversion')}" 
+                                action="#{permisosMB.irACierreInversion()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CIERRE_INVERSION'] }" />
+                </p:submenu>
+
+                <!--Unidades Operativas -->
+                <p:submenu id="unidades_operativas" label="#{textMB.obtenerTexto('labels.menu.unidades_operativas')}" 
+                           rendered="#{permisosMB.permisos['MENU_UNIDADES_OPERATIVAS']}" 
+                           styleClass="glyphicon glyphicon-indent-right ui-menuitem-icon-right open-menu"
+                           expanded="false" >
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.poa')}" action="#{permisosMB.irAGestionPOA()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_SEGUIMIENTO_PLAN_OPERATIVO_ANUAL']}" styleClass="subitem ss-submenu"/>
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.seguimientopoa')}" action="#{permisosMB.irAConsultaSeguimientoPOA()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_SEGUIMIENTO_PLAN_OPERATIVO_ANUAL']}" styleClass="subitem ss-submenu"/>
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.programaciontrimestral')}" action="#{permisosMB.irAConsultaProgramacionTrimestralPOA()}" 
+                                rendered="#{permisosMB.permisos['PROGRAMACION_TRIMESTRAL_PLAN_OPERATIVO_ANUAL']}" styleClass="subitem ss-submenu"/>
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.VerMetasDeIndicadores')}" action="#{permisosMB.irAVerMetasDeIndicadoresPOA()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_METAS_DE_INDICADORES_POA'] }" />
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.VervValorestasDeIndicadores')}" action="#{permisosMB.irAVerValoresDeIndicadoresPOA()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_VALORES_DE_INDICADORES_POA'] }" />
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.MatrizDeRiesgos')}" action="#{permisosMB.irAMatrizDeRiesgosPOA()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_MATRIZ_DE_RIESGOS_POA'] }" />
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.SeguimientoIndicadores')}" action="#{permisosMB.irVerSeguimientoIndicadoresPOA()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_SEGUIMIENTO_INDICADORES_POA'] }" />
+                </p:submenu>
+                
+                <!-- Reportes  -->
+                <p:submenu id="reportes" label="#{textMB.obtenerTexto('labels.menu.reportes')}" 
+                           rendered="#{permisosMB.permisos['MENU_REPORTES']}" 
+                           styleClass="glyphicon glyphicon-eye-open ui-menuitem-icon-right open-menu"
+                           expanded="false" >
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.PlaLineasMetasIndicadores')}" action="#{permisosMB.irAPlaLineasMetasIndicadores()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_PLA_LINEAS_METAS_INDICADORES']}" styleClass="subitem ss-submenu"/>
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.LineasMetasIndicadores')}" action="#{permisosMB.irALineasMetasIndicadores()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_LINEAS_METAS_INDICADORES']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" id="reporteSeguimProyAdm" value="#{textMB.obtenerTexto('labels.menu.ReporteSeguimientoProyectoAministrativo')}" 
+                                action="#{permisosMB.irAReporteSeguimientoProyectoAdministrativo()}" rendered="#{permisosMB.permisos['VER_REPORTE_SEGUIMIENTO_PROYECTO_ADMINISTRATIVO'] }" 
+                                styleClass="ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.MatrizDeRiesgos')}" action="#{permisosMB.irAMatrizDeRiesgos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['VER_MATRIZ_DE_RIESGOS'] }" />
+
+                    <p:menuitem ajax="false" id="reportePOIAdm" value="#{textMB.obtenerTexto('labels.menu.ReportePOIProyectosAdministrativos')}" 
+                                action="#{permisosMB.irAReportePOIProyectosAdministrativos()}" 
+                                rendered="#{permisosMB.permisos['VER_REPORTE_POI_PROYECTO_ADMINISTRATIVO'] }" 
+                                styleClass="ss-submenu"/>
+                    <p:menuitem ajax="false" id="reportePOIAdmPrgInst" value="#{textMB.obtenerTexto('labels.menu.ReportePOIProyectosAdministrativosProgramaInstitucional')}" 
+                                action="#{permisosMB.irAReportePOIProyectosAdministrativosPrgInstitucional()}" 
+                                rendered="#{permisosMB.permisos['VER_REPORTE_POI_PROYECTO_ADMINISTRATIVO_PRG_INSTITUCIONAL'] }" 
+                                styleClass="ss-submenu"/>
+
+
+                    <p:menuitem ajax="false" id="reporteInsumosPAC" value="#{textMB.obtenerTexto('labels.menu.ReporteInsumosPAC')}" action="#{permisosMB.irReporteInsumosPAC()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['REPORTE_INSUMOS_PAC'] }" />
+
+                    <p:menuitem ajax="false" id="consultaEstadoInsumos" value="#{textMB.obtenerTexto('labels.menu.consultaEstadoInsumos')}" action="#{permisosMB.irAConsultarEstadoInsumos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_ESTADO_INSUMOS'] }" />
+
+                    <p:menuitem ajax="false" id="consultaPresupuesto" value="#{textMB.obtenerTexto('labels.menu.consultaPresupuesto')}" action="#{permisosMB.irAConsultaPresupuesto()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PRESUPUESTO'] }" />
+
+                    <p:menuitem ajax="false" id="seguimientoCronogramaInsumos" value="#{textMB.obtenerTexto('labels.menu.seguimientoCronogramaInsumos')}" action="#{permisosMB.irASeguimientoCronogramaInsumos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['SEGUIMIENTO_CRONOGRAMA_INSUMOS'] and false }" />
+
+                </p:submenu>
+                <!-- administracion -->   
+                <p:submenu id="administracion" label="#{textMB.obtenerTexto('labels.menu.catalogos')}" 
+                           rendered="#{permisosMB.permisos['MENU_ADMINISTRACION']}" 
+                           styleClass="glyphicon glyphicon-cog ui-menuitem-icon-right open-menu"
+                           expanded="false" >
+
+
+                    <p:menuitem ajax="false" id="actividadPOProyecto" value="#{textMB.obtenerTexto('labels.menu.actividadPOProyecto')}" action="#{permisosMB.irActividadPOProyecto()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CODIGUERA_ACTIVIDAD_PO_PROYECTO'] }" />
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.AreasInversion')}" action="#{permisosMB.irAAreasDeInversion()}" 
+                                rendered="#{permisosMB.permisos['AREAS_DE_INVERSION']}" styleClass="subitem ss-submenu"/>
+
+                <!--<p:menuitem ajax="false" id="catologoProductos" value="#{textMB.obtenerTexto('labels.menu.Productos')}" action="#{permisosMB.irCatalogoDeProductos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_CATALOGO_DE_PRODUCTOS'] }" />-->
+
+                    <!-- Se comenta porque ahora se manejan dentro del convenio -->
+                    <!--<p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.CategoriasConvenio')}" action="#{permisosMB.irACodigueraCategoriaConvenio()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_CATEGORIA_CONVENIO']}" styleClass="subitem ss-submenu"/>-->
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.configuracion')}" action="#{permisosMB.irAConfiguracion()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_CONFIGURACION']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.Convenio')}" action="#{permisosMB.irACodigueraConvenio()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_CONVENIO']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.IndicadorFormaMedicion')}" action="#{permisosMB.irACodigueraFormaMedicion()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_INDICADOR_MEDICION']}" styleClass="subitem ss-submenu"/>  
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.FuentesFinanciamiento')}" action="#{permisosMB.irACodigueraFuenteFinanciamiento()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_FUENTE_FINANCIAMIENTO']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.FuentesRecursos')}" action="#{permisosMB.irACodigueraFuenteRecurso()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_FUENTE_RECURSO']}" styleClass="subitem ss-submenu"/>                
+
+                    <p:menuitem ajax="false"  value="#{textMB.obtenerTexto('labels.menu.Impuestos')}" action="#{permisosMB.irAImpuestos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['GESTIONAR_IMPUESTOS'] }"  />
+
+                    <p:menuitem ajax="false" id="catalogoIndicadores" value="#{textMB.obtenerTexto('labels.menu.Indicadores')}" action="#{permisosMB.irACatalogoDeIndicadores()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_CATALOGO_DE_INDICADORES'] }"  />
+
+                    <p:menuitem ajax="false" id="insumos" value="#{textMB.obtenerTexto('labels.menu.Insumos')}" action="#{permisosMB.irACatalogoDeInsumos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_CATALOGO_DE_INSUMOS'] }" />
+
+                    <p:menuitem ajax="false" id="objetosEspecificosGasto" value="#{textMB.obtenerTexto('labels.menu.ObjetosEspecificosGasto')}" action="#{permisosMB.irAConsultaObjetosEspecificosGasto()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTAR_CATALOGO_OBJETOS_ESPECFICOS_GASTO'] }" />
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.MacroActividades')}" action="#{permisosMB.irACodigueraMacroActividad()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_MACRO_ACTIVIDAD']}" styleClass="subitem ss-submenu"/>     
+
+                    <p:menuitem ajax="false" id="metodosAdquisicion" value="#{textMB.obtenerTexto('labels.menu.MetodosDeAdquisicion')}" action="#{permisosMB.irMetodosAdquisicion()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_METODOS_DE_ADQUISICION'] }" />
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.Normativas')}" action="#{permisosMB.irACodigueraNormativa()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_NORMATIVA']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" id="plantillaDeInsumos" value="#{textMB.obtenerTexto('labels.menu.PlantillasDeInsumos')}" action="#{permisosMB.irConsultaPlantillaDeInsumos()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CONSULTA_PLANTILLA_DE_INSUMOS'] }" />
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.Rubros')}" action="#{permisosMB.irARubros()}" 
+                                rendered="#{permisosMB.permisos['RUBROS']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.TiposTransferencia')}" action="#{permisosMB.irATiposTransferencia()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_TIPOS_TRANSFERENCIA']}" styleClass="subitem ss-submenu"/>
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.TiposDeIndicadores')}" action="#{permisosMB.irACodigueraCategoria()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_CATEGORIA']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.tipoDocumento')}" action="#{permisosMB.irATipoDocumento()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_TIPO_DOCUEMNTO']}" styleClass="subitem ss-submenu"/>
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.TipoCredito')}" action="#{permisosMB.irATipoCredito()}" 
+                                rendered="#{permisosMB.permisos['TIPOS_DE_CREDITO']}" styleClass="subitem ss-submenu"/>
+                    
+                <!--<p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.Subrubros')}" action="#{permisosMB.irASubRubros()}" 
+                                    rendered="#{permisosMB.permisos['SUB_RUBROS']}" styleClass="subitem ss-submenu"/>-->
+                    
+                    <p:menuitem ajax="false" id="catologoUnidadsDeMedida" value="#{textMB.obtenerTexto('labels.menu.UnidadesDeMedida')}" action="#{permisosMB.irACodigueraUnidadDeMEdida()}" styleClass="ss-submenu"
+                                rendered="#{permisosMB.permisos['CODIGUERA_UNIDAD_MEDIDA'] }" />
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.Cuentas')}" action="#{permisosMB.irACuentas()}" 
+                                    rendered="#{permisosMB.permisos['CUENTAS']}" styleClass="subitem ss-submenu"/>
+                    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.unidades_tecnicas')}" action="#{permisosMB.irAGestionUnidadTecnica()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_UNIDAD_TECNICA']}" styleClass="subitem ss-submenu"/>
+                </p:submenu>
+
+                <!-- parametros -->
+                <p:submenu id="parametros" label="#{textMB.obtenerTexto('labels.menu.parametros')}" 
+                           rendered="#{permisosMB.permisos['MENU_PARAMETROS']}" 
+                           styleClass="glyphicon glyphicon-font ui-menuitem-icon-right open-menu" >
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.textos')}" action="#{permisosMB.irATextos()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_TEXTO']}" styleClass="subitem ss-submenu"/>
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.TextosDeAyuda')}" action="#{permisosMB.irATextosAyuda()}" 
+                                rendered="#{permisosMB.permisos['CODIGUERA_TEXTOS_AYUDA']}" styleClass="subitem ss-submenu"/>
+
+
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.configuracion')}" action="#{permisosMB.irAConfiguracion()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_CONFIGURACION']}" styleClass="subitem ss-submenu"/>
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.plantillasCorreo')}" action="#{permisosMB.irAPlantillasCorreo()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_PLANTILLAS_CORREO']}" styleClass="subitem ss-submenu"/>
+                </p:submenu>
+
+                <!-- seguridad -->   
+                <p:submenu id="seguridad" label="#{textMB.obtenerTexto('labels.menu.seguridad')}" 
+                           rendered="#{permisosMB.permisos['MENU_SEGURIDAD']}" 
+                           styleClass="glyphicon glyphicon-lock ui-menuitem-icon-right open-menu"
+                           expanded="false" >
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.operaciones')}" action="#{permisosMB.irAOperaciones()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_OPERACION']}" styleClass="subitem ss-submenu"/>    
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.roles')}" action="#{permisosMB.irARoles()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_ROLES']}" styleClass="subitem ss-submenu"/>       
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.usuarios')}" action="#{permisosMB.irAUsuarios()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_USUARIOS']}" styleClass="subitem ss-submenu"/>     
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.politicaContrasenia')}" action="#{permisosMB.irAPoliticaContrasenia()}" 
+                                rendered="#{permisosMB.permisos['POLITICA_CONTRASENIA']}" styleClass="subitem ss-submenu"/>     
+                    <p:menuitem ajax="false" value="#{textMB.obtenerTexto('labels.menu.logAuditoria')}" action="#{permisosMB.irALogAuditoria()}" 
+                                rendered="#{permisosMB.permisos['CONSULTA_LOG_AUDITORIA']}" styleClass="subitem ss-submenu"/>     
+
+                </p:submenu>
+
+        </p:menu>
+
+        <p:tooltip for="inicio" value="#{textMB.obtenerTexto('labels.menu.Inicio')}" />
+        <p:tooltip for="bandejaTareas" value="#{textMB.obtenerTexto('labels.menu.BandejaDeTareas')}" />
+        <p:tooltip for="planificacionEstrategicaq" value="#{textMB.obtenerTexto('labels.menu.PlanificacionEstrategica')}" />
+        <p:tooltip for="lineaEstrategica" value="#{textMB.obtenerTexto('labels.menu.LineaEstrategica')}" />
+        <p:tooltip for="programaInstitucional" value="#{textMB.obtenerTexto('labels.menu.ProgramaInstitucional')}" />
+        <p:tooltip for="programaPresupuestario" value="#{textMB.obtenerTexto('labels.menu.ProgramaPresupuestario')}" />
+        <p:tooltip for="catalogoIndicadores" value="#{textMB.obtenerTexto('labels.menu.CatalogodeIndicadores')}" />
+        <p:tooltip for="indicadoresPlanificacion" value="#{textMB.obtenerTexto('labels.menu.IndicadoresPlanificación')}" />
+        <p:tooltip for="accionCentral" value="#{textMB.obtenerTexto('labels.menu.AccionCentral')}" />
+        <p:tooltip for="administracion" value="#{textMB.obtenerTexto('labels.menu.Administración')}" />
+        <p:tooltip for="proyectos" value="#{textMB.obtenerTexto('labels.menu.Proyectos')}" />
+        <!--        <p:tooltip for="techoPresupuestarioGoes" value="Techo Presupuestario GOES" />-->
+        <p:tooltip for="insumos" value="#{textMB.obtenerTexto('labels.menu.CatalogoDeInsumos')}" />
+        <p:tooltip for="programacionPOGProyectos" value="#{textMB.obtenerTexto('labels.menu.ProgramacionPOGParaProyectos')}" />
+<!--        <p:tooltip for="catologoProductos" value="#{textMB.obtenerTexto('labels.menu.CatalogoDeProductos')}" />-->
+        <p:tooltip for="iniciarFormulacion" value="#{textMB.obtenerTexto('labels.menu.IniciarFormulaciónParaElAniooFiscal')}" />
+        <p:tooltip for="programacionPOAAccionCentral" value="#{textMB.obtenerTexto('labels.menu.ProgramacionPOAParaAccionCentral')}" />
+        <p:tooltip for="programacionPOAAsignacionNoProgramable" value="#{textMB.obtenerTexto('labels.menu.ProgramacionPOAParaAsignacionesNoProgramables')}" />
+        <p:tooltip for="consolidadoPOAporACoANP" value="#{textMB.obtenerTexto('labels.menu.ConsolidadoPOAPorAccionCentralOAsignacionNoProgramable')}" />
+        <p:tooltip for="programacionPOAProyectos" value="#{textMB.obtenerTexto('labels.menu.ProgramacionPOAParaproyectos')}" />
+        <p:tooltip for="plantillaDeInsumos" value="#{textMB.obtenerTexto('labels.menu.PlantillasDeInsumos')}" />
+        <p:tooltip for="metodosAdquisicion" value="#{textMB.obtenerTexto('labels.menu.MetodosDeAdquisición')}" />
+        <p:tooltip for="pac" value="#{textMB.obtenerTexto('labels.menu.ConsultaPAC')}" />
+        <p:tooltip for="procesoAdquisicion" value="#{textMB.obtenerTexto('labels.menu.ProcesoAdquisicion')}" />
+        <p:tooltip for="adminDecontratos" value="#{textMB.obtenerTexto('labels.menu.AdministradorDeContratos')}" />
+        <p:tooltip for="submenuPlannificacion" value="#{textMB.obtenerTexto('labels.menu.Planificacion')}" />
+        <p:tooltip for="seguridad" value="#{textMB.obtenerTexto('labels.Seguridad')}" />
+
+    </h:form>
+</ui:composition>
+

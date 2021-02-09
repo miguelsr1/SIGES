@@ -1,0 +1,306 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        #{estudiantesValidacionBean.forceInit()}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hvalidacionAcademica}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hvalidacionAcademica}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.ESTUDIANTES_VALIDACION)}" />
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+
+                <f:subview id="viewFiltroSeccion">
+                    <ui:include src="componentes/filtrosSeccion.xhtml"/>
+                </f:subview>
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_buscar_validacion_academica">
+                        <h:outputLabel value="#{msg.validadaAcademicamente}" for="buscar_validacion_academica" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="2" id="buscar_validacion_academica" value="#{estudiantesValidacionBean.filtro.matValidadaAcademicamente}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{estudiantesValidacionBean.buscar()}" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{estudiantesValidacionBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>  
+                    </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado">
+            <p:dataTable id="basicDT"
+                         widgetVar="widResultado"
+                         var="elem"
+                         rendered="#{estudiantesValidacionBean.matriculasLazyModel != null}"
+                         value="#{estudiantesValidacionBean.matriculasLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"
+                         lazy="true"
+                         rowIndexVar="rowIdx"
+                         paginator="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{estudiantesValidacionBean.paginado}"
+                         reflow="true">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{estudiantesValidacionBean.totalResultados lt (estudiantesValidacionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{estudiantesValidacionBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{msg.hnie}" sortBy="#{elem.matEstudiante.estPersona.perNie}">
+                    <h:outputText value="#{elem.matEstudiante.estPersona.perNie}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombrecompleto}">
+                    <p:outputPanel styleClass="boton-nombre-tabla">
+                        <p:commandButton icon="glyphicon glyphicon-align-justify" oncomplete="PF('itemDialogNombres').show()" update="form:itemDetail form:itemDetailNombres" id="btnNombresApellidos" action="#{estudiantesValidacionBean.actualizarMatricula(elem)}" styleClass="btn btn-icono" title="#{msg.hnombrecompleto}" />
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="perNombreCompletoUpdate nombre-tabla">
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perNombreCompleto}" />
+                    </p:outputPanel>
+
+                </p:column>
+                <p:column headerText="#{msg.hpartidaNacimiento}">
+                    <p:outputPanel styleClass="boton-nombre-tabla">
+                        <p:commandButton icon="glyphicon glyphicon-align-justify" oncomplete="PF('itemDialog').show()" update="form:itemDetail form:itemDetailNombres" id="btnPartidaNacimiento" action="#{estudiantesValidacionBean.actualizarMatriculaParaPartida(elem)}" styleClass="btn btn-icono" title="#{msg.hpartidaNacimiento}" />
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="perNombreCompletoUpdate nombre-tabla">
+                        <h:outputText value="#{elem.matEstudiante.estPersona.perPartidaNacimientoCompleta}" />
+                    </p:outputPanel>
+                </p:column>
+                <p:column headerText="#{msg.hnacionalidadSalvador}">
+                    <h:outputText value="#{elem.matEstudiante.estPersona.perEsNacionalidadSalvador}" converter="#{booleanConverter}"/>
+                </p:column>
+
+                <p:column headerText="#{msg.hsede}">
+                    <h:outputText value="#{elem.matSeccion.secServicioEducativo.sduSede.sedCodigoNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hgrado}">
+                    <h:outputText value="#{elem.matSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}" sortBy="#{elem.matSeccion.secNombre}">
+                    <h:outputText value="#{elem.matSeccion.nombreSeccion}" />
+                </p:column>
+                <p:column headerText="#{msg.hvalidada}">
+                        <h:outputText value="#{elem.matValidacionAcademica}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_ACADEMICAMENTE_MATRICULA) 
+                                                                                      or sessionBean.operaciones.contains(ConstantesOperaciones.ANULAR_VALIDACION_MATRICULA)}">
+                    <p:outputPanel styleClass="validar_buttons">
+                        <p:commandButton id="botonValidar" process="@this" icon="glyphicon glyphicon-ok"
+                                         title="#{msg.validarMatricula}"
+                                         update="form:pnlResultado"
+                                         rendered="#{!elem.matValidacionAcademica and sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_ACADEMICAMENTE_MATRICULA)}"
+                                         styleClass="btn btn-icono"
+                                         action="#{estudiantesValidacionBean.validarMatricula(elem)}"/>
+                        <p:commandButton id="botonAnular" process="@this" icon="glyphicon glyphicon-ban-circle"
+                                         title="#{msg.anularValidacionMatricula}"
+                                         update="form:pnlResultado"
+                                         rendered="#{elem.matValidacionAcademica and sessionBean.operaciones.contains(ConstantesOperaciones.ANULAR_VALIDACION_MATRICULA)}"
+                                         styleClass="btn btn-icono"
+                                         action="#{estudiantesValidacionBean.anularValidacionMatricula(elem)}"/>
+                    </p:outputPanel>
+                    <p:blockUI block="@form" trigger="botonValidar botonAnular" /> 
+                </p:column>
+
+            </p:dataTable>
+        </p:outputPanel>
+
+        <p:dialog widgetVar="itemDialog" header="#{msg.hpartidaNacimiento}" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty estudiantesValidacionBean.matriculaEdicionPartidaModificada}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel>                                               
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.numero}" for="b_numero" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_numero"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimiento}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.anio}" for="b_anio" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <p:inputNumber autocomplete="off" id="b_anio" decimalPlaces="0" thousandSeparator="" styleClass="form-control"
+                                               value="#{estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimientoAnio}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.folioPartida}" for="b_folio" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_folio"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimientoFolio}">
+                                </h:inputText>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.libroPartida}" for="b_libro" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_libro"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimientoLibro}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.complementoPartida}" for="b_complemento" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_complemento"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimientoComplemento}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.partidaDepartamento}" for="input_persona_departamento_partida" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:selectOneMenu id="input_persona_departamento_partida" styleClass="form-control texto-medio" 
+                                                 value="#{estudiantesValidacionBean.comboDepartamentoPartida.selected}">
+                                    <f:selectItems  value="#{estudiantesValidacionBean.comboDepartamentoPartida.items}" />
+                                    <p:ajax listener="#{estudiantesValidacionBean.seleccionarDepartamentoPartida(estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona)}" event="change"
+                                            process="@this" update="fila_input_persona_municipio_partida"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_persona_municipio_partida">
+                            <h:outputLabel value="#{msg.partidaMunicipio}" for="input_persona_municipio_partida" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:selectOneMenu id="input_persona_municipio_partida" styleClass="form-control texto-medio" disabled="#{estudiantesValidacionBean.comboDepartamentoPartida.selectedT == null}"
+                                                 value="#{estudiantesValidacionBean.comboMunicipioPartida.selected}">
+                                    <f:selectItems  value="#{estudiantesValidacionBean.comboMunicipioPartida.items}" />
+                                    <p:ajax listener="#{estudiantesValidacionBean.seleccionarMunicipioPartida(estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona)}" event="change" process="@this"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="offset-sm-5">
+                                <p:commandButton value="#{msg.hverPartida}" ajax="false" onclick="this.form.target = '_blank';" rendered="#{estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimientoArchivo != null}" styleClass="btn btn-link">
+                                    <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(estudiantesValidacionBean.matriculaEdicionPartidaModificada.matEstudiante.estPersona.perPartidaNacimientoArchivo)}" />
+                                </p:commandButton>  
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.aceptar}" oncomplete="PF('itemDialog').hide();" action="#{estudiantesValidacionBean.aceptarModificacionPartida()}" update="@(.perNombreCompletoUpdate)" styleClass="btn btn-primary"/>             
+                            </p:outputPanel>                    
+                        </p:outputPanel>                         
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>     
+
+
+        <p:dialog widgetVar="itemDialogNombres" header="#{msg.hnombrecompleto}" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailNombres">                                                             
+                <h:panelGroup rendered="#{not empty estudiantesValidacionBean.matriculaEdicionNombreModificada}"  >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel>                                               
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.primerNombre}" for="b_primerNombre" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_primerNombre"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionNombreModificada.matEstudiante.estPersona.perPrimerNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.segundoNombre}" for="b_segundoNombre" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_segundoNombre"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionNombreModificada.matEstudiante.estPersona.perSegundoNombre}">
+                                </h:inputText>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.tercerNombre}" for="b_tercerNombre" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_tercerNombre"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionNombreModificada.matEstudiante.estPersona.perTercerNombre}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.primerApellido}" for="b_primerApellido" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_primerApellido"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionNombreModificada.matEstudiante.estPersona.perPrimerApellido}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.segundoApellido}" for="b_segundoApellido" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_segundoApellido"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionNombreModificada.matEstudiante.estPersona.perSegundoApellido}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.tercerApellido}" for="b_tercerApellido" styleClass="col-sm-5 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_tercerApellido"
+                                             value="#{estudiantesValidacionBean.matriculaEdicionNombreModificada.matEstudiante.estPersona.perTercerApellido}" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.aceptar}" oncomplete="PF('itemDialogNombres').hide();" action="#{estudiantesValidacionBean.aceptarModificacionNombres()}" update="@(.perNombreCompletoUpdate)" styleClass="btn btn-primary"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>                         
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>     
+
+    </h:form>
+</ui:composition>

@@ -1,0 +1,162 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        #{promocionesBean.forceInit()}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionPromociones}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionPromociones}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.PROMOCION}" title="#{msg.nuevoPromocion}"
+                        styleClass="btn btn-secondary"
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CALIFICACIONES)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoPromocion}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.PROMOCIONES)}" />
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <f:subview id="viewFiltroSeccion">
+                    <ui:include src="componentes/filtrosSeccion.xhtml" />
+                </f:subview>  
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary"
+                                             icon="glyphicon glyphicon-search" action="#{promocionesBean.buscar()}"
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{promocionesBean.limpiar()}"
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:blockUI block="@form" trigger="btnBuscar"/>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"
+                         widgetVar="widResultado"
+                         var="elem"
+                         rendered="#{promocionesBean.calificacionEstudianteLazyModel != null}"
+                         value="#{promocionesBean.calificacionEstudianteLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="calPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{promocionesBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{promocionesBean.totalResultados lt (promocionesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{promocionesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="seccionesCalificadas" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hdepartamento}" sortBy="#{elem.calSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}">
+                    <h:outputText value="#{elem.calSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hmunicipio}" sortBy="#{elem.calSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}">
+                    <h:outputText value="#{elem.calSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hsede}" sortBy="#{elem.calSeccion.secServicioEducativo.sduSede.sedNombre}">
+                    <h:outputText value="#{elem.calSeccion.secServicioEducativo.sduSede.sedCodigoNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hgrado}" sortBy="#{elem.calSeccion.secServicioEducativo.sduGrado.graNombre}">
+                    <h:outputText value="#{elem.calSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hopcion}" sortBy="#{elem.calSeccion.secServicioEducativo.sduOpcion.opcNombre}"  >
+                    <h:outputText value="#{elem.calSeccion.secServicioEducativo.sduOpcion.opcNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}" sortBy="#{elem.calSeccion.secNombre}">
+                    <h:outputText value="#{elem.calSeccion.secNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hestado}" >
+                    <h:outputText value="#{promocionesBean.obtenerEstado(elem)}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.calUltModFecha}">
+                    <h:outputText value="#{elem.calUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.PROMOCION}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.calPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CALIFICACIONES)}">
+                    <p:link outcome="#{ConstantesPaginas.PROMOCION}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.calPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()"
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono"
+                                     title="#{msg.historial}" action="#{promocionesBean.historial(elem.calPk)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup>
+
+        <p:dialog header="#{msg.historialCalificacionEstudiante}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{promocionesBean.historialCalificacionEstudiante}" />
+            </ui:include>
+        </p:dialog>
+    </h:form>
+</ui:composition>

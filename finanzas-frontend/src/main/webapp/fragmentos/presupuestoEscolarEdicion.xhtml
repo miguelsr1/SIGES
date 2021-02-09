@@ -1,0 +1,555 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://xmlns.jcp.org/jsp/jstl/core" xmlns:f="http://xmlns.jcp.org/jsf/core" xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumMovimientosTipo" />
+    <h:form id="form">
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active"><a href="#{ConstantesPaginas.PRESUPUESTOS_ESCOLARES}.xhtml">#{msg.gestionPresupuestoEscolar}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{presupuestoEscolarEdicionBean.tituloPagina}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header">
+                <h:outputText value="#{presupuestoEscolarEdicionBean.tituloPagina}" />
+            </h2>
+            <p:outputPanel styleClass="float-right">
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <p:outputPanel id="presupuestoEscPanel">
+            <p:outputPanel>
+                <p:fieldset id="datos" legend="#{msg.datosgenerales}">
+                    <h:panelGroup rendered="#{not empty presupuestoEscolarEdicionBean.entidadEnEdicion}">
+                        <p:outputPanel id="formularioPresupuestoEscolar">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete_b">
+                                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_b" styleClass="col-sm-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:autoComplete id="input_sede_autocomplete_b" 
+                                                    styleClass="form-control" 
+                                                    value="#{presupuestoEscolarEdicionBean.sedeSeleccionada}" 
+                                                    completeMethod="#{presupuestoEscolarEdicionBean.completeSede}" 
+                                                    var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                                    itemValue="#{sed}"
+                                                    widgetVar="b_inst_resp_autocomplete" 
+                                                    forceSelection="true" maxResults="10" 
+                                                    queryDelay="500" 
+                                                    multiple="false" 
+                                                    converter="#{sedesConverter}" 
+                                                    disabled="#{presupuestoEscolarEdicionBean.soloLectura or presupuestoEscolarEdicionBean.controlInput}"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}">
+                                    </p:autoComplete>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_anio_fisc">
+                                <h:outputLabel value="#{msg.aniofiscal}" for="input_anio_fiscal" styleClass="col-sm-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-2">
+                                    <p:outputPanel styleClass="col-sm-12"  >
+                                        <h:selectOneMenu id="input_anio_fiscal" value="#{presupuestoEscolarEdicionBean.anioFiscalCombo.selected}" styleClass="form-control texto-medio" 
+                                                         disabled="#{presupuestoEscolarEdicionBean.soloLectura or presupuestoEscolarEdicionBean.controlInput}">
+                                            <f:selectItems value="#{presupuestoEscolarEdicionBean.anioFiscalCombo.items}" />                                        
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-sm-2">
+                                    <p:outputPanel styleClass="col-sm-12"  >
+                                        <p:link outcome="#{ConstantesPaginas.PLAN_ESCOLAR_ANUAL}" 
+                                                id="btn_reporte"
+                                                href="#{applicationBean.centrosEducativosUrl}#{ConstantesPaginas.PLAN_ESCOLAR_ANUAL}?id=#{presupuestoEscolarEdicionBean.peaId}&amp;edit=false" title="#{msg.pea}" 
+                                                target="_blank"                        
+                                                styleClass="btn btn-primary">
+                                            <h:outputText value="#{msg.pea}" />                                    
+                                        </p:link>                                        
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>  
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_codigo">
+                                <h:outputLabel value="#{msg.codigo}" for="input_codigo" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:inputText autocomplete="off" id="input_codigo" styleClass="form-control" value="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesCodigo}" 
+                                                 disabled="#{presupuestoEscolarEdicionBean.soloLectura or presupuestoEscolarEdicionBean.controlInput}">
+                                    </h:inputText>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                                <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"  />
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesNombre}" 
+                                                 disabled="#{presupuestoEscolarEdicionBean.soloLectura or presupuestoEscolarEdicionBean.controlInput}">
+                                    </h:inputText>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">
+                                <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" styleClass="col-sm-4 col-md-3 col-form-label" />
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:inputTextarea id="input_descripcion" styleClass="form-control" value="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesDescripcion}" 
+                                                     disabled="#{presupuestoEscolarEdicionBean.soloLectura or presupuestoEscolarEdicionBean.controlInput}">
+                                    </h:inputTextarea>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row">
+                                <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-md-3 col-form-label  " />
+                                <div class="col-sm-8 col-md-9">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesHabilitado}" 
+                                                                 disabled="#{presupuestoEscolarEdicionBean.soloLectura or presupuestoEscolarEdicionBean.controlInput}">
+                                        </h:selectBooleanCheckbox>
+                                        <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}" />
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_output_estado">
+                                <h:outputLabel value="#{msg.estado}" for="output_estado" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:outputText id="output_estado" value="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado.text}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+                    <div class="form-action-buttons">                       
+                        <p:commandButton value="#{msg.confirmarEdicion}" 
+                                         id="btnConfirmarEdicion" 
+                                         styleClass="btn btn-secondary" 
+                                         rendered="#{presupuestoEscolarEdicionBean.botonEdicion and (sessionBean.operaciones.contains(ConstantesOperaciones.CAMBIAR_PRESUPUESTO_ESTADO_APROBADO_MODIFICADO))}" 
+                                         update="@form" 
+                                         action="#{presupuestoEscolarEdicionBean.confirmarEdicion()}" 
+                                         disabled="#{presupuestoEscolarEdicionBean.soloLectura}"/>
+
+                    </div>
+                </p:fieldset>
+            </p:outputPanel>
+        </p:outputPanel>
+        <p:outputPanel id="movimientos">
+            <p:fieldset id="fieldingresos" rendered="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesPk!=null}" legend="#{msg.hingresos}">
+                <h:panelGroup rendered="#{not empty presupuestoEscolarEdicionBean.entidadEnEdicion}">
+                    <p:fieldset id="transferencias" rendered="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesPk!=null}" legend="#{msg.htransferencias}">
+                        <p:outputPanel id="pnlResultadoTransferencias">
+                            <p:dataTable id="basicDTtransferencias" widgetVar="widResultadoTransferencias" var="elem" value="#{presupuestoEscolarEdicionBean.transferenciaList}" emptyMessage="#{msg.noHayResultados}" sortField="movPk">
+                                <f:facet name="header">
+                                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                        <p:outputPanel styleClass="col-md-6">
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                    <p:dataExporter type="csv" target="basicDTtransferencias" fileName="PresupuestoEscolarTransferencias" pageOnly="false" />
+                                                </h:commandLink>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </f:facet>
+                                <p:column headerText="#{msg.hNmovimiento}" sortBy="#{elem.movNumMoviento}" style="width:5%">
+                                    <h:outputText value="#{elem.movNumMoviento}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hComponente}">
+                                    <h:outputText value="#{elem.movTechoPresupuestal.subComponente.gesCategoriaComponente.cpeNombre}"/> 
+                                </p:column>
+                                <p:column headerText="#{msg.hSubcomponente}">
+                                    <h:outputText value="#{elem.movTechoPresupuestal.subComponente.gesNombre}"/>
+                                </p:column>                                        
+                                <p:column id="upes" >
+                                    <f:facet name="header">
+                                        <h:outputText value="#{msg.hUnidadPresupuestaria}"/>
+                                        <p:tooltip position="top" value="#{msg.hUnidadPresupuestariaTooltip}" for="upes" />
+                                    </f:facet> 
+                                    <h:outputText value="#{elem.movTechoPresupuestal.subCuenta.cuCuentaPadre.cuNombre}" />
+                                </p:column> 
+                                <p:column id="lpes" >
+                                    <f:facet name="header">
+                                        <h:outputText value="#{msg.hLineaPresupuestaria}"/>
+                                        <p:tooltip position="top" value="#{msg.hLineaPresupuestariaTooltip}" for="lpes" />
+                                    </f:facet> 
+                                    <h:outputText value="#{elem.movTechoPresupuestal.subCuenta.cuNombre}" />
+                                </p:column> 
+                                <p:column headerText="#{msg.hMonto}" styleClass="derecha columnaAmarilla">
+                                    <h:outputText value="#{elem.movMonto}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{presupuestoEscolarEdicionBean.totalt}" styleClass="columna-derecha  ">
+                                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                        </h:outputText>
+                                    </f:facet>
+                                </p:column>
+                                <p:column headerText="#{msg.hMontoAprobado}" styleClass="derecha columnaVerde">
+                                    <h:outputText value="#{elem.movMontoAprobado}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{presupuestoEscolarEdicionBean.totalTAprobado}" styleClass="columna-derecha  ">
+                                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                        </h:outputText>
+                                    </f:facet>
+                                </p:column>
+                                <p:column headerText="#{msg.hEgresosFormulado}"  styleClass="align-right">
+                                    <h:outputText value="#{elem.saldoEgresos}" style="#{elem.saldoEgresos lt 0 ? 'color:red': ''}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="#{msg.hEgresosAprobado}"  styleClass="align-right" >
+                                    <h:outputText value="#{elem.saldoEgresosAprobado}" style="#{elem.saldoEgresosAprobado lt 0 ? 'color:red': ''}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                </p:column>  
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:fieldset>
+                </h:panelGroup>
+                <h:panelGroup rendered="#{not empty presupuestoEscolarEdicionBean.entidadEnEdicion}">
+                    <p:fieldset id="otrosingresos" rendered="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesPk!=null}" legend="#{msg.hotrosIngresos}">
+                        <div class="form-action-buttons">
+                            <p:commandButton value="#{msg.agregarIngreso}" 
+                                             icon="glyphicon glyphicon-plus" 
+                                             styleClass="btn btn-secondary" 
+                                             update="@form" 
+                                             oncomplete="PF('itemDialogEgresos').show()" 
+                                             action="#{presupuestoEscolarEdicionBean.agregarIngreso()}" 
+                                             rendered="#{!presupuestoEscolarEdicionBean.permiteEdicion}"                                                  
+                                             />
+                        </div>
+                        <p:outputPanel id="pnlResultadoIngresos">
+                            <p:dataTable id="basicDTingresos" 
+                                         widgetVar="widResultadoIngresos" 
+                                         var="elem" 
+                                         value="#{presupuestoEscolarEdicionBean.ingresosList}" 
+                                         emptyMessage="#{msg.noHayResultados}" 
+                                         paginator="true"
+                                         lazy="true"
+                                         paginatorPosition="bottom"
+                                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                         rows="#{presupuestoEscolarEdicionBean.paginado}"
+                                         reflow="true"
+                                         sortField="movPk">
+                                   <f:facet name="{anterior}">
+                                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                                </f:facet>
+                                <f:facet name="{siguiente}">
+                                    <h:outputText styleClass="#{presupuestoEscolarEdicionBean.ingresosList.size() lt (presupuestoEscolarEdicionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                                </f:facet>
+                                <f:facet name="header">
+                                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{presupuestoEscolarEdicionBean.ingresosList.size()} #{msg.elementos}" /></h3>
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                    <p:dataExporter type="csv" target="basicDTingresos" fileName="PresupuestoEscolarEgresos" pageOnly="false" />
+                                                </h:commandLink>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </f:facet>
+                                <p:column headerText="#{msg.hNmovimiento}" sortBy="#{elem.movNumMoviento}" style="width:5%">
+                                    <h:outputText value="#{elem.movNumMoviento}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hRubro}">
+                                    <h:outputText value="#{elem.movRubroPk.ruNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hDescripcion}">
+                                    <h:outputText value="#{elem.movFuenteRecursos}" />
+                                </p:column>
+                                <p:column headerText="#{msg.monto}" styleClass="columnaAmarilla">
+                                    <h:outputText value="#{elem.movMonto}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{presupuestoEscolarEdicionBean.totali}" styleClass="align-right">
+                                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                        </h:outputText>
+                                    </f:facet>
+                                </p:column>
+                                <p:column headerText="#{msg.hEgresosPlanificado}" styleClass="align-right">
+                                    <h:outputText value="#{elem.saldoEgresos}" styleClass="columna-derecha  " style="#{elem.saldoEgresos lt 0 ? 'color:red': ''}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false">
+                                    <p:commandButton update=":form:itemDetailEgresosDet form:confirmDialogAnul"                                                              
+                                                     icon="#{presupuestoEscolarEdicionBean.validarIngreso(elem) ?  'glyphicon glyphicon-pencil' : 'glyphicon glyphicon-ban-circle'}"
+                                                     styleClass="btn btn-icono"  
+                                                     title="#{presupuestoEscolarEdicionBean.titleEdicion}"
+                                                     action="#{presupuestoEscolarEdicionBean.editarIngreso(elem)}"
+                                                     rendered="#{!presupuestoEscolarEdicionBean.permiteEdicion}"                                                             
+                                                     />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false">
+                                    <p:commandButton oncomplete="PF('confirmDialog').show()" 
+                                                     update="form:confirmDialog"
+                                                     icon="glyphicon glyphicon-trash " 
+                                                     styleClass="btn btn-icono rojo" 
+                                                     title="#{msg.eliminar}" 
+                                                     action="#{presupuestoEscolarEdicionBean.prepararEliminarMovimiento(elem)}"
+                                                     rendered="#{!(elem.movAnulacion != null and elem.movAnulacion == true and elem.movTipo eq EnumMovimientosTipo.I) and !presupuestoEscolarEdicionBean.permiteEdicion}"
+                                                     />
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:fieldset>
+                </h:panelGroup>
+                <p:outputPanel styleClass="form-group  col-sm-12">
+                    <p:outputPanel>
+                        <h:outputLabel value="#{msg.htotalIngreososFromulado}: " for="output_total_i" styleClass="col-sm-9  col-form-label negrita" />
+                        <h:outputText id="output_total_i" value="#{presupuestoEscolarEdicionBean.total_it}">
+                            <f:convertNumber locale="#{presupuestoEscolarEdicionBean.locale}" pattern="#{applicationBean.formatValoresDecimales}" />
+                        </h:outputText>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group  col-sm-12">
+                    <p:outputPanel>
+                        <h:outputLabel value="#{msg.htotalIngreososAprobado}: " for="output_total_ia" styleClass="col-sm-9  col-form-label negrita" />
+                        <h:outputText id="output_total_ia" value="#{presupuestoEscolarEdicionBean.total_ita}">
+                            <f:convertNumber locale="#{presupuestoEscolarEdicionBean.locale}" pattern="#{applicationBean.formatValoresDecimales}" />
+                        </h:outputText>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+            </p:fieldset>
+            <p:outputPanel id="egresos">                
+                <h:panelGroup rendered="#{not empty presupuestoEscolarEdicionBean.entidadEnEdicion}">
+                    <p:fieldset id="fieldegreso" rendered="#{presupuestoEscolarEdicionBean.entidadEnEdicion.pesPk!=null}" legend="#{msg.hegresos}">
+                        <div class="form-action-buttons">
+                            <p:commandButton value="#{msg.agregarEgreso}" 
+                                             icon="glyphicon glyphicon-plus" 
+                                             styleClass="btn btn-secondary" 
+                                             update="@form" 
+                                             oncomplete="PF('itemDialogEgresos').show()" 
+                                             action="#{presupuestoEscolarEdicionBean.agregarEgreso()}"
+                                             rendered="#{!presupuestoEscolarEdicionBean.permiteEdicion}"
+                                             />
+                        </div>
+                        <p:outputPanel id="pnlResultadoEgresos">
+                            <p:dataTable id="basicDTegresos" 
+                                         widgetVar="widResultado" 
+                                         var="elemI" 
+                                         value="#{presupuestoEscolarEdicionBean.egresosList}" 
+                                         emptyMessage="#{msg.noHayResultados}"
+                                         paginator="true"
+                                         lazy="true"
+                                         paginatorPosition="bottom"
+                                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                         rows="#{presupuestoEscolarEdicionBean.paginado}"
+                                         reflow="true"
+                                         sortField="movPk">
+                                <f:facet name="{anterior}">
+                                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                                </f:facet>
+                                <f:facet name="{siguiente}">
+                                    <h:outputText styleClass="#{presupuestoEscolarEdicionBean.egresosList.size() lt (presupuestoEscolarEdicionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                                </f:facet>
+                                <f:facet name="header">
+                                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                     <p:outputPanel styleClass="col-md-6">
+                                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{presupuestoEscolarEdicionBean.egresosList.size()} #{msg.elementos}" /></h3>
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                    <p:dataExporter type="csv" target="basicDTegresos" fileName="PresupuestoEscolarEgresos" pageOnly="false" />
+                                                </h:commandLink>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </f:facet>
+                                <p:column headerText="#{msg.hActividad}">
+                                    <h:outputText value="#{elemI.movActividadPk.dpeActividad}" escape="false" />
+                                </p:column>
+                                <p:column headerText="#{msg.hDescripcion}">
+                                    <h:outputText value="#{elemI.movFuenteRecursos}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hAreaInversion}">
+                                    <h:outputText value="#{elemI.movAreaInversionPk.adiNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hSubareaDeInversion}">
+                                    <h:outputText value="#{elemI.movSubAreaInversionPk.adiNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hMonto}" styleClass="columnaAmarilla">
+                                    <h:outputText value="#{elemI.movMonto}" styleClass="columna-derecha ">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                    <f:facet name="footer">
+                                        <p:outputPanel style="width:100%" styleClass="columna-derecha  ">
+                                            <h:outputText value="#{presupuestoEscolarEdicionBean.totale}" styleClass="columna-derecha  " style="width:100%;color:red;font-weight: bold">
+                                                <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                            </h:outputText>
+                                        </p:outputPanel>
+                                    </f:facet>
+                                </p:column>
+                                <p:column headerText="#{msg.hMontoAprobado}" styleClass="columnaVerde">
+                                    <h:outputText value="#{elemI.movMontoAprobado}" styleClass="columna-derecha ">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                    </h:outputText>
+                                    <f:facet name="footer">
+                                        <p:outputPanel style="width:100%" styleClass="columna-derecha  ">
+                                            <h:outputText value="#{presupuestoEscolarEdicionBean.totalEAprobado}" styleClass="columna-derecha  " style="width:100%;color:red;font-weight: bold">
+                                                <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarEdicionBean.locale}" />
+                                            </h:outputText>
+                                        </p:outputPanel>
+                                    </f:facet>
+                                </p:column>
+                                 <p:column headerText="#{msg.hNmovimiento}" style="width:5%" styleClass="columna-derecha ">
+                                                <h:outputText value="#{elemI.movFuenteIngresos.movNumMoviento}" styleClass="columna-derecha " title="Componente-Subcomponente" />
+                                                <h:outputText value="#{elemI.movFuenteIngresosOriginal.movNumMoviento}" styleClass="columna-derecha " title="Componente-Subcomponente" />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false">
+                                    <p:commandButton update=":form:itemDetailEgresosDet" 
+                                                     oncomplete="PF('itemDialogEgresos').show()" 
+                                                     icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{msg.editar}" 
+                                                     action="#{presupuestoEscolarEdicionBean.editarEgreso(elemI)}"
+                                                     rendered="#{!presupuestoEscolarEdicionBean.permiteEdicion}"/>
+                                </p:column>
+
+                                <p:column styleClass="columnaAcciones" exportable="false">
+                                    <p:commandButton oncomplete="PF('confirmDialog').show()"                                                                  
+                                                     update="form:confirmDialog"
+                                                     icon="glyphicon glyphicon-trash "                                                                  
+                                                     styleClass="btn btn-icono rojo" 
+                                                     title="#{msg.eliminar}" 
+                                                     action="#{presupuestoEscolarEdicionBean.prepararEliminarMovimiento(elemI)}" 
+                                                     rendered="#{!(elemI.movAnulacion != null and elemI.movTipo eq EnumMovimientosTipo.E) and !presupuestoEscolarEdicionBean.permiteEdicion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:fieldset>
+                </h:panelGroup>                
+            </p:outputPanel>
+        </p:outputPanel> 
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+        <p:dialog header="#{presupuestoEscolarEdicionBean.leyendaTitulo}" id="itemDetailEgresos" widgetVar="itemDialogEgresos" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetailEgresosDet">
+                <h:panelGroup rendered="#{not empty presupuestoEscolarEdicionBean.movimientoEnEdicion}">
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true" autoUpdate="true"/>
+                    <p:outputPanel id="formularioPresuEgreso">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_actividad_mov" 
+                                       rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgreso()}">
+                            <h:outputLabel value="#{msg.actividad}" for="select_actividad" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:selectOneMenu id="select_actividad" value="#{presupuestoEscolarEdicionBean.detPlanEscolarCombo.selected}" styleClass="form-control texto-medio" disabled="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movPk!=null and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE'}" >
+                                    <f:selectItems value="#{presupuestoEscolarEdicionBean.detPlanEscolarCombo.items}"   />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_select_rubro" 
+                                       rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isIngresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isIngreso()}">
+                            <h:outputLabel value="#{msg.rubro}" for="select_rubro" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:selectOneMenu id="select_rubro" value="#{presupuestoEscolarEdicionBean.rubrosCombo.selected}" styleClass="form-control texto-medio col-sm-8 col-md-9" disabled="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movPk!=null and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE'}">
+                                    <f:selectItems value="#{presupuestoEscolarEdicionBean.rubrosCombo.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_egreso">
+                            <h:outputLabel value="#{msg.descripcion}" for="input_nombre_egreso" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" id="input_nombre_egreso" styleClass="form-control texto-medio col-sm-8 col-md-9" value="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movFuenteRecursos}" disabled="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movPk!=null and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE'}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_ingreso_mov" 
+                                       rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgreso()}">
+                            <h:outputLabel value="#{msg.fuenteIngreso}" for="select_ingreso" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:selectOneMenu id="select_ingreso" value="#{presupuestoEscolarEdicionBean.fuenteIngresoCombo.selected}" styleClass="form-control texto-medio col-sm-8 col-md-9 obligatorio" disabled="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movPk!=null and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE'}" >
+                                    <f:selectItems value="#{presupuestoEscolarEdicionBean.fuenteIngresoCombo.items}" var="movB" itemLabel="#{movB.movCodigoTipo}" itemValue="#{movB}" />
+                                    <p:ajax listener="#{presupuestoEscolarEdicionBean.isTrasferencia()}"  event="change" process="@this" update="fila_input_areaInversion_mov select_sub_area_inversion"  />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_areaInversion_mov" 
+                                       rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgreso()}">
+                            <h:outputLabel value="#{msg.areaInversionPes}" for="select_areaIngreso" styleClass="col-sm-4 col-md-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <p:autoComplete id="select_areaIngreso" 
+                                                styleClass="form-control texto-medio col-sm-8 col-md-9" 
+                                                disabled="#{presupuestoEscolarEdicionBean.transferencia or (presupuestoEscolarEdicionBean.movimientoEnEdicion.movPk!=null and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE')}"
+                                                value="#{presupuestoEscolarEdicionBean.areaInversionSeleccionada}" 
+                                                completeMethod="#{presupuestoEscolarEdicionBean.completeAreaInversion}" 
+                                                var="adi" itemLabel="#{adi.adiNombre}" 
+                                                itemValue="#{adi}" 
+                                                widgetVar="select_areaIngreso"
+                                                forceSelection="true" 
+                                                maxResults="10" 
+                                                queryDelay="500" 
+                                                multiple="false"
+                                                dropdown="true" 
+                                                converter="#{areasConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax listener="#{presupuestoEscolarEdicionBean.cargarComboSubAreaInversion()}"  event="itemSelect" process="@this" update="fila_select_sub_area_inversion" />
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_select_sub_area_inversion" 
+                                       rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgreso()}" >
+                            <h:outputLabel value="#{msg.subAreaDeInversion}" for="select_sub_area_inversion" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <p:autoComplete id="select_sub_area_inversion" styleClass="form-control texto-medio col-sm-8 col-md-9" 
+                                                value="#{presupuestoEscolarEdicionBean.subAreaInversionSeleccionada}" 
+                                                completeMethod="#{presupuestoEscolarEdicionBean.completeSubAreaInversion}" 
+                                                var="adi" itemLabel="#{adi.adiNombre}" 
+                                                itemValue="#{adi}" 
+                                                widgetVar="select_subAreaIngreso"
+                                                forceSelection="true" 
+                                                maxResults="10" 
+                                                queryDelay="500" 
+                                                multiple="false"
+                                                dropdown="true" 
+                                                converter="#{areasConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                disabled="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movPk!=null and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE'}">                                    
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_descripcion_egreso" rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isIngresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isIngreso()}">
+                            <h:outputLabel value="#{msg.monto}" for="input_descripcion_egreso" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <p:inputNumber styleClass="form-control texto-corto" minValue="0" id="input_descripcion_egreso" value="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movMonto}" disabled="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgresoEdicion() and presupuestoEscolarEdicionBean.entidadEnEdicion.pesEstado eq 'EN_AJUSTE'}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_egreso_aprobado" rendered="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgresoEdicion() or presupuestoEscolarEdicionBean.movimientoEnEdicion.isEgreso()}">                                       
+                            <h:outputLabel value="#{msg.montoAprobado}" for="input_egreso_aprobado" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <p:inputNumber styleClass="form-control texto-corto" minValue="0" id="input_egreso_aprobado" value="#{presupuestoEscolarEdicionBean.movimientoEnEdicion.movMontoAprobado}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="control-group">
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarEgreso" value="#{msg.guardar}" action="#{presupuestoEscolarEdicionBean.guardarMovimiento()}" update=":form:itemDetailEgresosDet :form:egresos :form:movimientos" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogEgresos').hide();" update="@form" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:blockUI block="@form" trigger="btnGuardarEgreso" />
+                        <p:defaultCommand target="btnGuardarEgreso" scope="itemDetailEgresos" />
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:dialog>
+        <p:confirmDialog id="confirmDialog" message="#{presupuestoEscolarEdicionBean.textoConfirmacionEliminacion}" header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer">
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form" oncomplete="PF('confirmDialog').hide()" styleClass="btn btn-primary" action="#{presupuestoEscolarEdicionBean.eliminarMovimiento()}" />
+                <p:blockUI block="@form" trigger="confirmDelete" />
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}" update="@form" onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>  
+        <p:confirmDialog id="confirmDialogAnul" message="#{presupuestoEscolarEdicionBean.textoConfirmacionAnulacion}" header="#{msg.confirmacionAnulacion}" severity="alert" widgetVar="confirmDialogAnul">
+            <p:outputPanel styleClass="panelBotonesDer">
+                <p:commandButton id="confirmAnular" value="#{msg.anular}" update="@form" oncomplete="PF('confirmDialogAnul').hide()" styleClass="btn btn-primary" action="#{presupuestoEscolarEdicionBean.eliminarMovimiento()}" />
+                <p:blockUI block="@form" trigger="confirmDelete" />
+                <p:commandLink id="cancelarAnular" value="#{msg.cancelar}" update="@form" onclick="PF('confirmDialogAnul').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+    </h:form>
+</ui:composition>

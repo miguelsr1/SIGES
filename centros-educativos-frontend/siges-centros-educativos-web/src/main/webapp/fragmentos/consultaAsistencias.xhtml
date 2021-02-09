@@ -1,0 +1,249 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hconsultaAsistencias}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hconsultaAsistencias}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CONSULTA_ASISTENCIAS_SEDE)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete"
+                                            styleClass="form-control texto-medio"
+                                            value="#{consultaAsistenciasBean.sedeSeleccionada}"
+                                                completeMethod="#{consultaAsistenciasBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}">
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.niveles}" for="filtro_nivel" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_nivel" value="#{consultaAsistenciasBean.comboNiveles.selected}" 
+                                             styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{consultaAsistenciasBean.comboNiveles.items}" />                   
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                        <h:outputLabel value="#{msg.departamento}" for="b_departamento" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu   id="b_departamento" value="#{consultaAsistenciasBean.comboDepartamentos.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{consultaAsistenciasBean.comboDepartamentos.items}" />
+                                <p:ajax listener="#{consultaAsistenciasBean.seleccionarDepartamento}" event="change" 
+                                        process="@this" update="fila_input_municipio"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_municipio">
+                        <h:outputLabel value="#{msg.municipio}" for="b_municipio" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu   id="b_municipio" value="#{consultaAsistenciasBean.comboMunicipios.selected}" disabled="#{consultaAsistenciasBean.comboDepartamentos.selectedT == null}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{consultaAsistenciasBean.comboMunicipios.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo_nacional">
+                        <h:outputLabel value="#{msg.anioLectivoNacional}" for="input_anio_lectivo_nacional" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_anio_lectivo_nacional" value="#{consultaAsistenciasBean.comboAniosCalendarioNacional.selected}"  
+                                             styleClass="form-control texto-medio" >
+                                <f:selectItems value="#{consultaAsistenciasBean.comboAniosCalendarioNacional.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo_internacional">
+                        <h:outputLabel value="#{msg.anioLectivoInternacional}" for="input_anio_lectivo_internacional" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_anio_lectivo_internacional" value="#{consultaAsistenciasBean.comboAniosCalendarioInternacional.selected}"  
+                                             styleClass="form-control texto-medio" >
+                                <f:selectItems value="#{consultaAsistenciasBean.comboAniosCalendarioInternacional.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputText value="#{msg.ver}:" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{consultaAsistenciasBean.soloAsistencias}">
+                                <f:selectItems value="#{applicationBean.asistenciasInasistenciasValues}" />
+                                <f:selectItem itemValue="#{null}" itemLabel="Ambas"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_SEDES_INCLUIR_ADSCRITAS)}">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputText value="#{msg.incluirSedesAdscritas}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="input_inc_adsc" styleClass="form-check-input" value="#{consultaAsistenciasBean.filtro.incluirAdscritas}" />
+                                <h:outputLabel for="input_inc_adsc" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="#{!sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_SEDES_INCLUIR_ADSCRITAS)}"/>
+                <p:outputPanel styleClass="col-md-6"/>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="col-sm-12 texto-right">
+                        <p:commandButton value="#{msg.generar}" id="btnGenerar" styleClass="btn btn-primary" action="#{consultaAsistenciasBean.generar()}" update="pnlResultado"/>
+                        <p:commandLink value="#{msg.limpiar}" action="#{consultaAsistenciasBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                            <p:resetInput target="pnlSearch pnlResultado" />
+                        </p:commandLink>
+                        <p:blockUI block="@form" trigger="btnGenerar" />  
+                        <p:defaultCommand target="btnGenerar" scope="pnlSearch"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>	
+
+
+
+
+
+        <p:outputPanel id="pnlResultado">
+
+
+            <p:dataTable id="crossDT"                           
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{consultaAsistenciasBean.consultaAsistenciasSedeEnNivelLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"
+                         rendered="#{consultaAsistenciasBean.consultaAsistenciasSedeEnNivelLazyModel != null}"
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="5,10,20"
+                         rows="#{consultaAsistenciasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{consultaAsistenciasBean.totalResultados lt (consultaAsistenciasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{consultaAsistenciasBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar" rendered="#{consultaAsistenciasBean.sedeSeleccionada != null or consultaAsistenciasBean.comboDepartamentos.selectedT!=null}">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="crossDT" fileName="asistenciasCalendarioActivo" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hdepartamento}">
+                    <h:outputText value="#{elem.departamento}" />
+                </p:column>
+                <p:column headerText="#{msg.hmunicipio}">
+                    <h:outputText value="#{elem.municipio}" />
+                </p:column>
+                <p:column headerText="#{msg.hsede}">
+                    <h:outputText value="#{elem.sedeCodigo} - #{elem.sedeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.htipoCalendario}">
+                    <h:outputText value="#{elem.tipoCalendarioNombre}" />
+                </p:column>  
+                <p:columns id="columna_desagregacion" value="#{consultaAsistenciasBean.desagregacionesLabels}" 
+                           var="label" columnIndexVar="colIndex" styleClass="texto-right">
+                    <f:facet name="header">
+                        <h:outputText value="#{label}" />
+                    </f:facet>
+                    <h:outputText rendered="#{consultaAsistenciasBean.verInasistencias and consultaAsistenciasBean.verAsistencias}" value="A: "/>
+                    <h:outputText rendered="#{consultaAsistenciasBean.verAsistencias}" value="#{consultaAsistenciasBean.consultaAsistenciasSedeEnNivelLazyModel.obtenerCantidadAsistencias(elem.sedeCodigo, label)}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                    </h:outputText>
+                    <ui:fragment rendered="#{consultaAsistenciasBean.verInasistencias and consultaAsistenciasBean.verAsistencias}">
+                        <br />
+                        <h:outputText value="I: "/>
+                    </ui:fragment>              
+                    <h:outputText rendered="#{consultaAsistenciasBean.verInasistencias}" value="#{consultaAsistenciasBean.consultaAsistenciasSedeEnNivelLazyModel.obtenerCantidadInasistencias(elem.sedeCodigo, label)}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                    </h:outputText>
+                </p:columns>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.MENU_REPORTE_SEDES_ASISTENCIAS)}">
+                    <p:link outcome="#{ConstantesPaginas.REPORTE_ASISTENCIA_SEDE}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="sed" value="#{elem.sedePk}"/>
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

@@ -1,0 +1,201 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+      <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoLiquidacion"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEvaluacionLiquidacion"/>
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        <f:passThroughAttribute name="autocomplete" value="off"/>          
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">             
+                <li class="breadcrumb-item active" ><a href="#{ConstantesPaginas.LIQUIDACIONES_OTROS_INGRESOS}.xhtml">#{msg.gestionMovimientoLiquidacionOtro}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.nuevoLiquidacionOtroIngreso}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{liquidacionOtroIngresoBean.getTituloPagina()}"/></h2>
+            <p:outputPanel styleClass="float-right">
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="desembolsoPanel">
+            <p:outputPanel>
+                <p:fieldset id="datos" legend="#{msg.datosgenerales}">                   
+
+                    <h:panelGroup id="formularioLiquidacion" rendered="#{not empty liquidacionOtroIngresoBean.entidadEnEdicion}" >                                                           
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_sede" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null}" >                        
+                            <h:outputLabel value="#{msg.sede}"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control texto-medio" value="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiSedePk.sedCodigo} - #{liquidacionOtroIngresoBean.entidadEnEdicion.loiSedePk.sedNombre}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk==null}">
+                            <h:outputLabel value="#{msg.sede}"  styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="ui-outputpanel ui-widget col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete"
+                                    styleClass="form-control texto-medio"
+                                    value="#{liquidacionOtroIngresoBean.sedeSeleccionada}"
+                                    completeMethod="#{liquidacionOtroIngresoBean.completeSede}"
+                                    var="sedB" itemLabel="#{sedB.sedCodigoNombre}"
+                                    itemValue="#{sedB}"
+                                    widgetVar="filtro_resp_autocomplete"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    multiple="false"
+                                    converter="#{sedesConverter}"
+                                    placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax event="itemSelect" listener="#{liquidacionOtroIngresoBean.obtenerIngresosEgresos()}" update="pnlResultado" />
+                                </p:autoComplete>
+                            </p:outputPanel>    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_anio" >                        
+                            <h:outputLabel value="#{msg.aniofiscal}"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_aniofiscal" value="#{liquidacionOtroIngresoBean.comboAnioLectivo.selected}"  styleClass="form-control dropdown texto-medio"
+                                                 disabled="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null}" >
+                                    <f:selectItems value="#{liquidacionOtroIngresoBean.comboAnioLectivo.items}"/>
+                                    <p:ajax event="change" listener="#{liquidacionOtroIngresoBean.obtenerIngresosEgresos()}" update="pnlResultado" />
+                                </h:selectOneMenu>                     
+                            </p:outputPanel>
+                        </p:outputPanel>
+                                                
+                        <p:outputPanel styleClass="form-group row" id="fila_input_estado" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null}" >                        
+                            <h:outputLabel value="#{msg.estado}"   styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control texto-medio" value="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado.text}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                    </h:panelGroup>          
+                </p:fieldset>    
+            </p:outputPanel>            
+        </p:outputPanel>
+        
+        <p:outputPanel id="pnlResultado">
+            <p:dataTable var="liq" value="#{liquidacionOtroIngresoBean.liquidacion}" emptyMessage="#{msg.noHayResultados}">
+
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{msg.hconcepto}" />
+                        <p:column headerText="#{msg.hcantidadParcial}" />
+                        <p:column headerText="#{msg.hcantidadTotal}" />
+                        <p:column headerText="#{msg.hestado}" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}" />
+                        <p:column headerText="#{msg.correcto}" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}" />
+                        <p:column headerText="#{msg.noCorrecto}" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}" />
+                        <p:column headerText="" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}" />
+                    </p:row>
+                </p:columnGroup>
+
+                <p:subTable var="mov" value="#{liq.movimientos}">
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column>
+                                <f:facet name="header">
+                                    <h:outputText value="#{liq.detalle}" styleClass="strong"/>
+                                </f:facet>
+                            </p:column>
+                            <p:column colspan="5" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}"/>
+                        </p:row>
+                    </p:columnGroup>
+                    <p:column>
+                        <h:outputText value="#{mov.mcbDetalle}" />
+                    </p:column>
+                    <p:column style= "text-align:right">
+                        <h:outputText value="#{mov.mcbMonto}">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column>
+                        <h:outputText value="" />
+                    </p:column>
+                    <p:column styleClass="#{mov.movimientoLiquidacionOtro.mloEvaluado!=null ? 'columnaVerde' : 'columnaRoja'}" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}">
+                        <h:outputText value="#{liquidacionOtroIngresoBean.labelEvaluadoMov(mov)}" />
+                    </p:column>
+                    <p:column rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}">
+                        <p:selectBooleanCheckbox id="correctCheck" value="#{mov.correcto}">
+                        </p:selectBooleanCheckbox>
+                    </p:column>
+                    <p:column rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}" >
+                        <p:selectBooleanCheckbox id="noCorrectCheck" value="#{mov.noCorrecto}">
+                        </p:selectBooleanCheckbox>
+                    </p:column>
+                    <p:column rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}">
+                        <h:inputText value="#{mov.movimientoLiquidacionOtro.mloComentario}" styleClass="form-control texto-medio" />
+                    </p:column>
+                    
+                    
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column>
+                                <f:facet name="footer"><h:outputText styleClass="strong" value="#{liq.footer}:"/></f:facet>
+                            </p:column>
+                            <p:column footerText="" />
+                            <p:column style= "text-align:right">
+                                <f:facet name="footer">
+                                    <h:outputText styleClass="strong" value="#{liq.total}">
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                                    </h:outputText>
+                                </f:facet>
+                            </p:column>
+                            <p:column colspan="4" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}"/>
+                        </p:row>
+                    </p:columnGroup>
+                </p:subTable>
+
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column>
+                            <f:facet name="footer"><h:outputText styleClass="strong" value="#{msg.saldoLiquidacion}:"/></f:facet>
+                        </p:column>
+                        <p:column>
+                            <f:facet name="footer"><h:outputText value=""/></f:facet>
+                        </p:column>
+                        <p:column style= "text-align:right">
+                            <f:facet name="footer">
+                                <h:outputText value="#{liquidacionOtroIngresoBean.obtenerSaldo()}">
+                                    <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                                </h:outputText>
+                            </f:facet>
+                        </p:column>
+                        <p:column colspan="4" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}"/>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+        </p:outputPanel>
+        
+        
+        <h:panelGroup  layout="block" styleClass="row col-sm-12 mb-3"  rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk!=null and liquidacionOtroIngresoBean.entidadEnEdicion.loiEstado ne EnumEstadoLiquidacion.APROBADA}">
+            <p:outputPanel styleClass="control-group">
+                 <p:outputPanel styleClass="float-left">
+                     <p:commandButton id="btnEvaluarMovs"  value="#{msg.evaluarMovimientosLiq}" action="#{liquidacionOtroIngresoBean.evaluarMovimientosLiquidacion()}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                 </p:outputPanel>                    
+             </p:outputPanel>                     
+        </h:panelGroup>
+        
+        <p:outputPanel styleClass="control-group" rendered="#{liquidacionOtroIngresoBean.entidadEnEdicion.loiPk==null}">
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton id="btnGuardar"  value="#{msg.hconfirmar}" action="#{liquidacionOtroIngresoBean.guardar()}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+            </p:outputPanel>                    
+        </p:outputPanel>                     
+        <p:blockUI block="@form" trigger="btnGuardar" /> 
+        <p:defaultCommand target="btnGuardar" scope="form"/>
+        
+        
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+        
+        
+    </h:form>
+</ui:composition>

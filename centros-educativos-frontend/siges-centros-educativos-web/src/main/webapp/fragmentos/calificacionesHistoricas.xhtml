@@ -1,0 +1,529 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">Calificaciones</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="Calificaciones"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                
+                <p:commandButton value="#{msg.descarPlantilla}" 
+                                 icon="glyphicon glyphicon-save" 
+                                 id="btnDescargarPlantilla" 
+                                 styleClass="btn btn-secondary"  
+                                 style="margin-left: 0.5em;"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.IMPORTAR_CALIFICACION_HISTORICA)   
+                                             and calificacionesHistoricasBean.plantillaImportacion !=null
+                                             and calificacionesHistoricasBean.plantillaImportacion.plaArchivo !=null}" 
+                                 ajax="false" 
+                                 onclick="this.form.target = '_blank';">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(calificacionesHistoricasBean.plantillaImportacion.plaArchivo)}" />
+                </p:commandButton>   
+
+                <p:commandButton value="#{msg.importarCalificaciones}" icon="glyphicon glyphicon-plus" 
+                                 update=":form:itemDetailArchivo" oncomplete="PF('itemDialogArchivo').show()"  
+                                 id="btnAgregarNie" styleClass="btn btn-secondary"  
+                                 action="#{calificacionesHistoricasBean.prepararImportacionCalificaciones()}"
+                                 style="margin-left: 0.5em;"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.IMPORTAR_CALIFICACION_HISTORICA)}"/>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CALIFICACIONES_HISTORICAS)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nie}" for="b_nie" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control" id="b_nie"
+                                           value="#{calificacionesHistoricasBean.filtro.estNie}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="aniofiltro">
+                        <h:outputLabel value="#{msg.anio}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_anio_lectivo" value="#{calificacionesHistoricasBean.anioLectivoCombo.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{calificacionesHistoricasBean.anioLectivoCombo.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="existeSiges"  >   
+                        <h:outputText value="#{msg.sedeExisteSiges}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="2" id="b_existeSiges" value="#{calificacionesHistoricasBean.sedeSiges}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax update="form:sedeSiges :form:aniofiltro" listener="#{calificacionesHistoricasBean.sedeSigesSeleccionada()}"  />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="sedeSiges">
+                        <p:outputPanel rendered="#{calificacionesHistoricasBean.sedeSiges}" styleClass="form-group row" id="fila_input_sede_autocomplete_b">
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_b" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete_b"
+                                                styleClass="form-control texto-medio"
+                                                value="#{calificacionesHistoricasBean.sedeSeleccionada}"
+                                                completeMethod="#{calificacionesHistoricasBean.completeSede}"
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                                itemValue="#{sed}"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel rendered="#{!calificacionesHistoricasBean.sedeSiges}" styleClass="form-group row" id="fila_input_sede_codigo" >                        
+                            <h:outputLabel value="#{msg.codigo}" for="fila_input_sede_codigo"  styleClass="col-sm-3 col-form-label "/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="input_sede_nombre" styleClass="form-control" value="#{calificacionesHistoricasBean.filtro.sedeExternaCodigo}">                    
+
+                                </h:inputText>    
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel rendered="#{!calificacionesHistoricasBean.sedeSiges}" styleClass="form-group row" id="fila_input_sede_nombre" >                        
+                            <h:outputLabel value="#{msg.nombre}" for="sede_externa_nombre"  styleClass="col-sm-3 col-form-label "/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="sede_externa_nombre" styleClass="form-control" value="#{calificacionesHistoricasBean.filtro.sedeExternaNombre}">                        
+
+                                </h:inputText> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:outputPanel>  
+
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{calificacionesHistoricasBean.buscar()}" update="@form"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{calificacionesHistoricasBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:blockUI block="@form" trigger="btnBuscar"/>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:messages id="eliminarMsg" showDetail="true" globalOnly="false" for="eliminarMsg" closable="true"/>
+
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{calificacionesHistoricasBean.calificacionesHistoricasEstudianteLazyModel}"                   
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         rendered="#{calificacionesHistoricasBean.calificacionesHistoricasEstudianteLazyModel!=null}"
+                         paginatorPosition="bottom"
+                         sortField="chePk"
+                         paginatorTemplate="{RowsPerPageDropdown} {anterior} {siguiente}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{calificacionesHistoricasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{calificacionesHistoricasBean.totalResultados lt (calificacionesHistoricasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="calificacionesHistoricasEstudiante" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hanio}" >
+                    <h:outputText value="#{elem.cheAnioMatricula}" />
+                </p:column>
+                <p:column headerText="#{msg.hnie}" >
+                    <h:outputText value="#{elem.chePersonaFk.perNie}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" >
+                    <h:outputText value="#{elem.chePersonaFk.perNombreCompleto}" />
+                </p:column>
+                <p:column headerText="Sede educativa">
+                    <h:outputText value="#{elem.cheSedeFk.sedCodigoNombre}" id="textSede" rendered="#{elem.cheSedeFk !=null}"/>           
+                    <h:outputText rendered="#{elem.cheSedeFk ==null}" value="#{elem.sedeExternaNombreCompleto}" />
+                </p:column>
+                <p:column headerText="Servicio educativo">
+                    <h:outputText value="#{elem.cheServicioEducativoExternoEtiquetaImpresion}"/>
+                </p:column>
+                <p:column headerText="Componente">
+                    <h:outputText value="#{elem.cheComponente}"/>
+                </p:column>
+                <p:column headerText="Nota final">
+                    <h:outputText value="#{elem.cheNF}"/>
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" >
+                    <h:outputText value="#{elem.cheUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}">
+                    <h:outputText value="#{elem.cheUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>          
+                <p:column styleClass="columnaAcciones"  exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.ESTUDIANTE}" target="_blank" title="Ir a ficha del estudiante" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.cheEstudianteFk.estPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.ver}" action="#{calificacionesHistoricasBean.actualizar(elem,true)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CALIFICACIONES_HISTORICAS_ESTUDIANTE)}">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{calificacionesHistoricasBean.actualizar(elem,false)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_CALIFICACIONES_HISTORICAS_ESTUDIANTE)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{calificacionesHistoricasBean.actualizar(elem,false)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{calificacionesHistoricasBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.calificacionesHistoricasEstudiante}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty calificacionesHistoricasBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioCalificacionesHistoricasEstudiante">  
+
+                        <p:outputPanel styleClass="form-group row"  >                        
+                            <h:outputLabel value="#{msg.nie}" for="input_nie"  styleClass="col-sm-4 col-form-label "/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:outputText  id="input_nie" styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheEstudianteFk.estPersona.perNie}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText  id="input_nombre" styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheEstudianteFk.estPersona.perNombreCompleto}"/>                   
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_edicion_estudiante">
+                            <h:outputLabel  styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:commandButton id="btnPrepararEdicion"  value="Editar estudiante" action="#{calificacionesHistoricasBean.prepararBusquedaEstudiante()}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}" 
+                                                 update="form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-pencil"/>                     
+                                <p:blockUI block="@form" trigger="btnPrepararEdicion" /> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel rendered="#{calificacionesHistoricasBean.edicionEstudiante}">
+
+                            <fieldset>
+                                <legend><h:outputText value="Edición estudiante"/></legend>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                                    <h:outputLabel value="#{msg.nie}"  styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-5">
+                                        <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control texto-medio" 
+                                                       value="#{calificacionesHistoricasBean.nieEstudianteEditar}" />
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-sm-3">
+                                        <p:commandButton value="#{msg.buscar}"
+                                                         action="#{calificacionesHistoricasBean.buscarEstudiante()}" 
+                                                         update="form:itemDetail" 
+                                                         id="btnbuscarEstudianteNie" styleClass="btn btn-primary" icon="glyphicon glyphicon-search"  />
+                                        <p:blockUI block="@form" trigger="btnbuscarEstudianteNie"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel rendered="#{calificacionesHistoricasBean.estudianteEditar!=null}">
+
+
+                                    <p:outputPanel styleClass="form-group row">
+                                        <h:outputLabel value="Nombre:"  styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">          
+                                            <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.estudianteEditar.estPersona.perNombreCompleto}" />   
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row">
+                                        <h:outputLabel value="Sexo:"  styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">          
+                                            <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.estudianteEditar.estPersona.perSexo.sexNombre}" />   
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row">
+                                        <h:outputLabel value="Fecha nacimiento:"  styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">          
+                                            <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.estudianteEditar.estPersona.perFechaNacimiento}" converter="#{localDateConverter}" />   
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+
+
+                                    <p:outputPanel styleClass="form-group row">
+                                        <h:outputLabel  styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">   
+                                            <h:selectBooleanCheckbox id="input_habilitado" disabled="#{calificacionesHistoricasBean.preConfirmacionEdicionEstudiante}" styleClass="form-check-input" value="#{calificacionesHistoricasBean.entidadEnEdicion.modificarCalificacionesEstudiante}" />
+                                            <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                                <h:outputText value="Aplicar a todas las calificaciones del estudiante"/>
+                                            </h:outputLabel> 
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row">
+                                        <h:outputLabel  styleClass="col-sm-4 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-8">   
+                                            <p:commandButton id="btnPreConfirmar" disabled="#{calificacionesHistoricasBean.preConfirmacionEdicionEstudiante}" update="form:itemDetail" value="Confirmar" action="#{calificacionesHistoricasBean.preConfirmacionEstudiante()}"  styleClass="btn btn-primary" />                             
+
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+
+
+                                    <p:outputPanel id="confirmacionUltima">
+                                        <p:outputPanel rendered="#{calificacionesHistoricasBean.preConfirmacionEdicionEstudiante}"  styleClass="ui-messages">
+                                            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                                                <h:outputText styleClass="ui-messages-info-summary float-left margen-sup10" value="#{calificacionesHistoricasBean.entidadEnEdicion.modificarCalificacionesEstudiante?'¿Desea confirmar el cambio de estudiante en todas las calificaciones?':'¿Desea confirmar el cambio de estudiante en la calificación?'}" />
+                                                <p:outputPanel styleClass="float-right">
+                                                    <p:commandButton value="#{msg.hconfirmar}" 
+                                                                     action="#{calificacionesHistoricasBean.confirmarEdicionEstudiante()}" 
+                                                                     update="form:pnlResultado form:itemDetail" 
+                                                                     style="margin-left:15px;"
+                                                                     id="btnConfirmar" 
+                                                                     styleClass="btn btn-primary" />
+                                                    <p:blockUI block="@form" trigger="btnConfirmar" />
+                                                </p:outputPanel>
+                                            </div>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+
+                            </fieldset>
+
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Año:" for="inptuAnio" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_anio_lectivo_insert" value="#{calificacionesHistoricasBean.anioLectivoComboInsert.selected}" styleClass="form-control texto-medio" disabled="#{calificacionesHistoricasBean.edicionEstudiante}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}">
+                                    <f:selectItems value="#{calificacionesHistoricasBean.anioLectivoComboInsert.items}" />
+                                </h:selectOneMenu>            
+                                <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheAnioMatricula}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row"  >   
+                            <h:outputText value="#{msg.sedeExisteSiges}" styleClass="col-sm-4 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:selectOneRadio layout="responsive" columns="2" disabled="#{(calificacionesHistoricasBean.soloLectura eq true) or (calificacionesHistoricasBean.edicionEstudiante)}" id="b_existeSigesInsert" value="#{calificacionesHistoricasBean.sedeSigesInsert}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <p:ajax update="form:sedeSigesInsert" listener="#{calificacionesHistoricasBean.sedeSigesSeleccionadaInsert()}"  />
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="sedeSigesInsert">
+                            <p:outputPanel rendered="#{calificacionesHistoricasBean.sedeSigesInsert}" styleClass="form-group row" id="fila_input_sede_insert_autocomplete_b">
+                                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_sede_b_a" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:autoComplete id="input_sede_autocomplete_sede_b_a"
+                                                    styleClass="form-control texto-medio"
+                                                    value="#{calificacionesHistoricasBean.entidadEnEdicion.cheSedeFk}"
+                                                    completeMethod="#{calificacionesHistoricasBean.completeSede}"
+                                                    var="ins" itemLabel="#{ins.sedCodigoNombre}"
+                                                    rendered="#{calificacionesHistoricasBean.soloLectura eq false}"
+                                                    itemValue="#{ins}"
+                                                    forceSelection="true"
+                                                    disabled="#{calificacionesHistoricasBean.edicionEstudiante}"
+                                                    maxResults="10"
+                                                    queryDelay="500"
+                                                    multiple="false"
+                                                    converter="#{sedesConverter}"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}">
+                                    </p:autoComplete>
+                                    <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheSedeFk.sedCodigoNombre}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel rendered="#{!calificacionesHistoricasBean.sedeSigesInsert}" styleClass="form-group row">                        
+                                <h:outputLabel value="#{msg.codigo}" for="fila_input_sede_codigo_insert"  styleClass="col-sm-4 col-form-label "/>                        
+                                <p:outputPanel styleClass="col-sm-8">                            
+                                    <h:inputText autocomplete="off" id="fila_input_sede_codigo_insert" maxlength="15" styleClass="form-control" value="#{calificacionesHistoricasBean.entidadEnEdicion.cheSedeExternaCodigo}" disabled="#{calificacionesHistoricasBean.edicionEstudiante}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}"/>    
+                                    <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheSedeExternaCodigo}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel rendered="#{!calificacionesHistoricasBean.sedeSigesInsert}" styleClass="form-group row" id="fila_input_sede_nombre_insert" >                        
+                                <h:outputLabel value="#{msg.nombre}" for="sede_externa_nombre_insert"  styleClass="col-sm-4 col-form-label "/>                        
+                                <p:outputPanel styleClass="col-sm-8">                            
+                                    <h:inputText autocomplete="off" id="sede_externa_nombre_insert" maxlength="100" styleClass="form-control" value="#{calificacionesHistoricasBean.entidadEnEdicion.cheSedeExternaNombre}" disabled="#{calificacionesHistoricasBean.edicionEstudiante}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}"/>                        
+                                    <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheSedeExternaNombre}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel> 
+
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Plan de estudio:" for="inptuPlanEst_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off"  id="inptuPlanEst_insert" styleClass="form-control"  value="#{calificacionesHistoricasBean.entidadEnEdicion.chePlanEstudioExternoDescripcion}" disabled="#{calificacionesHistoricasBean.edicionEstudiante}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}"/>                   
+                                <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.chePlanEstudioExternoDescripcion}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.servicioEducativo}" for="inptuServ_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off"  id="inptuServ_insert" styleClass="form-control"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheServicioEducativoExternoEtiquetaImpresion}" disabled="#{calificacionesHistoricasBean.edicionEstudiante}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}"/>                   
+                                <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheServicioEducativoExternoEtiquetaImpresion}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Componente:" for="inptuComponente_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off"  id="inptuComponente_insert" styleClass="form-control"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheComponente}" disabled="#{calificacionesHistoricasBean.edicionEstudiante}" rendered="#{calificacionesHistoricasBean.soloLectura eq false}"/>                   
+                                <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheComponente}" rendered="#{calificacionesHistoricasBean.soloLectura eq true}"/>   
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Nota final:" for="inptuComponente" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">                                             
+                                <h:outputText styleClass="form-control-plaintext"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheNF}" />   
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" rendered="#{calificacionesHistoricasBean.entidadEnEdicion.cheObservacionEdicion !=null}">
+                            <h:outputLabel value="Observación:" for="inptuObservacion_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputTextarea   id="inptuObservacion_insert" disabled="true" styleClass="form-control"  value="#{calificacionesHistoricasBean.entidadEnEdicion.cheObservacionEdicion}" />        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" rendered="#{calificacionesHistoricasBean.entidadEnEdicion.cheArchivoEdicion != null}">
+                            <h:outputLabel value="Archivo:" for="inptuArchivo_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:commandButton value="Descargar" ajax="false" onclick="this.form.target = '_blank';"  styleClass="btn btn-link">
+                                    <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(calificacionesHistoricasBean.entidadEnEdicion.cheArchivoEdicion)}" />     
+                                </p:commandButton>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{calificacionesHistoricasBean.guardar()}" rendered="#{(calificacionesHistoricasBean.soloLectura eq false) and (not calificacionesHistoricasBean.edicionEstudiante)}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="Importar calificaciones" widgetVar="itemDialogArchivo" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false" closable="false" style="min-height: 200px;">             
+            <p:outputPanel id="itemDetailArchivo">                  
+                <p:messages id="popupmsgArchivo" showDetail="true" globalOnly="false" for="popupmsgArchivo" closable="true"/>     
+
+                <p:outputPanel styleClass="form-group row" id="fila_archivo">
+                    <h:outputLabel value="#{msg.archivo}" for="file_upload_archivo" 
+                                   styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:fileUpload fileUploadListener="#{calificacionesHistoricasBean.handleFileUpload}"
+                                      id="file_upload_archivo"
+                                      mode="advanced" 
+                                      dragDropSupport="true"
+                                      label="Cargar archivo"
+                                      uploadLabel="#{msg.confirmar}"
+                                      invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                      invalidFileMessage="#{msg.formatoNoPermitidoXLSX} " 
+                                      cancelLabel="#{msg.cancelar}" 
+                                      auto="true"
+                                      sizeLimit="#{calificacionesHistoricasBean.tamanioImportArchivo}" allowTypes="/(\.|\/)(xlsx)$/" 
+                                      rendered="#{calificacionesHistoricasBean.importarCalificacion == null}" 
+                                      update="form:itemDetailArchivo"/>
+                        <h:outputText styleClass="form-control-plaintext" 
+                                      value="#{calificacionesHistoricasBean.importarCalificacion.achNombre}"
+                                      rendered="#{calificacionesHistoricasBean.importarCalificacion!=null}"/>
+                        <o:graphicImage name="/imagenes/fileXLSX.png" width="100" />
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarImport"  value="#{msg.guardar}" 
+                                         action="#{calificacionesHistoricasBean.calificarConArchivo()}" 
+                                         rendered="#{calificacionesHistoricasBean.importarCalificacion!=null}"
+                                         update="@form" 
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogArchivo').hide();"  
+                                       update=":form:itemDetailArchivo" styleClass="btn btn-link"/>                        
+                    </p:outputPanel>                    
+                </p:outputPanel>                     
+                <p:blockUI block="@form" trigger="btnGuardarImport" /> 
+            </p:outputPanel>        
+        </p:dialog>    
+
+    </h:form>
+</ui:composition>

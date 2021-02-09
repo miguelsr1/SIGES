@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+    <h:panelGroup   layout="block">
+        <!-- MODAL DISPONIBILIDAD PRESUPUESTARIA -->
+        <div class="modal fade"  id="anadirDisponibilidadPresModal" tabindex="-1" role="dialog" aria-labelledby="anadirTDRModal">
+            <div class="modal-dialog modal-md" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="anadirDisponibilidadPresModalContenidoModal">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                        <span class="modal-title">
+                            <h:outputText value="#{textMB.obtenerTexto('labels.DisponibilidadPresupuestaria')}" /> 
+                        </span>
+                    </div>
+                    <h:form  prependId="false" > 
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                <p:outputPanel id="listaCertificadoDistribucionInsumo">
+                                    <ui:fragment rendered="#{not empty parameterBean.tempInsumo.montosFuentes}">  
+                                        <p:outputPanel id="modalInsumo-bloque-certificado-estructura" >
+                                            <fieldset class="fieldset fieldsetSmall margenSup">                                                        
+                                                <legend><h:outputText  value="#{textMB.obtenerTexto('labels.MontosFuentes')}" /></legend>
+                                                <div class="grupoCampos tabla-enviar-fuente-para-cert-disp-pres">
+                                                    <p:dataTable id="distribuccionCertificadoEnInsumo" 
+                                                                 styleClass="table-padding" 
+                                                                 value="#{parameterBean.tempInsumo.montosFuentes}" var="monto"
+                                                                 selection="#{parameterBean.montosSeleccionadosParaReporte}"
+                                                                 disabledSelection="#{not parameterBean.estaMontoFuenteDisponibleParaEnviar(monto.id)}"
+                                                                 rowKey="#{monto.id}">
+
+                                                        <p:ajax event="rowSelectCheckbox"  />
+                                                        <p:ajax event="rowUnselectCheckbox"  />
+                                                        <p:ajax event="toggleSelect"  />
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Fuente')}" >
+                                                            <h:outputLabel  styleClass="control-label">
+                                                                <h:outputText  value="*#{monto.fuente.fuenteRecursos.nombre}, " />
+                                                                <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" />
+                                                            </h:outputLabel>
+                                                        </p:column>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoFuente')}" styleClass="numericos" sortBy="#{monto.monto}">
+                                                            <h:outputText  value="#{monto.monto}" >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </p:column>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoCertificado')}" styleClass="numericos">
+                                                            <h:panelGroup  styleClass="input-group " layout="block">
+                                                                <p:inputText  id="certificado-monto-fuente" value="#{monto.certificado}"  styleClass="form-control numericos" 
+                                                                              disabled="#{not parameterBean.estaMontoFuenteDisponibleParaEnviar(monto.id)}">
+                                                                </p:inputText>	
+                                                            </h:panelGroup> 
+                                                            <h:message for="certificado-monto-fuente" styleClass="help-inline msj-danger" />
+                                                        </p:column>
+                                                        <p:column selectionMode="multiple" exportable="false" style="width:16px;text-align:center" headerText="#{textMB.obtenerTexto('labels.SeleccionarParaEnviar')}"/>
+                                                        <p:column rendered="false">
+                                                            <p:commandLink actionListener="#{parameterBean.generarCertificadoDisponibilidadPOInsumo(monto.id)}" ajax="false" styleClass="btn btn-link">
+                                                                <span class="glyphicon glyphicon-download"></span>
+                                                                <h:outputText value="#{textMB.obtenerTexto('labels.GenerarCertificado')}" /> 
+                                                            </p:commandLink>
+                                                        </p:column>
+                                                    </p:dataTable>
+                                                </div>
+                                            </fieldset>
+                                        </p:outputPanel>
+                                    </ui:fragment>
+                                </p:outputPanel>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary"
+                                              icon="glyphicon glyphicon-ok" 
+                                              value="#{textMB.obtenerTexto('labels.EnviarValidacionCertificadoDisponibilidadPresupuestaria')}" 
+                                              actionListener="#{parameterBean.eviarValidacionCertificado()}"
+                                              update="tablaLineas @form" ajax="true"
+                                              rendered="#{parameterBean.existeMontoFuenteDisponibleParaEnviar()}"/>
+                            <p:commandButton  styleClass="btn btn-primary"
+                                              rendered="#{not parameterBean.tempInsumo.pasoValidacionCertificadoDeDispPresupuestaria}"
+                                              icon="glyphicon glyphicon-ok" 
+                                              value="#{textMB.obtenerTexto('labels.Aceptar')}" 
+                                              actionListener="#{parameterBean.guardarDisponibilidadPresupuestaria()}"
+                                              update="tablaLineas @form" ajax="true"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>
+                </h:panelGroup>
+            </div>
+        </div>
+    </h:panelGroup>
+</ui:composition>

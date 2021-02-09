@@ -1,0 +1,68 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <p:remoteCommand name="showSidebar" action="#{ayudaBean.showSidebar()}" update="form:ayudaDetail"/>
+    <p:commandButton title="#{msg.ayuda}" icon="glyphicon glyphicon-question-sign"
+                     id="btnAyuda" styleClass="btn btn-icono btn-ayuda #{ayuda ? 'pulso' : ''}"  oncomplete="PF('sidebar').show()" action="#{ayudaBean.obtenerAyudas()}" update="form:ayudaDetail"/>
+
+    <p:sidebar widgetVar="sidebar"  position="right" baseZIndex="90000" style="overflow-y: auto;" onShow="showSidebar()">
+        <p:outputPanel id="ayudaDetail">                
+            <h:panelGroup rendered="#{ayudaBean.rendered}"> 
+                <h:panelGroup rendered="#{ayudaBean.mostrarCodigo != null}">
+                    <div class="requeridos" style="text-align:left; margin-top: 5px"><h:outputText style="font-weight: bold;" value="Código: "/><h:outputText value="#{ayudaBean.mostrarCodigo}"/></div>
+                </h:panelGroup>
+                <p:tabView>
+                    <p:tab title="#{msg.ayudaTextoTab}">
+                        <h:outputText value="#{ayudaBean.ayuda.ayuTextoUso}" escape="false" />
+                    </p:tab>
+                    <p:tab title="#{msg.ayudaNormativaTab}">
+                        <h:outputText value="#{ayudaBean.ayuda.ayuTextoNormativa}" escape="false" />
+                    </p:tab>
+                    <p:tab title="#{msg.hglosario}">
+
+                        <h:panelGroup id="glosario">
+                            <h:inputText value="#{ayudaBean.filtroGlosario.codigo}" styleClass="form-control" autocomplete="off" style="display: inline-block; width: 236px; margin-bottom: 10px;"/>
+                            <p:commandButton value="#{msg.buscar}" styleClass="btn btn-primary" style="margin-left:10px; margin-top: -1px;"
+                                             id="btnBuscar"  icon="glyphicon glyphicon-search" action="#{ayudaBean.buscarGlosario()}" update="resultados"/>
+                            <p:defaultCommand target="btnBuscar" scope="glosario"/>
+
+
+                            <h:panelGroup id="resultados">
+                                <p:dataGrid lazy="true" 
+                                            emptyMessage="#{msg.noHayResultados}"	
+                                            rendered="#{ayudaBean.glosariosLazyModel != null}"
+                                            paginator="true"
+                                            paginatorAlwaysVisible="false"
+                                            layout="grid"
+                                            columns="1"                                     
+                                            value="#{ayudaBean.glosariosLazyModel}"
+                                            var="glo"
+                                            paginatorPosition="bottom"
+                                            currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                            paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                            rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                            rows="#{ayudaBean.paginadoGlosario}">
+
+
+                                    <h:outputText style="font-weight: bold;" value="#{glo.gloCodigo}" /> -
+                                    <h:outputText value="#{glo.gloNombre}" /> 
+                                    <h:outputText rendered="#{glo.gloFuente != null}" value=" - #{glo.gloFuente}" />
+
+                                </p:dataGrid>
+
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                    </p:tab>
+                </p:tabView>              
+            </h:panelGroup>            
+        </p:outputPanel>   
+    </p:sidebar>
+
+
+</ui:composition>

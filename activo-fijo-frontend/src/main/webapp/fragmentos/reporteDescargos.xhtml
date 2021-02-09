@@ -1,0 +1,174 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.descargo}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.descargo}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPORTE_DESCARGOS)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <f:subview id="filtroActivosView">
+                        <ui:include src="componentes/filtroActivos.xhtml">
+                            <ui:param name="renderTipoUnidad" value="true" />
+                            <ui:param name="renderUnidadActivoFijo" value="true" />
+                            <ui:param name="renderUnidadAdministrativa" value="true" />
+                            <ui:param name="renderCategoria" value="true" />
+                            <ui:param name="renderActivo" value="true" />
+                            <ui:param name="renderNumSerie" value="true" />
+                            <ui:param name="renderEstadoDescargo" value="true" />
+                            <ui:param name="renderNumeroActa" value="false" />
+                            <ui:param name="renderFechaSolicitud" value="true" />
+                            <ui:param name="renderFechaDescargo" value="true" />
+                            <ui:param name="renderCodInventario" value="true" />
+                            <ui:param name="renderCategoria" value="true" />
+                            <ui:param name="renderNumeroSolicitud" value="true" />
+                        </ui:include>
+                    </f:subview>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-12">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12 texto-right">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" action="#{reporteDescargosBean.buscar()}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{reporteDescargosBean.limpiar()}" 
+                                       update="pnlSearch  pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch  pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+        </h:panelGroup>
+        
+        
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="dataTableWidgetVar"                         
+                         var="elem"
+                         rendered="#{reporteDescargosBean.detalleDescargoDataModel != null}"                         
+                         value="#{reporteDescargosBean.detalleDescargoDataModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="id"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{reporteDescargosBean.paginado}"
+                         reflow="true"
+                        > 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{reporteDescargosBean.totalResultados lt (reporteDescargosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{reporteDescargosBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                
+                                <h:commandLink value="Reporte" styleClass="btn btn-link" >
+                                    <p:dataExporter type="csv" target="basicDT" fileName="listadoBienes" pageOnly="false" rendered="#{reporteDescargosBean.totalResultados > 0}"/>
+                                </h:commandLink>
+                                
+                                <p:outputPanel id="generarReporte" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_DESCARGOS) and reporteDescargosBean.totalResultados > 0}">
+                                   
+                                        <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_DESCARGO}" method="get" target="_blank">
+                                            <input type="hidden" name="tu" value="#{reporteDescargosBean.tipoUnidad}" />
+                                            <input type="hidden" name="uaf" value="#{reporteDescargosBean.filtrosBienesBean.unidadAFSeleccionada.uafPk}" />
+                                            <input type="hidden" name="uad" value="#{reporteDescargosBean.filtrosBienesBean.unidadSeleccionada.uadPk}"/>
+                                            <input type="hidden" name="sed" value="#{reporteDescargosBean.filtrosBienesBean.sedeSeleccionada.sedPk}"/>
+                                            <input type="hidden" name="depId" value="#{reporteDescargosBean.filtroDetalleDescargo.departamentoId}"/>
+                                            <input type="hidden" name="munId" value="#{reporteDescargosBean.filtroDetalleDescargo.municipioId}"/>
+                                            <input type="hidden" name="estadoId" value="#{reporteDescargosBean.filtroDetalleDescargo.estadoId}"/>
+                                            <input type="hidden" name="clasId" value="#{reporteDescargosBean.filtroDetalleDescargo.clasificacionId}"/>
+                                            <input type="hidden" name="catId" value="#{reporteDescargosBean.filtroDetalleDescargo.categoriaId}"/>
+                                            <input type="hidden" name="codInventario" value="#{reporteDescargosBean.filtroDetalleDescargo.codigoInventario}"/>
+                                            <input type="hidden" name="fsolDesde" value="#{reporteDescargosBean.filtroDetalleDescargo.fechaSolicitudDesde}"/>
+                                            <input type="hidden" name="fsolHasta" value="#{reporteDescargosBean.filtroDetalleDescargo.fechaSolicitudHasta}"/>
+                                            <input type="hidden" name="activos" value="#{reporteDescargosBean.filtroDetalleDescargo.activos}"/>
+                                            <input type="hidden" name="tdesId" value="#{reporteDescargosBean.filtroDetalleDescargo.tipoDescargo}"/>
+                                            <input type="hidden" name="codDes" value="#{reporteDescargosBean.filtroDetalleDescargo.codigoDescargo}"/>
+                                            <input type="hidden" name="nacta" value="#{reporteDescargosBean.filtroDetalleDescargo.numeroActa}"/>
+                                            <input type="hidden" name="fdesDesde" value="#{reporteDescargosBean.filtroDetalleDescargo.fechaDescargoDesde}"/>
+                                            <input type="hidden" name="fdesHasta" value="#{reporteDescargosBean.filtroDetalleDescargo.fechaDescargoHasta}"/>
+                                            <input type="hidden" name="op" value="2"/>
+
+                                            <input type="submit" value="Generar Reporte"  class="btn btn-secondary" onblur="true"/>
+                                        </form>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hinventario}" >
+                    <h:outputText value="#{elem.codigoInventario}"/>
+                </p:column>
+                <p:column headerText="#{msg.hcategoria}" >
+                    <h:outputText value="#{elem.nombreCategoria}"/>
+                </p:column>
+                <p:column headerText="#{msg.hdescripcion}"  >
+                    <h:outputText value="#{elem.descripcion}" />
+                </p:column>
+                <p:column headerText="#{msg.hmarca}" sortBy="#{elem.bdeMarca}">
+                    <h:outputText  value="#{elem.marca}" />
+                </p:column>
+                <p:column headerText="#{msg.hmodelo}" sortBy="#{elem.bdeModelo}">
+                    <h:outputText  value="#{elem.modelo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnoSerie}">
+                    <h:outputText  value="#{elem.noserie}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaAdquisicion}" sortBy="#{elem.fechaAdquisicion}">
+                    <h:outputText  value="#{elem.fechaAdquisicion}"/>
+                </p:column>
+                <p:column headerText="#{msg.hvalorAdquisicion}" sortBy="#{elem.valoradquisicion}">
+                    <h:outputText value="#{sessionBean.getFormatNumber(elem.valoradquisicion, 2, 2)}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hfechaDescargo}" >
+                    <h:outputText value="#{elem.fechaDescargo}"/>
+                </p:column>
+                <p:column headerText="#{msg.hnumActa}">
+                    <h:outputText value="#{elem.codigoSolicitud}"/>
+                </p:column>
+                <p:column headerText="#{msg.depreciacionAcumulada}" >
+                    <h:outputText value="#{sessionBean.getFormatNumber(elem.depreciacion, 2, 2)}"  style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hvalorActual}" exportable="true" visible="false" >
+                    <h:outputText value="#{elem.valorActual}"  style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

@@ -1,0 +1,507 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <style>
+        .ui-columntoggler-close{
+            display: none;
+        }
+        .ui-columntoggler{
+            height: auto !important;
+        }
+        .ui-columntoggler .ui-columntoggler-item .ui-chkbox {
+            margin-top: -11px;
+        }
+        .panel-exportar {
+            margin-bottom: 5px;
+        }
+    </style>
+
+    <c:set var="estudiante" value="#{estudiante}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{matriculaComponenteBean.setSoloLectura(soloLecturaBitacoraMatricula)}"/>
+    </f:metadata>       
+
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumMatriculaEstado"/>
+    <p:outputPanel id="itemDetailPanel">
+
+        <p:outputPanel id="formularioEstMatricula">
+
+
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" 
+                     closeSpeed="500" styleClass="panel-filtro" collapsed="true">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group">
+                            <p:outputPanel styleClass="row">
+                                <h:outputText value="#{msg.niveles}" 
+                                              styleClass="col-sm-3 col-form-label"/>                
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="input_nivel" value="#{matriculaComponenteBean.comboNivel.selected}"  
+                                                     styleClass="form-control texto-medio">
+                                        <f:selectItems value="#{matriculaComponenteBean.comboNivel.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6">
+
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-12" style="text-align: right;">
+                                <p:commandButton value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                                 action="#{matriculaComponenteBean.buscarMatricula()}" update="pnlMatricula"/>
+                                <p:commandLink value="#{msg.limpiar}" action="#{matriculaComponenteBean.limpiar()}" update="pnlSearch pnlMatricula" 
+                                               immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch pnlMatricula" />
+                                </p:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+
+
+
+            <p:outputPanel id="pnlMatricula">
+                <p:dataTable id="dtMatricula" var="matricula" value="#{matriculaComponenteBean.listaMatricula}" 
+                             emptyMessage="#{msg.noHayResultados}" >
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-sm-12" style="text-align: right;">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <p:commandButton id="toggler"  value="#{msg.hcolumnas}" 
+                                                     icon="glyphicon glyphicon-menu-hamburger" styleClass="btn btn-secondary" />
+                                    <p:columnToggler datasource="dtMatricula" trigger="toggler" />
+                                    <p:commandLink value="Ver matrículas anuladas" oncomplete="PF('itemDialogMatriculaAnulada').show()"   update=":#{component.namingContainer.parent.namingContainer.clientId}:matriculasAnuladasPanel" 
+                                                   immediate="true" styleClass="btn btn-link">
+                                    </p:commandLink>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+
+                    <p:column styleClass="columnaAcciones" rendered="#{!matriculaComponenteBean.soloLectura}" toggleable="false">
+                        <p:commandButton  rendered="#{matricula.matProvisional == true}" title="Provisional" 
+                                          icon="glyphicon glyphicon-exclamation-sign" styleClass="btn btn-rojo" 
+                                          style="text-align: center; color: #fff !important;line-height: 0.1em;padding: 0px;padding-top: 0.2em;height: 1.7em;"
+                                          update=":#{component.namingContainer.parent.namingContainer.clientId}:popUpMatProvisiona"  
+                                          oncomplete="PF('itemDialogMatProvisional').show()" 
+                                          action="#{matriculaComponenteBean.agregarElementosMatricula(matricula.matPk)}"/>
+                        <p:commandButton  rendered="#{matricula.matProvisional == false and matriculaComponenteBean.esVacioObsercacionPrevisional(matricula)}" title="No provisional" 
+                                          icon="glyphicon glyphicon-check" styleClass="btn btn-verde" 
+                                          style="text-align: center; color: #fff !important;line-height: 0.1em;padding: 0px;padding-top: 0.2em;height: 1.7em;"
+                                          update=":#{component.namingContainer.parent.namingContainer.clientId}:popUpMatProvisiona"  
+                                          oncomplete="PF('itemDialogMatProvisional').show()" 
+                                          action="#{matriculaComponenteBean.agregarElementosMatricula(matricula.matPk)}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hanioLectivo}" toggleable="false">
+                        <h:outputText value="#{matricula.matSeccion.secAnioLectivo.aleAnio}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hSedeEducativa}" toggleable="false">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedCodigo}" id="textSede" />
+                        <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.nombre}" 
+                                               styleClass="col-sm-6 col-form-label " />
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.telefono}" 
+                                               styleClass="col-sm-6 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext "
+                                                  value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedTelefono}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.departamento}" 
+                                               styleClass="col-sm-6 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.municipio}" 
+                                               styleClass="col-sm-6 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:tooltip>
+                    </p:column>
+                    <p:column headerText="#{msg.hnivel}" toggleable="false">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidad}" visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidadAtencion}" visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hsubModalidadAtencion}"  visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hgrado}" toggleable="false">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hopcion}"   visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduOpcion.opcNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hprogramaEducativo}"   visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduProgramaEducativo.pedNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hSeccion}" toggleable="false">
+                        <h:outputText value="#{matricula.matSeccion.secNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hvalidacionAcademica}" toggleable="true" visible="false">
+                        <h:outputText value="#{matricula.matValidacionAcademica}" converter="#{booleanConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hFIngreso}" toggleable="false">
+                        <h:outputText value="#{matricula.matFechaIngreso}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hHasta}" toggleable="false">
+                        <h:outputText value="#{matricula.matFechaHasta}" converter="#{localDateConverter}" />
+                    </p:column>                     
+                    <p:column headerText="#{msg.hmotivo}" visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matMotivoRetiro.mreNombre}" />
+                        <p:commandButton rendered="#{matricula.matTieneObservaciones}" 
+                                         update=":#{component.namingContainer.parent.namingContainer.clientId}:itemDetailObservacionMot" 
+                                         process="@this"
+                                         oncomplete="PF('itemDialogObservacionMot').show()" icon="glyphicon glyphicon glyphicon-comment" 
+                                         styleClass="btn btn-icono"  
+                                         action="#{matriculaComponenteBean.agregarElementosMatricula(matricula.matPk)}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hAnulada}" rendered="#{matriculaComponenteBean.buscarMatriculaAnulada}"
+                              visible="false" toggleable="true">
+                        <h:outputText value="#{matricula.matAnulada}" converter="#{booleanConverter}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false" toggleable="false"  
+                              rendered="#{!matriculaComponenteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.RETIRAR_MATRICLA)}">
+                        <p:commandButton rendered="#{EnumMatriculaEstado.ABIERTO.equals(matricula.matEstado)}" 
+                                         process="@this"
+                                         update=":#{component.namingContainer.parent.namingContainer.clientId}:itemDetailMatricula" 
+                                         oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-log-out" 
+                                         styleClass="btn btn-icono" title="#{msg.hretirar}" 
+                                         action="#{matriculaComponenteBean.agregarElementosMatricula(matricula.matPk)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false"  toggleable="false" 
+                              rendered="#{!matriculaComponenteBean.soloLectura and 
+                                          sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODICAR_FECHA_MATRICULA)}">
+                        <p:commandButton process="@this"
+                                         rendered="#{matricula.matCerradoPorCierreAnio == null or not matricula.matCerradoPorCierreAnio}"
+                                         update=":#{component.namingContainer.parent.namingContainer.clientId}:itemDetailMatriculaFechaMatricula" 
+                                         oncomplete="PF('itemDialogFechaMatricula').show()" icon="glyphicon glyphicon-calendar" 
+                                         styleClass="btn btn-icono" title="#{msg.hmodificarFechaMatricula}" 
+                                         action="#{matriculaComponenteBean.actualizarMatriculaParaModificacionFechas(matricula)}" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false"  toggleable="false"  
+                              rendered="#{!matriculaComponenteBean.soloLectura and 
+                                          sessionBean.operaciones.contains(ConstantesOperaciones.REABRIR_MATRICULA) and
+                                          matriculaComponenteBean.aplicaReaperturaMatricula}">
+                        <p:commandButton process="@this"
+                                         update=":#{component.namingContainer.parent.namingContainer.clientId}:confirmDialogAnularMatricula" 
+                                         rendered="#{matriculaComponenteBean.matReapertura!=null and matriculaComponenteBean.matReapertura.matPk==matricula.matPk}"
+                                         oncomplete="PF('confirmDialogReabrirMatricula').show()" icon="glyphicon glyphicon-refresh" 
+                                         styleClass="btn btn-icono" title="#{msg.hreaperturaMatricula}" 
+                                         action="#{matriculaComponenteBean.actualizarMatricula(matricula.matPk)}"  />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false"  toggleable="false"  
+                              rendered="#{!matriculaComponenteBean.soloLectura and 
+                                          sessionBean.operaciones.contains(ConstantesOperaciones.ANULAR_MATRICULA)}">
+                        <p:commandButton process="@this"
+                                         update=":#{component.namingContainer.parent.namingContainer.clientId}:confirmDialogAnularMatricula" 
+                                         rendered="#{matricula.matCerradoPorCierreAnio == null or not matricula.matCerradoPorCierreAnio}"
+                                         oncomplete="PF('confirmDialogAnularMatricula').show()" icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-icono" title="#{msg.hanularMatricula}" 
+                                         action="#{matriculaComponenteBean.actualizarMatricula(matricula.matPk)}"  />
+                    </p:column>
+                    <p:column  toggleable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE) or sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACION_ESTUDIANTE)}">
+                        <p:outputPanel rendered="#{matricula.matSeccion.secAnioLectivo.aleAnio gt 2017}">
+                            <button type="button" title="Opciones" class="btn btn-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+                                <span class="glyphicon glyphicon-menu-hamburger"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right">                                               
+                                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_PROMOCIONES_ESTUDIANTES}?seccionId=#{matricula.matSeccion.secPk}&amp;estudianteId=#{matriculaComponenteBean.estEdicion.estPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE)}">
+                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                    <h:outputText style="margin-left:6px;" value="#{msg.reportePromociones}"/>
+                                </p:link>
+                                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CALIFICACIONES_ESTUDIANTES}?seccionId=#{matricula.matSeccion.secPk}&amp;estudianteId=#{matriculaComponenteBean.estEdicion.estPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACION_ESTUDIANTE)}">
+                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                    <h:outputText style="margin-left:6px;" value="#{msg.reporteCalificaciones}"/>
+                                </p:link>
+                            </div>
+                        </p:outputPanel> 
+
+
+                    </p:column>
+
+                </p:dataTable>                                                                    
+            </p:outputPanel>
+        </p:outputPanel>
+
+    </p:outputPanel>
+
+    <p:dialog header="#{msg.hmodificarFechaMatricula}" widgetVar="itemDialogFechaMatricula" 
+              modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+        <p:outputPanel id="itemDetailMatriculaFechaMatricula">       
+            <p:messages id="popup_fecha_matricula_msg" showDetail="true" globalOnly="false" for="popup_fecha_matricula_msg" closable="true"/>         
+            <h:panelGroup rendered="#{not empty matriculaComponenteBean.modFechasEdicion}"  >                    
+                <p:outputPanel id="formularioFechaMatricula">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_matricula">
+                        <h:outputLabel value="#{msg.fechaIngreso}" for="input_fecha_matricula" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_fecha_matricula" styleClass="form-control" 
+                                        value="#{matriculaComponenteBean.modFechasEdicion.fechaIngreso}" 
+                                        pattern="#{applicationBean.patternFecha}" mask="true" showOn="button"
+                                        maxdate="#{applicationBean.today()}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta_matricula" rendered="#{matriculaComponenteBean.modFechasEdicion.renderFechaHasta}">
+                        <h:outputLabel value="#{msg.fechaHasta}" for="input_fecha_hasta_matricula" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_fecha_hasta_matricula" styleClass="form-control" 
+                                        value="#{matriculaComponenteBean.modFechasEdicion.fechaHasta}" 
+                                        pattern="#{applicationBean.patternFecha}" mask="true" showOn="button"
+                                        maxdate="#{applicationBean.today()}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardarMatFecha"  value="#{msg.guardar}" 
+                                             action="#{matriculaComponenteBean.guardarFecha()}" 
+                                             update="pnlMatricula itemDetailMatriculaFechaMatricula" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogFechaMatricula').hide();" 
+                                           styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardarMatFecha" />       
+                </p:outputPanel>         
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>
+
+
+    <p:confirmDialog id="confirmDialogAnularMatricula"
+                     message="#{msg.deseaAnulaMatricula}"
+                     header="#{msg.hanularMatricula}" severity="alert" widgetVar="confirmDialogAnularMatricula">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmAnularMatricula" value="#{msg.hconfirmar}" update="pnlMatricula itemDetailMatriculaFechaMatricula"
+                             oncomplete="PF('confirmDialogAnularMatricula').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{matriculaComponenteBean.anularMatricula()}"  />
+            <p:blockUI block="@form" trigger="confirmAnularMatricula"/>
+            <p:commandLink id="cancelarAnularMatricula" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogAnularMatricula').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:confirmDialog id="confirmDialogReabrirMatricula"
+                     message="#{msg.deseaReabrirMatricula}"
+                     header="#{msg.hreaperturaMatricula}" severity="alert" widgetVar="confirmDialogReabrirMatricula">  
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmReabrirMatricula" value="#{msg.hconfirmar}" update="pnlMatricula  itemDetailMatriculaFechaMatricula "
+                             oncomplete="PF('confirmDialogAnularMatricula').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{matriculaComponenteBean.reabrirMatricula()}"  />
+            <p:blockUI block="@form" trigger="confirmAnularMatricula"/>
+            <p:commandLink id="cancelarReabrirMatricula" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogReabrirMatricula').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:dialog header="#{msg.hretirar}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+        <p:outputPanel id="itemDetailMatricula">       
+            <p:messages id="popup_retirar_matricula_msg" showDetail="true" globalOnly="false" for="popup_retirar_matricula_msg" closable="true"/>         
+            <h:panelGroup rendered="#{not empty matriculaComponenteBean.matriculaEnEdicion}"  >                    
+                <p:outputPanel id="formularioNie">  
+                    <p:outputPanel styleClass="form-group row" id="fila_input_motivo">                        
+                        <h:outputLabel value="#{msg.hmotivo}" for="input_motivo" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_motivo" value="#{matriculaComponenteBean.comboMotivoRetiro.selected}" styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{matriculaComponenteBean.comboMotivoRetiro.items}" />
+                            </h:selectOneMenu>                                    
+                            <h:message for="input_sexo" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta">
+                        <h:outputLabel value="#{msg.hasta}" for="input_fecha_hasta" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_fecha_hasta" styleClass="form-control" 
+                                        value="#{matriculaComponenteBean.matriculaEnEdicion.matFechaHasta}" 
+                                        pattern="#{applicationBean.patternFecha}" mask="true" showOn="button"
+                                        maxdate="#{applicationBean.today()}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                        <h:outputLabel value="#{msg.observacion}" for="input_nombre" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control"
+                                         value="#{matriculaComponenteBean.matriculaEnEdicion.matObservaciones}" />                     
+                        </p:outputPanel>                    
+                    </p:outputPanel>                    
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardarMat"  value="#{msg.guardar}" action="#{matriculaComponenteBean.guardar()}" update="pnlMatricula itemDetailMatricula" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardarMat" />       
+                </p:outputPanel>         
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>
+
+    <p:dialog id="popUpMatProvisiona" header="#{(matriculaComponenteBean.matriculaEnEdicion.matProvisional == true)? msg.hmatriculaProvisional: msg.hmatriculaNoProvisional}" widgetVar="itemDialogMatProvisional" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+        <p:outputPanel id="itemDetailMatProvisional">       
+            <p:messages id="popupmsg4" showDetail="true" globalOnly="false" for="popupmsg4" closable="true"/>         
+            <h:panelGroup rendered="#{not empty matriculaComponenteBean.matriculaEnEdicion}"  >                    
+                <p:outputPanel id="formularioMatProvisional">     
+                    <p:outputPanel styleClass="form-group row" id="fila_observacion">
+                        <h:outputLabel value="#{msg.observacion}" for="input_obs" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:inputTextarea id="input_obs" styleClass="form-control" disabled="true"
+                                             value="#{matriculaComponenteBean.matriculaEnEdicion.matObservacioneProvisional}" />                     
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnValidarMatricula"  value="#{msg.validarMatricula}" 
+                                             action="#{matriculaComponenteBean.validarMatricula()}" 
+                                             rendered="#{matriculaComponenteBean.matriculaEnEdicion.matProvisional == true and sessionBean.operaciones.contains(ConstantesOperaciones.VALIDAR_MATRICULA_PROVISIONAL)}"
+                                             update="itemDetailMatProvisional form:tabs:pnlMatricula" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-ok-circle"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogMatProvisional').hide();"  
+                                           styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardarMat" />       
+                </p:outputPanel>         
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>
+
+    <p:dialog header="#{msg.hdatosRetiro}" widgetVar="itemDialogObservacionMot" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+        <p:outputPanel id="itemDetailObservacionMot">       
+            <p:messages id="popupmsg6" showDetail="true" globalOnly="false" for="popupmsg6" closable="true"/>         
+            <h:panelGroup rendered="#{not empty matriculaComponenteBean.matriculaEnEdicion}"  >                    
+                <p:outputPanel id="formularioObsMot">     
+                    <p:outputPanel styleClass="form-group row" id="fila_observacion_mot_ret">
+                        <h:outputLabel value="#{msg.observacion}" for="input_obs_mot_ret" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:inputTextarea id="input_obs_mot_ret" styleClass="form-control" disabled="true"
+                                             value="#{matriculaComponenteBean.matriculaEnEdicion.matObservaciones}" />                     
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                    <h:panelGroup rendered="#{not (matriculaComponenteBean.matriculaEnEdicion.matObsAnuRetiro == null)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_observacion_anular_retiro" >
+                            <h:outputLabel value="#{msg.observacionAnularRetiro}" for="input_obs_retiro" 
+                                           styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputTextarea id="input_obs_retiro" styleClass="form-control" disabled="true"
+                                                 value="#{matriculaComponenteBean.matriculaEnEdicion.matObsAnuRetiro}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogObservacionMot').hide();" styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardarMat" />       
+                </p:outputPanel>         
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>
+
+
+    <p:dialog header="#{msg.hmatriculasAnuladas}" id="matriculasAnuladas" widgetVar="itemDialogMatriculaAnulada" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+        <p:outputPanel id="matriculasAnuladasPanel">    
+            <p:outputPanel rendered="#{empty matriculaComponenteBean.listaMatriculaAnula}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li>
+                            <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.estudianteNoTieneMatriculasAnuladas}" />
+                        </li>         
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+
+            <h:panelGroup rendered="#{not empty matriculaComponenteBean.listaMatriculaAnula}"  >                    
+                <p:dataTable id="dtMatriculaAnulada" var="matricula" value="#{matriculaComponenteBean.listaMatriculaAnula}" 
+                             emptyMessage="#{msg.noHayResultados}" >
+                    <p:column headerText="#{msg.hSedeEducativa}" toggleable="false">
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduSede.sedCodigo}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hnivel}" >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidad}" >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidadAtencion}" >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hsubModalidadAtencion}"  >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hgrado}" >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hopcion}"   >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduOpcion.opcNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hprogramaEducativo}"   >
+                        <h:outputText value="#{matricula.matSeccion.secServicioEducativo.sduProgramaEducativo.pedNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hSeccion}" >
+                        <h:outputText value="#{matricula.matSeccion.secNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hvalidacionAcademica}" >
+                        <h:outputText value="#{matricula.matValidacionAcademica}" converter="#{booleanConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hFIngreso}" >
+                        <h:outputText value="#{matricula.matFechaIngreso}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hHasta}" >
+                        <h:outputText value="#{matricula.matFechaHasta}" converter="#{localDateConverter}" />
+                    </p:column>   
+                    <p:column headerText="#{msg.hAnulada}"   >
+                        <h:outputText value="#{matricula.matAnulada}" converter="#{booleanConverter}"/>
+                    </p:column>                  
+
+                </p:dataTable>    
+
+
+
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>
+
+</ui:composition>

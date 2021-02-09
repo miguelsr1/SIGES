@@ -1,0 +1,50 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+ 
+    <c:set var="aula" value="#{aula}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+    
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relAulaServicioBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relAulaServicioBean.setEntidadEnEdicion(aula)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relAulaServicioBean.entidadEnEdicion}">
+        
+                <p:fieldset id="servicioBasico" legend="#{msg.servicios}">
+                   <p:outputPanel styleClass="form-group row" id="fila_input_espacios_comunes" >                       
+                        <p:outputPanel styleClass="col-sm-10" >
+                            <p:dataTable id="listaServicios"        
+                                         styleClass="table-scroll"
+                                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                         disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_AULA_SERVICIO))}"
+                                         emptyMessage="#{msg.noHayResultados}"
+                                         rowSelectMode="checkbox"
+                                         var="espacio" selection="#{relAulaServicioBean.aulaServicioSeleccionados}" 
+                                         value="#{relAulaServicioBean.aulaServicio}" rowKey="#{espacio.rasServicio.sbaPk}" style="margin-bottom:0" >
+                                <p:column id="eleccionServicio"  selectionMode="multiple" style="width:16px;text-align:center" />                                                           
+                                <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                                    <h:outputText styleClass="strong" value="#{espacio.rasServicio.sbaNombre}" />
+                                </p:column>
+                                
+                               
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:fieldset>
+                
+                <div class="form-action-buttons">
+                    <p:commandButton  id="btnGuardarServicio" value="#{msg.guardar}" action="#{relAulaServicioBean.guardar()}" rendered="#{!relAulaServicioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_AULA_SERVICIO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    <p:blockUI block="@form" trigger="btnGuardarServicio" /> 
+                </div>
+            
+        
+    </h:panelGroup>
+</ui:composition>

@@ -1,0 +1,248 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+    
+    
+    <c:set var="controllerParam" value="#{controllerParam}" scope="request"/>
+    <c:set var="actionParam" value="#{actionParam}" scope="request"/>
+
+    <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderSede}">
+        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9">
+                <p:autoComplete id="input_sede_autocomplete"
+                                styleClass="form-control texto-medio"
+                                value="#{filtrosSeccionBean.sedeSeleccionada}"
+                                completeMethod="#{filtrosSeccionBean.completeSede}"
+                                var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                itemValue="#{sed}"
+                                widgetVar="b_inst_resp_autocomplete"
+                                forceSelection="true"
+                                maxResults="10"
+                                queryDelay="500"
+                                multiple="false"
+                                converter="#{sedesConverter}"
+                                placeholder="#{msg.autoCompleteEmptyItem}">
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarSede}" event="itemSelect"  process="@this" 
+                            update="filtro_nivel filtro_ciclo filtro_modalidad filtro_grado filtro_seccion filtro_modalidad_atencion filtro_sub_modalidad_atencion filtro_opcion filtro_programa_educativo"/>
+                    <p:ajax process="@this" event="change" immediate="true" listener="#{filtrosSeccionBean.deseleccionarSede}" />
+                </p:autoComplete>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+            <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9">
+                <h:selectOneMenu id="input_anio_lectivo" value="#{filtrosSeccionBean.comboAnioLectivo.selected}"  
+                                 styleClass="form-control texto-medio" >
+                    <f:selectItems value="#{filtrosSeccionBean.comboAnioLectivo.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarAnioLectivo}" process="@this" update="filtro_seccion"/>
+                </h:selectOneMenu>
+            </p:outputPanel>                    
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.niveles}" for="filtro_nivel" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_nivel" value="#{filtrosSeccionBean.comboNivel.selected}" 
+                                 styleClass="form-control dropdown texto-medio" >
+                    <f:selectItems value="#{filtrosSeccionBean.comboNivel.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarNivel()}" process="@this" 
+                            update="filtro_ciclo filtro_modalidad filtro_grado filtro_seccion filtro_modalidad_atencion filtro_sub_modalidad_atencion filtro_opcion filtro_programa_educativo" event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.ciclos}" for="filtro_ciclo" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_ciclo" value="#{filtrosSeccionBean.comboCiclo.selected}" 
+                                 styleClass="form-control dropdown texto-medio"   
+                                 disabled="#{filtrosSeccionBean.comboNivel.selectedT ==null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboCiclo.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarCiclo()}" process="@this" 
+                            update="filtro_modalidad filtro_grado filtro_seccion filtro_modalidad_atencion filtro_opcion" event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.modalidad}" for="filtro_modalidad" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_modalidad" value="#{filtrosSeccionBean.comboModalidad.selected}" 
+                                 styleClass="form-control dropdown texto-medio"   
+                                 disabled="#{filtrosSeccionBean.comboCiclo.selectedT ==null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboModalidad.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarModalidad()}" process="@this" 
+                            update="filtro_sub_modalidad_atencion filtro_opcion filtro_programa_educativo filtro_grado filtro_seccion filtro_modalidad_atencion " event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.modalidadAtencion}" for="filtro_modalidad_atencion" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_modalidad_atencion" value="#{filtrosSeccionBean.comboModalidadAtencion.selected}" 
+                                 styleClass="form-control dropdown texto-medio"   
+                                 disabled="#{filtrosSeccionBean.comboModalidad.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboModalidadAtencion.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarModalidadAtencion()}" process="@this" 
+                            update="filtro_sub_modalidad_atencion filtro_grado filtro_seccion" event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.subModalidadAtencion}" for="filtro_sub_modalidad_atencion" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_sub_modalidad_atencion" value="#{filtrosSeccionBean.comboSubModalidadAtencion.selected}" 
+                                 styleClass="form-control dropdown texto-medio"   
+                                 disabled="#{filtrosSeccionBean.comboModalidadAtencion.selectedT == null or filtrosSeccionBean.comboSubModalidadAtencion.isEmpty()}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboSubModalidadAtencion.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarSubModalidadAtencion()}" process="@this" event="change" update="filtro_grado filtro_seccion"/>
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+
+    <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderProgramaOpcion}">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.opcion}" for="filtro_opcion" styleClass="col-sm-3 col-form-label"/>                
+            <p:outputPanel styleClass="col-sm-9">
+                <h:selectOneMenu id="filtro_opcion" value="#{filtrosSeccionBean.comboOpcion.selected}" 
+                                 styleClass="form-control dropdown texto-medio"
+                                 disabled="#{filtrosSeccionBean.comboModalidad.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboOpcion.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarOpcion()}" process="@this" event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderProgramaOpcion}">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.programa}" for="filtro_programa_educativo" styleClass="col-sm-3 col-form-label"/>                
+            <p:outputPanel styleClass="col-sm-9">
+                <h:selectOneMenu id="filtro_programa_educativo" value="#{filtrosSeccionBean.comboProgramaEducativo.selected}" 
+                                 styleClass="form-control dropdown texto-medio" 
+                                 disabled="#{filtrosSeccionBean.comboModalidad.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboProgramaEducativo.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarProgramaEducativo()}" process="@this" event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel styleClass="col-md-6">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.grado}" for="filtro_grado" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_grado" value="#{filtrosSeccionBean.comboGrado.selected}" 
+                                 styleClass="form-control texto-medio"  
+                                 disabled="#{filtrosSeccionBean.comboModalidadAtencion.selectedT == null or (!filtrosSeccionBean.comboSubModalidadAtencion.isEmpty() and filtrosSeccionBean.comboSubModalidadAtencion.selectedT == null)}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboGrado.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarGrado()}" process="@this" 
+                            update="@form" event="change" />
+                </h:selectOneMenu>
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:outputPanel>
+
+
+    <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderSeccion}">
+        <p:outputPanel styleClass="form-group row">
+            <h:outputLabel value="#{msg.seccion}" for="filtro_seccion" styleClass="col-sm-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-9 ">
+                <h:selectOneMenu id="filtro_seccion" value="#{filtrosSeccionBean.comboSeccion.selected}" 
+                                 styleClass="form-control dropdown texto-medio" 
+                                 disabled="#{filtrosSeccionBean.sedeSeleccionada == null or filtrosSeccionBean.comboAnioLectivo.selectedT == null or filtrosSeccionBean.comboGrado.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboSeccion.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarSeccion}"  process="@this" update="@form"/>
+                    
+                </h:selectOneMenu>
+            </p:outputPanel>
+
+        </p:outputPanel>
+    </p:outputPanel>
+    
+    <p:panel header="#{msg.filtrosAvanzados}" id="panelAvanzado" 
+             styleClass="panel-filtro"
+             closable="true"
+             rendered="#{filtrosSeccionBean.panelAvanzado}">
+        <p:outputPanel id="pnlSearch2" styleClass="row" >
+            <!--<p:outputPanel styleClass="col-md-12">-->
+            
+                <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderSeccionIntegrada}">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.seccionAdmiteModalidadIntegrada}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <p:selectOneRadio layout="responsive" columns="3" value="#{filtrosSeccionBean.filtro.secIntegrada}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                        </p:selectOneRadio>            
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderFiltrosSeccion}">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.estadoSeccion}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" value="#{filtrosSeccionBean.filtro.estadoSeccion}">
+                                <f:selectItems value="#{filtrosSeccionBean.comboEstadoSeccion}" var="est" itemLabel="#{est.text}" />
+                                <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderFiltrosSeccion}">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.estadoPromocion}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" value="#{seccionBean.promocionSeleccionada}">
+                                <f:selectItem itemValue="#{1}" itemLabel="Realizada"/>
+                                <f:selectItem itemValue="#{2}" itemLabel="Pendiente"/>
+                                <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <h:panelGroup styleClass="col-md-6" rendered="#{filtrosSeccionBean.renderFiltrosSeccion}">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.incluirConSeccion}" styleClass="col-sm-3 col-form-label"/>
+                        <div class="col-sm-9">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="input_existeSeccion" styleClass="form-check-input" value="#{seccionBean.filtroServicioEducativo.sduExisteSeccion}" />
+                                <h:outputLabel for="input_existeSeccion" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </div>    
+                    </p:outputPanel>
+                </h:panelGroup>
+                
+            <!--</p:outputPanel>-->
+        </p:outputPanel>
+    </p:panel>
+    
+</ui:composition>

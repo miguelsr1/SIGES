@@ -1,0 +1,260 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumCalculoNotaInstitucional" />
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.DIPLOMADOS}.xhtml">#{msg.gestionDiplomado}</a></li>
+                <li class="breadcrumb-item active"  aria-current="page">#{diplomadoBean.nombrePagina}</li>
+             
+            </ol>
+        </nav>
+
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionDiplomado}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{diplomadoBean.entidadEnEdicion.dipPk != null}" value="#{msg.edicionDiplomado} #{diplomadoBean.entidadEnEdicion.dipNombre}"/>
+            <h:outputText rendered="#{diplomadoBean.entidadEnEdicion.dipPk == null}" value="#{msg.nuevoDiplomado}" />
+        </h3>
+
+        <p:outputPanel id="panelEnt">
+
+
+            <h:panelGroup rendered="#{not empty diplomadoBean.entidadEnEdicion }"  >
+
+                <fieldset>
+                    <p:outputPanel id="formularioDiplomadoEdit" >
+                        <p:outputPanel styleClass="form-group row" id="fila_output_codigo">
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" id="input_codigo" value="#{diplomadoBean.entidadEnEdicion.dipCodigo}" styleClass="form-control" disabled="#{diplomadoBean.soloLectura}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">                        
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-3 col-form-label obligatorio" />                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="input_nombre" value="#{diplomadoBean.entidadEnEdicion.dipNombre}" 
+                                             maxlength="255"  
+                                             styleClass="form-control" disabled="#{diplomadoBean.soloLectura}" >                                    
+                                </h:inputText>
+                                <h:message for="input_nombre" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                            <h:outputLabel value="#{msg.descripcion}" for="input_nombre" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputTextarea id="input_descripcion" value="#{diplomadoBean.entidadEnEdicion.dipDescripcion}" styleClass="form-control" disabled="#{diplomadoBean.soloLectura}"/>
+                                <h:message for="input_descripcion" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>
+                            <div class="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{diplomadoBean.entidadEnEdicion.dipHabilitado}" disabled="#{diplomadoBean.soloLectura}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <div class="separador"></div>
+                    <div class="form-action-buttons">
+                        <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{diplomadoBean.guardar()}" 
+                                          update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                        <p:blockUI block="formularioDiplomadoEdit" trigger="btnGuardar" />  
+                        <p:defaultCommand target="btnGuardar" scope="panelEnt"/>   
+                    </div>
+                </fieldset>
+
+                <p:outputPanel id="formularioSede" rendered="#{diplomadoBean.entidadEnEdicion.dipPk != null}">
+                    <p:outputPanel id="pnlResultado" >
+                        <p:outputPanel styleClass="form-action-buttons margen-sup">
+                            <p:commandButton value="#{msg.nuevoModuloDiplomado}" icon="glyphicon glyphicon-plus" 
+                                             action="#{diplomadoBean.agregarModuloDiplomado()}" 
+                                             update=":form:itemDetail :form:popupModDip" oncomplete="PF('itemDialog').show()"  
+                                             styleClass="btn btn-secondary" />
+                        </p:outputPanel>
+                        <p:dataTable id="basicDT"                         
+                                     widgetVar="widResultado"                         
+                                     var="elem"                          
+                                     value="#{diplomadoBean.entidadEnEdicion.dipModulosDiplomado}"                          
+                                     emptyMessage="#{msg.noHayResultados}"		
+                                     paginator="true"
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="dipPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="#{diplomadoBean.paginado}"
+                                     reflow="true" >
+                            <f:facet name="{anterior}">
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}">
+                                <h:outputText styleClass="#{diplomadoBean.totalResultados lt (diplomadoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+
+                            <f:facet name="header">
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                    <p:outputPanel styleClass="col-md-6">
+                                        <h3><h:outputText value="#{msg.moduloDiplomado}" /><h:outputText styleClass="cantidad" value="#{diplomadoBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                    </p:outputPanel>
+
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.mdiCodigo}">
+                                <h:outputText value="#{elem.mdiCodigo}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hnombre}" sortBy="#{elem.mdiNombre}">
+                                <h:outputText value="#{elem.mdiNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hdescripcion}" sortBy="#{elem.mdiDescripcion}">
+                                <h:outputText value="#{elem.mdiDescripcion}" />
+                            </p:column>
+                            <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.mdiUltModUsuario}">
+                                <h:outputText value="#{elem.mdiUltModUsuario}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.mdiUltModFecha}">
+                                <h:outputText value="#{elem.mdiUltModFecha}" converter="#{localDateTimeConverter}" />
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false">
+                                <p:commandButton update=":form:itemDetail :form:popupModDip" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{diplomadoBean.actualizarModuloDiplomado(elem)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false"
+                                      rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_MODULOS_DIPLOMA)}">
+                                <p:commandButton oncomplete="PF('confirmDialog').show()" update=":form:confirmDialog" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{diplomadoBean.prepararParaEliminar(elem)}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+            </h:panelGroup >
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:messages id="eliminarMsg" showDetail="true" globalOnly="false" for="eliminarMsg" closable="true"/>
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{diplomadoBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{(diplomadoBean.moduloDiplomadoEnEdicion.mdiPk!=null) ? msg.edicionModuloDiplomado:msg.nuevoModuloDiplomado }" id="popupModDip"  widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty diplomadoBean.moduloDiplomadoEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioDiplomado">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo_mdi" >                        
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo_mdi"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="input_codigo_mdi" styleClass="form-control" value="#{diplomadoBean.moduloDiplomadoEnEdicion.mdiCodigo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_mdi">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre_mdi" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" id="input_nombre_mdi" styleClass="form-control" value="#{diplomadoBean.moduloDiplomadoEnEdicion.mdiNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_desc_mdi">
+                            <h:outputLabel value="#{msg.descripcion}" for="input_desc_mdi" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" id="input_desc_mdi" styleClass="form-control" value="#{diplomadoBean.moduloDiplomadoEnEdicion.mdiDescripcion}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                         <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_escala">
+                            <h:outputLabel value="#{msg.escalaCalificacion}" for="combo_tipo_escala" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_cpgEscalaCalificacion" value="#{diplomadoBean.comboEscalaCalificacion.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{diplomadoBean.comboEscalaCalificacion.items}" />  
+                                    <p:ajax event="change" listener="#{diplomadoBean.eleccionEscalaCalificacion()}" update="fila_input_calculo_nota_institucional fila_input_funcion_redondeo fila_precision"/>
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cpgPeriodosCalificacion">
+                            <h:outputLabel value="#{msg.cpgPeriodosCalificacion}" for="input_cpgPeriodosCalificacion" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <p:inputNumber autocomplete="off" decimalPlaces="0" id="input_cpgPeriodosCalificacion" 
+                                               value="#{diplomadoBean.moduloDiplomadoEnEdicion.mdiPeriodosCalificacion}" 
+                                               styleClass="form-control texto-extra-corto"/>
+                                <h:message for="input_cpgPeriodosCalificacion" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_calculo_nota_institucional" >
+                            <h:outputLabel value="#{msg.calculoNotaInstitucional}" for="input_cpgCalculoNotaInstitucional" styleClass="col-sm-3 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_cpgCalculoNotaInstitucional" value="#{diplomadoBean.comboCalculoNotaInstitucional.selected}" disabled="#{diplomadoBean.comboEscalaCalificacion.selectedT==null}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{diplomadoBean.comboCalculoNotaInstitucional.items}"/>
+                                    <p:ajax event="change" update="fila_precision fila_input_funcion_redondeo"/>
+                                </h:selectOneMenu> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel  id="fila_precision">
+                            <p:outputPanel styleClass="form-group row" rendered="#{diplomadoBean.comboEscalaCalificacion.selectedT!=null and diplomadoBean.esEscalaNumerica}" >
+                                <h:outputLabel value="#{msg.precisionNotaInstitucional}" for="input_cpgprecision" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <p:inputNumber  maxValue="5" decimalPlaces="0" autocomplete="off" id="input_cpgprecision" 
+                                                    value="#{diplomadoBean.moduloDiplomadoEnEdicion.mdiPrecision}" 
+                                                    styleClass="form-control texto-extra-corto"/>
+                                </p:outputPanel> 
+                            </p:outputPanel>
+                        </p:outputPanel>   
+
+                        <p:outputPanel  id="fila_input_funcion_redondeo">
+                            <p:outputPanel styleClass="form-group row" rendered="#{diplomadoBean.comboCalculoNotaInstitucional.selectedT eq EnumCalculoNotaInstitucional.PROM}">
+                                <h:outputLabel value="#{msg.funcionRedondeo}" for="input_cpgFuncionRedondeo" styleClass="col-sm-3 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="input_cpgFuncionRedondeo" value="#{diplomadoBean.comboFuncionRedondeo.selected}"  styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{diplomadoBean.comboFuncionRedondeo.items}"/>
+                                    </h:selectOneMenu> 
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>  
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarpopup"  value="#{msg.guardar}" action="#{diplomadoBean.guardarModuloDiplomado()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />   
+                        <p:defaultCommand target="btnGuardarpopup" scope="itemDetail"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+
+    </h:form>
+</ui:composition>

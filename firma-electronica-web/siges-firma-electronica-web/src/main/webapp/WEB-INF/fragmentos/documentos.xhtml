@@ -1,0 +1,539 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+
+        <!-- Documentos vigentes -->
+        <h:form id="frmDocumentos">
+            <p:outputPanel style="display:block" class="panel-titulo-pagina"
+                           rendered="#{bandejaMB.soloMuestraFirma == false}">
+                <p:messages for="fudDocumento" showDetail="true" showSummary="false" autoUpdate="true"/>
+                <div class="align-right grupo-botones">
+                    
+
+                    <p:outputPanel id="cambiarDocumentosVigentes">
+                        <p:commandButton rendered="#{bandejaMB.documentosEstadoExpirados}"
+                                         styleClass="btn btn-default" icon="glyphicon glyphicon-transfer"
+                                         value="#{textMB.obtenerTexto('labels.documentosVigentes')}"
+                                         action="#{bandejaMB.cambiarDocumentoEstado()}"
+                                         update="@all"/>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="cambiarDocumentosExpirados">
+                        <p:commandButton rendered="#{!bandejaMB.documentosEstadoExpirados}"
+                                         styleClass="btn btn-default" icon="glyphicon glyphicon-transfer"
+                                         value="#{textMB.obtenerTexto('labels.menu.BandejaArchivosExpirados')}"
+                                         action="#{bandejaMB.cambiarDocumentoEstado()}"
+                                         update="@all"/>
+                    </p:outputPanel>
+
+                    <p:commandButton styleClass="btn btn-default" icon="glyphicon glyphicon-refresh"
+                                     value="#{textMB.obtenerTexto('labels.actualizar')}"
+                                     action="#{bandejaMB.buscarDocumentosVigentes}"
+                                     update="pnlArchivos frmDocumentosVencidos"/>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel class="ui-messages-warn ui-corner-all" rendered="#{bandejaMB.softwarePfeaDownlodLink==''}">
+                <span class="ui-messages-warn-icon"></span>
+                <ul>
+                    <li role="alert" aria-atomic="true">
+                        <span class="ui-messages-warn-summary">#{textMB.obtenerTexto('messages.sistemaOperativoNoSoportado')}</span>
+                    </li>
+                </ul>
+            </p:outputPanel>
+
+            <p:outputPanel id="pnlArchivos" class="panel-resultados"
+                           rendered="#{bandejaMB.soloMuestraFirma == false and !bandejaMB.documentosEstadoExpirados}">
+
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.documentosVigentes')}"/>
+                </h2>
+
+                <p:dataTable id="tblArchivos" var="archivo"
+                             emptyMessage="#{textMB.obtenerTexto('messages.aunNoTieneDocumentosAsociados')}"
+                             value="#{bandejaMB.lazyModelVigentes}" rowIndexVar="ri" paginator="true" rows="25"
+                             paginatorTemplate="#{configMB.paginadorTemplateSinExportador}" rowsPerPageTemplate="5,10,25,50"
+                             paginatorPosition="bottom" lazy="true" styleClass="table tabla-resultados">
+                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                        <h:outputText value="#{archivo.propertyMap['nombreOriginal']}"
+                                      title="#{archivo.propertyMap['id']}/#{archivo.propertyMap['identificador']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.origen')}">
+                        <h:outputText value="#{archivo.propertyMap['origen']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaDeCreacion')}">
+                        <h:outputText value="#{archivo.propertyMap['fechaCreacion']}">
+                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo" locale="es"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaDeExpiracion')}">
+                        <h:outputText value="#{archivo.propertyMap['fechaExpiracion']}">
+                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo" locale="es"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.estado')}">
+                        <h:outputText styleClass="glyphicon glyphicon-time btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='PF'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-ok btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='FI'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-time btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='EX'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-trash btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='EL'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-send btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='EN'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-remove-circle btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='RE'}"/>
+                        <h:outputText value="#{archivo.propertyMap['estadoDocumento'].nombre}"
+                                      title="#{archivo.propertyMap['ultimaAccion']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.info')}" styleClass="columnaAcciones"
+                              exportable="false">
+                        <p:commandButton action="#{bandejaMB.mostrarInfoFirmas(archivo.propertyMap['id'])}"
+                                         icon="glyphicon glyphicon-info-sign" class="btn btn-icono"
+                                         title="#{textMB.obtenerTexto('labels.info')}"
+                                         update="frmDocumentos:pnlInfoFirmas" onclick="PF('bloqueador').show();"
+                                         oncomplete="PF('bloqueador').hide();">
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.firmar')}" styleClass="columnaAcciones"
+                              exportable="false">
+                        <p:commandButton icon="glyphicon glyphicon-edit" class="btn btn-icono"
+                                         action="#{bandejaMB.openWizardModal(archivo.propertyMap['identificador'])}"
+                                         update="frmDocumentos:pnlWizard frmDocumentos:pnlBotones" id="lnkFirmar"
+                                         title="#{textMB.obtenerTexto('labels.firmar')}"
+                                         rendered="#{archivo.propertyMap['estadoDocumento']!='EN' and bandejaMB.softwarePfeaDownlodLink!=''}">
+                        </p:commandButton>
+                        <p:commandButton icon="glyphicon glyphicon-ban-circle" class="btn btn-icono" disabled="true"
+                                         title="#{textMB.obtenerTexto('messages.sistemaOperativoNoSoportado')}"
+                                         rendered="#{archivo.propertyMap['estadoDocumento']!='EN' and bandejaMB.softwarePfeaDownlodLink==''}">
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.descargar')}" styleClass="columnaAcciones"
+                              exportable="false">
+                        <p:commandButton ajax="false" icon="glyphicon glyphicon-download-alt" styleClass="btn btn-icono"
+                                         title="#{textMB.obtenerTexto('labels.descargar')}">
+                            <p:fileDownload value="#{bandejaMB.getDocumentoDescarga(archivo.propertyMap['id'])}"/>
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.visualizar')}" styleClass="columnaAcciones"
+                              exportable="false" rendered="false">
+                        <h:outputLink rendered="#{archivo.propertyMap['estadoDocumento']!='EL'}" target="newPopup"
+                                      value="#{bandejaMB.getDownloadURL(archivo.propertyMap['token'], 'View')}"
+                                      class="btn btn-icono"
+                                      title="#{textMB.obtenerTexto('labels.visualizar')}">
+                            <span class="glyphicon glyphicon-eye-open btn btn-icono"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.visualizar')}"
+                                          styleClass="ui-helper-hidden-accessible"/>
+                        </h:outputLink>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.eliminar')}" exportable="false">
+                        <p:commandButton icon="glyphicon glyphicon-trash" styleClass="btn btn-danger btn-icono"
+                                         title="#{textMB.obtenerTexto('labels.eliminar')}"
+                                         update="frmDocumentos:pnlEliminar"
+                                         action="#{bandejaMB.modalEliminarDocumento(archivo.propertyMap['identificador'])}"
+                                         rendered="#{archivo.propertyMap['estadoDocumento']!='EN'}">
+                            <f:param name="eliminar" value="Eliminar"></f:param>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+
+            <!-- Wizard para la firma de un documento-->
+            <div class="modal fade confirm-modal-callback" id="modalFirmarArchivo" widgetVar="firmaDocumento" tabindex="-1"
+                 role="dialog" data-backdrop="static">
+                <div class="modal-dialog" role="document" style="width:1200px; height:500px; top:0px;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="overview" class="page-header">
+                                <h:outputText value="#{textMB.obtenerTexto('label.firmaDeDocumento')}"/>
+                            </h2>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="pnlWizard">
+
+                                <ul class="wizard-nav-tabs wizard-nav-tabs-5">
+                                    <li class="#{bandejaMB.pasoWizard=='METODO'?'active':''}">
+                                        <a href="#" title="Paso 1" tabindex="-1">
+                                            <span class="wizard-step">1</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoMetodo')}</span>
+                                        </a>
+                                    </li>
+                                    <li class="#{bandejaMB.pasoWizard=='APLICATIVO'?'active':''}">
+                                        <a href="#" title="Paso 2" tabindex="-1">
+                                            <span class="wizard-step">2</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoAplicativo')}</span>
+                                        </a>
+                                    </li>
+                                    <li class="#{bandejaMB.pasoWizard=='FIRMA'?'active':''}">
+                                        <a href="#" title="Paso 3" tabindex="-1">
+                                            <span class="wizard-step">3</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoFirma')}</span>
+                                        </a>
+                                    </li>
+                                    <li class="#{bandejaMB.pasoWizard=='CONFIRMACION'?'active':''}">
+                                        <a href="#" title="Paso 4" tabindex="-1">
+                                            <span class="wizard-step">4</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoConfirmacion')}</span>
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <!-- Paso 1: seleccionar el método de firmas -->
+                                <p:outputPanel id="tabMetodoFirma" rendered="#{bandejaMB.pasoWizard=='METODO'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend>
+                                                <h:outputText value="#{textMB.obtenerTexto('labels.eligeMetodoFirma')}"/>
+                                            </legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                            <div class="col-sm-6 form-horizontal">
+                                                <p:outputLabel for="metodo"
+                                                               value="#{textMB.obtenerTexto('labels.eligeMetodoFirma')}"
+                                                               class="ui-helper-hidden-accessible"/>
+                                                <p:selectOneRadio id="metodo" value="#{bandejaMB.metodoFirma}" layout="grid"
+                                                                  columns="1">
+                                                    <f:selectItem
+                                                        itemLabel="#{textMB.obtenerTexto('labels.CedulaIdentidadElectronica')}"
+                                                        itemValue="CEDULA"/>
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.TokenAbitab')}"
+                                                                  itemValue="TOKEN_ABITAB"/>
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.TokenCorreo')}"
+                                                                  itemValue="TOKEN_CORREO"/>
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.NubeAbitab')}"
+                                                                  itemValue="NUBE_ABITAB"/>
+                                                    <!-- f:selectItem itemLabel="#{textMB.obtenerTexto('labels.ArchivoDisco')}" itemValue="ARCHIVO" / -->
+                                                    <p:ajax event="valueChange" update="pnlDescripcionMetodoFirma"/>
+                                                </p:selectOneRadio>
+                                            </div>
+                                            <p:outputPanel id="pnlDescripcionMetodoFirma" class="col-sm-6 form-horizontal">
+                                                <h:outputFormat value="#{bandejaMB.describirMetodoFirma()}" escape="false"/>
+                                            </p:outputPanel>
+                                        </fieldset>
+                                    </div>
+                                </p:outputPanel>
+
+                                <!-- Paso 2: descargar e instalar el aplicativo, permitir continuar si ya lo tiene -->
+                                <p:outputPanel id="tabInstalacion" rendered="#{bandejaMB.pasoWizard=='APLICATIVO'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend>
+                                                <h:outputText value="#{textMB.obtenerTexto('labels.DescargarAplicativo')}"/>
+                                            </legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+
+                                            <div class="col-sm-6 form-horizontal">
+                                                <div class="form-group">
+                                                    <h:outputLink target="_blank"
+                                                                  title="#{textMB.obtenerTexto('labels.agesicDownloadLink')}"
+                                                                  value="#{bandejaMB.softwarePfeaDownlodLink}">
+                                                        <h:outputText
+                                                            value="#{textMB.obtenerTexto('labels.softwareDownloadLink')}"
+                                                            styleClass="ui-helper"/>
+                                                    </h:outputLink>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div>
+                                                        <div class="checkbox">
+                                                            <h:selectBooleanCheckbox id="descargado"
+                                                                                     value="#{bandejaMB.descargado}"
+                                                                                     label="#{textMB.obtenerTexto('labels.descargadoEInstalado')}"/>
+                                                            <h:outputLabel for="descargado"
+                                                                           value="#{textMB.obtenerTexto('labels.descargadoEInstalado')}"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p:outputPanel id="pnlDescripcionMetodoInstalacion"
+                                                           class="col-sm-6 form-horizontal">
+                                                <h:outputFormat value="#{bandejaMB.describirInstalacion()}" escape="false"/>
+                                            </p:outputPanel>
+                                        </fieldset>
+                                    </div>
+                                </p:outputPanel>
+
+                                <!-- Paso 3: esperar a que el ciudadano firme el documento con el aplicativo -->
+                                <p:outputPanel id="tabEsperarArchivoFirmado" rendered="#{bandejaMB.pasoWizard=='FIRMA'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend>
+                                                <h:outputText
+                                                    value="#{textMB.obtenerTexto('labels.firmeElDocumentoConElAplicativo')}"/>
+                                            </legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                            <div class="form-group" style="text-align:center;">
+                                                <p:graphicImage value="/img/cargando.gif" width="50px;"/>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <p:poll widgetVar="pollEsperarArchivoFirmado" interval="5"
+                                            autoStart="true" stop="#{bandejaMB.stopPollFirma()}"
+                                            update="pnlWizard pnlBotones"/>
+                                </p:outputPanel>
+
+                                <!-- Paso 4: mostrar un mensaje de confirmación -->
+                                <p:outputPanel id="tabEsperaPersistenciaArchivoFirmado"
+                                               rendered="#{bandejaMB.pasoWizard=='CONFIRMACION'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend>
+                                                <h:outputText
+                                                    value="#{textMB.obtenerTexto('labels.archivoFirmadoRecibidoCorrectamente')}"/>
+                                            </legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                            <div class="form-group" style="text-align:center;">
+                                                <h:outputText
+                                                    value="#{textMB.obtenerTexto('labels.archivoFirmadoRecibidoCorrectamente')}"/>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </p:outputPanel>
+
+                                <!-- Mensaje -->
+                                <p:outputPanel id="tabMensaje" rendered="#{bandejaMB.pasoWizard=='MENSAJE'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend>
+                                                <h:outputText value="#{bandejaMB.mensajeTitulo}"/>
+                                            </legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                        </fieldset>
+                                    </div>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+                        </div>
+
+                        <p:outputPanel id="pnlBotones" class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.siguiente')}"
+                                             action="#{bandejaMB.siguientePaso()}" update="pnlWizard pnlBotones"
+                                             rendered="#{bandejaMB.pasoWizard!='CONFIRMACION' and bandejaMB.pasoWizard!='APLICATIVO'
+                                                         and bandejaMB.pasoWizard!='MENSAJE'}"
+                                             onclick="PF('bloqueador').show();" oncomplete="PF('bloqueador').hide();"
+                                             />
+                            <p:commandButton styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.siguiente')}"
+                                             action="#{bandejaMB.siguientePaso()}" update="pnlWizard pnlBotones"
+                                             rendered="#{bandejaMB.pasoWizard=='APLICATIVO'}"
+                                             oncomplete="if (args &amp;&amp; !args.validationFailed) PF('download').jq.click()"/>
+                            <p:commandButton widgetVar="download" styleClass="ui-helper-hidden" ajax="false">
+                                <p:fileDownload value="#{bandejaMB.archivoPfea}"/>
+                            </p:commandButton>
+                            <p:commandButton styleClass="btn btn-link" value="#{textMB.obtenerTexto('labels.cancelar')}"
+                                             action="#{bandejaMB.abrirBandeja(false)}"
+                                             rendered="#{bandejaMB.pasoWizard!='CONFIRMACION' and bandejaMB.pasoWizard!='MENSAJE'}"/>
+                            <p:commandButton styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.cerrar')}"
+                                             action="#{bandejaMB.abrirBandeja(true)}"
+                                             rendered="#{bandejaMB.pasoWizard=='CONFIRMACION' or bandejaMB.pasoWizard=='MENSAJE'}"
+                                             update="frmDocumentos:pnlArchivos"/>
+                        </p:outputPanel>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmación de eliminar documento -->
+            <div class="modal fade confirm-modal-callback" id="confirmModalCancelar" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText
+                                    value="#{textMB.obtenerTexto('labels.cancelarEliminarDocumento')}"/></span>
+                        </div>
+                        <p:outputPanel id="pnlEliminar" class="modal-body">
+                            <h:panelGroup layout="block" id="confirmModalCancel">
+                                <h:outputText
+                                    value="¿#{textMB.obtenerTexto('messages.confirmaQueDeseaEliminarElDocumento')}?"/>
+                                <br/><br/>
+                            </h:panelGroup>
+                        </p:outputPanel>
+                        <div class="modal-footer">
+                            <p:commandButton id="acceptCancelarDocumento" styleClass="btn btn-primary"
+                                             icon="glyphicon glyphicon-ok"
+                                             value="#{textMB.obtenerTexto('labels.confirmar')}"
+                                             action="#{bandejaMB.eliminarDocumento()}"
+                                             update="frmDocumentos:tblArchivos frmDocumentosVencidos:tblArchivos"/>
+                            <p:commandButton id="cancelarCancelarDocumento" styleClass="btn btn-link"
+                                             value="#{textMB.obtenerTexto('labels.cancelar')}"
+                                             action="#{bandejaMB.cancelarEliminarDocumento}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Informacion de firmas -->
+            <div class="modal fade confirm-modal-callback" id="modalInfoFirmas" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText
+                                    value="#{textMB.obtenerTexto('labels.infoFirmas')}"/></span>
+                        </div>
+                        <p:outputPanel id="pnlInfoFirmas" class="modal-body">
+                            <h:panelGroup layout="block" rendered="#{empty bandejaMB.infoFirmas}">
+                                <div class="ui-messages ui-widget" aria-live="polite">
+                                    <div class="ui-messages-info ui-corner-all">
+                                        <span class="ui-messages-info-icon"></span>
+                                        <ul>
+                                            <li>
+                                                <span class="ui-messages-info-detail">
+                                                    <h:outputText
+                                                        value="#{textMB.obtenerTexto('messages.elDocumentoNoContieneFirmas')}"/>
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block"
+                                          rendered="#{not empty bandejaMB.infoFirmas and bandejaMB.firmaValida}">
+                                <div class="ui-messages ui-widget" aria-live="polite">
+                                    <div class="ui-messages-info ui-corner-all">
+                                        <span class="ui-messages-info-icon"></span>
+                                        <ul>
+                                            <li>
+                                                <span class="ui-messages-info-detail">
+                                                    <h:outputText
+                                                        value="#{textMB.obtenerTexto('messages.laFirmaDelDocumentoEsCorrecta')}"/>
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block"
+                                          rendered="#{not empty bandejaMB.infoFirmas and not bandejaMB.firmaValida}">
+                                <div class="ui-messages ui-widget" aria-live="polite">
+                                    <div class="ui-messages-error ui-corner-all">
+                                        <span class="ui-messages-error-icon"></span>
+                                        <ul>
+                                            <li>
+                                                <span class="ui-messages-error-detail">
+                                                    <h:outputText
+                                                        value="#{textMB.obtenerTexto('messages.laFirmaDelDocumentoNoEsCorrecta')}"/>
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" id="pnlConFirmas" rendered="#{not empty bandejaMB.infoFirmas}">
+                                <p:dataTable id="tblInfoFirmas" var="info" value="#{bandejaMB.infoFirmas}"
+                                             styleClass="table tabla-resultados">
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.numero')}">
+                                        <h:outputText value="#{info.id}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.fecha')}">
+                                        <h:outputText value="#{info.fecha}" rendered="#{info.fecha!=null}">
+                                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo"
+                                                               locale="es"/>
+                                        </h:outputText>
+                                        <h:outputText value="***" rendered="#{info.fecha==null}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                        <h:outputText value="#{info.nombre}" title="#{info.dn}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.emisor')}">
+                                        <h:outputText value="#{info.emisor}" title="#{info.emisor}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.valida')}">
+                                        <h:outputLabel class="glyphicon glyphicon-ok btn btn-icono"
+                                                       rendered="#{info.valida}"/>
+                                        <h:outputLabel class="glyphicon glyphicon-remove btn btn-icono"
+                                                       rendered="#{not info.valida}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.mensaje')}">
+                                        <h:outputText value="#{info.mensaje}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.certificado')}">
+                                        <p:commandButton icon="glyphicon glyphicon-download-alt" class="btn btn-icono"
+                                                         ajax="false"
+                                                         title="#{textMB.obtenerTexto('labels.descargar')}">
+                                            <p:fileDownload value="#{bandejaMB.descargarCert(info.nombre, info.cert)}"/>
+                                        </p:commandButton>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGroup>
+                        </p:outputPanel>
+                        <div class="modal-footer">
+                            <p:commandButton id="cerrarInfoFirmas" styleClass="btn btn-link"
+                                             value="#{textMB.obtenerTexto('labels.cerrar')}"
+                                             onclick="$('#modalInfoFirmas').modal('hide')"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+        <p:separator/>
+
+        <!-- Documentos expirados y eliminados -->
+        <h:form id="frmDocumentosVencidos"
+                rendered="#{bandejaMB.soloMuestraFirma == false and bandejaMB.documentosEstadoExpirados}">
+            <div class="panel-titulo-pagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.menu.BandejaArchivosExpirados')}"/>
+                </h2>
+            </div>
+            <div class="panel-resultados">
+
+                <p:dataTable id="tblArchivos" var="archivo"
+                             emptyMessage="#{textMB.obtenerTexto('messages.aunNoTieneDocumentosAsociados')}"
+                             value="#{bandejaMB.lazyModelVencidos}" paginator="true" rows="25" paginatorPosition="bottom"
+                             lazy="true"
+                             paginatorTemplate="#{configMB.paginadorTemplateSinExportador}" rowsPerPageTemplate="5,10,25,50"
+                             styleClass="table tabla-resultados">
+                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                        <h:outputText value="#{archivo.propertyMap['nombreOriginal']}"
+                                      title="#{archivo.propertyMap['id']}/#{archivo.propertyMap['identificador']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.origen')}">
+                        <h:outputText value="#{archivo.propertyMap['origen']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaDeCreacion')}">
+                        <h:outputText value="#{archivo.propertyMap['fechaCreacion']}">
+                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo" locale="es"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.estado')}">
+                        <h:outputText styleClass="glyphicon glyphicon-flag btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='PF'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-ok btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='FI'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-time btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='EX'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-trash btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='EL'}"/>
+                        <h:outputText styleClass="glyphicon glyphicon-remove-circle btn btn-icono"
+                                      rendered="#{archivo.propertyMap['estadoDocumento']=='RE'}"/>
+                        <h:outputText value="#{archivo.propertyMap['estadoDocumento'].nombre}"
+                                      title="#{archivo.propertyMap['ultimaAccion']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaDeEliminacion')}">
+                        <h:outputText value="#{archivo.propertyMap['fechaEliminacion']}">
+                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo" locale="es"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaDeExpiracion')}">
+                        <h:outputText value="#{archivo.propertyMap['fechaExpiracion']}">
+                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo" locale="es"/>
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+    </ui:composition>
+</html>
+
+
+

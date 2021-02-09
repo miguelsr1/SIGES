@@ -1,0 +1,409 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ValoresDeIndicadores')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+
+        <div class="form-horizontal">
+            <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+
+
+            <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                <h:form id="mainForm" prependId="false">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                        <div class="col-sm-8">                      
+                            <h:selectOneMenu  id="anioFiscal" value="#{valoresDeIndicadoresCarga.idAnioFiscal}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                <f:selectItems value="#{utilsMB.getAniosFiscales()}" />
+                                <f:ajax render="tabsPanel"   listener="#{valoresDeIndicadoresCarga.filterTable()}"/>
+                            </h:selectOneMenu>
+                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                        <div class="col-sm-8">                      
+                            <h:selectOneMenu  id="unidadT" value="#{valoresDeIndicadoresCarga.idUnidadTecnica}"  styleClass="form-control textoLargo"  >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Todas')}" itemValue="#{null}"/>
+                                <f:ajax render="tabsPanel"   listener="#{valoresDeIndicadoresCarga.filterTable()}"/>
+                                <f:selectItems value="#{userInfo.getMapUTConOperacion('CARGA_VALORES_INDICADORES')}" />
+                            </h:selectOneMenu>
+                            <h:message for="unidadT" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div> 
+                    <!--tabla de montos -->
+                    <h:panelGroup  layout="block" id="tabsPanel">
+                        <h:panelGroup layout="block" >
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#indicadores" aria-controls="indicadores" role="tab" data-toggle="tab" ><h:outputText value="#{textMB.obtenerTexto('labels.Indicadores')}"/></a></li>
+                                <li><a  href="#actividades" aria-controls="actividades" role="tab" data-toggle="tab"><h:outputText value="#{textMB.obtenerTexto('labels.Actividades')}"/></a></li>
+                            </ul>
+                            <h:panelGroup  layout="block" styleClass="tab-content" id="tabsInclidos">
+                                <div id="indicadores" class="tab-pane fade in active">
+                                    <!-- en el include no anda el editar nose porque -->
+                                    <!--                                <ui:include src="./cargaValoresDeIndicadoresIndicadores.xhtml"></ui:include>-->
+
+                                    <p:outputPanel id="tablaValoresIndicadores">
+                                        <ui:fragment rendered="#{empty  valoresDeIndicadoresCarga.indicadoresACargar}"  >
+                                            <div class="form-group">
+                                                <div class ="col-xs-12">
+                                                    <h:outputText styleClass="no-hay-indicadores" value="#{textMB.obtenerTexto('labels.NoHayIndicadoresACargarConElFiltroSeleccionado')}"/>
+                                                </div>
+                                            </div>
+                                        </ui:fragment>
+
+                                        <ui:fragment rendered="#{not empty  valoresDeIndicadoresCarga.indicadoresACargar}"  >
+                                            <ui:repeat value="#{valoresDeIndicadoresCarga.indicadoresACargar}" var="indicador">
+                                                <h2><h:outputText value="#{indicador.tipoIndicador.nombre}"/></h2>
+                                               
+                                                <p:dataTable id="dataTableIndicador"
+                                                             value="#{indicador.metas}" 
+                                                             emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                             var="meta"
+                                                             sortBy="#{meta.proyecto.nombre}"
+                                                             styleClass="table table-hover">
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.Proyecto')}"  sortBy="#{meta.proyecto.nombre}" >
+                                                        <h:outputText value="#{meta.proyecto.nombre}" />
+                                                    </p:column>
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.UT')}"  sortBy="#{meta.ut.nombre}" >
+                                                        <h:outputText value="#{meta.ut.nombre}" />
+                                                    </p:column>
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.Indicador')}" sortBy="#{meta.indicador.nombre}"  >
+                                                        <h:outputText value="#{meta.indicador.nombre}" />
+                                                    </p:column>
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadMedida')}" >
+                                                        <h:outputText value="#{utilsMB.getIndicadorDesdeMeta(meta.metaIndicador).unidadDeMedida.codigo}" />
+                                                    </p:column>                                    
+                                                    <p:columns  var="nombreSeg" value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"   columnIndexVar="colIndex" styleClass="numericos">
+                                                        <f:facet name="header">
+                                                            <h:outputText  value="#{textMB.obtenerTexto(nombreSeg)}" />
+                                                        </f:facet>
+                                                        <h:outputText value="#{meta.metaIndicador.valores[colIndex].valor}">
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>
+                                                    </p:columns>
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}"  exportable="false">
+                                                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                         styleClass="btn btn-icono"  
+                                                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                         update="anadirIndicadoresForm"
+                                                                         action="#{valoresDeIndicadoresCarga.reloadValorIndicador()}"
+                                                                         oncomplete="$('#anadirIndicador').modal('show');" 
+                                                                         immediate="true"  >
+                                                            <f:setPropertyActionListener target="#{valoresDeIndicadoresCarga.metaEditando}" value="#{meta}" />
+                                                        </p:commandButton>
+                                                    </p:column>
+                                                </p:dataTable>
+                                                <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                                    <span class="glyphicon glyphicon-export"></span>
+                                                    <p:dataExporter type="csv" target=":#{component.parent.clientId}:dataTableIndicador" fileName="#{indicador.tipoIndicador.nombre}" />
+                                                </h:commandLink>
+                                                <div class="clear"></div>
+                                            </ui:repeat>
+                                        </ui:fragment>
+                                    </p:outputPanel>
+
+
+
+
+
+
+
+
+
+
+                                </div>
+                                <div id="actividades" class="tab-pane fade">
+                                    <!-- en el include no anda el editar nose porque -->
+                                    <!--                                <ui:include src="./cargaValoresDeIndicadoresActividades.xhtml"></ui:include>-->
+                                    <p:outputPanel id="tablaValoresActividades">
+
+                                        <!-- TABLA JSF -->
+                                        <p:dataTable id="dataTableActividades"
+                                                     value="#{valoresDeIndicadoresCarga.actividadesACargar}" 
+                                                     emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                     var="data"
+                                                     sortBy="#{data.nombrePOA}"
+                                                     styleClass="table table-hover">
+
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.NombrePOA')}"  >
+                                                <h:outputText value="#{data.nombrePOA}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.tipoPOA')}"  >
+                                                <h:outputText value="#{textMB.obtenerTexto(data.tipoPOA.label)}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.anio')}" >
+                                                <h:outputText value="#{data.anioFiscal.anio}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.UT')}"  >
+                                                <h:outputText value="#{data.ut.nombre}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Actividad')}"   >
+                                                <h:outputText value="#{data.nombreActividad}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Finalizada')}"   >
+                                                <h:outputText value="#{valoresDeIndicadoresCarga.estaFinalizada(data) ? textMB.obtenerTexto('labels.Si') : textMB.obtenerTexto('labels.No')}"  />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                                <p:commandButton 
+                                                    icon="glyphicon glyphicon-pencil" 
+                                                    styleClass="btn btn-icono"  
+                                                    title="#{textMB.obtenerTexto('labels.CambiarEstado')}" 
+                                                    oncomplete="$('#editarActividadModal').modal('show');" 
+                                                    immediate="true"
+                                                    action="#{valoresDeIndicadoresCarga.initActividad()}"
+                                                    update="editarActividadModalForm">
+                                                    <f:setPropertyActionListener target="#{valoresDeIndicadoresCarga.actividadEnEdicion}" value="#{data}" />
+                                                </p:commandButton>
+                                            </p:column>
+                                        </p:dataTable>
+
+                                    </p:outputPanel>
+
+
+
+
+                                    <!-- end include -->
+                                </div>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+
+                </h:form>
+            </p:outputPanel>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- MODAL PARA AÑADIR INDICADOR -->
+        <h:panelGroup id="blockIndicadoresLinea" layout="block">
+            <div class="modal fade"  id="anadirIndicador" tabindex="-1" role="dialog" aria-labelledby="anadirIndicadoresLinea">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalIndicadoresLinea">
+                        <h:form id="anadirIndicadoresForm"  prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.CargaValoresIndicadores')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>	
+                                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                    <h:panelGroup layout="block" >       
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Proyecto')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{valoresDeIndicadoresCarga.metaEditando.proyecto.nombre}"/>
+                                            </div>
+                                        </div>  
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{valoresDeIndicadoresCarga.metaEditando.metaIndicador.anioFiscal.anio}"/>
+                                            </div>
+                                        </div>  
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Indicador')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{utilsMB.getIndicadorDesdeMeta(valoresDeIndicadoresCarga.metaEditando.metaIndicador).nombre}"/>
+                                            </div>
+                                        </div>       
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MetodoMedicion')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{utilsMB.getIndicadorDesdeMeta(valoresDeIndicadoresCarga.metaEditando.metaIndicador).metodoMedicion}"/>
+                                            </div>
+                                        </div>     
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadDeMedida')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{utilsMB.getIndicadorDesdeMeta(valoresDeIndicadoresCarga.metaEditando.metaIndicador).unidadDeMedida.nombre}"/>
+                                            </div>
+                                        </div>
+                                    </h:panelGroup>
+
+
+                                    <h:panelGroup layout="block" id="listaMontosIndicador">
+                                        <fieldset class="fieldset fieldsetSmall">
+                                            <legend>
+                                                <h:outputText value="#{utilsMB.getIndicadorDesdeMeta(valoresDeIndicadoresCarga.metaEditando.metaIndicador).formaMedicion.nombre}" />
+                                            </legend>
+                                            <!-- POR TABLAS -->
+                                            <div class="table-responsive">
+                                                <table class="table table-hover tabla-campos">
+                                                    <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <ui:repeat  var="valorIndicador" value="#{valoresDeIndicadoresCarga.metaEditando.metaIndicador.valores}"  varStatus="status">
+                                                                <th><h:outputText value="#{textMB.obtenerTexto(utilsMB.getTituloSeguimiento(valoresDeIndicadoresCarga.metaEditando.metaIndicador.tipoSeguimiento, status.index ))}" /></th>
+                                                            </ui:repeat>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><h:outputText  value="#{textMB.obtenerTexto('labels.Meta')}" /></td>
+                                                            <ui:repeat  var="valorIndicador" value="#{valoresDeIndicadoresCarga.metaEditando.metaIndicador.valores}"  varStatus="status">
+                                                                <td class="numericos">
+                                                                    <h:outputText  value="#{valorIndicador.meta}" >
+                                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                    </h:outputText>
+                                                                </td>
+                                                            </ui:repeat>
+                                                        </tr>
+                                                        <tr>
+                                                            <td> <h:outputText  value="#{textMB.obtenerTexto('labels.Valor')}" /></td>
+                                                            <ui:repeat  var="valorIndicador" value="#{valoresDeIndicadoresCarga.metaEditando.metaIndicador.valores}"  varStatus="status">
+                                                                <td  class="numericos">
+                                                                    <h:inputText  id="valorIndicador" value="#{valorIndicador.valor}"   disabled="#{not valoresDeIndicadoresCarga.habilitadaCargaParaValor(status.index)}" styleClass="form-control numericos textoCorto"   >                                                 
+                                                                        <f:convertNumber minFractionDigits="#{utilsMB.inputNumberMinFractionDigits}" maxFractionDigits="#{utilsMB.inputNumberMaxFractionDigits}" />
+                                                                    </h:inputText> 
+                                                                </td>
+                                                            </ui:repeat>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <ui:repeat  var="valorIndicador" value="#{valoresDeIndicadoresCarga.metaEditando.metaIndicador.valores}"  varStatus="status">
+                                                <ui:fragment rendered="#{valoresDeIndicadoresCarga.habilitadaCargaParaValor(status.index)}" >
+                                                    <h:outputText styleClass="form-control-static" value="#{textMB.obtenerTexto(utilsMB.getTituloSeguimiento(valoresDeIndicadoresCarga.metaEditando.metaIndicador.tipoSeguimiento, status.index ))}" />
+
+                                                    <div class="form-group">
+                                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.alcanceYLimitante')}:" />
+                                                        <div class="col-sm-9">
+                                                            <h:inputTextarea  value="#{valorIndicador.alcanceYLimitante}" styleClass="form-control"   rows="10" 
+                                                                              disabled="#{not valoresDeIndicadoresCarga.habilitadaCargaParaValor(status.index)}"  />
+                                                        </div>
+                                                    </div>
+
+
+                                                    <div class="form-group">
+                                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MedioVerif')}:" />
+                                                        <div class="col-sm-9">
+                                                            <h:inputTextarea  value="#{valorIndicador.medioVerificacion}" styleClass="form-control"   rows="10" 
+                                                                              disabled="#{not valoresDeIndicadoresCarga.habilitadaCargaParaValor(status.index)}"  />
+                                                        </div>
+                                                    </div>
+                                                </ui:fragment>
+                                            </ui:repeat>
+
+
+
+                                        </fieldset>
+                                    </h:panelGroup>
+                                </div>
+                            </div>
+                            <h:panelGroup layout="block" id="anadirIndicadoresFooter" styleClass="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Aceptar')}" action="#{valoresDeIndicadoresCarga.guardarEditando()}" update="@form tablaValoresIndicadores"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </h:panelGroup>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+
+
+
+
+        <!-- MODAL PARA AÑADIR ACTIVIDAD -->
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="editarActividadModal" tabindex="-1" role="dialog" aria-labelledby="anadirIndicadoresLinea">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoeditarActividadModal">
+                        <h:form id="editarActividadModalForm"  prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.ActualizarValoresIndicadores')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <h:panelGroup layout="block" >       
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.NombrePOA')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{valoresDeIndicadoresCarga.actividadEnEdicion.nombrePOA}"/>
+                                            </div>
+                                        </div>      
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.tipoPOA')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{textMB.obtenerTexto(valoresDeIndicadoresCarga.actividadEnEdicion.tipoPOA.label)}" rendered="#{not empty valoresDeIndicadoresCarga.actividadEnEdicion.tipoPOA.label}"/>
+                                            </div>
+                                        </div> 
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.anio')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{valoresDeIndicadoresCarga.actividadEnEdicion.anioFiscal.anio}"/>
+                                            </div>
+                                        </div>  
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UT')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{valoresDeIndicadoresCarga.actividadEnEdicion.ut.nombre}"/>
+                                            </div>
+                                        </div>   
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Actividad')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText  styleClass="form-control-static" value="#{valoresDeIndicadoresCarga.actividadEnEdicion.nombreActividad}"/>
+                                            </div>
+                                        </div>  
+                                        <div class="form-group">
+                                            <h:outputText  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                            <div class="col-sm-9">
+                                                <h:selectOneRadio   styleClass="radio" value="#{valoresDeIndicadoresCarga.actividadEnEdicion.actividad.estado}" >
+                                                    <f:selectItems value="#{utilsMB.getEstadoActividadPOA()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                                </h:selectOneRadio>
+                                            </div>
+                                        </div>  
+                                    </h:panelGroup>
+                                </div>
+                            </div>
+                            <h:panelGroup layout="block"  styleClass="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Aceptar')}" action="#{valoresDeIndicadoresCarga.guardarActividad()}" update="@form tablaValoresActividades"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </h:panelGroup>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+    </ui:composition>
+</html>
+

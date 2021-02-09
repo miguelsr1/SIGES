@@ -1,0 +1,271 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CONTROLES_ASISTENCIA}">#{msg.hcontrolAsistencia}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{controlAsistenciaBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hcontrolAsistencia}"/></h2>
+            
+            <p:outputPanel styleClass="float-right">
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CONTROL_ASISTENCIA)}" /> 
+                </ui:include>
+            </p:outputPanel>
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{controlAsistenciaBean.tituloPagina}"/>
+        </h3>
+
+        <p:outputPanel id="formularioSede" >
+            <p:panel header="#{msg.filtro}" toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{controlAsistenciaBean}" />
+                            <ui:param name="actionParam" value="seleccionarSeccion" />
+                            <ui:param name="seccion" value="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_CONTROL_ASISTENCIA_CABEZAL}" />
+                            <ui:param name="incluirCamposSeccion" value="#{controlAsistenciaBean.incluirCamposSeccion}"/>
+                        </ui:include>
+                    </f:subview>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_opcion" rendered="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion.secServicioEducativo.sduOpcion!=null}">
+                        <h:outputLabel value="#{msg.opcion}" for="input_opcion" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_opcion" styleClass="texto-medio" value="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion.secServicioEducativo.sduOpcion.opcNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proged" rendered="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion.secServicioEducativo.sduProgramaEducativo!=null}">
+                        <h:outputLabel value="#{msg.programa}" for="input_proged" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_proged" styleClass=" texto-medio" value="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion.secServicioEducativo.sduProgramaEducativo.pedNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                        <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha"
+                                        value="#{controlAsistenciaBean.entidadEnEdicion.cacFecha}" 
+                                        pattern="#{applicationBean.patternFecha}" 
+                                        locale="#{sessionBean.locale}" 
+                                        converter="#{localDateConverter}"
+                                        rendered="#{controlAsistenciaBean.controlAsisId == null}"
+                                        readonlyInput="true"
+                                        maxdate="#{applicationBean.today()}" >
+                                <p:ajax listener="#{controlAsistenciaBean.dateSelect}" 
+                                        onstart="PF('blockerFecha').show()"
+                                        oncomplete="PF('blockerFecha').hide()"
+                                        event="dateSelect" update="form:tDetalle form:botonGuardar" />                                   
+                            </p:calendar>
+                            <p:blockUI block="@form" widgetVar="blockerFecha" />  
+                            <h:outputText value="#{controlAsistenciaBean.entidadEnEdicion.cacFecha}" converter="#{localDateConverter}"
+                                          styleClass="form-control-plaintext" rendered="#{controlAsistenciaBean.controlAsisId != null}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <h:panelGroup>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_id_seccion" 
+                                       rendered="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion.secPk!=null}">
+                            <h:outputLabel value="#{msg.idSeccion}" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText value="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion.secPk}" 
+                                              styleClass="form-control-plaintext" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+                </p:outputPanel>
+            </p:panel> 
+
+             <p:outputPanel id="tDetalle">
+            <p:outputPanel rendered="#{ (controlAsistenciaBean.diaNoLectivo)}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li>
+                            <h:outputText styleClass="ui-messages-warn-summary" value="El día indicado no es lectivo para la sección. Ver Calendario u Horario escolar" />
+                        </li>  
+                    </ul>
+                </div>
+            </p:outputPanel>
+           
+                <h:panelGroup rendered="#{controlAsistenciaBean.entidadEnEdicion.cacPk != null or (controlAsistenciaBean.entidadEnEdicion.cacSeccion != null and controlAsistenciaBean.entidadEnEdicion.cacFecha!=null)}">
+                    <p:outputPanel id="pnlHeaderTabla">
+                        <p:outputPanel rendered="#{controlAsistenciaBean.controlRealizado}" styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.controlAsistenciaRealizado}" />
+                                    </li>          
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel rendered="#{controlAsistenciaBean.nuevosEstudiantesSeccionSinControlAsistencia}" styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.nuevosEstudiantesSeccionSinControlAsistencia}" />
+                                    </li>         
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel rendered="#{(controlAsistenciaBean.entidadEnEdicion.cacAsistencia.size() == 0)}" styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.noHayEstudiantes}" />
+                                    </li>  
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+
+                        <h3><h:outputText value="#{msg.cantidadEstudiantes}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaBean.entidadEnEdicion.cacAsistencia.size()}" /></h3>
+                        <h3><h:outputText value="#{msg.cantidadEstudiantesPresentes}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaBean.entidadEnEdicion.cantidadEstudiantesPresentes}" /></h3>
+
+                        <h3><h:outputText value="#{msg.cantidadEstudiantesAusentesJustificados}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaBean.entidadEnEdicion.cacEstudiantesAusentesJustificados}" /></h3>
+                        <h3><h:outputText value="#{msg.cantidadEstudiantesAusentesSinJustificacion}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaBean.entidadEnEdicion.cacEstudiantesAusentesSinJustificar}" /></h3>
+                    </p:outputPanel>
+                    <p:panel header="#{msg.aplicarATodos}" toggleable="false" styleClass="panel-filtro" rendered="#{not controlAsistenciaBean.soloLectura}">                    
+
+
+                        <p:outputPanel styleClass="form-group">
+                            <p:outputPanel styleClass="row">
+                                <h:outputText value="#{msg.falta}"  styleClass="col-sm-2 col-form-label"/>                           
+                                <p:outputPanel styleClass="col-sm-10" >
+                                    <p:selectOneRadio layout="responsive"  columns="2" id="b_habilitado" value="#{controlAsistenciaBean.faltoAplicaTodos}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <p:ajax update="motivo_obs_aplicatodos" listener="#{controlAsistenciaBean.elegirFaltoAplicaTodos()}" />
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+                        </p:outputPanel>                        
+
+
+                        <p:outputPanel id="motivo_obs_aplicatodos" styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-6">
+                                <p:outputPanel styleClass="row" id="fila_input_aplica_todos_motivo">
+                                    <h:outputLabel value="#{msg.motivoInasistencia}" for="input_motivo" styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu id="input_motivo" value="#{controlAsistenciaBean.combosInasistenciaAplicarTodos.selected}" disabled="#{not controlAsistenciaBean.faltoAplicaTodos}" styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{controlAsistenciaBean.combosInasistenciaAplicarTodos.items}" />
+                                        </h:selectOneMenu> 
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <p:outputPanel styleClass="row" id="fila_input_aplica_observacion">
+                                    <h:outputLabel value="#{msg.observacion}" styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:inputText autocomplete="off" styleClass="form-control" id="input_aplica_observacion" value="#{controlAsistenciaBean.observacionAplicaTodos}" disabled="#{not controlAsistenciaBean.faltoAplicaTodos}" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel id="botonAplicarTodo" styleClass="col-sm-4 offset-sm-8" >
+                                <p:commandButton id="btnAplicarTodo" value="#{msg.aplicarATodos}" action="#{controlAsistenciaBean.aplicarTodos()}"                                                  
+                                                 update="tablaAsistencias"
+                                                 styleClass="btn btn-primary" />
+
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                    </p:panel>
+
+                    <p:outputPanel id="tablaAsistencias">
+                        <p:outputPanel styleClass="container-fluid tipo-tabla"  rendered="#{controlAsistenciaBean.entidadEnEdicion.cacAsistencia.size() gt 0}">
+                            <p:outputPanel styleClass="row tipo-tr" > 
+                                <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.hnie}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-10 tipo-th" >#{msg.nombreEstudiante}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.falto}</p:outputPanel>
+                            </p:outputPanel>
+                            <p:repeat value="#{controlAsistenciaBean.entidadEnEdicion.cacAsistencia}" var="elem" varStatus="status">
+                                <p:outputPanel styleClass="tipo-tr">
+                                    <p:outputPanel styleClass="row">
+                                        <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                            <h:outputText value="#{elem.asiEstudiante.estPersona.perNie}" />
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-10 tipo-td" >
+                                            <h:outputText styleClass="strong" value="#{elem.asiEstudiante.estPersona.perNombreCompleto}" />
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                            <h:selectBooleanCheckbox value="#{elem.asiInasistencia}" disabled="#{controlAsistenciaBean.soloLectura}">
+                                                <p:ajax update="panelInasistencia" />
+                                            </h:selectBooleanCheckbox>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:outputPanel id="panelInasistencia" styleClass="row motivo-inasistencia" style="#{elem.asiInasistencia ? 'display: flex' : 'display: none'};">
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="row" id="fila_input_motivo">
+                                                <h:outputLabel value="#{msg.motivoInasistencia}" for="input_motivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="input_motivo" value="#{controlAsistenciaBean.combosInasistencia[status.index].selected}" disabled="#{controlAsistenciaBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                                                        <f:selectItems value="#{controlAsistenciaBean.combosInasistencia[status.index].items}" />
+                                                        <p:ajax listener="#{controlAsistenciaBean.inasistenciaSelected(elem, status.index)}" event="change"/>
+                                                    </h:selectOneMenu> 
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="row" id="fila_input_observacion">
+                                                <h:outputLabel value="#{msg.observacion}" styleClass="col-sm-4 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:inputText autocomplete="off" styleClass="form-control" id="input_observacion" value="#{elem.asiObservacion}" disabled="#{controlAsistenciaBean.soloLectura}" />
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:repeat>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </h:panelGroup>
+            </p:outputPanel>
+
+            <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardar" value="#{msg.guardar}" action="#{controlAsistenciaBean.guardar()}" 
+                                     rendered="#{!controlAsistenciaBean.soloLectura and controlAsistenciaBean.entidadEnEdicion.cacAsistencia.size() gt 0 }" 
+                                     disabled="#{controlAsistenciaBean.entidadEnEdicion.cacSeccion == null}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    <p:blockUI block="formularioSede" trigger="btnGuardar" />    
+                    <p:defaultCommand target="btnGuardar" scope="formularioSede"/>  
+                </p:outputPanel>                    
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

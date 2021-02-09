@@ -1,0 +1,359 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">                 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CALENDARIOS}.xhtml">#{msg.gestionCalendario}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionPeriodoCalificacion}</li>
+            </ol>
+        </nav>
+
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionPeriodoCalificacion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoPeriodoCalificacion}" icon="glyphicon glyphicon-plus" 
+                                 action="#{periodoCalificacionBean.agregar()}" 
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PERIODOS_CALIFICACION)}"
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarPeriodoCalificacion" styleClass="btn btn-secondary" />
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.PERIODOS_CALIFICACION)}" /> 
+                </ui:include>
+
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="Calendario: #{periodoCalificacionBean.calendarioEnEdicion.calNombre}"  />
+        </h3>    
+
+
+        <p:outputPanel id="pnlResultado" >
+            <ui:repeat value="#{periodoCalificacionBean.listModalidadEducativa}" var="modalidad">
+                <p:panel header="#{modalidad.modNombre}"  toggleable="true"  collapsed="false" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro blanco">
+                    <ui:repeat value="#{periodoCalificacionBean.obtenerPeriodos(modalidad)}" var="periodoCal">    
+                        <p:outputPanel styleClass="panel-titulo-tabla">
+                            <div><span class="panel-subtitle"><h:outputText value="#{periodoCal.pcaNombre}"/></span></div>
+                            <span class="panel-subtitle"><h:outputText value="Modalidad Atención: #{periodoCal.pcaModalidadAtencion.matNombre}"/><h:outputText value=" - Cantidad períodos permitida: #{periodoCal.pcaNumero}" styleClass="cantidad"/>
+                                <h:outputText value=" - #{msg.permiteCalificarSinNie} " styleClass="cantidad"/><h:outputText value="#{periodoCal.pcaPermiteCalificarSinNie}"  styleClass="cantidad" converter="#{booleanConverter}"/>
+                                <h:outputText value=" - Tipo período: #{periodoCalificacionBean.nombreTipoPeriodo(periodoCal)}" styleClass="cantidad"/>
+                            </span>
+                            <p:outputPanel styleClass="float-right margen-inf">
+                                <p:commandButton value="#{msg.nuevoRangoFecha}" icon="glyphicon glyphicon-plus" 
+                                                 action="#{periodoCalificacionBean.agregarRangoFecha(periodoCal)}" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_RANGOS_FECHA)}"
+                                                 update=":form:itemDetail_rangoFecha" oncomplete="PF('itemDialog_rangoFecha').show()"  
+                                                 id="btnAgregarRangoFecha" styleClass="btn btn-secondary" />
+                                <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PERIODOS_CALIFICACION)}" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{periodoCalificacionBean.actualizar(periodoCal)}"/>                                
+                                <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_PERIODOS_CALIFICACION)}" styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{periodoCalificacionBean.actualizar(periodoCal)}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:dataTable id="basicDT"                         
+                                     widgetVar="widResultado"                         
+                                     var="elem"
+                                     value="#{periodoCal.pcaRangoFecha}"                          
+                                     emptyMessage="#{msg.noHayResultados}"	
+                                     sortField="pcaPk"
+                                     rows="#{periodoCalificacionBean.paginado}"
+                                     reflow="true" 
+                                     styleClass="margen-inf">                          
+
+                            <f:facet name="header">
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.rfeCodigo}">
+                                <h:outputText value="#{elem.rfeCodigo}"  />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaDesde}" sortBy="#{elem.rfeFechaDesde}">
+                                <h:outputText value="#{elem.rfeFechaDesde}" converter="#{localDateConverter}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaHasta}" sortBy="#{elem.rfeFechaHasta}">
+                                <h:outputText value="#{elem.rfeFechaHasta}" converter="#{localDateConverter}" />
+                            </p:column>             
+                            <p:column headerText="#{msg.hhabilitado}">
+                                <h:outputText value="#{elem.rfeHabilitado}" converter="#{booleanConverter}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_RANGOS_FECHA)}">
+                                <p:commandButton update=":form:itemDetail_rangoFecha" oncomplete="PF('itemDialog_rangoFecha').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{periodoCalificacionBean.actualizarRangoFecha(periodoCal,elem)}"/>
+                            </p:column>                          
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_RANGOS_FECHA)}">
+                                <p:commandButton oncomplete="PF('confirmDialog_rangoFecha').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{periodoCalificacionBean.actualizarRangoFecha(periodoCal,elem)}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </ui:repeat>
+                </p:panel>
+            </ui:repeat>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{periodoCalificacionBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:confirmDialog id="confirmDialog_rangoFecha"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog_rangoFecha">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete_rangoFecha" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog_rangoFecha').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{periodoCalificacionBean.eliminarRangoFecha()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete_rangoFecha" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog_rangoFecha').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.hperiodoCalificacion}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty periodoCalificacionBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioPeriodoCalificacion">    
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_niv">
+                            <h:outputLabel value="#{msg.hniveles}" for="combo_niv" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="combo_niv" value="#{periodoCalificacionBean.nivelCombo.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{periodoCalificacionBean.nivelCombo.items}" />    
+                                    <p:ajax update="fila_combo_cic fila_combo_mod_ed fila_combo_mod_at"  listener="#{periodoCalificacionBean.cargarComboCiclo()}" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_cic">
+                            <h:outputLabel value="#{msg.hciclos}" for="combo_cic" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="combo_cic" value="#{periodoCalificacionBean.cicloCombo.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{periodoCalificacionBean.cicloCombo.items}" />    
+                                    <p:ajax update="fila_combo_mod_ed fila_combo_mod_at"  listener="#{periodoCalificacionBean.cargarComboModalidad()}" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_mod_ed">
+                            <h:outputLabel value="#{msg.hmodalidadEducativa}" for="input_pcaModalidadEducativa" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_pcaModalidadEducativa" value="#{periodoCalificacionBean.modalidadEducativaCombo.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{periodoCalificacionBean.modalidadEducativaCombo.items}" />  
+                                    <h:message for="input_pcaModalidadEducativa" styleClass="msj-danger"/>
+                                    <p:ajax update="fila_combo_mod_at"  listener="#{periodoCalificacionBean.cargarComboModAt()}" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>                         
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_mod_at">
+                            <h:outputLabel value="#{msg.hmodalidadAtencion}" for="input_pcaModalidadAtencion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_pcaModalidadAtencion" value="#{periodoCalificacionBean.modalidadAtencionCombo.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{periodoCalificacionBean.modalidadAtencionCombo.items}" />    
+                                    <p:ajax update="fila_combo_mod_at fila_input_submod_aten"  listener="#{periodoCalificacionBean.cargarSubModalidadAtencion()}" />
+                                </h:selectOneMenu>  
+                                <h:message for="input_pcaModalidadAtencion" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+
+                        <p:outputPanel id="fila_input_submod_aten" >
+                            <p:outputPanel  styleClass="form-group row" rendered="#{ periodoCalificacionBean.subModalidadAtencionCombo != null}">
+                                <h:outputLabel value="#{msg.subModalidadAtencion}" for="input_submod_aten" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="input_submod_aten" value="#{periodoCalificacionBean.subModalidadAtencionCombo.selected}"  styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{periodoCalificacionBean.subModalidadAtencionCombo.items}" />    
+                                    </h:selectOneMenu>  
+                                </p:outputPanel>   
+                            </p:outputPanel>  
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_pcaNombre" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_pcaNombre" styleClass="form-control" value="#{periodoCalificacionBean.entidadEnEdicion.pcaNombre}" />                     
+                                <h:message for="input_pcaNombre" styleClass="msj-danger"/>                                
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_numero">
+                            <h:outputLabel value="#{msg.cantidad}" for="input_pcaNumero" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputNumber decimalPlaces="0"  thousandSeparator="" maxValue="9999999999"  autocomplete="off" id="input_pcaNumero" styleClass="form-control" value="#{periodoCalificacionBean.entidadEnEdicion.pcaNumero}" />                     
+                                <h:message for="input_pcaNumero" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_cal_sin_nie">
+                            <h:outputLabel value="#{msg.permiteCalificarSinNie}" for="input_cal_sin_nie" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox  styleClass="form-check-input" value="#{periodoCalificacionBean.entidadEnEdicion.pcaPermiteCalificarSinNie}" />
+                                    <h:outputLabel styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="¿Es de prueba?" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_es_de_prueba" styleClass="form-check-input" value="#{periodoCalificacionBean.entidadEnEdicion.pcaEsPrueba}" />
+                                    <h:outputLabel for="input_es_de_prueba" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.esAnual}" styleClass="col-sm-4 col-form-label"/>                            
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:selectOneRadio layout="responsive" columns="2" id="b_habilitado" value="#{periodoCalificacionBean.esAnual}"
+                                                      disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_PERIODO_ANUAL_COHORTE_EN_PERIODO_CALIFICACION)}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <p:ajax update="periodo" />
+                                    </p:selectOneRadio>                                    
+                                </p:outputPanel>                          
+                        </p:outputPanel>
+
+                        <p:outputPanel id="periodo">
+                            <p:outputPanel styleClass="form-group row" rendered="#{not periodoCalificacionBean.esAnual}" >
+                                <h:outputLabel value="#{msg.periodoCohorte}" for="input_codigo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu value="#{periodoCalificacionBean.periodoSeleccionado}" disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_PERIODO_ANUAL_COHORTE_EN_PERIODO_CALIFICACION)}" styleClass="form-control">
+                                        <f:selectItems value="#{periodoCalificacionBean.periodos}"/>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{periodoCalificacionBean.guardar()}"  update=":form:itemDetail :form:pnlResultado" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>             
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.hrangoFecha}" widgetVar="itemDialog_rangoFecha" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail_rangoFecha">                                                             
+                <h:panelGroup rendered="#{not empty periodoCalificacionBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioPeriodoCalificacion_rangoFecha">                                               
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo_popup" >                        
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo_popup"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_codigo_popup" styleClass="form-control" value="#{periodoCalificacionBean.rangoFechaEnEdicion.rfeCodigo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_desde">
+                            <h:outputLabel value="#{msg.desde}" for="input_fecha_desde" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha_desde" styleClass="form-control" 
+                                            value="#{periodoCalificacionBean.rangoFechaEnEdicion.rfeFechaDesde}" 
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}"
+                                            mask="true"/>
+                                <h:message for="input_fecha_desde" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta">
+                            <h:outputLabel value="#{msg.hasta}" for="input_fecha_hasta" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha_hasta" styleClass="form-control" 
+                                            value="#{periodoCalificacionBean.rangoFechaEnEdicion.rfeFechaHasta}" 
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}"
+                                            mask="true"/>
+                                <h:message for="input_fecha_hasta" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{periodoCalificacionBean.rangoFechaEnEdicion.rfeHabilitado}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar_rfe"  value="#{msg.guardar}" action="#{periodoCalificacionBean.guardarRangoFecha()}" update="form:pnlResultado form:itemDetail_rangoFecha" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}"  oncomplete="PF('itemDialog_rangoFecha').hide();"  update=":form:itemDetail_rangoFecha" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar_rfe" />   
+                        <p:defaultCommand target="btnGuardar_rfe" scope="itemDetail_rangoFecha"/>      
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+
+        <p:dialog header="#{msg.historialPeriodoCalificacion}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="historialDetail" styleClass="form-horizontal">                
+                <h:panelGroup rendered="#{not empty periodoCalificacionBean.historialPeriodoCalificacion}"  >                     
+                    <p:dataTable value="#{periodoCalificacionBean.historialPeriodoCalificacion}" var="hist" reflow="true">                         
+                        <p:column headerText="#{msg.hid}">                            
+                            <h:outputText value="#{hist.pcaPk}"/>                         
+                        </p:column>                        
+
+                        <p:column headerText="#{msg.husuarioMod}">                             
+                            <h:outputText value="#{hist.pcaUltModUsuario}"/>                         
+                        </p:column>                         
+                        <p:column headerText="#{msg.hfecha}">                             
+                            <h:outputText value="#{hist.pcaUltModFecha}" converter="#{localDateTimeConverter}"/>
+                        </p:column>                                             
+                        <p:column headerText="#{msg.hversion}">                            
+                            <h:outputText value="#{hist.pcaVersion}"/>                         
+                        </p:column>                    
+                    </p:dataTable>                
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>    
+    </h:form>
+</ui:composition>

@@ -1,0 +1,453 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <script>
+        window.document.addEventListener('markerClickEvent', handleEvent, false);
+        function handleEvent(e) {
+            updateAddressCoordinates([{name: 'latitude', value: e.detail.latitude}, {name: 'longitude', value: e.detail.longitude}]);
+        }
+    </script>
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{inmuebleBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{inmuebleBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoUnidadResponsable"/>
+    <p:remoteCommand name="updateAddressCoordinates" action="#{inmuebleBean.updateAddressCoordinates}" update="@(.latitud_update_class, .longitud_update_class)"/>
+    <h:panelGroup rendered="#{not empty inmuebleBean.entidadEnEdicion}">
+
+        <p:fieldset id="datosGenerales" legend="#{msg.datosGenerales}">
+
+            <p:outputPanel styleClass="form-group row" id="fila_pertenece_a">
+                <h:outputLabel value="#{msg.unidadResponsable}" for="input_pertenece_a" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_pertenece_a" disabled="#{inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.RADIO_BUTTON_UNIDADES_ADMINISTRATIVAS))}"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisPerteneceSede}">
+                        <f:selectItems value="#{applicationBean.inmuebleValues}" />
+                        <f:selectItem itemValue="#{null}" itemLabel="Otros"/>
+                        <p:ajax update="form:tabs:seleccionarInmueble:fila_input_sede_autocomplete form:tabs:seleccionarInmueble:fila_input_unidad_administrativa" event="change" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel id="fila_input_sede_autocomplete">
+                <p:outputPanel styleClass="form-group row"  rendered="#{inmuebleBean.entidadEnEdicion.tisPerteneceSede!=null and inmuebleBean.entidadEnEdicion.tisPerteneceSede  }">
+                    <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-9">
+                        <p:autoComplete id="input_sede_autocomplete" 
+                                        styleClass="form-control texto-medio"
+                                        rendered="#{!inmuebleBean.soloLectura}"
+                                        value="#{inmuebleBean.sedeSeleccionada}"
+                                        completeMethod="#{inmuebleBean.completeSede}"
+                                        var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                        itemValue="#{sed}" 
+                                        forceSelection="true"
+                                        maxResults="10"
+                                        queryDelay="500"
+                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                        converter="#{sedesConverter}"
+                                        multiple="false">
+                            <p:ajax listener="#{inmuebleBean.seleccionarSede}" event="itemSelect"  process="@this" update="@form"/>
+                        </p:autoComplete>
+                        <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{inmuebleBean.sedeSeleccionada.sedCodigoNombre}"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel id="fila_input_unidad_administrativa">
+                <p:outputPanel styleClass="form-group row"  rendered="#{inmuebleBean.entidadEnEdicion.tisPerteneceSede!=null and (not inmuebleBean.entidadEnEdicion.tisPerteneceSede)}">
+                    <h:outputLabel value="#{msg.unidadAdministrativa}" for="input_unidad_administrativa" styleClass="col-sm-3 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-9">
+                        <p:autoComplete id="input_unidad_administrativa" 
+                                        styleClass="form-control texto-medio"
+                                        rendered="#{!inmuebleBean.soloLectura}"
+                                        value="#{inmuebleBean.unidadAdministrativaSeleccionada}"
+                                        completeMethod="#{inmuebleBean.completeUnidadAdministrativa}"
+                                        var="uni" itemLabel="#{uni.uadCodigoNombre}" 
+                                        itemValue="#{uni}" 
+                                        forceSelection="true"
+                                        maxResults="10"
+                                        queryDelay="500"
+                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                        converter="#{unidadAdministrativaConverter}"
+                                        multiple="false">
+
+                        </p:autoComplete>
+                        <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{inmuebleBean.unidadAdministrativaSeleccionada.uadNombre}"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_aplica_otras_sedes">
+                <h:outputLabel value="¿Existen otras sedes y/o unidades administativas en el terreno?" for="input_aplica_otras_sedes" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_aplica_otras_sedes" disabled="#{inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.RADIO_BUTTON_UNIDADES_ADMINISTRATIVAS))}"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisExisteOtrasSedesUnidadAdmi}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax update="form:tabs:seleccionarInmueble:panelOtrasSedesUnidadAd " event="change" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_codigo" rendered="#{inmuebleBean.entidadEnEdicion.tisPk != null}" >                        
+                <h:outputLabel value="#{msg.codigoInmueble}" for="input_codigo"  styleClass="col-sm-3 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-2">                            
+                    <h:outputText styleClass="form-control-plaintext" value="#{inmuebleBean.entidadEnEdicion.tisPk}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_numero_correlativo" rendered="#{inmuebleBean.entidadEnEdicion.tisNumeroCorrelativo != null}">                        
+                <h:outputLabel value="#{msg.numeroCorrelativo}" for="input_numero_correlativo"  styleClass="col-sm-3 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-2">                            
+                    <h:outputText styleClass="form-control-plaintext"
+                                  value="#{inmuebleBean.entidadEnEdicion.tisNumeroCorrelativo}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_areatota">
+                <h:outputLabel value="#{msg.areaTotalTerreno}" for="input_areatota" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:inputNumber autocomplete="off" id="input_areatota" rendered="#{!inmuebleBean.soloLectura}" 
+                                   disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION)}"
+                                   value="#{inmuebleBean.entidadEnEdicion.tisAreaTotal}"
+                                   styleClass="form-control texto-medio"
+                                   inputStyle="text-align: right"
+                                   maxValue="9999999999"
+                                   minValue="0"
+                                   decimalPlaces="2" thousandSeparator=".">
+                        <p:ajax update="form:tabs:seleccionarInmueble:fila_input_areadisponible" event="change" />
+                    </p:inputNumber>
+                    <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{inmuebleBean.entidadEnEdicion.tisAreaTotal}"/>
+                </p:outputPanel>
+                <h:outputLabel value="#{msg.expresadoMetrosCuadrados}" for="input_areatota" styleClass="col-sm-7 col-form-label-left"/>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_areadisponible">
+                <h:outputLabel value="#{msg.areaDisponibleConstruccion}" for="input_areadisponible" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:inputNumber autocomplete="off" id="input_areadisponible"  rendered="#{!inmuebleBean.soloLectura}"
+                                   disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_INFRAESTRUCTURA)}"
+                                   value="#{inmuebleBean.entidadEnEdicion.tisAreaDisponible}"
+                                   styleClass="form-control texto-medio"
+                                   inputStyle="text-align: right"
+                                   maxValue="#{inmuebleBean.entidadEnEdicion.tisAreaTotal}"
+                                   minValue="0"
+                                   decimalPlaces="2" thousandSeparator="."/>
+                    <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{inmuebleBean.entidadEnEdicion.tisAreaDisponible}"/>
+                </p:outputPanel>
+                <h:outputLabel value="#{msg.expresadoMetrosCuadrados}" for="input_areadisponible" styleClass="col-sm-7 col-form-label-left"/>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_valor_adquisi">
+                <h:outputLabel value="#{msg.valorAdquisicion}" for="input_valor_adquisi" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:inputNumber autocomplete="off" id="input_valor_adquisi" rendered="#{!inmuebleBean.soloLectura}"
+                                   value="#{inmuebleBean.entidadEnEdicion.tisValorAdquisicion}"
+                                   disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION)}"
+                                   styleClass="form-control texto-medio"
+                                   inputStyle="text-align: right"
+                                   maxValue="9999999999"
+                                   minValue="0"
+                                   decimalPlaces="2" thousandSeparator="."/>
+                    <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{inmuebleBean.entidadEnEdicion.tisValorAdquisicion}"/>
+                </p:outputPanel>
+                <h:outputLabel value="#{msg.expresadoEnDolares}" for="input_valor_adquisi" styleClass="col-sm-7 col-form-label-left"/>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_adquisicion">
+                <h:outputLabel value="#{msg.fechaAdquisicion}" for="input_fecha_adquisicion" 
+                               styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:calendar id="input_fecha_adquisicion" styleClass="form-control" 
+                                rendered="#{not inmuebleBean.soloLectura}"
+                                disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION)}"
+                                value="#{inmuebleBean.entidadEnEdicion.tisFechaAdquisicion}" 
+                                pattern="#{applicationBean.patternFecha}"
+                                maxdate="#{applicationBean.today()}"
+                                converter="#{localDateConverter}" 
+                                converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                    <h:message for="input_fecha_adquisicion" styleClass="msj-danger"/> 
+                    <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{inmuebleBean.entidadEnEdicion.tisFechaAdquisicion}" converter="#{localDateConverter}"/>
+                </p:outputPanel>  
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" >
+                <h:outputLabel value="#{msg.fuenteFinanciamiento}"  styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                    <h:selectOneMenu id="input_fuente_financiamiento_combo" rendered="#{not inmuebleBean.soloLectura}" value="#{inmuebleBean.comboFuenteFinanciamiento.selected}" styleClass="form-control dropdown texto-medio" >
+                        <f:selectItems value="#{inmuebleBean.comboFuenteFinanciamiento.items}" />
+                    </h:selectOneMenu>     
+                    <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{inmuebleBean.entidadEnEdicion.tisFuenteFinanciamiento.ffiNombre}"/>
+                </p:outputPanel>  
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_activo_fijo">
+                <h:outputLabel value="#{msg.tieneActivoFijo}" for="input_activo_fijo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_activo_fijo" disabled="#{inmuebleBean.soloLectura}"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisActivoFijo}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_propietario">
+                <h:outputLabel value="#{msg.propietarioMINED}" for="input_propietario" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_propietario" disabled="#{inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION))}"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisPropietario}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax update="form:tabs:seleccionarInmueble:combo_propietario" listener="#{inmuebleBean.propietarioSelected()}" event="change" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel  id="combo_propietario">
+                <p:outputPanel styleClass="form-group row" rendered="#{not inmuebleBean.entidadEnEdicion.tisPropietario}" >
+                    <h:outputLabel value="#{msg.propietario}"  styleClass="col-sm-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                        <h:selectOneMenu id="input_propietario_combo" rendered="#{not inmuebleBean.soloLectura}" disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION)}" value="#{inmuebleBean.comboPropietario.selected}" styleClass="form-control dropdown texto-medio" >
+                            <f:selectItems value="#{inmuebleBean.comboPropietario.items}" />
+                            <p:ajax listener="#{inmuebleBean.comboPropietarioSelected()}" event="change" />
+                        </h:selectOneMenu>       
+                        <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisPropietariosTerreno.pdtNombre}"/>
+                    </p:outputPanel>  
+                </p:outputPanel>
+                <p:outputPanel styleClass="form-group row" rendered="#{not inmuebleBean.entidadEnEdicion.tisPropietario}">
+                    <h:outputLabel value="#{msg.detalle}"  styleClass="col-sm-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-9">                            
+                        <p:inputTextarea  id="input_detalle" 
+                                          rendered="#{!inmuebleBean.soloLectura}"
+                                          disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION)}"
+                                          styleClass="form-control" value="#{inmuebleBean.entidadEnEdicion.tisDetallePropietario}"/>
+                        <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisDetallePropietario}"/>
+                    </p:outputPanel>  
+                </p:outputPanel>
+            </p:outputPanel> 
+            <p:outputPanel styleClass="form-group row" id="fila_input_terreno_principal">
+                <h:outputLabel value="#{msg.terrenoPrincipalCentro}" for="input_terreno_principal" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_terreno_principal" disabled="#{inmuebleBean.soloLectura or not( sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_INFRAESTRUCTURA))}"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisTerrenoPrincipal}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>                    
+
+
+            <h:panelGroup  id="panel_group_descripcion">
+                <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                    <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" 
+                                   styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">
+                        <p:inputTextarea id="input_descripcion" styleClass="form-control" rendered="#{!inmuebleBean.soloLectura}"
+                                         value="#{inmuebleBean.entidadEnEdicion.tisObservaciones}"
+                                         disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION)}"
+                                         counter="display" maxlength="1000" counterTemplate="{0} caracteres restantes." 
+                                         autoResize="false" />
+                        <h:outputText rendered="#{inmuebleBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{inmuebleBean.entidadEnEdicion.tisObservaciones}"/>
+                        <h:outputText id="display" />
+                    </p:outputPanel>                        
+                    <h:message for="input_descripcion" styleClass="msj-danger"/>                    
+                </p:outputPanel> 
+            </h:panelGroup>
+        </p:fieldset>
+
+        <p:outputPanel id="panelOtrasSedesUnidadAd">
+            <p:outputPanel rendered="#{inmuebleBean.entidadEnEdicion.tisExisteOtrasSedesUnidadAdmi eq true}">
+                <fieldset>
+                    <legend>#{msg.otrasSedesUnidadAministrativaInmueble}</legend>
+
+                    <p:outputPanel rendered="#{inmuebleBean.entidadEnEdicion.tisPk eq null}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="Para agregar otras sedes y/o unidades, como paso previo, debe guardar los datos inmueble." />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel id='pnlOtrasSedes' rendered="#{not (inmuebleBean.entidadEnEdicion.tisPk eq null)}" >
+                        <p:outputPanel styleClass="form-action-buttons margen-sup">
+                            <p:commandButton value="#{msg.agregar}" icon="glyphicon glyphicon-plus" 
+                                             rendered="#{not (inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.RADIO_BUTTON_UNIDADES_ADMINISTRATIVAS)))}"
+                                             action="#{inmuebleBean.agregarOtraSedeUnidadAdministrativa()}"
+                                             update=":form:tabs:seleccionarInmueble:dialogOtraSedUn"
+                                             oncomplete="PF('dialogOtraSedUn').show()"  
+                                             id="btnAgregarImagen" 
+                                             styleClass="btn btn-secondary" >
+                            </p:commandButton>
+                        </p:outputPanel>    
+                        <p:dataTable id="listaServicioSanitario"  
+                                     styleClass="table-scroll"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     emptyMessage="#{msg.noHayResultados}"                                
+                                     var="elem" 
+                                     value="#{inmuebleBean.relInmuebleUnidadRespList}"  style="margin-bottom:0"
+                                     >
+                            <p:column headerText="Tipo">
+                                <h:outputText value="#{elem.riuTipoUnidadResp.text}" />
+                            </p:column>
+                            <p:column headerText="Código" >
+                                <h:outputText value="#{elem.nombreElemento}" />
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not (inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.RADIO_BUTTON_UNIDADES_ADMINISTRATIVAS)))}">
+                                <p:commandButton oncomplete="PF('confirmDialogEliminarOtra').show()" update=":form:tabs:seleccionarInmueble:confirmDialogEliminarOtra" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{inmuebleBean.prepararEliminarOtraSedeUnidad(elem)}"/>
+                            </p:column>
+
+                        </p:dataTable>
+
+                    </p:outputPanel>
+                </fieldset>   
+            </p:outputPanel>
+        </p:outputPanel>    
+
+        <p:confirmDialog id="confirmDialogEliminarOtra"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogEliminarOtra">
+            <p:outputPanel rendered="#{inmuebleBean.mostrarCartelEliminar eq true}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="Existen edificios asociados al elemento a eliminar." />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDeleteOtra" value="#{msg.hconfirmar}" update=":form:tabs:seleccionarInmueble:pnlOtrasSedes"
+                                 oncomplete="PF('confirmDialogEliminarOtra').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{inmuebleBean.eliminarOtraSedeUnidad()}"  />
+                <p:blockUI block="@form" trigger="confirmDeleteOtra"/>
+                <p:commandLink id="cancelarDeleteOtra" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogEliminarOtra').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="Agregar Sede o Unidad Administrativa" id="dialogOtraSedUn" widgetVar="dialogOtraSedUn" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDialogOtraSedUn">                                                            
+                <h:panelGroup rendered="#{not empty inmuebleBean.relInmuebleUnidadRespEnEdicion}"  >                 
+                    <p:messages id="popupmsgOtrSede" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioOpcion">
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.unidadResponsable}" for="input_pertenece_a_otra_sede" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="input_pertenece_a_otra_sede" 
+                                                  value="#{inmuebleBean.relInmuebleUnidadRespEnEdicion.riuTipoUnidadResp}">
+                                    <f:selectItems value="#{inmuebleBean.tipoUnidadResponsable}" />
+                                    <p:ajax listener="#{inmuebleBean.seleccionarTipoOtrasSedesUa()}" update="form:tabs:seleccionarInmueble:itemDialogOtraSedUn" event="change" />
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row"  rendered="#{inmuebleBean.relInmuebleUnidadRespEnEdicion.riuTipoUnidadResp eq EnumTipoUnidadResponsable.SEDE}">
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete_otras_sedes" 
+                                                styleClass="form-control"
+                                                value="#{inmuebleBean.relInmuebleUnidadRespEnEdicion.riuSedeFk}"
+                                                completeMethod="#{inmuebleBean.completeOtrasSede}"
+                                                var="sede" itemLabel="#{sede.sedCodigoNombre}" 
+                                                itemValue="#{sede}" 
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{sedesConverter}"
+                                                multiple="false">
+                                    <p:ajax  event="itemSelect"  process="@this" update="itemDialogOtraSedUn"/>
+                                </p:autoComplete>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel id="fila_input_unidad_administrativa_otra_sede">
+                            <p:outputPanel styleClass="form-group row"  rendered="#{inmuebleBean.relInmuebleUnidadRespEnEdicion.riuTipoUnidadResp eq EnumTipoUnidadResponsable.UNIDAD_ADMINISTRATIVA}">
+                                <h:outputLabel value="#{msg.unidadAdministrativa}" for="input_unidad_administrativa_otra_sede" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:autoComplete id="input_unidad_administrativa_otra_sede" 
+                                                    styleClass="form-control"
+                                                    value="#{inmuebleBean.relInmuebleUnidadRespEnEdicion.riuAfUnidadAdministrativa}"
+                                                    completeMethod="#{inmuebleBean.completeOtrasUnidadAdministrativa}"
+                                                    var="unia" itemLabel="#{unia.uadCodigoNombre}" 
+                                                    itemValue="#{unia}" 
+                                                    forceSelection="true"
+                                                    maxResults="10"
+                                                    queryDelay="500"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                                    converter="#{unidadAdministrativaConverter}"
+                                                    multiple="false">
+                                        <p:ajax  event="itemSelect"  process="@this" update="itemDialogOtraSedUn"/>
+                                    </p:autoComplete>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarOtros"  value="#{msg.guardar}" action="#{inmuebleBean.guardarRelInmuebleUnidadResp()}" 
+                                                 update=":form:tabs:seleccionarInmueble:pnlOtrasSedes :form:tabs:seleccionarInmueble:itemDialogOtraSedUn" 
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('dialogOtraSedUn').hide();"  update=":form:tabs:seleccionarInmueble:itemDialogOtraSedUn" styleClass="btn btn-link"/>                        
+                                <p:blockUI block="@form" trigger="btnGuardarOtros" /> 
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                    </p:outputPanel>      
+                </h:panelGroup>       
+            </p:outputPanel>    
+        </p:dialog>
+
+        <fieldset>
+            <legend>#{msg.direccionInmueble}</legend>
+            <f:subview id="viewDireInmueble">
+                <ui:include src="direccion.xhtml">
+                    <ui:param name="direccion" value="#{inmuebleBean.entidadEnEdicion.tisDireccion}" />
+                    <ui:param name="soloLecturaDireccion" value="#{inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_LEGALIZACION))}" />
+                </ui:include>
+            </f:subview>
+        </fieldset>
+
+
+        <p:fieldset id="datosVulnerabilidades" legend="#{msg.vulnerabilidades}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_roles_operaciones" >
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaDisponibles" 
+                                 rowSelectMode="checkbox"
+                                 disabledSelection="#{inmuebleBean.soloLectura or (not sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_DATOS_INFRAESTRUCTURA))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 var="vulnerabilidad" selection="#{inmuebleBean.vulnerabilidadesInmueblesSeleccionados}" 
+                                 value="#{inmuebleBean.vulnerabilidadesInmuebles}" rowKey="#{vulnerabilidad.ivuVulnerabilidadesFk.vulPk}" style="margin-bottom:0" >
+                        <p:column selectionMode="multiple" style="width:16px;text-align:center" />                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{vulnerabilidad.ivuVulnerabilidadesFk.vulNombre}" />
+                        </p:column>                        
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{inmuebleBean.guardar()}" rendered="#{!inmuebleBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_INMUEBLE_O_TERRENO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardar" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <h:panelGroup id="verblockLinea"  layout="block">
+        <div class="modal fade"  id="veranadirLinea" tabindex="-1" role="dialog" aria-labelledby="anadirLinea">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="vercontenidoModalLinea">
+                    <h:form id="veranadirLineaForm"  prependId="false" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.AniadirLinea')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <ui:fragment rendered="#{sePuedeCompartir eq true}">
+                                <ul class="nav nav-tabs">
+                                    <li role="presentation" class="#{(parameterBean.modalAbierto == 1) ? 'active' : '' }">
+                                        <p:commandLink styleClass="btn btn-link"  
+                                                       value="#{textMB.obtenerTexto('labels.Linea')}"
+                                                       update="@form"
+                                                       immediate="true">
+                                            <f:setPropertyActionListener target="#{parameterBean.modalAbierto}" value="#{1}" />
+                                        </p:commandLink>
+                                    </li>
+                                    <li role="presentation"  class="#{(parameterBean.modalAbierto == 2) ? 'active' : '' }">
+                                        <p:commandLink styleClass="btn btn-link"  
+                                                       value="#{textMB.obtenerTexto('labels.Colaboradores')}"  
+                                                       update="@form"
+                                                       immediate="true" >
+                                            <f:setPropertyActionListener target="#{parameterBean.modalAbierto}" value="#{2}" />
+                                        </p:commandLink>
+                                    </li>
+                                </ul>
+                            </ui:fragment>
+                            <div class="tab-content">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <h:panelGroup layout="block"  styleClass="form-horizontal" rendered="#{parameterBean.modalAbierto == 1}">
+                                    <h:panelGroup layout="block" styleClass="form-group" rendered="#{parameterBean.tempLinea.componente != null}">
+                                        <h:outputLabel for="componente" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Componente')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText  id="vercomponente" value="#{parameterBean.tempLinea.componente.nombre}" styleClass="form-control-static" />
+                                        </div>
+                                    </h:panelGroup>
+                                    <h:panelGroup layout="block" styleClass="form-group" rendered="#{parameterBean.tempLinea.macroActividad != null}">
+                                        <h:outputLabel for="macroActividad" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Macroactividad')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText id="vermacroActividad" value="#{parameterBean.tempLinea.macroActividad.macroActividad.nombre}" styleClass="form-control-static"/>
+                                        </div>
+                                    </h:panelGroup>
+
+                                    <div class="separador"></div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="producto" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Producto')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText id="verproducto" value="#{parameterBean.tempLinea.producto.nombre}" styleClass="form-control-static"  />
+                                        </div>
+                                    </div>
+                                    <h:panelGroup layout="block" id="verlistaMontosProducto" styleClass="margenSup">                                        
+                                        <ui:fragment  rendered="#{parameterBean.habilitadoValorSeguimiento()}" > 
+                                            <fieldset class="fieldset fieldsetSmall">
+                                                <legend>
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.CantidadesTotales')} #{parameterBean.valoresSeguimiento.get(parameterBean.anioValor).anio}" />
+                                                </legend>
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>         
+                                                            <th></th>
+                                                            <ui:repeat  var="valorSeguimiento" value="#{parameterBean.valoresSeguimiento}" varStatus="status">
+                                                                <th><h:outputText  value="#{valorSeguimiento.anio}" /></th>
+                                                            </ui:repeat>                                                            
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <ui:repeat  var="tipoSeg" value="#{parameterBean.getNombresDeTipoSeguimiento()}" varStatus="status">
+                                                            <tr>
+                                                                <td><h:outputText  value="#{textMB.obtenerTexto(tipoSeg)}" /> </td>
+                                                                <ui:repeat  var="valorSeguimiento" value="#{parameterBean.valoresSeguimiento}">                                                                
+                                                                    <td><h:outputText  value="#{valorSeguimiento.valores[status.index].valor}" /></td>
+                                                                </ui:repeat>   
+                                                            </tr>
+                                                        </ui:repeat>
+                                                    </tbody>
+                                                </table>
+<!--                                                <ui:repeat  var="valor" value="#{parameterBean.valoresSeguimiento.get(parameterBean.anioValor).valores}" varStatus="status">
+    <div class="form-group">
+        <h:outputLabel for="metaItem" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto(parameterBean.getTituloSeguimiento(parameterBean.valoresSeguimiento.get(parameterBean.anioValor).tipoSeguimiento, status.index ))}:" />
+        <div class="col-sm-9">
+            <h:outputText id="vermetaItem" value="#{valor.valor}" styleClass="form-control-static"  />
+        </div>
+    </div>
+</ui:repeat>-->
+                                            </fieldset>
+                                        </ui:fragment>
+                                    </h:panelGroup>                    
+                                </h:panelGroup>
+
+                                <h:panelGroup layout="block"  rendered="#{parameterBean.modalAbierto == 2}">                             
+                                    <h:outputText  value="#{textMB.obtenerTexto('labels.Colaboradores')}"/>
+                                    <ul class="list-unstyled">
+                                        <ui:repeat  var="ut" value="#{parameterBean.tempLinea.colaboradoras}" varStatus="status">
+                                            <li>#{ut.nombre}</li>
+                                        </ui:repeat>     
+                                    </ul>
+                                </h:panelGroup>
+                            </div>
+                        </div>
+                        <h:panelGroup layout="block" id="veranadirLineaFooter" styleClass="modal-footer">                            
+<!--                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-chevron-right" value="#{textMB.obtenerTexto('labels.Siguiente')}" actionListener="#{parameterBean.avanzarAnioSeguimiento()}"  rendered="#{false eq parameterBean.isUltimoAnioSeguimiento()} " update="tablaLineas vercontenidoModalLinea veranadirLineaFooter"/>-->
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </h:panelGroup>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+
+
+
+
+</ui:composition>

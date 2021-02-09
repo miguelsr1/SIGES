@@ -1,0 +1,155 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoDocumento" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoDocumento" />
+
+    <h:form id="form">           
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        <f:passThroughAttribute name="autocomplete" value="off"/>          
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">             
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.PRESUPUESTOS_ESCOLARES}.xhtml">#{msg.presupuestoEscolar}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionDocumentos}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionDocumentos}"/></h2>
+            <p:outputPanel styleClass="float-right">  
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="presupuestoEscPanel">
+            <p:outputPanel >
+                <p:fieldset id="datos" legend="#{msg.datosgenerales}">                   
+
+                    <h:panelGroup>                               
+                        <p:outputPanel id="formularioDocumentosFirmados">   
+                            
+                            <p:outputPanel styleClass="form-group row" id="fila_label_ce">
+                                <h:outputLabel value="#{msg.sedeEducativa}" for="input_ce" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:outputLabel id="input_ce" styleClass="form-control" value="#{documentosBean.presupuesto.pesSedeFk.sedCodigo} - #{documentosBean.presupuesto.pesSedeFk.sedNombre}" />                     
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="form-group row" id="fila_label_anio_lectivo">
+                                <h:outputLabel value="#{msg.aniofiscal}" for="input_anio_lectivo" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:outputLabel id="input_anio_lectivo" styleClass="form-control" value="#{documentosBean.presupuesto.pesAnioFiscalFk.aniAnio}" />                     
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="form-group row" id="fila_label_sede_legalizada">
+                                <h:outputLabel value="#{msg.sedeLegalizada}" for="input_sede_legalizada" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:outputLabel id="input_sede_legalizada" styleClass="form-control" value="#{documentosBean.ced.cedLegalizado}" converter="#{booleanConverter}" />                     
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="form-group row" id="fila_label_vigencia_oae">
+                                <h:outputLabel value="#{msg.vigenciaOae}" for="input_vigencia_oae" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <h:outputLabel id="input_vigencia_oae" styleClass="form-control" value="#{documentosBean.oae.oaeFechaVencimiento}" converter="#{localDateConverter}" />                     
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                            
+                            <p:outputPanel styleClass="row" id="fila_documentos">
+                                    <p:panelGrid columns="5" styleClass="ui-noborder">
+                                        
+                                        <f:facet name="header">
+                                            Documentos
+                                        </f:facet>
+                                        
+                                        <h:outputLabel value="#{TipoDocumento.CONVENIO.getText()}" styleClass="col-form-label"/>
+                                        
+                                        <h:outputLabel value="#{msg.oaeVigenteDocumentos}" styleClass="col-form-label" rendered="#{!documentosBean.validarOAE()}"/>
+                                        
+                                        <p:link href="#{applicationBean.reportGeneratorUrl}#{documentosBean.obtenerPath(TipoDocumento.CONVENIO)}?id=#{documentosBean.presupuesto.pesSedeFk.sedPk}" 
+                                                title="#{msg.descarPlantilla}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{documentosBean.validarOAE()}">
+                                            <h:outputText styleClass="glyphicon glyphicon-save-file" value="#{msg.descarPlantilla}"/>
+                                        </p:link>
+                                        
+                                        <p:commandButton value="#{(documentosBean.convenioEnEdicion.docArchivoFk == null) ? '' : documentosBean.convenioEnEdicion.docArchivoFk.achNombre}" ajax="false" onclick="this.form.target = '_blank';" styleClass="btn btn-link" disabled="#{documentosBean.convenioEnEdicion.docArchivoFk == null}">
+                                            <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(documentosBean.convenioEnEdicion.docArchivoFk)}" />
+                                        </p:commandButton>
+                                        
+                                        <p:fileUpload fileUploadListener="#{documentosBean.subirArchivoConvenio}"
+                                            id="file_upload_archivo_convenio"
+                                            mode="advanced" 
+                                            dragDropSupport="true"
+                                            label="Cargar archivo"                                              
+                                            uploadLabel="#{msg.confirmar}"
+                                            invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                            invalidFileMessage="#{msg.formatoNoPermitidoPDF} "
+                                            update="@parent"
+                                            cancelLabel="#{msg.cancelar}" 
+                                            auto="true"
+                                            sizeLimit="#{documentosBean.tamanioImportArchivo}" allowTypes="#{documentosBean.tipoImportArchivo}"/>
+                                        
+                                        <h:selectOneMenu id="input_estado_doc" value="#{documentosBean.enumEstadoConvenio}" styleClass="form-control texto-medio">
+                                            <f:selectItems value="#{documentosBean.estadoDocumentoItems}"/>
+                                        </h:selectOneMenu>
+                                        
+                                        
+                                        <h:outputLabel value="#{TipoDocumento.CONGELACION.getText()}" styleClass="col-form-label"/>
+                                        
+                                        <h:outputLabel value="#{msg.oaeVigenteDocumentos}" styleClass="col-form-label" rendered="#{!documentosBean.validarOAE()}"/>
+                                        
+                                        <p:link href="#{applicationBean.reportGeneratorUrl}#{documentosBean.obtenerPath(TipoDocumento.CONGELACION)}?id=#{documentosBean.presupuesto.pesSedeFk.sedPk}" 
+                                                title="#{msg.descarPlantilla}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{documentosBean.validarOAE()}">
+                                            <h:outputText styleClass="glyphicon glyphicon-save-file" value="#{msg.descarPlantilla}"/>
+                                        </p:link>
+                                        
+                                        <p:commandButton value="#{(documentosBean.congelacionEnEdicion.docArchivoFk == null) ? '' : documentosBean.congelacionEnEdicion.docArchivoFk.achNombre}" ajax="false" onclick="this.form.target = '_blank';" styleClass="btn btn-link" disabled="#{documentosBean.congelacionEnEdicion.docArchivoFk == null}">
+                                            <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(documentosBean.congelacionEnEdicion.docArchivoFk)}" />
+                                        </p:commandButton>
+                                        
+                                        
+                                        <p:fileUpload fileUploadListener="#{documentosBean.subirArchivoCongelacion}"
+                                            id="file_upload_archivo_congelacion"
+                                            mode="advanced"  
+                                            dragDropSupport="true"
+                                            label="Cargar archivo"                                              
+                                            uploadLabel="#{msg.confirmar}"
+                                            invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                            invalidFileMessage="#{msg.formatoNoPermitidoXLSX} "
+                                            update="@parent"
+                                            cancelLabel="#{msg.cancelar}" 
+                                            auto="true"
+                                            sizeLimit="#{documentosBean.tamanioImportArchivo}" allowTypes="#{documentosBean.tipoImportArchivo}"/>
+                                        
+                                        <h:selectOneMenu id="input_estado_doc2" value="#{documentosBean.enumEstadoCongelacion}" styleClass="form-control texto-medio">
+                                            <f:selectItems value="#{documentosBean.estadoDocumentoItems}"/>
+                                        </h:selectOneMenu>
+
+                                    </p:panelGrid>
+                            </p:outputPanel>
+                        </p:outputPanel>         
+                    </h:panelGroup>          
+                </p:fieldset>    
+
+                <div class="form-action-buttons">
+                    <p:commandButton value="#{msg.guardar}" id="btnConfirmar" styleClass="btn btn-primary" update="@form"  action="#{documentosBean.guardar()}" rendered="#{documentosBean.validarOAE()}"/>
+                    <p:blockUI block="@form" trigger="btnConfirmar"/>
+                </div>
+            </p:outputPanel>            
+        </p:outputPanel>
+        <p:blockUI block="@form" trigger="file_upload_archivo_convenio"/>
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+        
+    </h:form>
+    
+    
+</ui:composition>

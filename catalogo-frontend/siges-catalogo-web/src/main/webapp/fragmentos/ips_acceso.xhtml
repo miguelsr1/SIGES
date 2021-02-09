@@ -1,0 +1,263 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">                 
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.ADMINISTRACION}.xhtml">Administración</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionAccesoIP}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionAccesoIP}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoAccesoIP}" icon="glyphicon glyphicon-plus" 
+                                 action="#{ipAccesoBean.agregar()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarCategoriaViolencia" styleClass="btn btn-secondary"     
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_IP_ACCESO)}"/>
+                <p:commandButton title="#{msg.ayuda}" icon="glyphicon glyphicon-question-sign" 
+                                 id="btnAyuda" styleClass="btn btn-icono btn-ayuda"  oncomplete="PF('sidebar').show()" />
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{sessionBean.getAyuda(ConstantesAyuda.IPS_ACCESO)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo" value="#{ipAccesoBean.filtro.codigo}" />                 
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{ipAccesoBean.filtro.habilitado}">
+                                    <f:selectItems value="#{applicationBean.habilitadoValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{ipAccesoBean.filtro.nombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" styleClass="btn btn-primary" id="btnBuscar"  icon="glyphicon glyphicon-search" action="#{ipAccesoBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{ipAccesoBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{ipAccesoBean.ipAccesoDataModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="ipaPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{ipAccesoBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{ipAccesoBean.totalResultados lt (ipAccesoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{ipAccesoBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="categoriaViolencia" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.ipaCodigo}">
+                    <h:outputText value="#{elem.ipaCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.ipaNombre}">
+                    <h:outputText value="#{elem.ipaNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hhabilitado}">
+                    <h:outputText value="#{elem.ipaHabilitado}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.accesoip}" sortBy="#{elem.ipaIpAcceso}">
+                    <h:outputText value="#{elem.ipaIpAcceso}" />
+                </p:column>
+                 <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.ipaUltModUsuario}">
+                    <h:outputText value="#{elem.ipaUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.ipaUltModFecha}">
+                    <h:outputText value="#{elem.ipaUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"   
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_IP_ACCESO)}">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                     icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" 
+                                     title="#{msg.editar}" action="#{ipAccesoBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{ipAccesoBean.historial(elem.ipaPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"   
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_IP_ACCESO)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{ipAccesoBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{ipAccesoBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.accesoip}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty ipAccesoBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioCategoriaViolencia">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_codigo" styleClass="form-control" value="#{ipAccesoBean.entidadEnEdicion.ipaCodigo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{ipAccesoBean.entidadEnEdicion.ipaNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">
+                            <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_descripcion" styleClass="form-control" value="#{ipAccesoBean.entidadEnEdicion.ipaDescripcion}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_acceso_ip">
+                            <h:outputLabel value="#{msg.accesoip}" for="input_acceso_ip" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_acceso_ip" styleClass="form-control" value="#{ipAccesoBean.entidadEnEdicion.ipaIpAcceso}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{ipAccesoBean.entidadEnEdicion.ipaHabilitado}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{ipAccesoBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />  
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.historialAccesoIP}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="historialDetail" styleClass="form-horizontal">                
+                <h:panelGroup rendered="#{not empty ipAccesoBean.historialIpsAcceso}"  >                     
+                    <p:dataTable value="#{ipAccesoBean.historialIpsAcceso}" var="hist" reflow="true">                         
+                        <p:column headerText="#{msg.hid}">                            
+                            <h:outputText value="#{hist.ipaPk}"/>                         
+                        </p:column>                        
+                        <p:column headerText="#{msg.hcodigo}">                            
+                            <h:outputText value="#{hist.ipaCodigo}"/>                         
+                        </p:column>                        
+                        <p:column headerText="#{msg.hnombre}">                            
+                            <h:outputText value="#{hist.ipaNombre}"/>                         
+                        </p:column>
+                        <p:column headerText="#{msg.accesoip}">                            
+                            <h:outputText value="#{hist.ipaIpAcceso}"/>                         
+                        </p:column> 
+                        <p:column headerText="#{msg.hhabilitado}">                            
+                            <h:outputText value="#{hist.ipaHabilitado}" converter="#{booleanConverter}"/>                                         
+                        </p:column>  
+                        <p:column headerText="#{msg.husuarioMod}">                             
+                            <h:outputText value="#{hist.ipaUltModUsuario}"/>                         
+                        </p:column>                         
+                        <p:column headerText="#{msg.hfecha}">                             
+                            <h:outputText value="#{hist.ipaUltModFecha}" converter="#{localDateTimeConverter}"/>
+                        </p:column>                                             
+                        <p:column headerText="#{msg.hversion}">                            
+                            <h:outputText value="#{hist.ipaVersion}"/>                         
+                        </p:column>                    
+                    </p:dataTable>                
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>    
+    </h:form>
+</ui:composition>

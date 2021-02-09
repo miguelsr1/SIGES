@@ -1,0 +1,118 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumFacturaEstado" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoDocumentoPago"/>
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.reportes}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionReporteCajaChica}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionReporteCajaChica}"/></h2>          
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+            <h3><h:outputText value="#{msg.busqueda}"/></h3>  
+            <p:panel header="#{msg.criterios}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputLabel value="#{msg.camposObligatorio}"/>
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">                      
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.sede}" for="filtro_sede_autocomplete_b" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="filtro_sede_autocomplete_b"
+                                                styleClass="form-control texto-medio"
+                                                value="#{libroCajaChicaBean.sedeSeleccionadaFiltro}"
+                                                completeMethod="#{libroCajaChicaBean.completeSedeFiltro}"
+                                                var="sedB" itemLabel="#{sedB.sedCodigoNombre}"
+                                                itemValue="#{sedB}"
+                                                widgetVar="filtro_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax listener="#{libroCajaChicaBean.cargarCombos()}" event="itemSelect" process="@this"  update="b_nombre btn_reporte" />
+                                </p:autoComplete>                            
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.fNumeroCuenta}" for="b_nombre" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="b_nombre" value="#{libroCajaChicaBean.cajaChicaCombo.selected}"  styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{libroCajaChicaBean.cajaChicaCombo.items}"/>
+                                    <p:ajax listener="#{libroCajaChicaBean.setearCuenta()}" process="@this" update="btn_reporte"/>
+                                </h:selectOneMenu> 
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.aniofiscal}" for="input_aniofiscal" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_aniofiscal" value="#{libroCajaChicaBean.anioFiscalCombo.selected}"  styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{libroCajaChicaBean.anioFiscalCombo.items}"/>
+                                    <p:ajax listener="#{libroCajaChicaBean.setearAnio()}" process="@this" update="btn_reporte"/>
+                                </h:selectOneMenu> 
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3"  >
+                                <p:link outcome="#{ConstantesPaginas.REPORTE_LIBRO_CAJA_CHICA}" 
+                                        id="btn_reporte"
+                                        disabled="#{libroCajaChicaBean.reporte}" 
+                                        href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_LIBRO_CAJA_CHICA}?idc=#{libroCajaChicaBean.cuenta.bccPk}&amp;ida=#{libroCajaChicaBean.anio.aniAnio}&amp;ids=#{libroCajaChicaBean.subComponente.gesId}" title="#{msg.reporteLibroCajaChica}" 
+                                        target="_blank"                        
+                                        styleClass="btn btn-primary">
+                                    <h:outputText value="#{msg.generar}" />                                    
+                                </p:link>
+                                <p:commandLink value="#{msg.limpiar}" action="#{libroCajaChicaBean.limpiar()}" update="@form :form:pnlSearch" immediate="true" styleClass="btn btn-link">
+                                </p:commandLink>
+                                <p:blockUI block="@form"  />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.factComponente}" for="input_componente" styleClass="col-sm-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_componente" value="#{libroCajaChicaBean.comboComponente.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{libroCajaChicaBean.comboComponente.items}" />
+                                    <p:ajax listener="#{libroCajaChicaBean.cargarComboSubcomponentes()}" process="@this" update="input_subcomponente btn_reporte" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.factSubcomponente}" for="input_subcomponente" styleClass="col-sm-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_subcomponente" value="#{libroCajaChicaBean.comboSubComponente.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{libroCajaChicaBean.comboSubComponente.items}" />
+                                    <p:ajax listener="#{libroCajaChicaBean.setearSubComponente()}" process="@this" update="btn_reporte" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.fechaDesde}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar showMinute="false" showHour="false" value="#{libroCajaChicaBean.filtroMov.mcbFechaDesdeS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.fechaHasta}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar showMinute="false" showHour="false" value="#{libroCajaChicaBean.filtroMov.mcbFechaHastaS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>  
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

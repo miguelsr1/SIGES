@@ -1,0 +1,277 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoHabilitacionPeriodoMatricula" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.solicitudesHabilitacionPeriodoMatricula}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.solicitudesHabilitacionPeriodoMatricula}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.HABILITACION_PERIODO_MATRICULA}" title="#{msg.hsolicitarHabilitacionPeriodo}"
+                        styleClass="btn btn-secondary" 
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_HABILITACION_PERIODO_MATRICULA)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.hsolicitarHabilitacionPeriodo}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.HABILITACIONES_PERIODO_MATRICULA)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.departamento}" for="filtro_departamento" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_departamento" value="#{habilitacionesPeriodosMatriculaBean.comboDepartamento.selected}" styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{habilitacionesPeriodosMatriculaBean.comboDepartamento.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_b" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete_b"
+                                                styleClass="form-control texto-medio"
+                                                value="#{habilitacionesPeriodosMatriculaBean.sedeActividadSeleccionadaBusqueda}"
+                                                completeMethod="#{habilitacionesPeriodosMatriculaBean.completeSede}"
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                                itemValue="#{sed}"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta_matricula" >
+                        <h:outputLabel value="#{msg.fechaDesde}" for="input_fecha_hasta_matricula" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_fecha_hasta_matricula" styleClass="form-control" 
+                                        value="#{habilitacionesPeriodosMatriculaBean.filtro.hmpFechaDesde}" 
+                                        pattern="#{applicationBean.patternFecha}" mask="true" showOn="button"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.estado}" for="filtro_estado" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_estado" value="#{habilitacionesPeriodosMatriculaBean.comboEstado.selected}" styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{habilitacionesPeriodosMatriculaBean.comboEstado.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.nivel}" for="b_nie" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_nivel" value="#{habilitacionesPeriodosMatriculaBean.comboNivel.selected}" styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{habilitacionesPeriodosMatriculaBean.comboNivel.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta_" >
+                        <h:outputLabel value="#{msg.fechaHasta}" for="input_fecha_hasta_" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_fecha_hasta_" styleClass="form-control" 
+                                        value="#{habilitacionesPeriodosMatriculaBean.filtro.hmpFechaHasta}" 
+                                        pattern="#{applicationBean.patternFecha}" mask="true" showOn="button"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{habilitacionesPeriodosMatriculaBean.buscar()}" update="pnlResultado"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                            <p:commandLink value="#{msg.limpiar}" action="#{habilitacionesPeriodosMatriculaBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{habilitacionesPeriodosMatriculaBean.habilitacionPeriodoMatriculaLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="hmpPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{habilitacionesPeriodosMatriculaBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{habilitacionesPeriodosMatriculaBean.totalResultados lt (habilitacionesPeriodosMatriculaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{habilitacionesPeriodosMatriculaBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="habilitacionPeriodoMatricula" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hnumeroSolicitud}" sortBy="#{elem.hmpPk}">
+                    <h:outputText value="#{elem.hmpPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hSedeEducativa}" toggleable="false">
+                    <h:outputText value="#{elem.hmpSedeFk.sedCodigo}" id="textSedeEsc" />
+                    <p:tooltip for="textSedeEsc" position="bottom" styleClass="panelTooltip" >
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.nombre}" 
+                                           styleClass="col-sm-6 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.hmpSedeFk.sedNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" 
+                                           styleClass="col-sm-6 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.hmpSedeFk.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" 
+                                           styleClass="col-sm-6 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.hmpSedeFk.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" 
+                                           styleClass="col-sm-6 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.hmpSedeFk.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>
+                <p:column headerText="#{msg.hfecha}" sortBy="#{elem.hmpFechaSolicitud}">
+                    <h:outputText value="#{elem.hmpFechaSolicitud}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.hmpEstado}">
+                    <h:outputText value="#{elem.hmpEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.hmpUltModUsuario}">
+                    <h:outputText value="\'" style="visibility: hidden;"  />
+                    <h:outputText value="#{elem.hmpUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.hmpUltModFecha}">
+                    <h:outputText value="#{elem.hmpUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column headerText="Niveles" exportable="false">
+                    <ui:repeat value="#{habilitacionesPeriodosMatriculaBean.obtenerNiveles(elem)}" var="relacion">
+                        <ul>
+                            <li><h:outputText value="#{relacion.nivNombre} " /></li>
+                        </ul>
+
+                    </ui:repeat>
+                </p:column>
+                <p:column headerText="#{msg.hfechaDesde}" sortBy="#{elem.hmpFechaDesde}">
+                    <h:outputText value="#{elem.hmpFechaDesde}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hfechaHasta}" sortBy="#{elem.hmpFechaHasta}">
+                    <h:outputText value="#{elem.hmpFechaHasta}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"  >
+                    <p:link outcome="#{ConstantesPaginas.HABILITACION_PERIODO_MATRICULA}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.hmpPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>                   
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{ sessionBean.operaciones.contains(ConstantesOperaciones.EVALUAR_HABILITACION_PERIODO_MATRICULA)}" >
+                    <p:link outcome="#{ConstantesPaginas.HABILITACION_PERIODO_MATRICULA}" rendered="#{(elem.hmpEstado eq EnumEstadoHabilitacionPeriodoMatricula.PENDIENTE)}" title="#{msg.evaluar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-share"/>
+                        <f:param name="id" value="#{elem.hmpPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>                      
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" action="#{habilitacionesPeriodosMatriculaBean.historial(elem.hmpPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_HABILITACION_PERIODO_MATRICULA)}"  >
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{habilitacionesPeriodosMatriculaBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{habilitacionesPeriodosMatriculaBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.historialHabilitacionPeriodoMatricula}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{habilitacionesPeriodosMatriculaBean.historialHabilitacionPeriodoMatricula}" /> 
+            </ui:include>           
+        </p:dialog>     
+
+    </h:form>
+</ui:composition>

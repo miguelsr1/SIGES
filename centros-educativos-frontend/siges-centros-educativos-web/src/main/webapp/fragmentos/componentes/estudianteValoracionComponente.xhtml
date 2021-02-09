@@ -1,0 +1,120 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <c:set var="estudiante" value="#{estudiante}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{estudianteValoracionBean.setSoloLectura(soloLecturaValoracion)}"/>
+    </f:metadata>   
+
+    <p:outputPanel id="itemDetailValoracion">
+
+        <p:outputPanel id="formularioEstValoracion">
+
+            <p:outputPanel id="pnlValoraciones" >
+                <p:dataTable id="dtValoraciones" var="valoracion" value="#{estudianteValoracionBean.valoraciones}"
+                             emptyMessage="#{msg.noHayResultados}">
+                    <f:facet name="header">
+                        <p:outputPanel styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h4><h:outputText value="#{msg.tituloRegistroValorarcion}" /></h4>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-action-buttons">
+                                    <p:commandButton value="#{msg.agregarValoracion}" icon="glyphicon glyphicon-plus" 
+                                                     action="#{estudianteValoracionBean.agregarValoracion()}" 
+                                                     rendered="#{!estudianteValoracionBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ESTUDIANTE_VALORACION)}"
+                                                     update="@form" oncomplete="PF('valoracionDialog').show()"  
+                                                     id="btnAgregarValoracion" styleClass="btn btn-secondary" 
+                                                     />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.htipoValoracion}">
+                        <h:outputText value="#{valoracion.esvTipoValoracion.text}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfecha}">
+                        <h:outputText value="#{valoracion.esvFechaPublicacion}" />
+                    </p:column>
+                    <p:column headerText="#{msg.husuario}">
+                        <h:outputText value="#{valoracion.esvUltModUsuario}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hValoracion}">
+                        <h:outputText value="#{valoracion.esvValoracion}" />
+                    </p:column>  
+                    <p:column styleClass="columnaAcciones"  exportable="false">
+                        <p:commandButton update="@form" oncomplete="PF('valoracionDialog').show()" icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.ver}" action="#{estudianteValoracionBean.verValoracion(valoracion)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!estudianteValoracionBean.soloLectura}">
+                        <p:commandButton update="@form" oncomplete="PF('valoracionDialog').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{estudianteValoracionBean.editarValoracion(valoracion)}" 
+                                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_ESTUDIANTE_VALORACION)  or 
+                                                     (sessionBean.operaciones.contains(ConstantesOperaciones.MODIFICAR_VALORACION_DOCENTE_PROPIA) and sessionBean.entidadUsuario.usuCodigo.equals(valoracion.esvCreacionUsuario))}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!estudianteValoracionBean.soloLectura}">
+                        <p:commandButton update="dtValoraciones" icon="glyphicon glyphicon-trash" styleClass="btn btn-icono" title="#{msg.eliminar}" action="#{estudianteValoracionBean.eliminarValoracion(valoracion)}" 
+                                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ESTUDIANTE_VALORACION)  or 
+                                                     (sessionBean.operaciones.contains(ConstantesOperaciones.MODIFICAR_VALORACION_DOCENTE_PROPIA) and sessionBean.entidadUsuario.usuCodigo.equals(valoracion.esvCreacionUsuario))}"/>
+                    </p:column>                                     
+                </p:dataTable>                                                                    
+            </p:outputPanel>
+        </p:outputPanel>
+
+    </p:outputPanel>
+
+    <p:dialog id="valoracionDialog" header="#{msg.tituloRegistroValorarcion}" widgetVar="valoracionDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+        <p:outputPanel id="valoracionDetalle"  >
+            <p:messages id="popupmsgValoracion" showDetail="true" globalOnly="false" for="popupmsgValoracion" closable="true"/>   
+            <p:outputPanel styleClass="form-group row" id="fila_input_tipovaloracion">                        
+                <h:outputLabel value="#{msg.tipoValoracion}" for="input_tipovaloracion" styleClass="col-sm-2 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_tipovaloracion" value="#{estudianteValoracionBean.comboTipoValoracion.selected}" styleClass="form-control dropdown texto-medio" disabled="#{!estudianteValoracionBean.editValoracion}" >
+                        <f:selectItems value="#{estudianteValoracionBean.comboTipoValoracion.items}" />
+                    </h:selectOneMenu>                                    
+                    <h:message for="input_tipovaloracion" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_valoracion">                        
+                <h:outputLabel value="#{msg.fecha}" for="input_fecha_valoracion" styleClass="col-sm-2 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:calendar id="input_fecha_valoracion" autocomplete="off" styleClass="fomr-control" 
+                                value="#{estudianteValoracionBean.selectedValoracion.esvFechaPublicacion}" 
+                                disabled="#{!estudianteValoracionBean.editValoracion}"  
+                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"
+                                converter="#{localDateConverter}"
+                                maxdate="#{applicationBean.today()}"/>
+                    <h:message for="input_fecha_valoracion" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_valoracion">                        
+                <h:outputLabel value="#{msg.valoracion}" for="input_valoracion" styleClass="col-sm-2 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:inputTextarea  id="input_valoracion" styleClass="form-control" value="#{estudianteValoracionBean.selectedValoracion.esvValoracion}" disabled="#{!estudianteValoracionBean.editValoracion}" />
+                    <h:message for="input_valoracion" styleClass="msj-danger"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarValoracion"  value="#{msg.guardar}"
+                                     action="#{estudianteValoracionBean.guardarValoracion()}" 
+                                     update="valoracionDetalle itemDetailValoracion" styleClass="btn btn-primary"
+                                     icon="glyphicon glyphicon-floppy-disk" 
+                                     rendered="#{estudianteValoracionBean.editValoracion}"/>                             
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('valoracionDialog').hide();"  update="valoracionDetalle" styleClass="btn btn-link" />     
+                    <p:blockUI block="@form" trigger="btnGuardarValoracion" />    
+                    <p:defaultCommand target="btnGuardarValoracion" scope="valoracionDetalle"/>   
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>

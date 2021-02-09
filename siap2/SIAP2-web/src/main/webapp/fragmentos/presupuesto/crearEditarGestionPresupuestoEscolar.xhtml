@@ -1,0 +1,1522 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:o="http://omnifaces.org/ui">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearGestionPresupuestoEscolar')}" rendered="#{!gestionPresupuestoEscolar.flagEdicion}"/>
+                    <h:outputText value="#{textMB.obtenerTexto('labels.EditarGestionPresupuestoEscolar')}" rendered="#{gestionPresupuestoEscolar.flagEdicion}"/>
+                </h2>
+                <p:outputPanel rendered="#{gestionPresupuestoEscolar.gesPresEs.nombre != null}">
+                    <h4>#{gestionPresupuestoEscolar.gesPresEs.nombre}</h4>
+                </p:outputPanel>
+            </div>
+        </ui:fragment> 
+
+        <h:form id="verGestionPresupuestoForm" prependId="false">
+            <o:importConstants type="gob.mined.siap2.entities.enums.TipoSubcomponente"/>
+
+
+            <h:messages id="msgTop"  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+
+
+
+                <p:tabView id="tabs" prependId="false" activeIndex="#{gestionPresupuestoEscolar.tabIndex}"  cache="false">
+                    <p:ajax event="tabChange" listener="#{gestionPresupuestoEscolar.changeTab}" update="@form" process="@form" />
+                    <p:tab title="#{textMB.obtenerTexto('labels.DatosGenerales')}" id="idtabCrear">
+                        <fieldset class="fieldset fieldsetSmall">
+
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Componente')}:" />
+                                    <div class="col-sm-9">
+                                        <p:autoComplete id="categoriaComponente" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                styleClass="form-control textoLargo" 
+                                                value="#{gestionPresupuestoEscolar.componenteSelected}"  
+                                                completeMethod="#{gestionPresupuestoEscolar.completeComponentes}" 
+                                                maxResults="10"
+                                                var="ut" itemLabel="#{ut.codigoNombre}"
+                                                itemValue="#{ut}" 
+                                                onclick="PF('categoriaComponente').search(PF('categoriaComponente').input.val())" 
+                                                widgetVar="categoriaComponente" 
+                                                forceSelection="true" 
+                                                queryDelay="500" 
+                                                converter="#{categoriaPresupuestoEscolarConverter}"
+                                                multiple="false">
+                                        </p:autoComplete>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.categoriaPresupuestoEscolar.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.categoriaPresupuestoEscolar.nombre}"/>
+                                        <h:message for="categoriaComponente" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.cod ne null}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.cod}" />                        
+                                    </div>
+                                </div>      
+
+
+                                <div class="form-group">
+                                    <div class="required">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="nom" value="#{gestionPresupuestoEscolar.gesPresEs.nombre}" styleClass="form-control textoLargo" autocomplete="off" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.nombre}"/>
+                                        <h:message for="nom" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputTextarea id="descripcion" value="#{gestionPresupuestoEscolar.gesPresEs.descripcion}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.descripcion ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.descripcion}"/>
+                                        <h:message for="descripcion" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Concepto')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputTextarea id="concepto" value="#{gestionPresupuestoEscolar.gesPresEs.concepto}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.concepto ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.concepto}"/>
+                                        <h:message for="concepto" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <p:outputPanel id="habilitado" styleClass="form-group" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <h:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.habilitado}" />
+                                                    #{textMB.obtenerTexto('labels.Habilitado')}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </p:outputPanel>
+                                <p:outputPanel  styleClass="form-group" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Habilitado')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.habilitado}" converter="booleanConverter"/>
+                                    </div>
+                                </p:outputPanel>
+                                
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.TipoTransferencia')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu  id="tipoTransferencia" value="#{gestionPresupuestoEscolar.comboTiposTransferencia.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposTransferencia.items}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.tipoTransferencia.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.tipoTransferencia.nombre}"/>
+                                        <h:message for="tipoTransferencia" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.TipoCuentaBancaria')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu  id="tipoCuentaBancaria" value="#{gestionPresupuestoEscolar.comboTipoCuentaBancaria.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTipoCuentaBancaria.items}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.tipoCuentaBancaria.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.tipoCuentaBancaria.nombre}"/>
+                                        <h:message for="tipoCuentaBancaria" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                
+                                <p:outputPanel>
+                                    
+                               
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CorrespondeProyecto')}:" />
+                                        <div class="col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <h:selectOneRadio id="correspondeProyecto" styleClass="radio" value="#{gestionPresupuestoEscolar.correspondeProyecto}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Si')}" itemValue="true"/>
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.No')}" itemValue="false"/>
+                                                        <p:ajax update="@parent"/>
+                                                    </h:selectOneRadio>
+                                                </label>
+                                            </div>
+                                            <h:message for="correspondeProyecto" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                  
+                                    <p:outputPanel  styleClass="form-group" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CorrespondeProyecto')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText styleClass="form-control-static" value="#{gestionPresupuestoEscolar.correspondeProyecto}" converter="booleanConverter"/>
+                                        </div>
+                                    </p:outputPanel>
+                                    
+                                    <p:outputPanel rendered="#{gestionPresupuestoEscolar.correspondeProyecto}">
+                                        
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Convenio')}:"/>
+                                            <div class="col-sm-9">
+                                                <h:inputText id="convenio" value="#{gestionPresupuestoEscolar.gesPresEs.convenio}" autocomplete="off" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.convenio ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.convenio}"/>
+                                                <h:message for="convenio" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Proyecto')}:"/>
+                                            <div class="col-sm-9">
+                                                <h:inputText id="proyecto" value="#{gestionPresupuestoEscolar.gesPresEs.proyecto}" autocomplete="off" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.proyecto ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.proyecto}" />
+                                                <h:message for="proyecto" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ComponenteConvenio')}:"/>
+                                            <div class="col-sm-9">
+                                                <h:inputText id="categoria" value="#{gestionPresupuestoEscolar.gesPresEs.categoria}" autocomplete="off" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.categoria ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.categoria}" />
+                                                <h:message for="categoria" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.SubcomponenteConvenio')}:"/>
+                                            <div class="col-sm-9">
+                                                <h:inputText id="subactividad" value="#{gestionPresupuestoEscolar.gesPresEs.subactividad}" autocomplete="off" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.subactividad ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.subactividad}"/>
+                                                <h:message for="subactividad" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CategoriaGastoConvenio')}:"/>
+                                            <div class="col-sm-9">
+                                                <h:inputText id="categoriaGastoConvenio" value="#{gestionPresupuestoEscolar.gesPresEs.categoriaGastoConvenio}" autocomplete="off" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.categoriaGastoConvenio ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.categoriaGastoConvenio}" />
+                                                <h:message for="categoriaGastoConvenio" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                    </p:outputPanel>
+                                    
+                                </p:outputPanel>
+                                
+                                
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.TipoIngresoDatosCalculo')}:" />
+                                    <div class="col-sm-9">          
+                                        <h:selectOneMenu  id="tipoSubcomponente" value="#{gestionPresupuestoEscolar.comboTiposSubcomponente.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposSubcomponente.items}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.tipo.label}" />
+                                        <h:message for="tipoSubcomponente" styleClass="help-inline msj-danger" />  
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Parametro')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="parametro" value="#{gestionPresupuestoEscolar.comboTiposParametros.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposParametros.items}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.parametro ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.parametro.label}"/>
+                                        <h:message for="parametro" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadMedida')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="uniMed" value="#{gestionPresupuestoEscolar.comboTiposMedida.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposMedida.items}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.unidadMedida ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.unidadMedida.label}" />
+                                        <h:message for="uniMed" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoMinimo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneRadio id="mtoMin" styleClass="radio" value="#{gestionPresupuestoEscolar.gesPresEs.montoMinimo}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Si')}" itemValue="true"/>
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.No')}" itemValue="false"/>
+                                        </h:selectOneRadio>
+                                        <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.montoMinimo}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        <h:message for="mtoMin" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                              <!--  <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CantidadAnio')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="ctdadAnio" value="#{gestionPresupuestoEscolar.gesPresEs.cantidadAnio}" autocomplete="off" styleClass="form-control textoLargo">
+                                            <f:convertNumber pattern="##0" locale="en"/> 
+                                        </h:inputText>
+                                        <h:message for="ctdadAnio" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.TipoCredito')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="tipoCredito" value="#{gestionPresupuestoEscolar.comboTiposCredito.selected}" styleClass="form-control textoLargo">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposCredito.items}" />
+                                        </h:selectOneMenu> 
+                                        <h:message for="tipoCredito" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>-->
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ReceptorTransferencia')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="tipoej" value="#{gestionPresupuestoEscolar.comboTipoEjecucion.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTipoEjecucion.items}"/>
+                                        </h:selectOneMenu> 
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.tipoEjecucion ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.tipoEjecucion.label}" />
+                                        <h:message for="tipoej" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                    <div class="col-sm-9">
+                                        
+                                        <p:autoComplete id="unidadTecnica" required="true" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                styleClass="form-control textoLargo" 
+                                                value="#{gestionPresupuestoEscolar.unidadTecnicaSelected}"  
+                                                completeMethod="#{gestionPresupuestoEscolar.completeUnidadesTecnicas}" 
+                                                maxResults="10"
+                                                var="ut" itemLabel="#{ut.nombre}"  
+                                                itemValue="#{ut}" 
+                                                onclick="PF('unidadTecnica').search(PF('unidadTecnica').input.val())" 
+                                                widgetVar="unidadTecnica" 
+                                                forceSelection="true" 
+                                                queryDelay="500" 
+                                                converter="#{unidadTecnicaConverter}"
+                                                multiple="false">
+                                            <p:ajax listener="#{gestionPresupuestoEscolar.cargarComboUsuarios()}" event="itemSelect"  process="@this" update="usuarioResponsable"/>
+                                        </p:autoComplete>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.unidadTecnica.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.unidadTecnica.nombre}" />
+                                        <h:message for="unidadTecnica" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                
+
+                                <p:outputPanel id="usuarioResponsable" styleClass="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Usuario')}:" />
+                                    <div class="col-sm-c">
+                                        <h:selectOneMenu value="#{gestionPresupuestoEscolar.comboUsuarios.selected}" styleClass="form-control textoLargo" required="true" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboUsuarios.items}"/>
+                                            <f:ajax render="usuCorreo"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText rendered="#{gestionPresupuestoEscolar.gesPresEs.usuario.usuCod ne null and !gestionPresupuestoEscolar.editarSubComponente}" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.usuario.usuCod}" />
+                                    </div>
+                                    <div>
+                                        <h:outputText id="usuCorreo" styleClass="form-control-static" value="#{gestionPresupuestoEscolar.mostrarCorreoUsuarioSeleccionado()}"/>
+                                    </div>
+                                </p:outputPanel>
+                                
+                                <div class="grupoCampos">
+                                    <div class="form-group">
+                                        <div class="col-sm-6">
+                                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.SubareasHabilitadas')}" />
+                                        </div>
+                                        <div class="col-sm-6 clearfix">
+                                            <p:commandButton styleClass="btn btn-default pull-right"  rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                             icon="glyphicon glyphicon-plus"
+                                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                             action="#{gestionPresupuestoEscolar.limpiarCombosArea}"
+                                                             update="anadir"
+                                                             oncomplete="$('#addLineaEstrategica').modal('show');" />
+                                        </div>
+                                    </div>
+                                    <h:panelGroup layout="block" id="panelTabla">
+                                        <p:dataTable  id="lineaTabla"
+                                                      var="item" 
+                                                      value="#{gestionPresupuestoEscolar.gesPresEs.subareasInversion}" 
+                                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                                      rowIndexVar="rowIndex">
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.CodigoArea')}" sortBy="#{item.areaPadre.codigo}">
+                                                <h:outputText value="#{item.areaPadre.codigo}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.NombreArea')}" sortBy="#{item.areaPadre.nombre}">
+                                                <h:outputText value="#{item.areaPadre.nombre}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.CodigoSubArea')}" sortBy="#{item.codigo}">
+                                                <h:outputText value="#{item.codigo}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.NombreSubArea')}" sortBy="#{item.nombre}">
+                                                <h:outputText value="#{item.nombre}" />
+                                            </p:column>
+
+                                            <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                 styleClass="btn btn-danger btn-icono" 
+                                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                 onclick="if (!existeConfirmacion(this.id))
+                                                                             return false" 
+                                                                 action="#{gestionPresupuestoEscolar.eliminarSubareainversion(item)}"
+                                                                 update="lineaTabla confirmModalCallBackBody"
+                                                                 immediate="true">
+                                                </p:commandButton>                        
+                                            </p:column> 
+                                        </p:dataTable>
+                                    </h:panelGroup>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+
+                                        <p:commandButton styleClass="btn btn-primary" rendered="#{gestionPresupuestoEscolar.editarSubComponente}" 
+                                                         icon="glyphicon glyphicon-saved" 
+                                                         value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                                         update="verGestionPresupuestoForm msgTop"
+                                                         process="tabs:idtabCrear"
+                                                         action="#{gestionPresupuestoEscolar.guardarActualizar()}"/>
+
+                                        <h:outputLink styleClass="btn btn-link" value="#{gestionPresupuestoEscolar.cerrar()}" >
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                        </h:outputLink>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </fieldset>
+
+                    </p:tab>
+
+                    <p:tab id="idTabPresupuesto" title="#{textMB.obtenerTexto('labels.Presupuesto')}" disabled="#{empty gestionPresupuestoEscolar.gesPresEs.id}">
+
+                        <div class="panelTituloPagina">
+                            <div class="btn-group pull-right">
+                                <p:commandButton styleClass="btn btn-default pull-right"  rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                 action="#{gestionPresupuestoEscolar.cleanObjectRelacionAnioFiscalGesPresEs()}"
+                                                 update="@form"
+                                                 />
+                            </div>
+                        </div>
+                        
+                        
+                        <!-- FILTRO -->
+                        <h:form styleClass="buscador" id="formfiltro">
+                            <div class="panelFiltro">
+                                <fieldset>
+                                    <legend>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" />
+                                    </legend>
+                                    <div class="buscador-filtros row">
+
+                                    
+                                        <div class="col-sm-6 form-horizontal">
+
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:selectOneMenu id="filtroAnio" value="#{gestionPresupuestoEscolar.comboAnioFiscalFiltro.selected}" styleClass="form-control textoMedio">
+                                                        <f:selectItems value="#{gestionPresupuestoEscolar.comboAnioFiscalFiltro.items}"/>
+                                                    </h:selectOneMenu> 
+                                                </div>
+                                            </div>
+
+
+
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-4 col-sm-8">
+                                                    <p:commandButton styleClass="btn btn-primary" 
+                                                                     icon="glyphicon glyphicon-search" 
+                                                                     update="dataTable msgTop" 
+                                                                     value="#{textMB.obtenerTexto('labels.Consultar')}"  
+                                                                     actionListener="#{gestionPresupuestoEscolar.cargarRelacionesByFiltro()}"/>
+
+                                                    <p:commandButton styleClass="btn btn-link" 
+                                                                     update="dataTable formfiltro:filtroAnio" 
+                                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                                     actionListener="#{gestionPresupuestoEscolar.limpiarComboAnioFiscal()}" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>            
+                        </h:form>
+                        
+
+                        <p:outputPanel id="relacionesPresAnio" styleClass="panelFiltro">
+                            <h:outputText 
+                                value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', gestionPresupuestoEscolar.listaGesPresEsAnioFiscal.size())}" 
+                                styleClass="titulo-resultados"/>
+
+                            <p:dataTable
+                                id="dataTable"
+                                var="item" 
+                                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                value="#{gestionPresupuestoEscolar.listaGesPresEsAnioFiscal}" 
+                                paginator="true" rows="25"
+                                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                                rowsPerPageTemplate="5,10,25,50"
+                                lazy="true"
+                                styleClass="table tabla-resultados">
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Id')}">
+                                    <h:outputText value="#{item.id}" />
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Componente')}">
+                                    <h:outputText value="#{item.componentePresupuestoEscolar.categoriaPresupuestoEscolar.nombre}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Cuenta')}">
+                                    <h:outputText value="#{item.subCuenta.cuentaPadre.codigo} - #{item.subCuenta.cuentaPadre.nombre}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.SubCuenta')}">
+                                    <h:outputText value="#{item.subCuenta.codigo} - #{item.subCuenta.nombre}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.OEG')}">
+                                    <h:outputText value="#{item.objetoEspecificoGasto}"  />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Tipo')}">
+                                    <h:outputText value="#{item.tipo.label}"  />
+                                </p:column>
+                                
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Descripcion')}">
+                                    <h:outputText value="#{item.descripcion}"  styleClass="cortarTexto"/>
+                                </p:column>
+                                
+                                <p:column headerText="#{textMB.obtenerTexto('labels.AnioFiscal')}">
+                                    <h:outputText value="#{item.anioFiscal.anio}" />
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.MatriculasFormulacion')}" >
+                                    <h:outputText value="#{item.cantidadMatriculas}"  />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalFormulado')}" styleClass="numericos columnaAmarilla"> 
+                                    <h:outputText value="#{item.montoTotalFormulado}"  >
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </p:column>
+                              
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.GenerarTecho')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo ne TipoSubcomponente.CARGA_DESDE_ARCHIVO and gestionPresupuestoEscolar.editarSubComponente}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-upload" rendered="#{!item.procesoEnCurso}"
+                                                     styleClass="btn btn-icono" 
+                                                     onclick="PF('pageBlocker').show()" 
+                                                     oncomplete="PF('pageBlocker').hide()"
+                                                     title="#{textMB.obtenerTexto('labels.GenerarTecho')}"  
+                                                     action="#{gestionPresupuestoEscolar.generarTechos(item.id)}"
+                                                     update="verGestionPresupuestoForm msgTop"
+                                                     />
+
+                                </p:column>
+                                
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.CargarFormulacion')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo eq TipoSubcomponente.CARGA_DESDE_ARCHIVO and gestionPresupuestoEscolar.editarSubComponente}" styleClass="columnaAcciones">
+                                    <h:outputLink  value="crearTopePresupuestalArchivo.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.CargarFormulacion')}" rendered="#{!item.procesoEnCurso}">
+                                        <f:param name="compoId" value="#{item.id}" />
+                                        <f:param name="op" value="#{1}" />
+                                        <span class="glyphicon glyphicon-usd"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.CargarFormulacion')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.DeshacerTechos')}" styleClass="columnaAcciones" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                    <p:commandButton icon="glyphicon glyphicon-remove" rendered="#{!item.procesoEnCurso}"
+                                                     styleClass="btn btn-icono" 
+                                                     onclick="PF('pageBlocker').show()" 
+                                                     oncomplete="PF('pageBlocker').hide()"
+                                                     title="#{textMB.obtenerTexto('labels.DeshacerTechos')}"  
+                                                     action="#{gestionPresupuestoEscolar.actualizarEliminarTechos(item.id, 0)}"
+                                                     update="verGestionPresupuestoForm msgTop"
+                                                     />
+
+                                </p:column>
+                               <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.DetalleFormulado')}" styleClass="columnaAcciones" >
+                                   <h:outputLink  value="verSedesTechosPresupuesto.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.DetalleFormulado')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo ne TipoSubcomponente.CARGA_DESDE_ARCHIVO}">
+                                        <f:param name="id" value="#{item.id}" />
+                                        <f:param name="op" value="#{1}" />
+                                        <span class="glyphicon glyphicon-list-alt"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.DetalleFormulado')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+                                   
+                                    <h:outputLink  value="consultaTopePresupuestal.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.DetalleFormulado')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo eq TipoSubcomponente.CARGA_DESDE_ARCHIVO}">
+                                        <f:param name="compoId" value="#{item.id}" />
+                                        <f:param name="op" value="#{1}" />
+                                        <span class="glyphicon glyphicon-list-alt"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.DetalleFormulado')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.MatriculasAprobadas')}" >
+                                    <h:outputText value="#{item.cantidadMatriculasAprobadas}"  />
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalAprobado')}" styleClass="numericos columnaVerde">
+                                    <h:outputText value="#{item.montoTotalAprobado}"  >
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.ActualizarTecho')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo ne TipoSubcomponente.CARGA_DESDE_ARCHIVO and gestionPresupuestoEscolar.editarSubComponente}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-refresh" rendered="#{!item.procesoEnCurso}"
+                                                     styleClass="btn btn-icono" 
+                                                     onclick="PF('pageBlocker').show()" 
+                                                     oncomplete="PF('pageBlocker').hide()"
+                                                     title="#{textMB.obtenerTexto('labels.ActualizarTecho')}"  
+                                                     action="#{gestionPresupuestoEscolar.actualizarTechos(item.id)}"
+                                                     update="verGestionPresupuestoForm msgTop"
+                                                     />
+
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.CargarAprobacion')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo eq TipoSubcomponente.CARGA_DESDE_ARCHIVO and gestionPresupuestoEscolar.editarSubComponente}" styleClass="columnaAcciones">
+                                    <h:outputLink  value="crearTopePresupuestalArchivo.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.CargarAprobacion')}" rendered="#{!item.procesoEnCurso}">
+                                        <f:param name="compoId" value="#{item.id}" />
+                                        <f:param name="op" value="#{2}" />
+                                        <span class="glyphicon glyphicon-usd"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.CargarAprobacion')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.DeshacerAprobados')}" styleClass="columnaAcciones" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                    <p:commandButton icon="glyphicon glyphicon-remove-circle" rendered="#{!item.procesoEnCurso}"
+                                                     styleClass="btn btn-icono" 
+                                                     onclick="PF('pageBlocker').show()" 
+                                                     oncomplete="PF('pageBlocker').hide()"
+                                                     title="#{textMB.obtenerTexto('labels.DeshacerAprobados')}"  
+                                                     action="#{gestionPresupuestoEscolar.actualizarEliminarTechos(item.id, 1)}"
+                                                     update="verGestionPresupuestoForm msgTop"
+                                                     />
+
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.DetalleAprobado')}" styleClass="columnaAcciones" >
+                                     <h:outputLink  value="verSedesTechosPresupuesto.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.DetalleAprobado')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo ne TipoSubcomponente.CARGA_DESDE_ARCHIVO}">
+                                        <f:param name="id" value="#{item.id}" />
+                                        <f:param name="op" value="#{2}" />
+                                        <span class="glyphicon glyphicon-list-alt"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.DetalleAprobado')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+
+                                    <h:outputLink  value="consultaTopePresupuestal.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.DetalleAprobado')}" rendered="#{gestionPresupuestoEscolar.gesPresEs.tipo eq TipoSubcomponente.CARGA_DESDE_ARCHIVO}">
+                                        <f:param name="compoId" value="#{item.id}" />
+                                        <f:param name="op" value="#{2}" />
+                                        <span class="glyphicon glyphicon-list-alt"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.DetalleAprobado')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.DesbloquearProceso')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['DESBLOQUEAR_PROCESO_TECHOS_TRANFERENCIAS'] and gestionPresupuestoEscolar.editarSubComponente}">
+                                    <p:commandButton icon="glyphicon glyphicon-ok-circle" 
+                                                     styleClass="btn btn-icono"  
+                                                     update="verGestionPresupuestoForm"
+                                                     title="#{textMB.obtenerTexto('labels.DesbloquearProceso')}"  
+                                                     action="#{gestionPresupuestoEscolar.habilitarProceso(item.id)}" />
+                                </p:column>
+                                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono"  
+                                                     update="verGestionPresupuestoForm"
+                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                     action="#{gestionPresupuestoEscolar.editarRelAnioFiscal(item.id)}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                     styleClass="btn btn-danger btn-icono" 
+                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                 return false" 
+                                                     action="#{gestionPresupuestoEscolar.eliminarRelacionAnioFiscalGesPresEs(item.id)}"
+                                                     update="relacionesPresAnio confirmModalCallBackBody msgTop" 
+                                                     process="@this"
+                                                     onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                        <h:outputScript name="confirmModal.js" library="js"  />
+                        
+                        <p:outputPanel id="idOptPnelPresupuesto" rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal != null}">
+                            <fieldset class="fieldset fieldsetSmall">
+
+                                <div class="form-horizontal">
+
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu  id="anioFiscal" value="#{gestionPresupuestoEscolar.comboAnioFiscal.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboAnioFiscal.items}"/>
+                                                <p:ajax update="cuenta" listener="#{gestionPresupuestoEscolar.cargarCuentas()}"/>
+                                            </h:selectOneMenu>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.anioFiscal.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.anioFiscal.nombre}" styleClass="form-control-static"/>
+                                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadPresupuestaria')}:" />
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="cuenta"  value="#{gestionPresupuestoEscolar.comboCuentas.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboCuentas.items}"/>
+                                                <p:ajax update="subCuenta" listener="#{gestionPresupuestoEscolar.cargarSubCuentas()}"/>
+                                            </h:selectOneMenu>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.subCuenta.cuentaPadre.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.subCuenta.cuentaPadre.nombre}" styleClass="form-control-static"/>
+                                            <h:message for="cuenta" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.LineaPresupuestaria')}:"/>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="subCuenta"  value="#{gestionPresupuestoEscolar.comboSubcuentas.selected}" styleClass="form-control textoLargo"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboSubcuentas.items}"/>
+                                            </h:selectOneMenu>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.subCuenta.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.subCuenta.nombre}" styleClass="form-control-static"/>
+                                            <h:message for="subCuenta" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Denominacion')}:" />
+                                        <div class="col-sm-9">
+                                            <p:autoComplete id="input_clasificaciones_autocomplete" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                            styleClass="form-control textoLargo" 
+                                                            value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.clasificaciones}"  
+                                                            completeMethod="#{gestionPresupuestoEscolar.completeClasificacion}" 
+                                                            var="cla" itemLabel="#{cla.claNombre}"  
+                                                            itemValue="#{cla}" 
+                                                            onclick="PF('clasificaciones_autocomplete').search(PF('clasificaciones_autocomplete').input.val())" 
+                                                            widgetVar="clasificaciones_autocomplete" 
+                                                            forceSelection="true" 
+                                                            queryDelay="500" 
+                                                            converter="#{sgClasificacionConverter}"
+                                                            multiple="true">
+                                            </p:autoComplete>
+                                            <p:dataList value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.clasificaciones}" 
+                                                        var="cla" type="ordered"
+                                                        emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                        rendered="#{!gestionPresupuestoEscolar.editarSubComponente}">
+                                                #{cla.claNombre}
+                                            </p:dataList>
+                                            <h:message for="input_clasificaciones_autocomplete" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    
+                                    <p:outputPanel id="idOptPnelNombreComplemento">
+
+                                        <div class="form-group">
+                                            <div class="required">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <h:selectOneMenu id="clasificacion"  value="#{gestionPresupuestoEscolar.comboTipoPresupuestoAnio.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                    <f:selectItems value="#{gestionPresupuestoEscolar.comboTipoPresupuestoAnio.items}"/>
+                                                    <p:ajax update="@parent" listener="#{gestionPresupuestoEscolar.validarMostrarNombreComplemento()}"/>
+                                                </h:selectOneMenu>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.tipo ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                              value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.tipo.label}" styleClass="form-control-static"/>
+                                                <h:message for="clasificacion" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <p:outputPanel rendered="#{gestionPresupuestoEscolar.flagNombreComplemento}">
+
+                                            <div class="form-group">
+                                                <div class="required">
+                                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.NombreComplemento')}:" />
+                                                </div>
+                                                <div class="col-sm-9">
+                                                    <h:inputText id="nombreComplemento" autocomplete="off" value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.nombreComplemento}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                                    <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.nombreComplemento ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.nombreComplemento}" styleClass="form-control-static"/>
+                                                    <h:message for="nombreComplemento" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </p:outputPanel>
+
+                                    </p:outputPanel>
+
+                                    <div class="form-group">
+                                        <div class="required">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.OEG')}:" />
+                                        </div>
+                                        <div class="col-sm-c">
+                                            <h:inputText id="oeg" autocomplete="off" value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.objetoEspecificoGasto}" styleClass="form-control textoMedio" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <p:ajax event="keyup" partialSubmit="true" update="oegResultado" process="@this" listener="#{gestionPresupuestoEscolar.cargarOEG()}"/>
+                                            </h:inputText>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.objetoEspecificoGasto ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.objetoEspecificoGasto}" styleClass="form-control-static"/>
+                                            <h:message for="oeg" styleClass="help-inline msj-danger" />
+                                        </div>
+                                        <h:outputLabel id="oegResultado" styleClass="col-sm-6" value="#{gestionPresupuestoEscolar.oeg.nombre}" />
+                                    </div>
+                                    
+                                    
+                                    <p:outputPanel id="rangoMontos" rendered="#{gestionPresupuestoEscolar.gesPresEs.parametro.valor eq 4}">
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.RangosMatricula')}:" />
+                                            <div class="col-sm-9">
+                                                <p:commandLink value="#{textMB.obtenerTexto('labels.Rangos')}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                                 styleClass="btn btn-link"
+                                                                 actionListener="#{gestionPresupuestoEscolar.cargarRangosMatricula()}"
+                                                                 update="formRangoMatricula"/>
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+
+
+                                    <p:outputPanel id="mtoMatriculaFormulacion" rendered="#{gestionPresupuestoEscolar.gesPresEs.parametro.valor ne 4}">
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoPorMatriculaEnFormulacion')}:" />
+                                            <div class="col-sm-9">
+                                                <p:inputText id="monto-por-matricula"  value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoPorMatricula}"  converter="javax.faces.BigDecimal" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                             styleClass="textoMedio numericos form-control">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </p:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoPorMatricula ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoPorMatricula}" styleClass="form-control-static"/>
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoMinimoEnFormulacion')}:" />
+                                        <div class="col-sm-9">
+                                            <p:inputText id="monto-minimo"  value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoMinimo}"  converter="javax.faces.BigDecimal" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                         styleClass="textoMedio numericos form-control">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </p:inputText>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoMinimo ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoMinimo}" styleClass="form-control-static"/>
+                                        </div>
+                                    </div>
+
+                                    <p:outputPanel id="mtoMatriculaAprobacion" rendered="#{gestionPresupuestoEscolar.gesPresEs.parametro.valor ne 4}">
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoPorMatriculaAprobacion')}:" />
+                                            <div class="col-sm-9">
+                                                <p:inputText id="monto-por-matricula-apr"  value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoPorMatriculaAprobacion}"  converter="javax.faces.BigDecimal" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                             styleClass="textoMedio numericos form-control">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </p:inputText>
+                                                <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoPorMatriculaAprobacion ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoPorMatriculaAprobacion}" styleClass="form-control-static"/>
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoMinimoAprobacion')}:" />
+                                        <div class="col-sm-9">
+                                            <p:inputText id="monto-minimo-apr"  value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoMinimoAprobacion}"  converter="javax.faces.BigDecimal" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                         styleClass="textoMedio numericos form-control">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </p:inputText>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoMinimoAprobacion ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.montoMinimoAprobacion}" styleClass="form-control-static"/>
+                                        </div>
+                                    </div>
+
+
+
+
+                                    <div class="form-group">
+                                        <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FechaMatricula')}:" for="fechaMat"/>
+                                        <div class="col-sm-9">
+                                            <p:calendar value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.fechaMatricula}" styleClass="textoMedio" id="fechaMat" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.fechaMatricula ne null and !gestionPresupuestoEscolar.editarSubComponente}"  converter="dateConverter"
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.fechaMatricula}" styleClass="form-control-static"/>
+                                            <h:message for="fechaMat" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoDeducirCentroEducativo')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="componente" value="#{gestionPresupuestoEscolar.comboComponentesDeduccion.selected}" styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboComponentesDeduccion.items}"/>
+                                            </h:selectOneMenu>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.deducirComponentePresupuestoEscolar.nombre ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.deducirComponentePresupuestoEscolar.nombre}" styleClass="form-control-static"/>
+                                            <h:message for="componente" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputTextarea id="descripcionPresupuesto" value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.descripcion}" rows="3"  styleClass="form-control textoLargo" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.descripcion ne null and !gestionPresupuestoEscolar.editarSubComponente}" 
+                                                          value="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.descripcion}" styleClass="form-control-static"/>
+                                            <h:message for="descripcionPresupuesto" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <p:commandButton styleClass="btn btn-primary" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                             icon="glyphicon glyphicon-saved" 
+                                                             value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                                             update="msgTop dataTable tabs:idTabPresupuesto"
+                                                             process="idTabPresupuesto"
+                                                             action="#{gestionPresupuestoEscolar.guardarRelacionAnioFiscalGesPresEs()}"/>
+                                        </div>
+                                    </div>
+
+
+                                    <p:outputPanel rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.id != null}">
+                                        <fieldset class="fieldset fieldsetSmall">
+                                            <p:outputPanel id="idOptPnelBeneficiarios" styleClass="form-horizontal">
+                                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Beneficiarios')}" />
+                                                <div class="form-group">
+                                                    <h:panelGroup rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                        <div class="col-sm-5">
+
+                                                            <p:tree value="#{gestionPresupuestoEscolar.arbolOrganizaciones}" 
+                                                                    selection="#{gestionPresupuestoEscolar.nodosSeleccionados}" 
+                                                                    selectionMode="multiple" 
+                                                                    propagateSelectionDown="false"
+                                                                    propagateSelectionUp="false"
+                                                                    var="doc">
+                                                                <p:treeNode type="Organizaciones">
+                                                                    <h:outputText value="#{doc.organizaciones}" />
+                                                                </p:treeNode>
+                                                                <p:treeNode type="Nivel">
+                                                                    <h:outputText value="#{doc.nivel}" />
+                                                                </p:treeNode>
+                                                                <p:treeNode type="Ciclo">
+                                                                    <h:outputText value="#{doc.ciclo}" />
+                                                                </p:treeNode>
+                                                                <p:treeNode type="Modalidad">
+                                                                    <h:outputText value="#{doc.modalidad}" />
+                                                                </p:treeNode>
+                                                                <p:treeNode type="ModalidadAtencion">
+                                                                    <h:selectBooleanCheckbox value="#{doc.valor}" styleClass="margenDerecha" rendered="#{doc.sgModalidadAtencion.subModalidades == null or doc.sgModalidadAtencion.subModalidades.size() == 0}">
+                                                                        <p:ajax event="change" listener="#{gestionPresupuestoEscolar.chequearCheck(doc)}"/>
+                                                                    </h:selectBooleanCheckbox>
+                                                                    <h:outputText value="#{doc.modalidadAtencion}" />
+                                                                </p:treeNode>
+                                                                <p:treeNode type="SubModalidad">
+                                                                    <h:selectBooleanCheckbox value="#{doc.valor}" styleClass="margenDerecha">
+                                                                        <p:ajax event="change" listener="#{gestionPresupuestoEscolar.chequearCheck(doc)}"/>
+                                                                    </h:selectBooleanCheckbox>
+                                                                    <h:outputText value="#{doc.subModalidad}" />
+                                                                </p:treeNode>
+
+                                                            </p:tree>
+                                                        </div>
+                                                    </h:panelGroup>
+                                                    
+                                                    <div class="col-sm-7">
+                                                        <b>Seleccionados</b>
+                                                        <p:dataTable
+                                                            id="dataTableSeleccionados"
+                                                            var="item" 
+                                                            emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                            value="#{gestionPresupuestoEscolar.listaBeneficiarios}" 
+                                                            paginator="true" rows="10"
+                                                            paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                                                            rowsPerPageTemplate="5,10,25,50"
+                                                            lazy="true"
+                                                            styleClass="table tabla-resultados">
+
+                                                            <p:column headerText="#{textMB.obtenerTexto('labels.Nivel')}">
+                                                                <h:outputText value="#{item.sgNiveles.nombre}" />
+                                                            </p:column>
+
+                                                            <p:column headerText="#{textMB.obtenerTexto('labels.ModalidadEducativa')}">
+                                                                <h:outputText value="#{item.sgModalidades.nombre}" />
+                                                            </p:column>
+
+                                                            <p:column headerText="#{textMB.obtenerTexto('labels.ModalidadAtención')}">
+                                                                <h:outputText value="#{item.sgModalidadAtencion.nombre}" />
+                                                            </p:column>
+
+                                                           <!-- <p:column headerText="#{textMB.obtenerTexto('labels.SubmodalidadAtención')}">
+                                                                <h:outputText value="#{item.sgSubModalidad.nombre}" />
+                                                            </p:column>-->
+                                                        </p:dataTable>
+                                                        <!--<ul>
+                                                            <ui:repeat value="#{gestionPresupuestoEscolar.listaBeneficiarios}" var="ben">
+                                                                <li>#{ben.sgNiveles != null ? 'Nivel: ' : ''} #{ben.sgNiveles.nombre}
+                                                                    #{ben.sgModalidades != null ? ' > Modalidad: ' : ''} #{ben.sgModalidades.nombre} 
+                                                                    #{ben.sgModalidadAtencion != null ? ' > Modalidad atención: ' : ''} #{ben.sgModalidadAtencion.nombre}
+                                                                    #{ben.sgSubModalidad != null ? ' > Submodalidad atención: ' : ''} #{ben.sgSubModalidad.nombre}</li>
+                                                            </ui:repeat>
+                                                        </ul>-->
+                                                    </div>
+                                                </div>
+
+
+
+                                                <div class="form-group">
+                                                    <div class="col-sm-offset-3 col-sm-9">
+
+                                                        <p:commandButton styleClass="btn btn-primary" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                                         icon="glyphicon glyphicon-saved" 
+                                                                         process="idOptPnelBeneficiarios"
+                                                                         value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                                                         update="idOptPnelBeneficiarios msgTop"
+                                                                         action="#{gestionPresupuestoEscolar.guardarSeleccion()}"/>
+                                                    </div>
+                                                </div>
+
+                                            </p:outputPanel>
+                                        </fieldset>
+
+                                    </p:outputPanel>
+
+
+                                    <p:outputPanel rendered="#{gestionPresupuestoEscolar.relacionGesPresEsAnioFiscal.id != null}">
+
+                                        <fieldset class="fieldset fieldsetSmall">
+
+                                            <div class="form-group">
+                                                <div class="col-sm-6">
+                                                    <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.FuentesFinanciamiento')}" />
+                                                </div>
+                                                <div class="col-sm-6 clearfix">
+                                                    <p:commandButton styleClass="btn btn-default pull-right"  rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                                     icon="glyphicon glyphicon-plus"
+                                                                     value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                                     action="#{gestionPresupuestoEscolar.agregarRelFinanciamiento}"
+                                                                     update="addFuenteRelForm"
+                                                                     oncomplete="$('#addRelFuenteFinanciamiento').modal('show');" />
+                                                </div>
+                                            </div>
+                                            <h:panelGroup layout="block" id="relFuentesFinanciamiento">
+                                                <p:dataTable  
+                                                    id="tablaFinan"
+                                                    var="item"
+                                                    sortBy="#{1}"
+                                                    value="#{gestionPresupuestoEscolar.relFinanciamientos}" 
+                                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                                    rowIndexVar="rowIndex">
+
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                                        <h:outputText value="#{item.fuenteFinanciamiento.nombre}" />
+                                                    </p:column>
+
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecursos')}">
+                                                        <h:outputText value="#{item.fuenteRecursos.nombre}" />
+                                                    </p:column>
+
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.CifradoPresupuestario')}" >
+                                                        <h:outputText value="#{item.cifradoPresupuestario}"/>
+                                                    </p:column>
+
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalFormulado')}" styleClass="numericos columnaAmarilla"> 
+                                                        <h:outputText value="#{item.montoTotalFormulado}"  >
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>
+                                                    </p:column>
+
+                                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalAprobado')}" styleClass="numericos columnaVerde">
+                                                        <h:outputText value="#{item.montoTotalAprobado}"  >
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>
+                                                    </p:column>
+                                                    
+                                                    
+                                                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                         styleClass="btn btn-icono"  
+                                                                         update="addFuenteRelForm:itemToAdd"
+                                                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                         oncomplete="$('#addRelFuenteFinanciamiento').modal('show');"
+                                                                         action="#{gestionPresupuestoEscolar.editarRelAnioFinanciamiento(item.id)}" />
+                                                    </p:column>
+
+                                                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{gestionPresupuestoEscolar.editarSubComponente}" >
+                                                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                         styleClass="btn btn-danger btn-icono" 
+                                                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                         onclick="if (!existeConfirmacion(this.id))
+                                                                                     return false" 
+                                                                         action="#{gestionPresupuestoEscolar.eliminarRelFinanciamiento(item)}"
+                                                                         update="relFuentesFinanciamiento confirmModalCallBackBody"
+                                                                         immediate="true">
+                                                        </p:commandButton>                        
+                                                    </p:column>  
+                                                    <p:summaryRow>
+                                                        <p:column colspan="2"/>
+                                                        
+                                                        <p:column>
+                                                            <h:outputText value="#{textMB.obtenerTexto('labels.Total')}: " />
+                                                        </p:column>
+                                                        
+                                                        <p:column styleClass="alinearDerecha">
+                                                            <h:outputText value="#{gestionPresupuestoEscolar.totalMontos('F')}"  >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </p:column>
+                                                        
+                                                        <p:column styleClass="alinearDerecha">
+                                                            <h:outputText value="#{gestionPresupuestoEscolar.totalMontos('A')}"  >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </p:column>
+                                                    </p:summaryRow>
+                                                   
+                                                </p:dataTable>
+                                            </h:panelGroup>
+
+
+                                        </fieldset>
+
+
+
+
+
+                                    </p:outputPanel>
+
+
+                                </div>
+
+
+
+
+                            </fieldset>
+
+                        </p:outputPanel>
+
+
+                          
+                    </p:tab>
+
+
+                    <p:tab id="idTabBeneficiarios" title="Sedes" disabled="#{empty gestionPresupuestoEscolar.gesPresEs.id}">
+
+                        <fieldset class="fieldset fieldsetSmall">
+                            <p:outputPanel id="idOptPnelCheckCedus" styleClass="form-horizontal">
+                                <div class="form-group">
+                                    <div class="col-sm-6">
+                                        <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.TiposdeSede')}" />
+                                    </div>
+                                </div>
+
+                                <div class="grupoCampos">
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CentrosEducativosOficiales')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.ceduOficiales}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.ceduOficiales}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CentrosSubvencionados')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.ceduPrivadosSub}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.ceduPrivadosSub}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CentrosNoSubvecionados')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.ceduPrivadosNoSub}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.ceduPrivadosNoSub}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CirculosFamilia')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.circulosFamilia}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.circulosFamilia}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.SedesEducame')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.sedesEducame}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.sedesEducame}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CirculosAlfabetizacion')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectBooleanCheckbox value="#{gestionPresupuestoEscolar.gesPresEs.circulosAlfabetizacion}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"/>
+                                            <h:outputText  styleClass="form-control-static" value="#{gestionPresupuestoEscolar.gesPresEs.circulosAlfabetizacion}" rendered="#{!gestionPresupuestoEscolar.editarSubComponente}" converter="booleanConverter"/>
+                                        </div>
+                                    </div>
+
+
+                                </div> 
+
+                            </p:outputPanel>
+                        </fieldset>
+
+
+
+
+                        <fieldset class="fieldset fieldsetSmall">
+
+
+
+                            <p:outputPanel id="IdOptPnelSedesAdscritas" styleClass="form-horizontal">
+                                <div class="form-group">
+                                    <div class="col-sm-6">
+                                        <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.OAE')}" />
+                                    </div>
+                                </div>
+
+                                <div class="grupoCampos">
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.tipoOEA')}:" />
+                                        <div class="col-sm-9">
+                                            <p:selectManyCheckbox id="listaTiposOrganismos" layout="responsive" columns="1" value="#{gestionPresupuestoEscolar.gesPresEs.tiposOrganismoCurricular}" converter="#{tipoOrganismoAdministrativoConverter}" rendered="#{gestionPresupuestoEscolar.editarSubComponente}">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.tiposOrganismos}" var="tipo" itemLabel="#{tipo.toaNombre}" itemValue="#{tipo}" />
+                                            </p:selectManyCheckbox>
+                                            <p:dataList value="#{gestionPresupuestoEscolar.tiposOrganismos}" var="tipo"
+                                                        emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                        type="ordered" 
+                                                        rendered="#{!gestionPresupuestoEscolar.editarSubComponente}">
+                                                #{tipo.toaCodigo}-#{tipo.toaNombre}
+                                            </p:dataList>
+                                        </div>
+                                    </div>
+                                </div>                              
+                            </p:outputPanel>
+
+
+
+                        </fieldset>
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-9">
+
+                                <p:commandButton styleClass="btn btn-primary" rendered="#{gestionPresupuestoEscolar.editarSubComponente}"
+                                                 icon="glyphicon glyphicon-saved" 
+                                                 value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                                 update="verGestionPresupuestoForm msgTop"
+                                                 process="idTabBeneficiarios"
+                                                 action="#{gestionPresupuestoEscolar.guardarTabSedes()}"/>
+
+                                <h:outputLink styleClass="btn btn-link" value="#{gestionPresupuestoEscolar.cerrar()}" >
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                </h:outputLink>
+                            </div>
+                        </div>
+
+                    </p:tab>
+                </p:tabView>
+                <h:outputLink styleClass="btn btn-link" value="#{gestionPresupuestoEscolar.cerrar()}" >
+                    <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                </h:outputLink>
+
+            </div>
+        </h:form> 
+
+
+        <h:form id="anadir" > 
+            <!-- Modal para añadir planificacion -->
+            <div class="modal fade"  id="addLineaEstrategica" tabindex="-1" role="dialog" aria-labelledby="addLineaEstrategica">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Subarea')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="itemToAdd">
+                                <div class="form-horizontal">
+                                    <h:messages id="mensajesTurno" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AreasInversion')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="areasInversion" value="#{gestionPresupuestoEscolar.comboAreas.selected}" styleClass="form-control textoLargo">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboAreas.items}"/>
+                                                <f:ajax render="subAreasInversion" listener="#{gestionPresupuestoEscolar.cargarSubAreasInversion()}"/>
+                                            </h:selectOneMenu> 
+                                            <h:message for="areasInversion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.SubAreasInversion')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="subAreasInversion" value="#{gestionPresupuestoEscolar.comboSubareas.selected}" styleClass="form-control textoLargo">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboSubareas.items}"/>
+                                            </h:selectOneMenu> 
+                                            <h:message for="subAreasInversion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" actionListener="#{gestionPresupuestoEscolar.agregarSubareainversion()}"   update="panelTabla anadir:itemToAdd"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+
+        </h:form>
+
+        
+        
+        <!-- MODAL PARA AÑADIR FUENTE FINANCIAMIENTO -->
+        <h:form id="addFuenteRelForm" >
+            <div class="modal fade"  id="addRelFuenteFinanciamiento" tabindex="-1" role="dialog" aria-labelledby="addRelFuenteFinanciamiento">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="itemToAdd">
+                                <div class="form-horizontal">
+                                    <h:messages id="mensajesTurno" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="fuenteFinanciamientoRel" value="#{gestionPresupuestoEscolar.comboFuenteFinanciamientoRelAnio.selected}" styleClass="form-control textoMedio">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboFuenteFinanciamientoRelAnio.items}"/>
+                                                <p:ajax update="fuenteRecursosRel ffCifrado" listener="#{gestionPresupuestoEscolar.fuenteFinanciamientoRelAnioSelected()}"/>
+                                            </h:selectOneMenu> 
+                                            <h:message for="fuenteFinanciamientoRel" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FuenteRecursos')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="fuenteRecursosRel" value="#{gestionPresupuestoEscolar.comboFuenteRecursosRelAnio.selected}" styleClass="form-control textoMedio">
+                                                <f:selectItems value="#{gestionPresupuestoEscolar.comboFuenteRecursosRelAnio.items}"/>
+                                            </h:selectOneMenu> 
+                                            <h:message for="fuenteRecursosRel" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <h:panelGroup rendered="#{gestionPresupuestoEscolar.relFinanciamientoEdicion.id != null}">
+                                        <div class="form-group" >
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.CifradoPresupuestario')}:" />
+                                            <div class="col-sm-8">
+                                                <p:inputText id="ffCifrado" disabled="true" value="#{gestionPresupuestoEscolar.relFinanciamientoEdicion.cifradoPresupuestario}"  
+                                                             autocomplete="off"
+                                                             styleClass="textoMedio form-control">
+                                                    <f:validateLength maximum="100" />
+                                                </p:inputText> 
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.MontoTotalFormulado')}:" />
+                                            <div class="col-sm-8">
+                                                <p:inputText value="#{gestionPresupuestoEscolar.relFinanciamientoEdicion.montoTotalFormulado}" 
+                                                             label="#{textMB.obtenerTexto('labels.MontoTotalFormulado')}"
+                                                             autocomplete="off"
+                                                             converter="javax.faces.BigDecimal"
+                                                             styleClass="textoMedio numericos form-control">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </p:inputText> 
+                                            </div>
+                                        </div>
+
+
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.MontoTotalAprobado')}:" />
+                                            <div class="col-sm-8">
+                                                <p:inputText value="#{gestionPresupuestoEscolar.relFinanciamientoEdicion.montoTotalAprobado}"
+                                                             label="#{textMB.obtenerTexto('labels.MontoTotalAprobado')}"
+                                                             autocomplete="off"
+                                                             converter="javax.faces.BigDecimal"
+                                                             styleClass="textoMedio numericos form-control">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </p:inputText> 
+                                            </div>
+                                        </div>
+                                    </h:panelGroup>
+                                    
+                                </div>
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" actionListener="#{gestionPresupuestoEscolar.guardarRelFinanciamiento()}"   update="relFuentesFinanciamiento addFuenteRelForm:itemToAdd msgTop"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+
+        </h:form>
+
+
+        <!-- MODAL PARA CONFIRMACION DE ELIMINAR-->
+        <h:form prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}" 
+                                             onclick="confirmar();"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+        
+        
+        <h:form id="formRangoMatricula" > 
+            <!-- Modal para añadir rangos de matrícula -->
+            <div class="modal fade"  id="addDivRangoMatricula" tabindex="-1" role="dialog" aria-labelledby="addDivRangoMatricula">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.RangosMatricula')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="itemToAdd">
+                                <div class="form-horizontal">
+                                    <h:messages id="mensajesTurno" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <p:dataTable id="idDataTblRangoMatricula" 
+                                                 value="#{gestionPresupuestoEscolar.listaRangoMatricula}" 
+                                                 var="rango" 
+                                                 editable="true" 
+                                                 editMode="cell">
+                                        
+                                        <f:facet name="header">
+                                            <div class="alinearIzquierda">
+                                                <div class="form-group">
+                                                    <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.CantidadRangos')}:" />
+                                                    <div class="col-sm-5">
+                                                        <h:inputText id="codig" value="#{gestionPresupuestoEscolar.ctdadRangos}" autocomplete="off"/> 
+                                                    </div>
+                                                    
+                                                    <p:commandLink  styleClass="btn btn-link"
+                                                              value="#{textMB.obtenerTexto('labels.Agregar')}" 
+                                                              actionListener="#{gestionPresupuestoEscolar.agregarRangosMatricula()}"   
+                                                              update="idDataTblRangoMatricula"/>
+                                                </div>
+                                            </div>
+                                            
+                                        </f:facet>
+                                        
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Rango')}" styleClass="cellEditingWithoutBackground">
+                                            <p:cellEditor>
+                                                <f:facet name="output">
+                                                    <h:outputText value="#{rango.rango}"  >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </f:facet>
+                                                <f:facet name="input">
+                                                    <p:inputText value="#{rango.rango}">
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </p:inputText>
+                                                </f:facet>
+                                            </p:cellEditor>
+                                        </p:column>
+                                        
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Valor')}" styleClass="cellEditingWithoutBackground">
+                                            <p:cellEditor>
+                                                <f:facet name="output">
+                                                    <h:outputText value="#{rango.valor}"  >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </f:facet>
+                                                <f:facet name="input">
+                                                    <p:inputText value="#{rango.valor}" >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </p:inputText>
+                                                </f:facet>
+                                            </p:cellEditor>
+                                        </p:column>
+                                        
+                                        <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                            <p:commandButton icon="glyphicon glyphicon-remove"
+                                                styleClass="btn btn-danger btn-icono" 
+                                                title="#{textMB.obtenerTexto('labels.Anular')}"  
+                                                action="#{gestionPresupuestoEscolar.eliminarRangoMatricula(rango)}"
+                                                update="formRangoMatricula:idDataTblRangoMatricula formRangoMatricula:mensajesTurno"/>
+                                        </p:column>
+                                        
+                                    </p:dataTable>
+                                    
+                                </div>
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandLink  styleClass="btn btn-link" 
+                                              value="#{textMB.obtenerTexto('labels.Cerrar')}" 
+                                              actionListener="#{gestionPresupuestoEscolar.cerrarRangosMatricula()}"/>
+
+                        </div>
+                    </div>
+                </div>
+            </div> 
+
+        </h:form>
+
+    </ui:composition>
+
+</html>

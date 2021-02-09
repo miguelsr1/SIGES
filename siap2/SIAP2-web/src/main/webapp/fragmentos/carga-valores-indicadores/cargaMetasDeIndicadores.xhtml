@@ -1,0 +1,149 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.MetasDeIndicadores')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+        <h:form id="tableForm">
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                        <div class="col-sm-8">                      
+                            <h:selectOneMenu  id="anioFiscal" value="#{metaDeIndicadoresCarga.idAnioFiscal}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}" />
+                                <f:ajax render="tablaValores"   listener="#{metaDeIndicadoresCarga.filterTable()}"/>
+                            </h:selectOneMenu>
+                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                        <div class="col-sm-8">                      
+                            <h:selectOneMenu  id="unidadT" value="#{metaDeIndicadoresCarga.idUnidadTecnica}"  styleClass="form-control textoMedio"  >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Todas')}" itemValue="#{null}"/>
+                                <f:ajax render="tablaValores"   listener="#{metaDeIndicadoresCarga.filterTable()}"/>
+                                <f:selectItems value="#{userInfo.getMapUTConOperacion('CARGA_METAS_INDICADORES')}" />
+                            </h:selectOneMenu>
+                            <h:message for="unidadT" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div> 
+
+                    <p:outputPanel id="tablaValores">
+
+                        <ui:fragment rendered="#{empty  metaDeIndicadoresCarga.indicadoresACargar}"  >
+                            <div class="form-group">
+                                <div class ="col-xs-12">
+                                    <h:outputText styleClass="no-hay-indicadores" value="#{textMB.obtenerTexto('labels.NoHayIndicadoresACargarConElFiltroSeleccionado')}"/>
+                                </div>
+                            </div>
+                        </ui:fragment>
+
+                        <ui:fragment rendered="#{not empty  metaDeIndicadoresCarga.indicadoresACargar}"  >
+                            <ui:repeat value="#{metaDeIndicadoresCarga.indicadoresACargar}" var="indicador">
+                                <h2><h:outputText value="#{indicador.tipoIndicador.nombre}"/></h2>
+
+
+
+                                <!-- TABLA JSF -->
+                               
+                                <p:dataTable id="dataTableIndicador"
+                                             value="#{indicador.metas}" 
+                                             emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                             var="meta"
+                                             sortBy="#{meta.proyecto.nombre}"
+                                             styleClass="table table-hover table-metas">
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Proyecto')}"  sortBy="#{meta.proyecto.nombre}" >
+                                        <h:outputText value="#{meta.proyecto.nombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UT')}"  sortBy="#{meta.ut.nombre}" >
+                                        <h:outputText value="#{meta.ut.nombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Indicador')}" sortBy="#{meta.indicador.nombre}"  >
+                                        <h:outputText value="#{meta.indicador.nombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadMedida')}" >
+                                        <h:outputText value="#{utilsMB.getIndicadorDesdeMeta(meta.metaIndicador).unidadDeMedida.codigo}" />
+                                    </p:column>                                    
+                                    <p:columns   var="nombreSeg" value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"   columnIndexVar="colIndex">
+                                        <f:facet name="header">
+                                            <h:outputText  value="#{textMB.obtenerTexto(nombreSeg)}" />
+                                        </f:facet>
+                                        <h:inputText   value="#{meta.metaIndicador.valores[colIndex].meta}" styleClass="form-control">                                           
+                                            <f:convertNumber minFractionDigits="#{utilsMB.inputNumberMinFractionDigits}" maxFractionDigits="#{utilsMB.inputNumberMaxFractionDigits}" />
+                                        </h:inputText>
+                                    </p:columns>
+                                </p:dataTable>
+                                <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                    <span class="glyphicon glyphicon-export"></span>
+                                    <p:dataExporter type="csv" target=":#{component.parent.clientId}:dataTableIndicador" fileName="#{indicador.tipoIndicador.nombre}" />
+                                </h:commandLink> 
+                                <div class="clear"></div>
+                                <!-- TABLA MANUAL -->                                
+                                <!--                                <table class="table table-hover">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.Proyecto')}"/> </th>
+                                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.UT')}"/> </th>
+                                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.Indicador')}"/> </th>
+                                                                            <th><h:outputText value="#{textMB.obtenerTexto('labels.UnidadMedida')}"/> </th>
+                                                                            <ui:repeat  var="nombreSeg" value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"  varStatus="status">
+                                                                                <th><h:outputText value="#{textMB.obtenerTexto(nombreSeg)}" /></th>
+                                                                            </ui:repeat>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                         se imprimen los programas 
+                                                                        <ui:repeat value="#{indicador.metas}" var="meta">
+                                                                            <tr class="fila-programa">
+                                                                                <td>#{meta.proyecto.nombre}</td>
+                                                                                <td>#{meta.ut.nombre}</td>
+                                                                                <td><h:outputText value="#{utilsMB.getIndicadorDesdeMeta(meta.metaIndicador).nombre}"/>  </td>
+                                                                                <td><h:outputText value="#{utilsMB.getIndicadorDesdeMeta(meta.metaIndicador).unidadDeMedida.codigo}"/>  </td>
+                                                                                <ui:repeat  var="valoresDeIndicador" value="#{meta.metaIndicador.valores}"  varStatus="status">
+                                                                                    <td>
+                                                                                        <h:inputText   value="#{valoresDeIndicador.meta}"   styleClass="form-control"    >                                                 
+                                                                                            <f:convertNumber minFractionDigits="#{utilsMB.inputNumberMinFractionDigits}" maxFractionDigits="#{utilsMB.inputNumberMaxFractionDigits}" />
+                                                                                        </h:inputText>
+                                                                                    </td>
+                                                                                </ui:repeat>
+                                                                            </tr>
+                                                                        </ui:repeat>
+                                                                    </tbody>
+                                                                </table>-->
+
+                            </ui:repeat>
+                            <div class="form-group sin-color">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{metaDeIndicadoresCarga.guardarTechos()}" update="tableForm"/>
+                                </div>
+                            </div>
+                        </ui:fragment>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </div>
+        </h:form>
+
+
+
+
+
+
+
+
+    </ui:composition>
+</html>
+

@@ -1,0 +1,550 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumModeloContrato"/>
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoPersonalSedeEducativa"/>
+    <c:set var="personalSede" value="#{personalSede}" scope="request"/>
+    <c:set var="soloLecturaContratos" value="#{soloLecturaContratos}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{docenteContratosBean.setSoloLectura(soloLecturaContratos)}"/>
+    </f:metadata>   
+
+
+    <p:outputPanel id="formularioDocenteContratos">
+
+        <p:outputPanel rendered="#{docenteContratosBean.entidadEnEdicion.demPk != null}">
+
+
+            <fieldset>
+                <legend><h:outputText value="#{msg.hacuerdosNombramientos}"/></legend>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_acuerdos_nombramientos">
+                    <p:outputPanel styleClass="col-sm-12">  
+                        <p:outputPanel styleClass="form-action-buttons margen-sup">
+                            <p:commandButton value="#{msg.agregarAcuerdo}" icon="glyphicon glyphicon-plus" 
+                                             action="#{docenteContratosBean.agregarAcuerdo()}" 
+                                             update="contratosDetalle" oncomplete="PF('contratosDialog').show()"  
+                                             id="btnAgregarAcuerdoNombramiento" styleClass="btn btn-secondary" 
+                                             rendered="#{!docenteContratosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CREAR_ACUERDO)}"/>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="pnlAcuerdos">
+                            <p:dataTable id="tablaAcuerdos" var="contratos"  emptyMessage="#{msg.noHayResultados}" 
+                                         value="#{docenteContratosBean.listaAcuerdos}">
+
+                                <p:column headerText="#{msg.hsede}">
+                                    <h:outputText value="#{contratos.dcoCentroEducativo.sedCodigoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hDesde}">
+                                    <h:outputText value="#{contratos.dcoDesde}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hHasta}">
+                                    <h:outputText value="#{contratos.dcoHasta}" />
+                                </p:column>
+                                <p:column headerText="#{msg.htipoempleado}" sortBy="#{elem.dcoTipo.text}">
+                                    <h:outputText value="#{contratos.dcoTipo.text}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hcargo}">
+                                    <h:outputText value="#{contratos.dcoCargo.carNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hjornada}">
+                                    <h:outputText value="#{contratos.dcoJornadasString} " />
+                                </p:column>
+                                <p:column headerText="#{msg.tipoContrato}">
+                                    <h:outputText value="#{contratos.dcoTipoContrato.tcoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hcodigoPlaza}">
+                                    <h:outputText value="#{contratos.dcoCodigoPlaza}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hestado}" rendered="false">
+                                    <h:outputText value="#{contratos.dcoEstado.edcNombre}" />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!docenteContratosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_ACUERDO)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:contratosDetalle"  
+                                                     oncomplete="PF('contratosDialog').show()" 
+                                                     icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono" 
+                                                     disabled="#{!docenteContratosBean.verEditar(contratos)}"
+                                                     title="#{msg.editar}" action="#{docenteContratosBean.editarContrato(contratos)}">
+                                    </p:commandButton>
+                                </p:column> 
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{docenteContratosBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_ACUERDO)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:contratosDetalle"  
+                                                     oncomplete="PF('contratosDialog').show()" 
+                                                     icon="glyphicon glyphicon-search" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{msg.ver}" action="#{docenteContratosBean.editarContrato(contratos)}">
+                                    </p:commandButton>
+                                </p:column> 
+
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!docenteContratosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_ELIMINAR_ACUERDO)}">
+                                    <p:commandButton oncomplete="PF('confirmDialogContratos').show()" 
+                                                     icon="glyphicon glyphicon-trash " 
+                                                     styleClass="btn btn-icono rojo" 
+                                                     title="#{msg.eliminar}" 
+                                                     disabled="#{!docenteContratosBean.verEliminar(contratos)}"
+                                                     action="#{docenteContratosBean.seleccionarContrato(contratos)}"/>
+                                </p:column>                                         
+                            </p:dataTable>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </fieldset>
+
+            <fieldset>
+                <legend><h:outputText value="#{msg.hcontratos}"/></legend>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_datos_contratacion">
+                    <p:outputPanel styleClass="col-sm-12">  
+                        <p:outputPanel styleClass="form-action-buttons margen-sup">
+                            <p:commandButton value="#{msg.agregarContrato}" icon="glyphicon glyphicon-plus" 
+                                             action="#{docenteContratosBean.agregarContrato()}" 
+                                             update="contratosDetalle" oncomplete="PF('contratosDialog').show()"  
+                                             id="btnAgregarDatoContratacion" styleClass="btn btn-secondary" 
+                                             rendered="#{!docenteContratosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CREAR_CONTRATO)}"/>
+                        </p:outputPanel>                            
+
+                        <p:outputPanel id="pnlDatoContratacion">
+                            <p:dataTable id="tablaDatoContratacion" var="contratos"  emptyMessage="#{msg.noHayResultados}" 
+                                         value="#{docenteContratosBean.listaContratos}">
+
+                                <p:column headerText="#{msg.hsede}">
+                                    <h:outputText value="#{contratos.dcoCentroEducativo.sedCodigoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hDesde}">
+                                    <h:outputText value="#{contratos.dcoDesde}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hHasta}">
+                                    <h:outputText value="#{contratos.dcoHasta}" />
+                                </p:column>
+                                 <p:column headerText="#{msg.htipoempleado}" sortBy="#{elem.dcoTipo.text}">
+                                    <h:outputText value="#{contratos.dcoTipo.text}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hcargo}">
+                                    <h:outputText value="#{contratos.dcoCargo.carNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hjornada}">
+                                    <h:outputText value="#{contratos.dcoJornadasString} " />
+                                </p:column>
+                                <p:column headerText="#{msg.tipoContrato}">
+                                    <h:outputText value="#{contratos.dcoTipoContrato.tcoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hestado}" rendered="false">
+                                    <h:outputText value="#{contratos.dcoEstado.edcNombre}" />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!docenteContratosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_CONTRATO)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:contratosDetalle"  
+                                                     oncomplete="PF('contratosDialog').show()" 
+                                                     icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono" 
+                                                     disabled="#{!docenteContratosBean.verEditar(contratos)}"
+                                                     title="#{msg.editar}" action="#{docenteContratosBean.editarContrato(contratos)}">
+                                    </p:commandButton>
+                                </p:column> 
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{docenteContratosBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_CONTRATO)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:contratosDetalle"  
+                                                     oncomplete="PF('contratosDialog').show()" 
+                                                     icon="glyphicon glyphicon-search" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{msg.ver}" action="#{docenteContratosBean.editarContrato(contratos)}">
+                                    </p:commandButton>
+                                </p:column> 
+
+                                <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!docenteContratosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_ELIMINAR_CONTRATO)}">
+                                    <p:commandButton oncomplete="PF('confirmDialogContratos').show()" 
+                                                     icon="glyphicon glyphicon-trash " 
+                                                     styleClass="btn btn-icono rojo" 
+                                                     title="#{msg.eliminar}" 
+                                                     disabled="#{!docenteContratosBean.verEliminar(contratos)}"
+                                                     action="#{docenteContratosBean.seleccionarContrato(contratos)}"/>
+                                </p:column>                                         
+                            </p:dataTable>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </fieldset>
+
+            <fieldset>
+                <legend><h:outputText value="#{msg.otrosVinculos}"/></legend>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_otros_vinculos">
+                    <p:outputPanel styleClass="col-sm-12">  
+                        <p:outputPanel styleClass="form-action-buttons margen-sup">
+                            <p:commandButton value="#{msg.agregarOtrosVinculos}" icon="glyphicon glyphicon-plus" 
+                                             action="#{docenteContratosBean.agregarOtro()}" 
+                                             update="contratosDetalle" oncomplete="PF('contratosDialog').show()"  
+                                             id="btnAgregarDatoContratacionOtro" styleClass="btn btn-secondary" 
+                                             rendered="#{!docenteContratosBean.soloLectura and 
+                                                         sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CREAR_CONTRATO_OTRO)}"/>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="pnlDatoContratacionOtro">
+                            <p:dataTable id="tablaDatoContratacionOtro" var="contratos"  emptyMessage="#{msg.noHayResultados}" 
+                                         value="#{docenteContratosBean.listaContratosOtros}">
+
+                                <p:column headerText="#{msg.hsede}">
+                                    <h:outputText value="#{contratos.dcoCentroEducativo.sedCodigoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hDesde}">
+                                    <h:outputText value="#{contratos.dcoDesde}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hHasta}">
+                                    <h:outputText value="#{contratos.dcoHasta}" />
+                                </p:column>
+                                <p:column headerText="#{msg.htipoempleado}" sortBy="#{elem.dcoTipo.text}">
+                                    <h:outputText value="#{contratos.dcoTipo.text}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hcargo}">
+                                    <h:outputText value="#{contratos.dcoCargo.carNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hjornada}">
+                                    <h:outputText value="#{contratos.dcoJornadasString} " />
+                                </p:column>
+                                <p:column headerText="#{msg.tipoContrato}">
+                                    <h:outputText value="#{contratos.dcoTipoContrato.tcoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hestado}" rendered="false">
+                                    <h:outputText value="#{contratos.dcoEstado.edcNombre}" />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones"  exportable="false" 
+                                          rendered="#{!docenteContratosBean.soloLectura and 
+                                                      sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_CONTRATO_OTRO)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:contratosDetalle"  
+                                                     oncomplete="PF('contratosDialog').show()" 
+                                                     icon="glyphicon glyphicon-pencil" 
+                                                     styleClass="btn btn-icono"
+                                                     disabled="#{!docenteContratosBean.verEditar(contratos)}"
+                                                     title="#{msg.editar}" action="#{docenteContratosBean.editarContrato(contratos)}">
+                                    </p:commandButton>
+                                </p:column> 
+                                <p:column styleClass="columnaAcciones"  exportable="false" 
+                                          rendered="#{docenteContratosBean.soloLectura or 
+                                                      !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_CONTRATO_OTRO)}">
+                                    <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:contratosDetalle"  
+                                                     oncomplete="PF('contratosDialog').show()" 
+                                                     icon="glyphicon glyphicon-search" 
+                                                     styleClass="btn btn-icono" 
+                                                     title="#{msg.ver}" action="#{docenteContratosBean.editarContrato(contratos)}">
+                                    </p:commandButton>
+                                </p:column> 
+
+                                <p:column styleClass="columnaAcciones"  exportable="false" 
+                                          rendered="#{!docenteContratosBean.soloLectura and 
+                                                      sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_ELIMINAR_CONTRATO_OTRO)}">
+                                    <p:commandButton oncomplete="PF('confirmDialogContratos').show()" 
+                                                     icon="glyphicon glyphicon-trash " 
+                                                     styleClass="btn btn-icono rojo" 
+                                                     title="#{msg.eliminar}" 
+                                                     disabled="#{!docenteContratosBean.verEliminar(contratos)}"
+                                                     action="#{docenteContratosBean.seleccionarContrato(contratos)}"/>
+                                </p:column>                                         
+                            </p:dataTable>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </fieldset>
+
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:confirmDialog id="confirmDialogContratos"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogContratos">
+        <p:outputPanel styleClass="panelBotonesDer" >
+            <p:commandButton id="confirmDeleteContratos" value="#{msg.hconfirmar}" 
+                             update="formularioDocenteContratos"
+                             oncomplete="PF('confirmDialogContratos').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{docenteContratosBean.eliminarContrato()}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteContratos"/>
+            <p:commandLink id="cancelarDeleteContratos" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogContratos').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:dialog id="contratosDialog" header="#{msg.datosContratacion}" widgetVar="contratosDialog" modal="true" 
+              showEffect="fade" hideEffect="fade" resizable="false" closable="true" height="500">
+        <p:outputPanel id="contratosDetalle"> 
+            <h:panelGroup rendered="#{not empty docenteContratosBean.entidadEnEdicionContratos}">
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_personaSede">
+                    <h:outputLabel value="#{msg.tipo}" for="input_tipo_personaSede" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_tipo_personaSede" value="#{docenteContratosBean.comboTiposPersonalSedeEducativa.selected}" styleClass="form-control"
+                                         rendered="#{docenteContratosBean.verEditarTipoPersonal()}">
+                            <f:selectItems value="#{docenteContratosBean.comboTiposPersonalSedeEducativa.items}"/>
+                            <p:ajax update="contratosDetalle" listener="#{docenteContratosBean.setTipoPersonal}"/>
+                        </h:selectOneMenu>
+                        <h:outputText styleClass="form-control-plaintext" id="output_tipo_sede" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoTipo.text}" 
+                                      rendered="#{!docenteContratosBean.verEditarTipoPersonal()}"/> 
+                    </p:outputPanel>
+                </p:outputPanel>    
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_cargo">                        
+                    <h:outputLabel value="#{msg.cargo}" for="input_cargo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_cargo" value="#{docenteContratosBean.comboCargo.selected}" 
+                                         disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboCargo.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_nombramiento" 
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                           or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">
+                    <h:outputLabel value="#{msg.tipoNombramiento}" for="input_tipo_nombramiento" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_tipo_nombramiento" value="#{docenteContratosBean.comboTipoNombramiento.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboTipoNombramiento.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_contrato" 
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                           or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                    <h:outputLabel value="#{msg.tiposContrato}" for="input_tipo_contrato" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_tipo_contrato" value="#{docenteContratosBean.comboTipoContrato.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboTipoContrato.items}" />
+                            <p:ajax update="fila_panel_fecha_hasta fila_panel_interinato" process="@this" event="change"/>
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <h:panelGroup id="fila_panel_interinato" >
+                    <p:outputPanel styleClass="form-group row" id="fila_input_razones_interinato" 
+                                   rendered="#{docenteContratosBean.comboTipoContrato.selectedT!=null?docenteContratosBean.comboTipoContrato.selectedT.getTcoEsInterinato():false}">
+                        <h:outputLabel value="#{msg.razonesInterinato}" for="input_razones_interinato" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-6">
+                            <h:inputText id="input_razones_interinato" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                         styleClass="form-control texto-medio" autocomplete="off" 
+                                         value="#{docenteContratosBean.entidadEnEdicionContratos.dcoRazonesInterinato}"  />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_fuente_financiamiento"
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                           or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                    <h:outputLabel value="#{msg.fuenteFinanciamiento}" for="input_fuente_financiamiento" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_fuente_financiamiento" value="#{docenteContratosBean.comboFuenteFinanciamiento.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboFuenteFinanciamiento.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>                    
+                </p:outputPanel>   
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_institucion_paga_salario"
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                    <h:outputLabel value="#{msg.institucionPagaSalario}" for="input_institucion_paga_salario" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_institucion_paga_salario" value="#{docenteContratosBean.comboInstitucionPagaSalario.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboInstitucionPagaSalario.items}" />
+                            <p:ajax event="change" update="fila_panel_group_otro" process="@this"/>
+                        </h:selectOneMenu>
+                    </p:outputPanel>  
+                </p:outputPanel>        
+
+                <h:panelGroup id="fila_panel_group_otro" >
+                    <p:outputPanel styleClass="form-group row" id="fila_input_institucion_paga_salario_otro" rendered="#{(docenteContratosBean.comboInstitucionPagaSalario.selectedT!=null)?docenteContratosBean.comboInstitucionPagaSalario.selectedT.getIpsNombre().toUpperCase().equals(Constantes.VALIDAR_OTRO_CODIGO):false}">
+                        <h:outputLabel value="#{msg.otro}" for="input_institucion_paga_salario_otro" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-6">
+                            <h:inputText id="input_institucion_paga_salario_otro" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                         styleClass="form-control texto-corto" autocomplete="off" 
+                                         value="#{docenteContratosBean.entidadEnEdicionContratos.dcoInstitucionPagaSalarioOtro}"  />
+                        </p:outputPanel>    
+                    </p:outputPanel>       
+                </h:panelGroup>   
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_institucion_paga"
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">
+                    <h:outputLabel value="#{msg.tipoInstitucionPaga}" for="input_tipo_institucion_paga" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_tipo_institucion_paga" value="#{docenteContratosBean.comboTipoInstitucionPaga.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboTipoInstitucionPaga.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_desde">
+                    <h:outputLabel value="#{msg.desde}" for="input_desde" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <p:calendar autocomplete="off" styleClass="fomr-control" id="input_desde" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoDesde}" 
+                                    pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                    converter="#{localDateConverter}" maxdate="#{applicationBean.today()}"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <h:panelGroup id="fila_panel_fecha_hasta"  >
+                    <p:outputPanel styleClass="form-group row" id="fila_input_hasta" >    
+                        <h:outputLabel value="#{msg.hasta}"  styleClass="col-sm-4 col-form-label obligatorio"                    
+                                       rendered="#{docenteContratosBean.comboTipoContrato.selectedT!=null?docenteContratosBean.comboTipoContrato.selectedT.getTcoRequiereFechaHasta():false}" />
+                        <h:outputLabel value="#{msg.hasta}"  styleClass="col-sm-4 col-form-label" 
+                                       rendered="#{docenteContratosBean.comboTipoContrato.selectedT!=null?!docenteContratosBean.comboTipoContrato.selectedT.getTcoRequiereFechaHasta():true}" />
+                        <p:outputPanel styleClass="col-sm-6">
+                            <p:calendar autocomplete="off" styleClass="fomr-control" id="input_hasta" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoHasta}" 
+                                        pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_jornada_laboral" >                        
+                    <h:outputLabel value="#{msg.jornadaLaboral}" for="input_jornada_laboral" 
+                                   styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <p:dataTable id="input_jornada_laboral" var="jorLab" value="#{docenteContratosBean.jornadaLaboralDatosList}" disabledSelection="#{docenteContratosBean.soloLecturaDatosContratacion}" selection="#{docenteContratosBean.jornadaLaboralList}" rowKey="#{jorLab.jlaPk}" >
+                            <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                            <p:column headerText="Seleccionar todos">                            
+                                <h:outputText value="#{jorLab.jlaNombre}"/>                         
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                </p:outputPanel>   
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">                        
+                    <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <p:autoComplete id="input_sede_autocomplete" 
+                                        styleClass="form-control"
+                                        value="#{docenteContratosBean.sedeSeleccionado}" 
+                                        completeMethod="#{docenteContratosBean.completeSede}"
+                                        var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                        itemValue="#{sed}" 
+                                        widgetVar="b_inst_resp_autocomplete"
+                                        forceSelection="true"
+                                        maxResults="10"
+                                        queryDelay="500"
+                                        disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                        multiple="false"
+                                        converter="#{sedesConverter}"
+                                        placeholder="#{msg.autoCompleteEmptyItem}" >
+                        </p:autoComplete>
+                    </p:outputPanel>                    
+                </p:outputPanel>     
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_hora_ingreso">                        
+                    <h:outputLabel value="#{msg.horaIngrso}" for="input_hora_ingreso" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <p:calendar autocomplete="off" styleClass="fomr-control" id="input_hora_ingreso" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoHoraIngreso}" 
+                                    converter="#{localTimeConverter}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                    locale="#{sessionBean.locale}" pattern="#{applicationBean.patternHora}" timeOnly="true"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>     
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_hora_salida">                        
+                    <h:outputLabel value="#{msg.horaSalida}" for="input_hora_salida" styleClass="col-sm-4 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-6">
+                        <p:calendar autocomplete="off" styleClass="fomr-control" id="input_hora_salida" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoHoraSalida}" 
+                                    converter="#{localTimeConverter}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"       
+                                    pattern="#{applicationBean.patternHora}" locale="#{sessionBean.locale}"  timeOnly="true"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_salario_mensual" 
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                           or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                    <h:outputLabel value="#{msg.salarioMensual}" for="input_salario_mensual" 
+                                   styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <p:inputNumber id="input_salario_mensual" styleClass="form-control texto-corto" minValue="0" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"
+                                       value="#{docenteContratosBean.entidadEnEdicionContratos.dcoSalarioMensual}" />
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_modo_pago" 
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                           or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                    <h:outputLabel value="#{msg.modoPago}" for="input_modo_pago" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_modo_pago" value="#{docenteContratosBean.comboModoPago.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}" styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboModoPago.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>                    
+                </p:outputPanel>    
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_ley_salario" rendered="false">                        
+                    <h:outputLabel value="#{msg.leySalario}" for="input_ley_salario" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_ley_salario" value="#{docenteContratosBean.comboLeySalario.selected}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboLeySalario.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>    
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_codigo_plaza" 
+                               rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO}">                        
+                    <h:outputLabel value="#{msg.codigoPlaza}" for="input_codigo_plaza" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:inputText value="#{docenteContratosBean.entidadEnEdicionContratos.dcoCodigoPlaza}" maxlength="7"
+                                     id="input_codigo_plaza" styleClass="form-control texto-medio" autocomplete="off" 
+                                     disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"/>
+                    </p:outputPanel>
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_actividades_docentes" 
+                               rendered="#{not (docenteContratosBean.entidadEnEdicionContratos.dcoTipo eq TipoPersonalSedeEducativa.DOC) and (docenteContratosBean.entidadEnEdicionContratos.dcoTipo != null)}">
+                    <h:outputLabel value="#{msg.actividadesDocentes}" for="input_actividades_docentes" 
+                                   styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6"> 
+                        <p:outputPanel styleClass="form-check">
+                            <h:selectBooleanCheckbox id="input_actividades_docentes" styleClass="form-check-input"  
+                                                     disabled="#{docenteContratosBean.soloLecturaDatosContratacion}" 
+                                                     value="#{docenteContratosBean.entidadEnEdicionContratos.dcoActividadesDocentes}" />
+                            <h:outputLabel for="input_actividades_docentes" styleClass="form-check-label">
+                                <h:outputText value="#{msg.si}"/>
+                            </h:outputLabel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_alfabetizador" rendered="#{ (docenteContratosBean.entidadEnEdicionContratos.dcoTipo eq TipoPersonalSedeEducativa.ALF) and (docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.OTRO)}">                        
+                    <h:outputLabel value="#{msg.tipoAlfabetizador}" for="input_tipo_alfabetizador" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_tipo_alfabetizador" value="#{docenteContratosBean.comboTipoAlfabetizador.selected}" disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboTipoAlfabetizador.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_estado" rendered="false">                        
+                    <h:outputLabel value="#{msg.estado}" for="input_estado" 
+                                   styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-6">
+                        <h:selectOneMenu id="input_estado" value="#{docenteContratosBean.comboEstado.selected}" 
+                                         disabled="#{docenteContratosBean.soloLecturaDatosContratacion}"  styleClass="form-control" >
+                            <f:selectItems value="#{docenteContratosBean.comboEstado.items}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:messages id="popupmsgContrato" showDetail="true" globalOnly="false" for="popupmsgContrato" closable="true"/>   
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarContrato"   value="#{msg.guardar}" 
+                                         action="#{docenteContratosBean.agregarContratoDatosEmpleados()}" 
+                                         update="contratosDetalle formularioDocenteContratos" 
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"  
+                                         rendered="#{!docenteContratosBean.soloLecturaDatosContratacion}"/>
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('contratosDialog').hide();"  
+                                       styleClass="btn btn-link"/>                        
+                    </p:outputPanel>                    
+                </p:outputPanel>                     
+                <p:blockUI block="contratosDetalle" trigger="btnGuardarContrato" />   
+                <p:defaultCommand target="btnGuardarContrato" scope="contratosDetalle"/>                             
+            </h:panelGroup>  
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>

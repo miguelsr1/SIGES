@@ -1,0 +1,459 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">
+
+    <script>
+        window.document.addEventListener('markerClickEvent', handleEvent, false);
+        function handleEvent(e) {
+            updateAddressCoordinates([{name: 'latitude', value: e.detail.latitude}, {name: 'longitude', value: e.detail.longitude}]);
+        }
+    </script>
+    
+    <h:form id="form">
+        <p:remoteCommand name="updateAddressCoordinates" action="#{matriculaEstudianteBean.updateAddressCoordinates}" update="@(.latitud_update_class, .longitud_update_class)"/>
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.registroMatricula}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina" id="titulo">
+            <h2 class="page-header"><h:outputText value="#{msg.registroMatricula}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.MATRICULA)}" />
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="matPendientes">
+            <p:outputPanel rendered="#{matriculaEstudianteBean.matPendientes.size() > 0}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li>
+                            <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.matriculasGuardadasPendientes}" />
+                            <ol>
+                                <ui:repeat value="#{matriculaEstudianteBean.matPendientes}" var="mat">
+                                    <li>
+                                        <h:outputText value="#{mat.matEstNombreCompleto}" /> -
+                                        <p:commandLink action="#{matriculaEstudianteBean.cargarMatriculaParcial(mat.matPk)}" value="Retomar" process="@this"  update="@form"/> -                            
+                                        <p:commandLink action="#{matriculaEstudianteBean.eliminarMatriculaParcial(mat)}" value="Eliminar" process="@this"  update="form:matPendientes"/>
+                                    </li>
+                                </ui:repeat>
+                            </ol>
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <p:blockUI block="wizMatricula" widgetVar="tabsBlocker" />  
+        <p:wizard id="wizMatricula" nextLabel="#{msg.siguiente}" backLabel="#{msg.atras}"
+                  flowListener="#{matriculaEstudianteBean.onFlowProcess}"
+                  widgetVar="matriculaWizard">
+            <p:tab id="identificacion" title="#{msg.hidentificacionEstudiante}">
+
+                <p:commandButton value="#{msg.hrestablecerIdent}" update="form:wizMatricula" process="@this"
+                                 styleClass="btn btn-secondary"
+                                 rendered="#{matriculaEstudianteBean.identificacionSoloLectura}"
+                                 action="#{matriculaEstudianteBean.restablecerEstudiante}"/>
+                <f:subview id="idenEstudianteView">
+                    <ui:include src="componentes/identificaciones.xhtml">
+                        <ui:param name="persona" value="#{matriculaEstudianteBean.personaEnEdicion}" />
+                        <ui:param name="soloLecturaIdentificaciones" value="#{matriculaEstudianteBean.identificacionSoloLectura}" />
+                    </ui:include>
+                </f:subview>
+            </p:tab>
+            <p:tab id="datosPersonales" title="#{msg.estudiante}">
+                <f:subview id="idenEstudianteViewSoloLectura">
+                    <ui:include src="componentes/identificaciones.xhtml">
+                        <ui:param name="persona" value="#{matriculaEstudianteBean.personaEnEdicion}" />
+                        <ui:param name="soloLecturaIdentificaciones" value="#{matriculaEstudianteBean.identificacionSoloLectura}" />
+                    </ui:include>
+                </f:subview>
+                <f:subview id="perEstudianteView">
+                    <ui:include src="componentes/persona.xhtml">
+                        <ui:param name="persona" id="estudiante" value="#{matriculaEstudianteBean.personaEnEdicion}" />
+                        <ui:param name="soloLecturaPersona" id="soloLectura" value="#{matriculaEstudianteBean.personaSoloLectura}" />
+                        <ui:param name="renderPartidaNacimiento" value="#{matriculaEstudianteBean.renderPartidaNacimiento}" />   
+                    </ui:include>
+                </f:subview>
+                <fieldset>
+                    <legend>#{msg.residencia}</legend>
+                    <f:subview id="dirEstudianteView">
+                        <ui:include src="componentes/direccion.xhtml">
+                            <ui:param name="direccion" value="#{matriculaEstudianteBean.direccionEnEdicion}" />
+                            <ui:param name="soloLecturaDireccion" value="#{matriculaEstudianteBean.direccionSoloLectura}" />
+                        </ui:include>
+                    </f:subview>
+                </fieldset>
+                <p:fieldset id="otrosDatos" legend="#{msg.otrosDatos}">
+
+                    <f:subview id="otrosDatosEstudianteView">
+                        <ui:include src="componentes/otrosDatosEstudiante.xhtml">
+                            <ui:param name="estudiante" value="#{matriculaEstudianteBean.entidadEnEdicionEstudiante}" />
+                            <ui:param name="soloLecturaOtrosDatosEstudiante" value="#{false}" />
+                        </ui:include>
+                    </f:subview>
+
+                </p:fieldset>   
+            </p:tab>
+            <p:tab id="identificacionResponsable" title="#{msg.hidentificacionResponsable}">
+                <f:subview id="idenResponsableView">
+
+                    <p:outputPanel id="respNoObligatorio">
+                        <p:outputPanel rendered="#{matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perEsMayorDeEdad}" styleClass="ui-messages">
+                            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                                <ul>
+                                    <li class="control-inline">
+                                        <h:outputText styleClass="ui-messages-info-summary" value="#{msg.responsableMatriculaNoObligatorio}" style="padding-right: 15px"/>
+                                        <p:selectOneRadio layout="responsive" columns="2" value="#{matriculaEstudianteBean.ingresarResponsableEstudianteMayorEdad}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <p:ajax update="ident_responsable" />
+                                        </p:selectOneRadio>
+                                    </li>
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="ident_responsable">
+                        <p:outputPanel rendered="#{matriculaEstudianteBean.ingresarResponsableEstudianteMayorEdad or !matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perEsMayorDeEdad}">
+                            <p:commandButton value="#{msg.hrestablecerIdent}" update="@form" process="@this"
+                                             styleClass="btn btn-secondary"
+                                             rendered="#{matriculaEstudianteBean.identificacionSoloLectura}"
+                                             action="#{matriculaEstudianteBean.restablecerResponsable()}"  />
+
+
+                            <ui:include src="componentes/identificaciones.xhtml" >
+                                <ui:param name="persona" value="#{matriculaEstudianteBean.personaEnEdicion}" />
+                                <ui:param name="soloLecturaIdentificaciones" value="#{matriculaEstudianteBean.identificacionSoloLectura}" />
+                            </ui:include>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:subview>
+            </p:tab>
+            <p:tab id="responsable" title="#{msg.responsable}">
+                <f:subview id="idenResponsableViewSoloLectura">
+                    <ui:include src="componentes/identificaciones.xhtml">
+                        <ui:param name="persona" value="#{matriculaEstudianteBean.personaEnEdicion}" />
+                        <ui:param name="soloLecturaIdentificaciones" value="#{matriculaEstudianteBean.identificacionSoloLectura}" />
+                    </ui:include>
+                </f:subview>
+                <fieldset>
+                    <legend><h:outputText value="#{msg.hfamiliar}"/></legend>
+                    <p:outputPanel styleClass="form-group row" >   
+                        <h:outputText value="#{msg.esFamiliar}" styleClass="col-sm-4 col-md-2 col-form-label"/>
+                        <div class="col-sm-8 col-md-10">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="b_familiar" styleClass="form-check-input" value="#{matriculaEstudianteBean.estudianteReferente.allEsFamiliar}"
+                                                         disabled="#{matriculaEstudianteBean.soloLectura}">
+                                    <p:ajax update="fila_input_parentesco_c" event="change" listener="#{matriculaEstudianteBean.responsableEsFamiliarSelected()}" process="@this" />
+                                </h:selectBooleanCheckbox>
+                                <h:outputLabel for="b_familiar" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </div>
+                    </p:outputPanel>
+                    <h:panelGroup id="fila_input_parentesco_c">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_parentesco" rendered="#{matriculaEstudianteBean.estudianteReferente.allEsFamiliar}">                        
+                            <h:outputLabel value="#{msg.htipoParentesco}" for="input_parentesco" styleClass="col-sm-4 col-md-2 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8 col-md-10">
+                                <h:selectOneMenu id="input_parentesco" value="#{matriculaEstudianteBean.comboTipoParentesco.selected}" styleClass="form-control dropdown texto-medio" disabled="#{matriculaEstudianteBean.soloLectura}" >
+                                    <f:selectItems value="#{matriculaEstudianteBean.comboTipoParentesco.items}" />
+                                </h:selectOneMenu>                                    
+                                <h:message for="input_parentesco" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </h:panelGroup>
+                </fieldset>
+
+                <f:subview id="perResponsableView">
+                    <ui:include src="componentes/persona.xhtml">
+                        <ui:param name="persona" id="estudiante" value="#{matriculaEstudianteBean.personaEnEdicion}" />
+                        <ui:param name="soloLecturaPersona" id="soloLectura" value="#{matriculaEstudianteBean.personaSoloLectura}" />
+                    </ui:include>
+                </f:subview>
+                <p:fieldset id="dirResponsable" legend="#{msg.hdireccionResponsable}" >
+                    <f:subview id="dirResponsableView">
+                        <ui:include src="componentes/direccion.xhtml" id="direccionResponsable">
+                            <ui:param name="direccion" value="#{matriculaEstudianteBean.direccionEnEdicion}" />
+                            <ui:param name="soloLecturaDireccion" value="#{matriculaEstudianteBean.direccionSoloLectura}" /> 
+                            <ui:param name="direccionNoObligatoria" value="#{matriculaEstudianteBean.direccionSoloLectura}" /> 
+                        </ui:include>
+                    </f:subview>
+                </p:fieldset>
+                <p:fieldset id="datosResponsable" legend="#{msg.hotrosDatosResponsable}">
+
+                    <f:subview id="otrosDatosAllegadoView">
+                        <ui:include src="componentes/otrosDatosAllegado.xhtml">
+                            <ui:param name="allegado" value="#{matriculaEstudianteBean.estudianteReferente}" />
+                            <ui:param name="soloLecturaOtrosDatosAllegado" value="#{false}" />
+                        </ui:include>
+                    </f:subview>
+
+                </p:fieldset>
+            </p:tab>
+            <p:tab id="matricula" title="#{msg.datosDeIngresoAlaSede}">
+                <fieldset>
+                    <legend><h:outputText value="#{msg.datosPersonales}"/></legend>
+                    <p:outputPanel styleClass="form-group row" id="fila_output_datos_personales">
+                        <h:outputText value="#{msg.nombre}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-3">
+                            <h:outputText value="#{matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perPrimerNombre}"
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                        <h:outputText value="#{msg.apellido}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-3">
+                            <h:outputText value="#{matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perPrimerApellido}"
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </fieldset>
+                <fieldset>
+                    <legend><h:outputText value="#{msg.datosDeIngresoAlaSede}"/></legend>
+                    
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{matriculaEstudianteBean}" />
+                            <ui:param name="actionParam" value="seleccionarSeccion" />
+                            <ui:param name="seccion" value="#{matriculaEstudianteBean.seccionEnEdicion}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_MATRICULA}" />
+                        </ui:include>
+                    </f:subview>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estudiante_fecha_ingreso">
+                        <h:outputLabel value="#{msg.fechaIngreso}" for="input_estudiante_fecha_ingreso"
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_estudiante_fecha_ingreso" styleClass="form-control" value="#{matriculaEstudianteBean.entidadEnEdicion.matFechaIngreso}" disabled="#{matriculaEstudianteBean.entidadEnEdicion.matSeccion == null}"
+                                        pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" mask="true" converter="#{localDateConverter}" showOn="button">
+                                <p:ajax event="dateSelect" process="@this" />
+                            </p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estudiante_ingreso_provisional">
+                        <h:outputText value="#{msg.provisional}" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="3" id="b_provsional" disabled="#{matriculaEstudianteBean.soloLecturaProvisional}"
+                                              value="#{matriculaEstudianteBean.entidadEnEdicion.matProvisional}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax update="fila_input_estudiante_ingreso_observatorio" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estudiante_ingreso_observatorio">
+                        <h:outputText value="#{msg.observacionesProvisional}" styleClass="col-sm-4 col-form-label #{matriculaEstudianteBean.entidadEnEdicion.matProvisional? 'obligatorio':'' }"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:inputTextarea  id="b_observaciones" styleClass="form-control texto-medio"
+                                              value="#{matriculaEstudianteBean.entidadEnEdicion.matObservacioneProvisional}" 
+                                              disabled="#{!matriculaEstudianteBean.entidadEnEdicion.matProvisional}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                   
+                    
+                    <p:outputPanel rendered="#{matriculaEstudianteBean.nieGenaradoAutomatico}" >
+                        <p:outputPanel styleClass="ui-messages">
+                            <div class="ui-messages-info messages-info-azul ui-corner-all">
+                                <ul>
+                                    <li class="control-inline">
+                                        <h:outputText styleClass="ui-messages-info-summary" value="#{msg.nieGeneradoAutomatico}" style="padding-right: 15px"/>
+                                   
+                                    </li>
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                 
+                </fieldset>
+
+            </p:tab>
+            <p:tab id="confirmacion" title="#{msg.confirmacion}">
+
+                <p:fieldset legend="#{msg.hestudiante}">
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_nombre_persona">
+                        <h:outputText value="#{msg.nombrecompleto}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext" 
+                                           value="#{matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perNombreCompleto}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_ident_persona">
+                        <h:outputText value="#{msg.identificaciones}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText styleClass="form-control-plaintext" style="white-space: pre-wrap;"
+                                          value="#{matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perIdentificacionesAsString}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_dire_persona">
+                        <h:outputText value="#{msg.direccion}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText styleClass="form-control-plaintext" 
+                                          value="#{matriculaEstudianteBean.entidadEnEdicionEstudiante.estPersona.perDireccion.dirCompleta}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:fieldset>
+
+                <p:fieldset legend="#{msg.responsable}">
+
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_nombre_responsable">
+                        <h:outputText value="#{msg.nombrecompleto}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext"
+                                           value="#{matriculaEstudianteBean.estudianteReferente.allPersona.perNombreCompleto}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_iden_responsable">
+                        <h:outputText value="#{msg.identificaciones}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext" style="white-space: pre-wrap;"
+                                           value="#{matriculaEstudianteBean.estudianteReferente.allPersona.perIdentificacionesAsString}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_dire_responsable">
+                        <h:outputText value="#{msg.direccion}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext" 
+                                           value="#{matriculaEstudianteBean.estudianteReferente.allPersona.perDireccion.dirCompleta}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:fieldset>
+
+                <p:fieldset legend="#{msg.hSeccion}">
+
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_seccion">
+                        <h:outputText value="#{msg.seccion}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext"
+                                           value="#{matriculaEstudianteBean.entidadEnEdicion.matSeccion.secNombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_servicio_educativo">
+                        <h:outputText value="#{msg.servicioEducativo}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText  styleClass="form-control-plaintext"
+                                           value="#{matriculaEstudianteBean.entidadEnEdicion.matSeccion.secServicioEducativo.sduNombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="confirmacion_jornada">
+                        <h:outputText value="#{msg.jornada}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:outputText styleClass="form-control-plaintext"
+                                          value="#{matriculaEstudianteBean.entidadEnEdicion.matSeccion.secJornadaLaboral.jlaNombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:fieldset>
+
+                <div class="form-action-buttons">
+                    <p:commandButton value="#{msg.hconfirmarYSalir}" id="btnConfirmar" styleClass="btn btn-primary" actionListener="#{matriculaEstudianteBean.guardarYSalir()}"/>
+                    <p:commandButton value="#{msg.hconfirmarYMatricularNuevo}" id="btnConfirmarNuevo" styleClass="btn btn-primary" actionListener="#{matriculaEstudianteBean.guardarYNuevo()}"/>
+                    <p:commandButton value="#{msg.hconfirmarYMatricularNuevoMismaSeccion}" id="btnConfirmarNuevoMismaSeccion" styleClass="btn btn-primary" actionListener="#{matriculaEstudianteBean.guardarYNuevoEnMismaSeccion()}"/>
+                    <p:blockUI block="@form" trigger="btnConfirmar btnConfirmarNuevo btnConfirmarNuevoMismaSeccion" />
+                </div>
+            </p:tab>
+        </p:wizard>
+
+
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup>
+
+        <p:dialog header="#{msg.listaCandidatos}" widgetVar="itemDialogCandidatos" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetailCandidatos">
+                <h:panelGroup rendered="#{matriculaEstudianteBean.lazyPersonaDataModel != null}">
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:dataTable value="#{matriculaEstudianteBean.lazyPersonaDataModel}" 
+                                 var="per"
+                                 paginator="true"
+                                 lazy="true"
+                                 paginatorPosition="bottom"
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                 rows="#{matriculaEstudianteBean.paginado}"
+                                 reflow="true" 
+                                 emptyMessage="#{msg.noHayResultados}">
+                        <f:facet name="{anterior}">
+                            <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                        </f:facet>
+                        <f:facet name="{siguiente}">
+                            <h:outputText styleClass="#{matriculaEstudianteBean.totalResultadosPersonas lt (matriculaEstudianteBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                        </f:facet>
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                <p:outputPanel styleClass="col-md-6">
+                                    <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{matriculaEstudianteBean.totalResultadosPersonas}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.hnombre}">
+                            <h:outputText value="#{per.perNombreCompleto}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hnie}">
+                            <h:outputText value="#{per.perNie}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hdui}">
+                            <h:outputText value="#{per.perDui}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hfechaNacimiento}">
+                            <h:outputText value="#{per.perFechaNacimiento}" converter="#{localDateConverter}"/>
+                        </p:column>
+                        <p:column headerText="#{msg.hsexo}">
+                            <h:outputText value="#{per.perSexo.sexNombre}"  />
+                        </p:column>
+                        <p:column headerText="#{msg.hdepartamento}">
+                            <h:outputText value="#{per.perDireccion.dirDepartamento.depNombre}"  />
+                        </p:column>
+                        <p:column headerText="#{msg.hmunicipio}">
+                            <h:outputText value="#{per.perDireccion.dirMunicipio.munNombre}"  />
+                        </p:column>
+                        <p:column headerText="#{msg.hcorreo}">
+                            <h:outputText value="#{per.perEmail}"  />
+                        </p:column>
+                        <p:column headerText="#{msg.hestadocivil}">
+                            <h:outputText value="#{per.perEstadoCivil.eciNombre}"  />
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false">
+                            <p:commandButton  icon="glyphicon glyphicon-refresh"
+                                              styleClass="btn btn-icono" 
+                                              update="form:itemDetailCandidatos" 
+                                              title="#{msg.intercambiar}"
+                                              action="#{matriculaEstudianteBean.intercambiarPersona(per)}"/>
+                        </p:column>
+                    </p:dataTable>
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton value="#{msg.noEsNinguno}" action="#{matriculaEstudianteBean.noEsNinguno()}" styleClass="btn btn-primary"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:dialog>
+    </h:form>
+</ui:composition>

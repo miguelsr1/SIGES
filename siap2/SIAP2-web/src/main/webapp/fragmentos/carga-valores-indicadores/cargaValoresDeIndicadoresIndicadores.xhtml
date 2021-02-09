@@ -1,0 +1,87 @@
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+    <p:outputPanel>
+        <h:form id="tablaValoresForm">
+            <p:outputPanel id="tablaValores">
+                <ui:fragment rendered="#{empty  valoresDeIndicadoresCarga.indicadoresACargar}"  >
+                    <div class="form-group">
+                        <div class ="col-xs-12">
+                            <h:outputText styleClass="no-hay-indicadores" value="#{textMB.obtenerTexto('labels.NoHayIndicadoresACargarConElFiltroSeleccionado')}"/>
+                        </div>
+                    </div>
+                </ui:fragment>
+
+                <ui:fragment rendered="#{not empty  valoresDeIndicadoresCarga.indicadoresACargar}"  >
+                    <ui:repeat value="#{valoresDeIndicadoresCarga.indicadoresACargar}" var="indicador">
+                        <h2><h:outputText value="#{indicador.tipoIndicador.nombre}"/></h2>
+
+
+                        <!-- TABLA JSF -->
+                        <p:dataTable id="dataTableIndicador"
+                                     value="#{indicador.metas}" 
+                                     emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                     var="meta"
+                                     sortBy="#{meta.proyecto.nombre}"
+                                     styleClass="table table-hover">
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Proyecto')}"  sortBy="#{meta.proyecto.nombre}" >
+                                <h:outputText value="#{meta.proyecto.nombre}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.UT')}"  sortBy="#{meta.ut.nombre}" >
+                                <h:outputText value="#{meta.ut.nombre}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Indicador')}" sortBy="#{meta.indicador.nombre}"  >
+                                <h:outputText value="#{meta.indicador.nombre}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.UnidadMedida')}" >
+                                <h:outputText value="#{utilsMB.getIndicadorDesdeMeta(meta.metaIndicador).unidadDeMedida.codigo}" />
+                            </p:column>                                    
+                            <p:columns  var="nombreSeg" value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"   columnIndexVar="colIndex">
+                                <f:facet name="header">
+                                    <h:outputText  value="#{textMB.obtenerTexto(nombreSeg)}" />
+                                </f:facet>
+                                <h:outputText   value="#{meta.metaIndicador.valores[colIndex].valor}" >
+                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                </h:outputText>
+                            </p:columns>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}"  exportable="false">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                 update="anadirIndicadoresForm"
+                                                 action="#{valoresDeIndicadoresCarga.reloadValorIndicador()}"
+                                                 oncomplete="$('#anadirIndicador').modal('show');" 
+                                                 immediate="true"  >
+                                    <f:setPropertyActionListener target="#{valoresDeIndicadoresCarga.metaEditando}" value="#{meta}" />
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target=":#{component.parent.clientId}:dataTableIndicador" fileName="#{indicador.tipoIndicador.nombre}" />
+                        </h:commandLink>
+                        <div class="clear"></div>
+                        <!-- TABLA MANUAL -->
+                        
+                    </ui:repeat>
+                </ui:fragment>
+            </p:outputPanel>
+        </h:form>
+
+
+
+
+
+
+
+    </p:outputPanel>
+
+
+
+
+</ui:composition>
+

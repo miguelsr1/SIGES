@@ -1,0 +1,124 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+ 
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+    
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{inmuebleEdificiosBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{inmuebleEdificiosBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+    
+    <h:panelGroup rendered="#{not empty inmuebleEdificiosBean.entidadEnEdicion}">
+
+      
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.hcodigo}" styleClass="col-sm-3 col-form-label"/>   
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{inmuebleEdificiosBean.filtro.codigo}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>  
+                <p:outputPanel styleClass="col-md-6">                   
+
+                    
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3 text-right">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{inmuebleEdificiosBean.buscar()}" update="pnlResultado"/>
+                            <p:blockUI block="@form" trigger="btnBuscar"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{inmuebleEdificiosBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{inmuebleEdificiosBean.edificioLazyModel}"   
+                         rendered="#{inmuebleEdificiosBean.totalResultados>0}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="#{inmuebleEdificiosBean.totalResultados gt inmuebleEdificiosBean.paginado}"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="ediPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{inmuebleEdificiosBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}"  >
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}"  >
+                    <h:outputText styleClass="#{inmuebleEdificiosBean.totalResultados lt (inmuebleEdificiosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header" >
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{inmuebleEdificiosBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="inmuebles" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.ediCodigo}">
+                    <h:outputText value="#{elem.ediCodigo}"/>
+                </p:column>
+                <p:column headerText="#{msg.hcodigoCentroEducativo}" sortBy="#{elem.ediInmuebleSedeFk.tisSedeFk.sedCodigo}">
+                    <h:outputText value="#{elem.ediInmuebleSedeFk.tisSedeFk.sedCodigo}"/>
+                </p:column>
+                <p:column headerText="#{msg.hnombreCentroEducativo}" sortBy="#{elem.ediInmuebleSedeFk.tisSedeFk.sedNombre}">
+                    <h:outputText value="#{elem.ediInmuebleSedeFk.tisSedeFk.sedNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hdepartamento}" sortBy="#{elem.ediInmuebleSedeFk.tisDireccion.dirDepartamento.depNombre}">
+                    <h:outputText value="#{elem.ediInmuebleSedeFk.tisDireccion.dirDepartamento.depNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hmunicipio}" sortBy="#{elem.ediInmuebleSedeFk.tisDireccion.dirMunicipio.munNombre}">
+                    <h:outputText value="#{elem.ediInmuebleSedeFk.tisDireccion.dirMunicipio.munNombre}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:link outcome="#{ConstantesPaginas.EDIFICIO}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.ediPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_EDIFICIO) and (not inmuebleEdificiosBean.soloLectura)}">
+                    <p:link outcome="#{ConstantesPaginas.EDIFICIO}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.ediPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+    </h:panelGroup>
+</ui:composition>

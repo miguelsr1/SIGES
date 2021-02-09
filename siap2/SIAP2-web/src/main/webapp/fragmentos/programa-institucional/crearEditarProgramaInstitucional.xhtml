@@ -1,0 +1,296 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:panelGroup id="initView" layout="block">       
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText  rendered="#{!programaInstitucionalCE.isSubprograma()}" value="#{textMB.obtenerTexto('labels.ProgramaInstitucional')}" />
+                    <h:outputText  rendered="#{programaInstitucionalCE.isSubprograma()}" value="#{textMB.obtenerTexto('labels.SubprogramaInstitucional')}" />
+                </h2>
+                
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.crearEditarProgramaInstitucional')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.crearEditarProgramaInstitucional')}" escape="false" /> 
+            </div>
+            <!--            <div class="panelSubtituloPagina">
+                            <h3 class="caminoProgramas">
+                                <ui:repeat var="prog" value="# {programaInstitucionalCE.getNombrePadres()}" varStatus="status">                         
+                                    <h:outputText value="# {prog}" styleClass="nivelPrograma # {programaInstitucionalCE.getCssLvl(status.index)}"/> 
+                                </ui:repeat>
+                            </h3>
+                        </div>-->
+
+            <!--<h:form id="formCreatePlantilla"  prependId="false" styleClass="# {programaInstitucionalCE.getSubClassLevel()}" ></h:form>-->
+            <h:form id="formCreatePlantilla"  prependId="false" >
+                <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                    <p:focus context="bloqueNoModal" />
+                    <div class="grupoCampos">
+                        <h:messages  showSummary="true"   globalOnly="true"   errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes" />
+
+                        <p:outputPanel styleClass="form-group" rendered="#{programaInstitucionalCE.isSubprograma()}">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="Programa:" />
+                            <div class="col-sm-9">
+                                <h:outputText value="#{programaInstitucionalCE.getNombrePadres()[0]}" styleClass="form-control-static"/>
+                            </div>
+                        </p:outputPanel>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                            <div class="col-sm-9">
+                                <!-- Cambia inputext por texarea bugzilla 7245 -->
+                                <h:inputTextarea id="nombre" value="#{programaInstitucionalCE.objeto.nombre}" styleClass="form-control textoLargo" 
+                                                 rows="5"  
+                                                 required="#{!empty param['save']}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:validateLength maximum="4000" />
+                                </h:inputTextarea>
+                                <!--<h:inputText id="nombre"  maxlength="4000" value="#{programaInstitucionalCE.objeto.nombre}" styleClass="form-control textoLargo"  required="#{!empty param['save']}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:validateLength maximum="4000" />
+                                </h:inputText>-->
+                                <h:message for="nombre" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Planificacion')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu rendered="#{!programaInstitucionalCE.isSubprograma()}" 
+                                                 id="planificacion" value="#{programaInstitucionalCE.idPlanificacion}"  styleClass="form-control textoMedio" required="#{!empty param['save']}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:ajax render="linea" listener="#{programaInstitucionalCE.loadLineasDisponibles(false)}"/> 
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                    <f:selectItems value="#{utilsMB.getPlanificacionesEstrategicasVigetnes()}" />
+                                </h:selectOneMenu> 
+                                <h:outputText styleClass="form-control-static"  rendered="#{programaInstitucionalCE.isSubprograma()}" value="#{programaInstitucionalCE.nombrePlanificacion}" />
+                                <h:message for="planificacion" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.LineasEstrategicas')}:" />                        
+                            <ui:fragment  rendered="#{!programaInstitucionalCE.isSubprograma()}" >
+                                <h:panelGroup layout="block"  id="linea" styleClass="col-sm-9" >    
+                                    <p:pickList id="pickList" value="#{programaInstitucionalCE.lineasEstrategicas}" 
+                                                var="linea" itemLabel="#{linea.nombre}" itemValue="#{linea}" 
+                                                responsive="true" >
+                                        <f:facet name="sourceCaption">#{textMB.obtenerTexto('labels.Disponibles')}</f:facet>
+                                        <f:facet name="targetCaption">#{textMB.obtenerTexto('labels.Seleccionadas')}</f:facet>
+                                        <f:converter  binding="#{lineaEstrategicaConverter}" />     
+                                    </p:pickList>
+                                    <h:message for="pickList" styleClass="help-inline msj-danger" />
+                                </h:panelGroup>
+                            </ui:fragment> 
+                            <ui:fragment  rendered="#{programaInstitucionalCE.isSubprograma()}" >
+                                <h:panelGroup layout="block"  styleClass="col-sm-9" >    
+                                    <h:selectOneMenu id="selectUnaLinea" value="#{programaInstitucionalCE.idLinea}"  styleClass="form-control textoLargo" required="#{!empty param['save']}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{programaInstitucionalCE.getLineasParaSubprograma()}" />
+                                    </h:selectOneMenu>
+                                    <h:message for="selectUnaLinea" styleClass="help-inline msj-danger" />
+                                </h:panelGroup>
+                            </ui:fragment>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}:" />
+                            <div class="col-sm-9">                      
+                                <h:selectOneMenu  value="#{programaInstitucionalCE.objeto.estado}"  styleClass="form-control textoMedio" >
+                                    <f:selectItems value="#{utilsMB.getEstadoPrograma()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                </h:selectOneMenu>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!--tabla de de subprogramas -->
+                    <h:panelGroup styleClass="grupoCampos" rendered="#{!programaInstitucionalCE.isSubprograma()}" layout="block">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Subprogramas')}" />
+                            </div>
+                            <div class="col-sm-6 clearfix">                        
+                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.NuevoSubprograma')}" 
+                                                 update="initView"
+                                                 action="#{programaInstitucionalCE.loadSubprograma(null)}"
+                                                 oncomplete="$('html, body').animate({ scrollTop: 0 }, 'fast');"/>
+                            </div>
+                        </div>
+                        <p:dataTable  id="subprogramaTabla"
+                                      var="item" 
+                                      value="#{programaInstitucionalCE.objeto.programasInstitucionales}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+                            <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.estado')}">
+                                <h:outputText value="#{textMB.obtenerTexto(item.estado.label)}"  />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.LineaEstrategica')}">
+                                <h:outputText value="#{programaInstitucionalCE.getLineaEstrategicaDeSubprograma(item).nombre}"  />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.EditarSubprograma')}"  
+                                                 action="#{programaInstitucionalCE.loadSubprograma(rowIndex)}"  
+                                                 update="initView"
+                                                 oncomplete="$('html, body').animate({ scrollTop: 0 }, 'fast');"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 actionListener="#{programaInstitucionalCE.eliminarSubprograma(item)}"
+                                                 update="subprogramaTabla confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>
+                            </p:column>  
+                        </p:dataTable>
+                    </h:panelGroup>
+
+
+                    <!--tabla de de SUPUESTOS -->
+                    <div class="grupoCampos">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Supuestos')}" />
+                            </div>
+                            <div class="col-sm-6 clearfix">                        
+                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.NuevoSupuesto')}" 
+                                                 update="anadirSupuestoForm"
+                                                 action="#{programaInstitucionalCE.loadSupuesto(null)}"
+                                                 oncomplete="$('#anadirSupuesto').modal('show');" 
+                                                 immediate="true"/>
+                            </div>
+                        </div> 
+                        <p:dataTable  id="supuestoTabla"
+                                      var="item" 
+                                      value="#{programaInstitucionalCE.objeto.supuestos}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Descripcion')}">
+                                <h:outputText value="#{item.texto}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.EditarSupuesto')}"  
+                                                 update="anadirSupuestoForm"
+                                                 action="#{programaInstitucionalCE.loadSupuesto(rowIndex)}"
+                                                 oncomplete="$('#anadirSupuesto').modal('show');" 
+                                                 immediate="true"/>
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 actionListener="#{programaInstitucionalCE.eliminarSupuesto(item)}"
+                                                 update="supuestoTabla confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>
+<!--                                <a data-toggle="modal" data-id="#{rowIndex}" title="Eliminar este item" class="btn btn-danger btn-icono open-ConfirmModal" href="#confirmModalSupuesto">
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="textoOculto"/>
+                                </a>                        -->
+                            </p:column>  
+                        </p:dataTable>                        
+                    </div>
+
+                    <div class="form-group sin-color">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <p:commandButton id="save" styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto(programaInstitucionalCE.getLabelSaveButton())}" action="#{programaInstitucionalCE.guardar}"  update="initView"/>
+                            <p:commandButton id="cerrar" rendered="#{programaInstitucionalCE.stack.isEmpty()}" styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.Salir')}" onclick="$('#confirmSalir').modal('show');" />
+                            <p:commandButton id="cerrar2" rendered="#{!programaInstitucionalCE.stack.isEmpty()}"   styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.volver')}" action="#{programaInstitucionalCE.cerrar()}"   update="initView"/>
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </h:form>
+
+
+            <!-- MODAL PARA AGREGAR SUPUESTOS-->  
+            <h:panelGroup id="blockModal"  layout="block">
+                <div class="modal fade"  id="anadirSupuesto" tabindex="-1" role="dialog" aria-labelledby="anadirSupuesto">
+                    <div class="modal-dialog" role="document">
+                        <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalSupuesto">
+                            <h:form id="anadirSupuestoForm"  prependId="false"> 
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                    <span class="modal-title">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Supuesto')}" /> 
+                                    </span>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-horizontal">
+                                        <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                                            <div class="col-sm-9">
+                                                <h:inputTextarea id="texto" value="#{programaInstitucionalCE.supuesto.texto}" styleClass="form-control textoLargo"   rows="10" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                                <h:message for="texto" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{programaInstitucionalCE.saveSupuesto()}"   update="supuestoTabla contenidoModalSupuesto"/>
+                                    <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                </div>
+                            </h:form> 
+                        </h:panelGroup>
+                    </div>
+                </div> 
+            </h:panelGroup>
+
+
+
+            <!-- MODAL CONFIRMAR SALIR -->
+            <h:form prependId="false">
+                <div class="modal fade"  id="confirmSalir" tabindex="-1" role="dialog" aria-labelledby="confirmSalir">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                                </button>
+                                <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Advertencia')}" /> </span>
+                            </div>
+                            <div class="modal-body">    
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Si_no_guarda_el_programa_todos_los_cambios_a_los_subprogramas_se_perderan')}" />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.permanecer_en_la_pagina')}" /></button>
+                                <p:commandButton id="salir"  styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.salir')}" action="#{programaInstitucionalCE.cerrar()}"   update="initView"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </h:form>
+
+            <!-- MODAL DE ELIMINAR -->
+            <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+        </h:panelGroup>
+    </ui:composition>
+</html>

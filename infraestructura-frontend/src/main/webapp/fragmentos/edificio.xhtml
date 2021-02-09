@@ -1,0 +1,148 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <script>
+        window.document.addEventListener('markerClickEvent', handleEvent, false);
+        function handleEvent(e) {
+            updateAddressCoordinates([{name: 'latitude', value: e.detail.latitude}, {name: 'longitude', value: e.detail.longitude}]);
+        }
+    </script>
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.EDIFICIOS}.xhtml">#{msg.gestionEdificio}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{edificioBean.entidadEnEdicion.ediPk!= null}" value="#{msg.edicionEdificio}"/>
+                    <h:outputText rendered="#{edificioBean.entidadEnEdicion.ediPk == null}" value="#{msg.nuevoEdificio}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionEdificio}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.EDIFICIO)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{edificioBean.entidadEnEdicion.ediPk != null}" value="#{msg.edicionEdificio} #{edificioBean.nombreEntidadEdicion}"/>
+            <h:outputText rendered="#{edificioBean.entidadEnEdicion.ediPk == null}" value="#{msg.nuevoEdificio}" />
+        </h3>
+
+
+         <p:remoteCommand name="updateAddressCoordinates" action="#{edificioBean.updateAddressCoordinates}" update="@(.latitud_update_class, .longitud_update_class)"/>
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup>
+                <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+                <p:tabView id="tabs"  dynamic="false" onTabChange="PF('tabsBlocker').show()">
+                    <p:ajax event="tabChange" listener="#{edificioBean.changeTab}" update="@form" process="@form" />
+                    <p:tab id="tabDatosGenerales" title="#{msg.datosGenerales}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_edificio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <f:subview id="seleccionarEdificio">
+                                    <ui:include src="componentes/edificioDatos.xhtml" > 
+                                        <ui:param name="edificio" value="#{edificioBean.entidadEnEdicion}" />
+                                        <ui:param name="soloLectura" value="#{edificioBean.soloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                    </p:tab>  
+                    <p:tab id="tabUbicacion" title="#{msg.hubicacion}" disabled="#{edificioBean.entidadEnEdicion.ediPk== null}" >
+                        <c:if test="#{edificioBean.entidadEnEdicion != null and edificioBean.entidadEnEdicion.ediPk != null}">
+                            <p:fieldset id="datosUbicacion" legend="#{msg.hubicacion}">
+                                <p:outputPanel  id="fila_input_ubicacion">
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_latitud"  >
+                                        <h:outputLabel value="#{msg.latitud}" for="input_latitud" styleClass="col-sm-3 col-form-label"/>                        
+                                        <p:inputNumber autocomplete="off" id="input_latitud" value="#{edificioBean.entidadEnEdicion.ediLatitud}" disabled="#{edificioBean.soloLectura}" decimalSeparator="." thousandSeparator="" styleClass="form-control texto-corto latitud_update_class"  minValue="-90.999999" maxValue="90.000000"/>
+
+                                        <h:outputLabel value="#{msg.logitud}" for="input_latitud" styleClass="col-sm-3 col-form-label"/>                        
+                                        <p:inputNumber autocomplete="off" id="input_longitud" value="#{edificioBean.entidadEnEdicion.ediLongitud}" disabled="#{edificioBean.soloLectura}" decimalSeparator="." thousandSeparator="" styleClass="form-control texto-corto longitud_update_class" minValue="-180.999999" maxValue="180.000000" />
+
+                                    </p:outputPanel>
+
+
+                                    <!--<div id="map" style="height:300px; width:100%;"></div>-->
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_mapa" >
+
+                                        <iframe title="Mapa" src="#{edificioBean.urlMapa}" class="iframeMapa" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:fieldset> 
+                            <div class="form-action-buttons">
+                                <p:commandButton  id="btnGuardarUbicacion" value="#{msg.guardar}" action="#{edificioBean.guardar()}" rendered="#{!edificioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_EDIFICIO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                                <p:blockUI block="@form" trigger="btnGuardarUbicacion" /> 
+                            </div>
+                         </c:if>
+                    </p:tab>
+                    <p:tab id="tabEspacioComun" title="#{msg.espacioComplementario}" disabled="#{edificioBean.entidadEnEdicion.ediPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_EDIFICIO_ESPACIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_espacio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{edificioBean.tabActiveId == 'tabEspacioComun'}">
+                                    <f:subview id="seleccionarEspacio">
+                                        <ui:include src="componentes/relEdificioEspacio.xhtml" > 
+                                            <ui:param name="edificio" value="#{edificioBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{edificioBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                    
+                    <p:tab id="tabServicio" title="#{msg.servicios}" disabled="#{edificioBean.entidadEnEdicion.ediPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_EDIFICIO_SERVICIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_servicio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{edificioBean.tabActiveId == 'tabServicio'}">
+                                    <f:subview id="seleccionarServicio">
+                                        <ui:include src="componentes/relEdificioServicio.xhtml" > 
+                                            <ui:param name="edificio" value="#{edificioBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{edificioBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                    <p:tab id="tabAulas" title="#{msg.aulas}" disabled="#{edificioBean.entidadEnEdicion.ediPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_AULA)}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_aula">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{edificioBean.tabActiveId == 'tabAulas'}">
+                                    <f:subview id="edificios">
+                                        <ui:include src="componentes/edificioAulas.xhtml" > 
+                                            <ui:param name="edificio" value="#{edificioBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{edificioBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tab>
+                </p:tabView>   
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

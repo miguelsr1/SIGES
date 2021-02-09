@@ -1,0 +1,96 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.SubcomponentePresupuestoSedes')}" /> 
+                </h2>
+            </div>
+        </h:form>
+        
+        <!-- DATA TABLE -->
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', verSedesTechosPresupuesto.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{verSedesTechosPresupuesto.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}" rendered="#{verSedesTechosPresupuesto.opcion.compareTo(1) == 0 or verSedesTechosPresupuesto.opcion.compareTo(2) == 0}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" rendered="#{verSedesTechosPresupuesto.opcion.compareTo(1) == 0}" fileName="Presupuesto-#{verSedesTechosPresupuesto.rel.descripcion}-Formulacion" />
+                            <p:dataExporter type="csv" target="tableForm:dataTable" rendered="#{verSedesTechosPresupuesto.opcion.compareTo(2) == 0}" fileName="Presupuesto-#{verSedesTechosPresupuesto.rel.descripcion}-Aprobacion" />
+                        </h:commandLink>
+                    </f:facet>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.AnioFiscal')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.anioFiscal.anio']}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Componente')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.gesPresEs.categoriaPresupuestoEscolar.nombre']}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Subcomponente')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.gesPresEs.nombre']}" />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.LinPresup')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.subCuenta.codigo']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.CentroEducativo')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.sede.codigo']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NombreSede')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.sede.nombre']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.departamento')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.sede.direccion.departamento.nombre']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.tipoOAE')}">
+                        <h:outputText value="#{item.propertyMap['topePresupuestal.sede.organismosAdministracionEscolar.oaeTipoOrganismoAdministrativo.toaNombre']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NivelEducativo')}">
+                        <h:outputText value="#{item.propertyMap['nivel.nombre']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ModalidadEducativa')}">
+                        <h:outputText value="#{item.propertyMap['modalidadEducativa.nombre']}"  />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ModalidadAtención')}">
+                        <h:outputText value="#{item.propertyMap['modalidadAtencion.nombre']}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Matriculas')}">
+                        <h:outputText value="#{item.propertyMap['cantidadMatriculas']}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.TechoFormul')}" styleClass="alinearDerecha columnaAmarilla" rendered="#{verSedesTechosPresupuesto.opcion == null or verSedesTechosPresupuesto.opcion.compareTo(1) == 0}">
+                        <h:outputText value="#{verSedesTechosPresupuesto.obtenerMonto(item.propertyMap['topePresupuestal.monto'], item.propertyMap['topePresupuestal.cantidadMatricula'], item.propertyMap['cantidadMatriculas']) }" rendered="#{verSedesTechosPresupuesto.getMostrarMonto(item.propertyMap['topePresupuestal.monto'])}">
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.TechoAprob')}" styleClass="alinearDerecha columnaVerde" rendered="#{verSedesTechosPresupuesto.opcion == null or verSedesTechosPresupuesto.opcion.compareTo(2) == 0}">
+                        <h:outputText value="#{verSedesTechosPresupuesto.obtenerMonto(item.propertyMap['topePresupuestal.montoAprobado'], item.propertyMap['topePresupuestal.cantidadMatriculaAprobada'], item.propertyMap['cantidadMatriculas'])}" rendered="#{verSedesTechosPresupuesto.getMostrarMonto(item.propertyMap['topePresupuestal.montoAprobado'])}">
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>  
+            </div>
+        </h:form>
+    </ui:composition>
+</html>
+

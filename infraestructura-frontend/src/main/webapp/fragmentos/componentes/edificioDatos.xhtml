@@ -1,0 +1,183 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="edificio" value="#{edificio}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{edificioDatosBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{edificioDatosBean.setEntidadEnEdicion(edificio)}"/>
+    </f:metadata>  
+
+
+    <h:panelGroup rendered="#{not empty edificioDatosBean.entidadEnEdicion}">
+
+        <p:fieldset id="datosGenerales" legend="#{msg.datosGenerales}">
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                <h:outputLabel value="#{msg.codigo}" for="input_codigo"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-2">                            
+                    <h:inputText autocomplete="off" id="input_codigo" maxlength="10"
+                                 rendered="#{!edificioDatosBean.soloLectura}"
+                                 styleClass="form-control texto-medio" value="#{edificioDatosBean.entidadEnEdicion.ediCodigo}"/>
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.entidadEnEdicion.ediCodigo}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_nombre" >                        
+                <h:outputLabel value="#{msg.nombre}" for="input_nombre"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-2">                            
+                    <h:inputText autocomplete="off" id="input_nombre" 
+                                 rendered="#{!edificioDatosBean.soloLectura}"
+                                 styleClass="form-control texto-medio" value="#{edificioDatosBean.entidadEnEdicion.ediNombre}"/>
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.entidadEnEdicion.ediNombre}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                <h:outputLabel value="#{msg.inmueble}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:autoComplete id="input_sede_autocomplete" 
+                                    styleClass="form-control"
+                                    rendered="#{!edificioDatosBean.soloLectura}"
+                                    value="#{edificioDatosBean.inmuebleSeleccionado}"
+                                    completeMethod="#{edificioDatosBean.completeInmueble}"
+                                    var="inmueble" itemLabel="#{inmueble.tisCodigo}" 
+                                    itemValue="#{inmueble}" 
+                                    widgetVar="b_inst_resp_autocomplete"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{inmuebleConverter}"
+                                    multiple="false">
+                        <p:ajax listener="#{edificioDatosBean.seleccionarInmueble()}" event="itemSelect"  process="@this" update="form:tabs:seleccionarEdificio:input_sede_autocomplete form:tabs:seleccionarEdificio:fila_input_discpacidad_autocomplete"/>
+                    </p:autoComplete>
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.inmuebleSeleccionado.tisCodigo}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel id="fila_input_discpacidad_autocomplete">
+                <p:outputPanel styleClass="form-group row" rendered="#{edificioDatosBean.inmuebleSeleccionado.tisExisteOtrasSedesUnidadAdmi eq true}">
+                    <h:outputLabel value="#{msg.sedeUnidadAdministrativa}" for="input_discapacidad_autocomplete" styleClass="col-sm-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-9">
+                        <p:autoComplete id="input_discapacidad_autocomplete" 
+                                        styleClass="form-control texto-medio"
+                                        value="#{edificioDatosBean.entidadEnEdicion.ediRelInmuebleUnidadResp}"
+                                        completeMethod="#{edificioDatosBean.completeRelInmuebleUnidadResp}"
+                                        var="dis" itemLabel="#{dis.nombreElemento}" 
+                                        rendered="#{!edificioDatosBean.soloLectura}"
+                                        itemValue="#{dis}" 
+                                        onclick="PF('b_disc_autocomplete').search(PF('b_disc_autocomplete').input.val())"
+                                        widgetVar="b_disc_autocomplete"
+                                        forceSelection="true"
+                                        queryDelay="500"
+                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                        converter="#{relInmuebleUnidadRespConverter}"
+                                        multiple="true" unique="true" >
+                            <p:ajax listener="#{edificioDatosBean.actualizarLista()}" event="itemSelect"  process="@this" update="input_discapacidad_autocomplete"/>
+                            <p:ajax listener="#{edificioDatosBean.actualizarLista()}" event="itemUnselect" />
+                        </p:autoComplete>
+                        <h:outputText value="#{edificioDatosBean.entidadEnEdicion.relInmuebleUnidadRespAsString}" escape="false" styleClass="form-control-plaintext" rendered="#{edificioDatosBean.soloLectura}" />
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" >
+                <h:outputLabel value="#{msg.tipoConstruccion}"  styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                    <h:selectOneMenu id="input_tipoConstruccion_combo" rendered="#{not edificioDatosBean.soloLectura}" value="#{edificioDatosBean.comboTipoConstruccion.selected}" styleClass="form-control dropdown texto-medio" >
+                        <f:selectItems value="#{edificioDatosBean.comboTipoConstruccion.items}" />
+                    </h:selectOneMenu>       
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.entidadEnEdicion.ediTipoConstruccion.tcoNombre}"/>
+                </p:outputPanel>  
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_inversion">
+                <h:outputLabel value="#{msg.inversion}" for="input_inversion" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:inputNumber autocomplete="off" id="input_inversion" rendered="#{!edificioDatosBean.soloLectura}"
+                                   value="#{edificioDatosBean.entidadEnEdicion.ediInversion}"
+                                   styleClass="form-control texto-medio"
+                                   inputStyle="text-align: right"
+                                   maxValue="9999999999"
+                                   minValue="0"
+                                   decimalPlaces="2" thousandSeparator="."/>
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.entidadEnEdicion.ediInversion}"/>
+                </p:outputPanel>
+                <h:outputLabel value="#{msg.expresadoEnDolares}" for="input_valor_adquisi" styleClass="col-sm-7 col-form-label-left"/>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_cantidad_niveles">
+                <h:outputLabel value="#{msg.cantidadNiveles}" for="input_cantidad_niveles" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:inputNumber autocomplete="off" id="input_cantidad_niveles" rendered="#{!edificioDatosBean.soloLectura}"
+                                   value="#{edificioDatosBean.entidadEnEdicion.ediCantidadNiveles}"
+                                   styleClass="form-control texto-medio"
+                                   inputStyle="text-align: right"
+                                   maxValue="9999999999"
+                                   minValue="0"
+                                   decimalPlaces="0" thousandSeparator=""/>
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.entidadEnEdicion.ediCantidadNiveles}"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+
+
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_areaEdificacion">
+                <h:outputLabel value="#{msg.areaEdificacion}" for="input_areaEdificacion" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:inputNumber autocomplete="off" id="input_areadisponible"  rendered="#{!edificioDatosBean.soloLectura}"
+                                   value="#{edificioDatosBean.entidadEnEdicion.ediArea}"
+                                   styleClass="form-control texto-medio"
+                                   inputStyle="text-align: right"
+                                   minValue="0"
+                                   decimalPlaces="2" thousandSeparator="."/>
+                    <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{edificioDatosBean.entidadEnEdicion.ediArea}"/>
+                </p:outputPanel>
+                <h:outputLabel value="#{msg.expresadoMetrosCuadrados}" for="input_areadisponible" styleClass="col-sm-7 col-form-label-left"/>
+            </p:outputPanel>       
+
+
+            <h:panelGroup  id="panel_group_descripcion">
+                <p:outputPanel styleClass="form-group row" id="fila_input_observacion">                        
+                    <h:outputLabel value="#{msg.observacion}" for="input_observacion" 
+                                   styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">
+                        <p:inputTextarea id="input_observacion" styleClass="form-control" rendered="#{!edificioDatosBean.soloLectura}"
+                                         value="#{edificioDatosBean.entidadEnEdicion.ediObservaciones}"
+                                         counter="display" maxlength="4000" counterTemplate="{0} caracteres restantes." 
+                                         autoResize="false" />
+                        <h:outputText rendered="#{edificioDatosBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{edificioDatosBean.entidadEnEdicion.ediObservaciones}"/>
+                        <h:outputText id="display" />
+                    </p:outputPanel>                                           
+                </p:outputPanel> 
+            </h:panelGroup>
+        </p:fieldset>
+
+
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{edificioDatosBean.guardar()}" rendered="#{!edificioDatosBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_EDIFICIO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardar" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

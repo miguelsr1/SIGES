@@ -1,0 +1,554 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoPEA" />
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.PLANES_ESCOLAR_ANUAL}.xhtml">#{msg.gestionPlanEscolarAnual}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.planEscolarAnual}</li>
+            </ol>
+        </nav>
+
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.planEscolarAnual}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{planEscolarAnualBean.entidadEnEdicion.peaPk != null and planEscolarAnualBean.soloLectura}" value="#{msg.planEscolarAnual}" />
+            <h:outputText rendered="#{planEscolarAnualBean.entidadEnEdicion.peaPk != null and !planEscolarAnualBean.soloLectura}" value="#{msg.edicionPlanEscolarAnual}" />
+            <h:outputText rendered="#{planEscolarAnualBean.entidadEnEdicion.peaPk == null}" value="#{msg.nuevaPlanEscolarAnual}" />
+        </h3>
+
+
+        <p:outputPanel id="panelEnt">
+            <fieldset>
+                <p:outputPanel id="formularioCalendarioEdit" >
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete_b">
+                        <h:outputLabel value="#{msg.sede}" for="input_sede_autocomplete_b" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete_b"
+                                            styleClass="form-control texto-medio"
+                                            value="#{planEscolarAnualBean.sedeSeleccionada}"
+                                            completeMethod="#{planEscolarAnualBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}" 
+                                            disabled="#{planEscolarAnualBean.entidadEnEdicion.peaPk!=null}" >
+                                <p:ajax listener="#{planEscolarAnualBean.seleccionarSede()}" 
+                                        event="itemSelect"  process="@this" update="@form"/>
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_propuesta_pedagogica">
+                        <h:outputLabel value="#{msg.propuestasPedagogica}" for="input_propuesta_pedagogica" 
+                                       styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_propuesta_pedagogica" value="#{planEscolarAnualBean.comboPropuesta.selected}" 
+                                             styleClass="form-control dropdown texto-medio" 
+                                             disabled="#{planEscolarAnualBean.entidadEnEdicion.peaPk!=null}">
+                                <f:selectItems value="#{planEscolarAnualBean.comboPropuesta.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                        <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" 
+                                       styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_anio_lectivo" value="#{planEscolarAnualBean.comboAnioLectivo.selected}" 
+                                             styleClass="form-control dropdown texto-medio" 
+                                             disabled="#{planEscolarAnualBean.entidadEnEdicion.peaPk!=null}">
+                                <f:selectItems value="#{planEscolarAnualBean.comboAnioLectivo.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_presentado">
+                        <h:outputLabel value="#{msg.fechaPresentado}" for="input_fecha_presentado" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_fecha_presentado" styleClass="form-control" 
+                                        value="#{planEscolarAnualBean.entidadEnEdicion.peaFechaPresentado}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        disabled="#{planEscolarAnualBean.soloLectura}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_fecha_presentado" styleClass="msj-danger"/> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_evaluacion_uno">
+                        <h:outputLabel value="#{msg.evaluacionUno}" for="input_evaluacion_uno" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputTextarea id="input_evaluacion_uno"  
+                                             disabled="#{planEscolarAnualBean.soloLectura}" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{planEscolarAnualBean.entidadEnEdicion.peaEvaluacionUno}" 
+                                             counter="displayObsUno" maxlength="500" 
+                                             counterTemplate="{0} caracteres restantes." autoResize="false"/>
+                            <h:outputText id="displayObsUno" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_porcentaje_uno">
+                        <h:outputLabel value="#{msg.porcentajeLogroUno}" for="input_porcentaje_uno" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control texto-medio" 
+                                           id="input_porcentaje_uno" minValue="0" maxValue="100" 
+                                           disabled="#{planEscolarAnualBean.soloLectura}" 
+                                           value="#{planEscolarAnualBean.entidadEnEdicion.peaPorcentajeLogroUno}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_evaluacion_dos">
+                        <h:outputLabel value="#{msg.evaluacionDos}" for="input_evaluacion_dos" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputTextarea id="input_evaluacion_dos"  
+                                             disabled="#{planEscolarAnualBean.soloLectura}" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{planEscolarAnualBean.entidadEnEdicion.peaEvaluacionDos}" 
+                                             counter="displayObsDos" maxlength="500" 
+                                             counterTemplate="{0} caracteres restantes." autoResize="false"/>
+                            <h:outputText id="displayObsDos" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_porcentaje_dos">
+                        <h:outputLabel value="#{msg.porcentajeLogroDos}" for="input_porcentaje_dos" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control texto-medio" 
+                                           id="input_porcentaje_dos" minValue="0" maxValue="100" 
+                                           disabled="#{planEscolarAnualBean.soloLectura}" 
+                                           value="#{planEscolarAnualBean.entidadEnEdicion.peaPorcentajeLogroDos}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estado" rendered="#{planEscolarAnualBean.entidadEnEdicion.peaEstado!=null}">
+                        <h:outputLabel value="#{msg.estado}" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText styleClass="form-control-plaintext"
+                                          value="#{planEscolarAnualBean.entidadEnEdicion.peaEstado.text}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <h:panelGroup rendered="#{planEscolarAnualBean.entidadEnEdicion.peaEstado eq EnumEstadoPEA.VALIDADO}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_validacion">
+                            <h:outputLabel value="#{msg.fechaValidacion}" 
+                                           styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control-plaintext" converter="#{localDateConverter}"
+                                              value="#{planEscolarAnualBean.entidadEnEdicion.peaFechaValido}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_usuario_validacion">
+                            <h:outputLabel value="#{msg.usuarioValidacion}" 
+                                           styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control-plaintext" 
+                                              value="#{planEscolarAnualBean.entidadEnEdicion.peaUsuarioValido.usuNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+                </p:outputPanel>
+                <h:panelGroup rendered="#{!planEscolarAnualBean.soloLectura or planEscolarAnualBean.entidadEnEdicion.peaEstado eq EnumEstadoPEA.REVISADO}" >
+                    <div class="form-action-buttons">
+                        <h:panelGroup id="pnlGuardarRevisar"
+                                      rendered="#{planEscolarAnualBean.entidadEnEdicion.peaPk==null or planEscolarAnualBean.entidadEnEdicion.peaEstado == EnumEstadoPEA.ENVIADO}">
+                            <p:commandButton  id="btnGuardarPlanEscolar" value="#{msg.guardar}" action="#{planEscolarAnualBean.guardar()}" 
+                                              update="@form"  styleClass="btn btn-primary" 
+                                              icon="glyphicon glyphicon-floppy-disk"/>
+                            <p:commandButton  id="btnEnviarPlanEscolar" value="#{msg.enviarRevision}" action="#{planEscolarAnualBean.revisar()}" 
+                                              update="@form"  styleClass="btn btn-secondary" 
+                                              icon="glyphicon glyphicon-send" 
+                                              rendered="#{planEscolarAnualBean.entidadEnEdicion.peaDetallePlanEscolar.size()>0}"/>
+                        </h:panelGroup>
+                        <p:outputPanel rendered="#{planEscolarAnualBean.entidadEnEdicion.peaEstado eq EnumEstadoPEA.REVISADO}">
+                            <p:commandButton  id="btnValidarPlanEscolar" value="#{msg.validar}" action="#{planEscolarAnualBean.validar()}" 
+                                              update="@form"  styleClass="btn btn-secondary" 
+                                              icon="glyphicon glyphicon-ok"/>
+                        </p:outputPanel>
+                    </div>
+                </h:panelGroup>
+            </fieldset>
+        </p:outputPanel>
+
+        <h:panelGroup rendered="#{planEscolarAnualBean.entidadEnEdicion.peaPk!=null}">
+            <p:outputPanel id="pnlResultado">
+                <p:outputPanel styleClass="float-right mb-2">
+                    <p:commandButton value="Agregar actividad" icon="glyphicon glyphicon-plus" 
+                                     action="#{planEscolarAnualBean.limpiarCombosDetalle()}" 
+                                     update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                     id="btnAgregarDetallePlan" styleClass="btn btn-secondary" 
+                                     rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PLAN_ESCOLAR_ANUAL) and !planEscolarAnualBean.soloLectura}"/>
+                </p:outputPanel>
+                <br/>
+                <p:outputPanel styleClass="row"  
+                               rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_VALIDAR_PEA) and 
+                                           planEscolarAnualBean.procesarEnviar}">
+                    <p:outputPanel styleClass="col-md-12">
+                        <h:outputText styleClass="form-control-plaintext" value="#{msg.validarTodasActividades}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:dataTable id="basicDT"                         
+                             widgetVar="widResultado"                         
+                             var="elem"                          
+                             value="#{planEscolarAnualBean.entidadEnEdicion.peaDetallePlanEscolar}" 
+                             selection="#{planEscolarAnualBean.listaDetallesValidos}" 
+                             rowKey="#{elem.dpePk}" 
+                             emptyMessage="#{msg.noHayResultados}"		
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="dpePk"
+                             reflow="true" >
+                    <p:column selectionMode="multiple" style="width:16px;text-align:center"  
+                              rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_VALIDAR_PEA) and 
+                                          planEscolarAnualBean.procesarEnviar}"/>
+                    <p:column headerText="#{msg.hactividad}" >
+                        <h:outputText value="#{elem.dpeActividad}" escape="false" />
+                    </p:column>
+                    <p:column headerText="#{msg.responsable}" sortBy="#{elem.dpeResponsables}">
+                        <h:outputText value="#{elem.dpeResponsables}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hrecurso}" sortBy="#{elem.dpeRecursos.rcsNombre}">
+                        <h:outputText value="#{elem.dpeRecursos.rcsNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hcostoEstimado}" sortBy="#{elem.dpeCostoEstimado}">
+                        <h:outputText value="#{elem.dpeCostoEstimado}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfuenteFinanciamiento}" sortBy="#{elem.dpeFuenteFinanciamiento.ffiNombre}">
+                        <h:outputText value="#{elem.dpeFuenteFinanciamiento.ffiNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaIni}" sortBy="#{elem.dpeFechaInicio}">
+                        <h:outputText value="#{elem.dpeFechaInicio}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaFin}" sortBy="#{elem.dpeFechaFin}">
+                        <h:outputText value="#{elem.dpeFechaFin}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.aplicaSI}" sortBy="#{elem.dpeAplicaSistemasIntegrados}">
+                        <h:outputText value="#{elem.dpeAplicaSistemasIntegrados}" converter="#{booleanConverter}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false" 
+                              rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_VALIDAR_PEA) and 
+                                          planEscolarAnualBean.procesarEnviar}">
+                        <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                         rendered="#{!elem.dpeValidado}"
+                                         icon="glyphicon glyphicon-ok" styleClass="btn btn-icono" title="#{msg.validar}" 
+                                         action="#{planEscolarAnualBean.verDetalle(elem)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false"
+                              rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_DETALLE_PLAN_ESCOLAR) and !planEscolarAnualBean.soloLectura}">
+                        <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                         icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" 
+                                         action="#{planEscolarAnualBean.actualizarDetalle(elem)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false" 
+                              rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_FOTOS_PEA)}">
+                        <p:commandButton update=":form:itemDetail2" oncomplete="PF('itemDialog2').show()" 
+                                         icon="glyphicon glyphicon-picture" styleClass="btn btn-icono" title="#{msg.galeria}" 
+                                         action="#{planEscolarAnualBean.actualizarDetalleFoto(elem.dpePk)}"/>
+                    </p:column>                    
+                    <p:column styleClass="columnaAcciones" exportable="false">
+                        <p:commandButton icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                         title="#{msg.historial}" action="#{planEscolarAnualBean.cargarHistorial(elem.dpePk)}"  
+                                         update=":form:historialDetail" oncomplete="PF('historialDialog').show()" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false"
+                              rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_DETALLE_PLAN_ESCOLAR) and !planEscolarAnualBean.soloLectura}">
+                        <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                         styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                         action="#{planEscolarAnualBean.actualizarDetalle(elem)}"/>
+
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+        </h:panelGroup>
+
+        <p:dialog header="#{msg.historialActividades}" widgetVar="historialDialog" modal="true" positionType="fixed" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{planEscolarAnualBean.historial}" />
+            </ui:include>
+        </p:dialog>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado form:pnlGuardarRevisar"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{planEscolarAnualBean.eliminarDetalle()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+        <p:dialog header="Agregar actividad" widgetVar="itemDialog" modal="true"
+                  showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">  
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_actividad">
+                    <h:outputLabel value="#{msg.actividades}"  for="input_actividad" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <p:textEditor id="input_actividad"  
+                                      styleClass="form-control texto-medio" value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeActividad}"
+                                      height="500"  style="margin-bottom:10px" 
+                                      readonly="#{!planEscolarAnualBean.editarDetalle}">
+                            <f:facet name="toolbar">
+                                <span class="ql-formats">
+                                    <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                </span>
+                            </f:facet>
+                        </p:textEditor>                             
+                    </p:outputPanel>
+                </p:outputPanel> 
+            
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_responsables">
+                    <h:outputLabel value="#{msg.hresponsable}"  for="input_responsables" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="input_responsables"  disabled="#{!planEscolarAnualBean.editarDetalle}"
+                                     value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeResponsables}" />                                           
+                    </p:outputPanel>
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_recursos">
+                    <h:outputLabel value="#{msg.recurso}"  for="input_recursos" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <h:selectOneMenu id="input_recursos" value="#{planEscolarAnualBean.comboRecurso.selected}" 
+                                         styleClass="form-control dropdown texto-medio" disabled="#{!planEscolarAnualBean.editarDetalle}">
+                            <f:selectItems value="#{planEscolarAnualBean.comboRecurso.items}"/>
+                        </h:selectOneMenu>                          
+                    </p:outputPanel>
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_costo_estimado">
+                    <h:outputLabel value="#{msg.costoEstimado}"  for="input_costo_estimado" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <p:inputNumber autocomplete="off" decimalPlaces="2" thousandSeparator="," decimalSeparator="." 
+                                       styleClass="form-control texto-medio" id="input_costo_estimado" 
+                                       value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeCostoEstimado}" 
+                                       disabled="#{!planEscolarAnualBean.editarDetalle}"/>                      
+                    </p:outputPanel>
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_fuente_financiamiento">
+                    <h:outputLabel value="#{msg.fuenteFinanciamiento}"  for="input_fuente_financiamiento" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <h:selectOneMenu id="input_fuente_financiamiento" value="#{planEscolarAnualBean.comboFuenteFinanciamiento.selected}" 
+                                         styleClass="form-control dropdown texto-medio" 
+                                         disabled="#{!planEscolarAnualBean.editarDetalle}">
+                            <f:selectItems value="#{planEscolarAnualBean.comboFuenteFinanciamiento.items}"/>
+                        </h:selectOneMenu>                          
+                    </p:outputPanel>
+                </p:outputPanel> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_inicio">
+                    <h:outputLabel value="#{msg.fechaInicio}"  for="input_fecha_inicio" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <p:calendar id="input_fecha_inicio" styleClass="form-control" 
+                                    value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeFechaInicio}" 
+                                    pattern="#{applicationBean.patternFecha}" 
+                                    disabled="#{!planEscolarAnualBean.editarDetalle}"
+                                    converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}" 
+                                    mask="true" showOn="button" />   
+                        <h:message for="input_fecha_inicio" styleClass="msj-danger"/>               
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_fin">
+                    <h:outputLabel value="#{msg.fechaFin}"  for="input_fecha_fin" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <p:calendar id="input_fecha_fin" styleClass="form-control" 
+                                    value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeFechaFin}" 
+                                    pattern="#{applicationBean.patternFecha}" 
+                                    disabled="#{!planEscolarAnualBean.editarDetalle}"
+                                    converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}" 
+                                    mask="true" showOn="button" />   
+                        <h:message for="input_fecha_fin" styleClass="msj-danger"/>               
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row">   
+                    <h:outputText value="¿Aplica a sistemas integrados?:" styleClass="col-sm-3 col-form-label"/>
+                    <div class="col-sm-8">
+                        <p:outputPanel styleClass="form-check">
+                            <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" 
+                                                     value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeAplicaSistemasIntegrados}" disabled="#{!planEscolarAnualBean.editarDetalle}" />
+                            <h:outputLabel for="input_habilitado" styleClass="form-check-label" >
+                                <h:outputText value="#{msg.si}"/>
+                            </h:outputLabel>
+                        </p:outputPanel>
+                    </div>
+                </p:outputPanel>
+
+                <h:panelGroup rendered="#{planEscolarAnualBean.procesarEnviar}">
+                    <p:outputPanel styleClass="form-group row" id="fila_validar_actividad">
+                        <h:outputLabel value="#{msg.pvalidar}"  for="validar_actividad" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="validar_actividad" styleClass="form-check-input" 
+                                                         value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeValidado}" 
+                                                         disabled="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeValidado}"/>
+                                <h:outputLabel for="validar_actividad" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>        
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_comentario">
+                        <h:outputLabel value="#{msg.comentario}"  for="comentario" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                            <p:inputTextarea id="comentario"   
+                                             styleClass="form-control texto-medio" 
+                                             value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeComentarioValido}" 
+                                             counter="displayObsComment" maxlength="255" 
+                                             counterTemplate="{0} caracteres restantes." autoResize="false" 
+                                             disabled="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeValidado}"/>
+                            <h:outputText id="displayObsComment" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </h:panelGroup>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{planEscolarAnualBean.guardarDetalle()}" 
+                                         update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-floppy-disk" rendered="#{planEscolarAnualBean.editarDetalle}"/>
+                        <p:commandButton id="btnValidarAct"  value="#{msg.validar}" action="#{planEscolarAnualBean.validarDetalle()}" 
+                                         update="form:pnlResultado form:itemDetail form:pnlGuardarRevisar" styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-floppy-disk" rendered="#{planEscolarAnualBean.procesarEnviar and 
+                                                                                            !planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeValidado}"/>
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" 
+                                       update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                    </p:outputPanel>                    
+                </p:outputPanel>                        
+
+            </p:outputPanel>        
+        </p:dialog>  
+
+
+
+
+
+
+        <p:dialog header="#{msg.galeria}" widgetVar="itemDialog2" modal="true" position="top"
+                  showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail2">  
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/> 
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_galeria_imagenes">
+                    <h:outputLabel value="#{msg.galeriaImagenes}"  for="file_upload" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <p:fileUpload fileUploadListener="#{planEscolarAnualBean.handleFileUpload}"
+                                      id="file_upload"
+                                      mode="advanced" 
+                                      dragDropSupport="true"
+                                      label="Cargar foto"
+                                      uploadLabel="#{msg.confirmar}"
+                                      invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                      invalidFileMessage="#{msg.formatoNoPermitidoFotos} "
+                                      rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FOTOS_PEA) and planEscolarAnualBean.editarDetalle}"
+                                      update="panelImages galeria"
+                                      cancelLabel="#{msg.cancelar}"
+                                      auto="true"
+                                      sizeLimit="#{applicationBean.fotosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png)$/" />
+                    </p:outputPanel>
+                </p:outputPanel>
+                <style>
+                    .ui-galleria-caption h4{
+                        color: #FFFFFF;
+                    }
+                </style>
+                <p:outputPanel styleClass="form-group row" id="galeria">
+                    <p:outputPanel styleClass="col-md-12" >
+                        <h:panelGroup rendered="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeFotos.size()>0}" id="panelImages">
+                            <p:galleria id="images" value="#{planEscolarAnualBean.entidadEnEdicionDetallePlan.dpeFotos}" var="image"
+                                        style="width: 100%;" panelHeight="500" showCaption="true" autoPlay="false" >
+
+                                <p:commandButton icon="glyphicon glyphicon-trash " 
+                                                 styleClass="btn btn-icono rojo"
+                                                 title="#{image.achNombre}"  
+                                                 style="position:absolute; bottom:0; right:0; z-index:10; margin-bottom:3em;"
+                                                 process="@this" update="panelImages galeria"
+                                                 actionListener="#{planEscolarAnualBean.eliminarFotoUnica}" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FOTOS_PEA) and planEscolarAnualBean.editarDetalle}">
+                                    <f:param name="pk" value="#{image.achPk}"/>
+                                    <f:param name="tempo" value="#{image.achTmpPath}"/>
+                                </p:commandButton>
+
+                                <o:graphicImage value="#{imagenesBean.getFile(image.achPk)}"
+                                                alt="#{image.achDescripcion}" style="width: 100%;" 
+                                                title="#{image.achNombre}" 
+                                                rendered="#{!image.achShowTmpFile}"/>
+
+                                <o:graphicImage value="#{imagenesBean.getTmpFile(image.achTmpPath)}"
+                                                alt="#{image.achDescripcion}" 
+                                                title="#{image.achNombre}"  style="width: 100%;" 
+                                                rendered="#{image.achShowTmpFile}"/>
+
+                            </p:galleria>
+                        </h:panelGroup>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarGaleria"  value="#{msg.guardar}" action="#{planEscolarAnualBean.guardarDetalleFoto()}" 
+                                         update="form:pnlResultado form:itemDetail2" styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-floppy-disk" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FOTOS_PEA) and planEscolarAnualBean.editarDetalle}"/>                             
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog2').hide();" 
+                                       update=":form:itemDetail2" styleClass="btn btn-link"/>                        
+                    </p:outputPanel>                    
+                </p:outputPanel>                        
+
+            </p:outputPanel>        
+        </p:dialog>  
+
+
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+
+    </h:form>
+</ui:composition>

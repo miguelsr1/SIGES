@@ -1,0 +1,139 @@
+/*
+ *  SIGES
+ *  Desarrollado por Sofis Solutions
+ */
+package sv.gob.mined.siges.web.dto.catalogo;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import sv.gob.mined.siges.web.utilidades.JsonIdentityResolver;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import sv.gob.mined.siges.utils.SofisStringUtils;
+
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, resolver = JsonIdentityResolver.class, property = "crrPk", scope = SgCarrera.class)
+public class SgCarrera implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private Long crrPk;
+
+    private String crrCodigo;
+
+    private Boolean crrHabilitado;
+
+    private String crrNombre;
+
+    private String crrNombreBusqueda;
+
+    private LocalDateTime crrUltModFecha;
+
+    private String crrUltModUsuario;
+
+    private Integer crrVersion;
+
+    public SgCarrera() {
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void preSave() {
+        this.crrNombreBusqueda = SofisStringUtils.normalizarParaBusqueda(this.crrNombre);
+    }
+
+    public SgCarrera(Long crrPk) {
+        this.crrPk = crrPk;
+    }
+
+    public Long getCrrPk() {
+        return crrPk;
+    }
+
+    public void setCrrPk(Long crrPk) {
+        this.crrPk = crrPk;
+    }
+
+    public String getCrrCodigo() {
+        return crrCodigo;
+    }
+
+    public void setCrrCodigo(String crrCodigo) {
+        this.crrCodigo = crrCodigo;
+    }
+
+    public Boolean getCrrHabilitado() {
+        return crrHabilitado;
+    }
+
+    public void setCrrHabilitado(Boolean crrHabilitado) {
+        this.crrHabilitado = crrHabilitado;
+    }
+
+    public String getCrrNombre() {
+        return crrNombre;
+    }
+
+    public void setCrrNombre(String crrNombre) {
+        this.crrNombre = crrNombre;
+    }
+
+    public String getCrrNombreBusqueda() {
+        return crrNombreBusqueda;
+    }
+
+    public void setCrrNombreBusqueda(String crrNombreBusqueda) {
+        this.crrNombreBusqueda = crrNombreBusqueda;
+    }
+
+    public LocalDateTime getCrrUltModFecha() {
+        return crrUltModFecha;
+    }
+
+    public void setCrrUltModFecha(LocalDateTime crrUltModFecha) {
+        this.crrUltModFecha = crrUltModFecha;
+    }
+
+    public String getCrrUltModUsuario() {
+        return crrUltModUsuario;
+    }
+
+    public void setCrrUltModUsuario(String crrUltModUsuario) {
+        this.crrUltModUsuario = crrUltModUsuario;
+    }
+
+    public Integer getCrrVersion() {
+        return crrVersion;
+    }
+
+    public void setCrrVersion(Integer crrVersion) {
+        this.crrVersion = crrVersion;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (crrPk != null ? crrPk.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof SgCarrera)) {
+            return false;
+        }
+        SgCarrera other = (SgCarrera) object;
+        if ((this.crrPk == null && other.crrPk != null) || (this.crrPk != null && !this.crrPk.equals(other.crrPk))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "sv.gob.mined.siges.persistencia.entidades.SgCarrera[ crrPk=" + crrPk + " ]";
+    }
+
+}

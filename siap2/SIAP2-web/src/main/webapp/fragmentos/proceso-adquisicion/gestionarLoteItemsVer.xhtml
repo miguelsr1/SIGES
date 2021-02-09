@@ -1,0 +1,195 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <div class="row">
+            <div>
+                <h:messages id="mensajesArbol" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+            </div>
+            <div class="col-sm-4">
+                <h:outputText value="Insumos Del proceso" styleClass="subtitulo-proceso" />
+
+                <h:form id="formInsumos"  prependId="false" styleClass="form-horizontal">
+                    <div>
+                        <p:dataTable id="insumosProceso" 
+                                     var="item"
+                                     value="#{gestionLoteItems.getInsumosPendientesItem()}"
+                                     rowKey="#{item.id}"
+                                     emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+
+<!--                            <p:column selectionMode="multiple" style="width:16px;text-align:center"/>-->
+                            <p:column headerText="#{textMB.obtenerTexto('labels.ID')}" >
+                                <h:outputText value="#{item.poInsumo.id}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.NombreInsumo')}">
+                                <h:outputText value="#{item.insumo.nombre}"/>
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}" styleClass=" numericos">
+                                <h:outputText value="#{item.poInsumo.cantidad}"/>
+                            </p:column>
+
+                            <p:column styleClass=" numericos">
+                                <f:facet name="header">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.CantidadRestante')}" title="#{textMB.obtenerTexto('labels.CantidadRestanteTooltip')}"/>
+                                </f:facet>
+                                <h:outputText value="#{item.cantidadRestante}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                    </div>
+
+                </h:form>
+            </div>
+            <div class="col-sm-4">
+                <h:outputText value="Items" styleClass="subtitulo-proceso" />
+                <h:form id="formArbolItem" >
+
+                    <div>
+                        <p:treeTable 
+                            id="arbolDeItems"
+                            value="#{gestionLoteItems.rootItem}" 
+                            var="item"
+                            emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                <h:outputText value="#{item.nombre}" styleClass="cortarTexto"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}">
+                                <h:outputText value="#{item.cantidadItemInsumo}"/>
+                            </p:column> 
+                            <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.TDR/ET')}" styleClass="columnaAcciones" >
+                                <p:commandButton rendered="#{item.tipo eq 'ITEM' and item.persistido  }"
+                                                 styleClass="btn btn-icono"    
+                                                 icon="glyphicon glyphicon-file"
+                                                 title="#{textMB.obtenerTexto('labels.TDR')}"  
+                                                 update="verTDRForm"
+                                                 action="#{gestionLoteItems.cargarItemTDR(item)}"
+                                                 immediate="true">
+                                </p:commandButton>
+                            </p:column>
+
+
+                        </p:treeTable>
+
+                    </div>
+                </h:form>
+
+            </div> 
+            <div class="col-sm-4">
+                <h:outputText value="Lotes" styleClass="subtitulo-proceso" />
+
+                <h:form id="formLote"  prependId="false" >
+
+                    <div>
+                        <p:treeTable 
+                            id="arbolLote"
+                            value="#{gestionLoteItems.rootLote}" 
+                            var="lote" 
+                            emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                <h:outputText value="#{lote.nombre}"/>
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}">
+                                <h:outputText value="#{lote.cantidadItemInsumo}"  rendered="#{lote.tipo eq 'ITEM' or lote.tipo eq 'INSUMO'}"/>
+                            </p:column>
+
+                            <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.TDR/ET')}" styleClass="columnaAcciones" >
+                                <p:commandButton rendered="#{lote.tipo eq 'ITEM' and lote.persistido}"
+                                                 styleClass="btn btn-icono"    
+                                                 icon="glyphicon glyphicon-file"
+                                                 title="#{textMB.obtenerTexto('labels.TDR')}"  
+                                                 update="verTDRForm"
+                                                 action="#{gestionLoteItems.cargarItemTDR(lote)}"
+                                                 immediate="true">
+                                </p:commandButton>
+                            </p:column>
+
+
+
+                        </p:treeTable>  
+                    </div>
+                </h:form>
+
+            </div>
+        </div>
+
+
+
+
+        <h:panelGroup id="verTDRItem"  layout="block">
+            <div class="modal fade"  id="verTDRItemModal" tabindex="-1" role="dialog" aria-labelledby="verTDRItemModal">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="verTDRcontenidoModal">
+                        <h:form id="verTDRForm"  prependId="false" > 
+                            <p:outputPanel rendered="#{not gestionLoteItems.modificandoTDR}">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                    <span class="modal-title">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.VerTDR')}" /> 
+                                    </span>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-horizontal">
+                                        <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                        <h:panelGroup layout="block" rendered="#{gestionLoteItems.tempTDR.archivo != null}" class="form-group">
+                                            <h:outputLabel for="verTDRItemfileUpload" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Archivo')}:"/>
+                                            <div class="col-sm-9">
+                                                <p:commandLink  id="verTDRItemfileUpload" rendered="#{gestionLoteItems.tempTDR.archivo != null}" actionListener="#{gestionLoteItems.downloadFile(gestionLoteItems.tempTDR.archivo)}" ajax="false">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.DescargarAdjunto')}" />
+                                                </p:commandLink>
+
+                                                <h:panelGroup layout="block" id="TDRarchivoCargado"  rendered="#{gestionLoteItems.tempTDR.archivo != null}" >
+                                                    <ui:fragment rendered="#{gestionLoteItems.tempTDR.archivo != null}">
+                                                        <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoAGuardado')}:" />
+                                                        <h:outputText value="#{gestionLoteItems.tempTDR.archivo.nombreOriginal}" />                                         
+                                                    </ui:fragment>
+                                                </h:panelGroup>
+                                            </div>
+                                        </h:panelGroup>
+                                        <div class="form-group">
+                                            <h:outputLabel for="verTDRContenido" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Contenido')}:" />
+                                            <div class="col-sm-9">
+                                                <h:outputText id="verTDRContenido" value="#{gestionLoteItems.tempTDR.contenido}"  styleClass="form-control-static"   />
+                                                <h:message for="verTDRContenido" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                </div>
+
+                            </p:outputPanel>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+    </ui:composition>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,229 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+    <c:set var="personalSede" value="#{personalSede}" scope="request"/>
+    <c:set var="soloLecturaFormacionDocente" value="#{soloLecturaFormacionDocente}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{formacionDocenteBean.setSoloLectura(soloLecturaFormacionDocente)}"/>
+    </f:metadata>   
+
+    <p:outputPanel id="formularioFormacionDocente">
+        <fieldset>
+            <legend><h:outputText value="#{msg.formacionesDocente}"/></legend>
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_formaciones_docente" >
+                <p:outputPanel styleClass="col-sm-12" id="pnlFormacionDocente">  
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="#{msg.agregar}" icon="glyphicon glyphicon-plus" 
+                                         action="#{formacionDocenteBean.agregar()}" 
+                                         update="formacionDocenteDetalle" oncomplete="PF('formacionDocenteDialog').show()"  
+                                         id="btnAgregarFormacionDocente" styleClass="btn btn-secondary"
+                                         rendered="#{!formacionDocenteBean.soloLectura}"/>
+                    </p:outputPanel>                            
+
+                    <p:outputPanel>
+                        <p:dataTable id="tablaFormacionDocente"                         
+                                     widgetVar="tablaFormacionDocente"                         
+                                     var="elem"                          
+                                     value="#{formacionDocenteBean.personalSede.pseFormacionDocente}"
+                                     emptyMessage="#{msg.noHayResultados}">
+
+                            <p:column headerText="#{msg.hnivelEducativo}" >
+                                <h:outputText value="#{elem.fdoNivel.nfdNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hcategoria}" >
+                                <h:outputText value="#{elem.fdoCategoria.cfdNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hespecialidad}" >
+                                <h:outputText value="#{elem.fdoEspecialidad.espNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hmodulo}" >
+                                <h:outputText value="#{elem.fdoModulo.mfdNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaIni}" >
+                                <h:outputText value="#{elem.fdoFechaDesde}" converter="#{localDateConverter}" />       
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaFin}" >
+                                <h:outputText value="#{elem.fdoFechaHasta}" converter="#{localDateConverter}" />
+                            </p:column>
+                            <p:column headerText="#{msg.haprobado}">
+                                <h:outputText value="#{elem.fdoAprobado}" converter="#{booleanConverter}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{formacionDocenteBean.soloLectura}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:formacionDocenteDetalle" oncomplete="PF('formacionDocenteDialog').show()" 
+                                                 icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.ver}" action="#{formacionDocenteBean.ver(elem)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{!formacionDocenteBean.soloLectura}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:formacionDocenteDetalle" oncomplete="PF('formacionDocenteDialog').show()" 
+                                                 icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{formacionDocenteBean.actualizar(elem)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{!formacionDocenteBean.soloLectura}">
+                                <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" 
+                                                 title="#{msg.eliminar}" action="#{formacionDocenteBean.ver(elem)}"/>
+                            </p:column>
+                        </p:dataTable>  
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </fieldset>
+
+    </p:outputPanel>
+
+
+    <p:confirmDialog id="confirmDialog"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+        <p:outputPanel styleClass="panelBotonesDer" >
+            <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlFormacionDocente"
+                             oncomplete="PF('confirmDialog').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{formacionDocenteBean.eliminar()}"  />
+            <p:blockUI block="@form" trigger="confirmDelete"/>
+            <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+
+
+    <p:dialog id="formacionDocenteDialog" header="#{msg.formacionDocente}" widgetVar="formacionDocenteDialog" 
+              modal="true" showEffect="fade" hideEffect="fade" resizable="false" closable="true" >
+        <p:outputPanel id="formacionDocenteDetalle"> 
+            <p:messages id="popupmsgFormacionDocente" showDetail="true" globalOnly="false" for="popupmsgFormacionDocente" closable="true"/>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_nivel">
+                <h:outputLabel value="#{msg.niveles}" for="input_fdo_nivel" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_fdo_nivel" value="#{formacionDocenteBean.comboNivel.selected}" rendered="#{!formacionDocenteBean.soloLectura}"  styleClass="form-control" >
+                        <f:selectItems value="#{formacionDocenteBean.comboNivel.items}" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoNivel.nfdNombre}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_categoria">
+                <h:outputLabel value="#{msg.categorias}" for="input_fdo_categoria" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_fdo_categoria" value="#{formacionDocenteBean.comboCategoria.selected}" rendered="#{!formacionDocenteBean.soloLectura}"  styleClass="form-control" >
+                        <f:selectItems value="#{formacionDocenteBean.comboCategoria.items}" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoCategoria.cfdNombre}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_especialidad">
+                <h:outputLabel value="#{msg.especialidad}" for="input_fdo_especialidad" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_fdo_especialidad" value="#{formacionDocenteBean.comboEspecialidad.selected}" rendered="#{!formacionDocenteBean.soloLectura}"  styleClass="form-control" >
+                        <f:selectItems value="#{formacionDocenteBean.comboEspecialidad.items}" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoEspecialidad.espNombre}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_modulo">
+                <h:outputLabel value="#{msg.modulos}" for="input_fdo_modulo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_fdo_modulo" value="#{formacionDocenteBean.comboModulo.selected}" rendered="#{!formacionDocenteBean.soloLectura}" styleClass="form-control" >
+                        <f:selectItems value="#{formacionDocenteBean.comboModulo.items}" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoModulo.mfdNombre}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_desde">
+                <h:outputLabel value="#{msg.desde}" for="input_fdo_desde" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fdo_desde" value="#{formacionDocenteBean.entidadEnEdicion.fdoFechaDesde}" 
+                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"  disabled="#{formacionDocenteBean.soloLectura}"
+                                converter="#{localDateConverter}" maxdate="#{applicationBean.today()}"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_hasta">
+                <h:outputLabel value="#{msg.hasta}" for="input_fdo_hasta" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fdo_hasta" value="#{formacionDocenteBean.entidadEnEdicion.fdoFechaHasta}" 
+                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"  disabled="#{formacionDocenteBean.soloLectura}"
+                                converter="#{localDateConverter}" maxdate="#{applicationBean.today()}"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_departamento">
+                <h:outputLabel value="#{msg.departamento}" for="input_fdo_departamento" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_fdo_departamento" value="#{formacionDocenteBean.comboDepartamento.selected}" rendered="#{!formacionDocenteBean.soloLectura}" styleClass="form-control" >
+                        <f:selectItems value="#{formacionDocenteBean.comboDepartamento.items}" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoDepartamento.depNombre}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_sede_autocomplete">
+                <h:outputLabel value="#{msg.sedeFormacion}" for="input_fdo_sede_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:autoComplete id="input_fdo_sede_autocomplete" 
+                                    styleClass="form-control"
+                                    value="#{formacionDocenteBean.sedeSelecionada}" 
+                                    completeMethod="#{formacionDocenteBean.completeSede}"
+                                    var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                    itemValue="#{sed}" 
+                                    widgetVar="b_inst_resp_autocomplete"
+                                    onclick="PF('b_inst_resp_autocomplete').search(PF('b_inst_resp_autocomplete').input.val())" 
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    rendered="#{!formacionDocenteBean.soloLectura}"
+                                    multiple="false"
+                                    converter="#{sedesConverter}"
+                                    placeholder="#{msg.comboEmptyItem}" >
+                    </p:autoComplete>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoSede.sedCodigoNombre}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_aprobado">
+                <h:outputLabel value="#{msg.aprobado}" for="input_fdo_aprobado" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:selectOneRadio layout="responsive" columns="2" id="input_fdo_aprobado" value="#{formacionDocenteBean.entidadEnEdicion.fdoAprobado}" disabled="#{formacionDocenteBean.soloLectura}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fdo_calificacion">
+                <h:outputLabel value="#{msg.calificacionFinal}" for="input_fdo_calificacion" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:inputText id="input_fdo_calificacion" value="#{formacionDocenteBean.entidadEnEdicion.fdoCalificacionFinal}" styleClass="form-control" rendered="#{!formacionDocenteBean.soloLectura}"/>
+                    <h:outputText value="#{formacionDocenteBean.entidadEnEdicion.fdoCalificacionFinal}" rendered="#{formacionDocenteBean.soloLectura}" styleClass="form-control-plaintext"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarFormacionDocente"   value="#{msg.guardar}" 
+                                     action="#{formacionDocenteBean.guardar()}" 
+                                     update="formacionDocenteDetalle pnlFormacionDocente" 
+                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"  
+                                     rendered="#{!formacionDocenteBean.soloLectura}" >
+                    </p:commandButton>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('formacionDocenteDialog').hide();"  styleClass="btn btn-link"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="formacionDocenteDetalle" trigger="btnGuardarFormacionDocente" />
+            <p:defaultCommand target="btnGuardarFormacionDocente" scope="formacionDocenteDetalle"/>   
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>
+

@@ -1,0 +1,112 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumFacturaEstado" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoDocumentoPago"/>
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.administracion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.conciliaciones}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.conciliaciones}"/></h2>  
+               <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.CONCILIACIONES_BANCARIAS}" title="#{msg.nuevaConciliacion}"                        
+                        styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevaConciliacion}"/>
+                </p:link>
+            </p:outputPanel>                 
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+            <h3><h:outputText value="#{msg.busqueda}"/></h3>              
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">     
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.fNumeroCuenta}" for="b_nit" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nit" 
+                                             value="#{conciliacionBean.filtro.cuenta}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                                <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{conciliacionBean.buscar()}" update="pnlResultado"/>
+                                <p:commandLink value="#{msg.limpiar}" action="#{conciliacionBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch pnlResultado" />
+                                </p:commandLink>
+                                <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                                <p:blockUI block="@form" trigger="btnBuscar" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>  
+            <p:outputPanel id="pnlResultado">
+                <p:dataTable id="basicDT" widgetVar="widResultado" var="elem" value="#{conciliacionBean.conciliacionLazyModel}" emptyMessage="#{msg.noHayResultados}" paginator="true" lazy="true" paginatorPosition="bottom" currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}" sortField="conPk" paginatorTemplate="#{applicationBean.paginatorTemplate}" rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}" rows="#{conciliacionBean.paginado}" reflow="true">
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}" />
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{conciliacionBean.totalResultados lt (conciliacionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;" />
+                    </f:facet>
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{conciliacionBean.totalResultados} #{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                        <p:dataExporter type="csv" target="basicDT" fileName="Conciliaciones" pageOnly="false"/>
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.conCuenta}">
+                        <h:outputText value="#{elem.conCuentaFk.cbcNumeroCuenta}" />
+                    </p:column> 
+                    <p:column headerText="#{msg.hbanco}">
+                        <h:outputText value="#{elem.conCuentaFk.cbcBancoFk.bncNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hcodigo}">
+                        <h:outputText value="#{elem.conCuentaFk.cbcSedeFk.sedCodigo}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hsede}">
+                        <h:outputText value="#{elem.conCuentaFk.cbcSedeFk.sedNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.conFecDesde}">
+                        <h:outputText value="#{elem.conFechaDesde}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.conFecHasta}">
+                        <h:outputText value="#{elem.conFechaHasta}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.conMonto}"  styleClass="align-right">
+                        <h:outputText value="#{elem.conMonto}" styleClass="align-right" >
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{msg.conFecMod}">
+                        <h:outputText value="#{elem.conUltModFecha}" converter="#{localDateTimeConverter}" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false">
+                        <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CONCILIACION_BANCARIA}?idcb=#{elem.conPk}" title="#{msg.reporteConciliacionBancaria}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                            <h:outputText styleClass="glyphicon glyphicon-save-file" />
+                        </p:link>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>            
+        </p:outputPanel>
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

@@ -1,0 +1,433 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.menu.PresupuestoEscolar')}" /> 
+                </h2>
+
+                <div class="btn-group pull-right">
+                    <h:outputLink  styleClass="btn btn-default" value="crearEditarGestionPresupuestoEscolar.xhtml" 
+                                   rendered="#{permisosMB.permisos['CREAR_EDITAR_METODOS_DE_ADQUISICION']}">
+                        <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                    </h:outputLink>
+                </div>
+            </div>
+        </h:form>
+
+        <!-- FILTRO DE REGISTROS -->
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><p:outputLabel value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Componente')}:" />
+                                <div class="col-sm-8">
+                                    <p:autoComplete id="filtro_componente" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{gestionPresupuestoEscolar.componenteSelected}"  
+                                            completeMethod="#{gestionPresupuestoEscolar.completeComponentes}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.codigoNombre}"
+                                            itemValue="#{ut}" 
+                                            onclick="PF('filtro_componente').search(PF('filtro_componente').input.val())" 
+                                            widgetVar="filtro_componente" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{categoriaPresupuestoEscolarConverter}"
+                                            multiple="false">
+                                    </p:autoComplete>
+                                </div>
+                            </div>
+
+                            <p:outputPanel rendered="#{gestionPresupuestoEscolar.busquedaAvanzada}" >
+                                
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label"  value="#{textMB.obtenerTexto('labels.NombreSubcomponente')}:" />
+                                    <div class="col-sm-8">
+                                        <h:inputText value="#{gestionPresupuestoEscolar.filtroComponente.nombre}" styleClass="form-control textoMedio" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CodigoSubcomponente')}:" />
+                                    <div class="col-sm-8">
+                                        <h:inputText value="#{gestionPresupuestoEscolar.filtroComponente.cod}" styleClass="form-control textoMedio" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label"  value="#{textMB.obtenerTexto('labels.TipoIngreso')}:" />
+                                    <div class="col-sm-8">
+                                        <h:selectOneMenu  value="#{gestionPresupuestoEscolar.comboTiposSubcomponente.selected}" styleClass="form-control textoMedio">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposSubcomponente.items}"/>
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Proyecto')}:"/>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="proyecto" value="#{gestionPresupuestoEscolar.filtroProyecto}" autocomplete="off" styleClass="form-control textoLargo">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="proyecto" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.SubcomponenteConvenio')}:"/>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="subactividad" value="#{gestionPresupuestoEscolar.filtroSubcomponenteConvenio}" autocomplete="off" styleClass="form-control textoLargo" >
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="subactividad" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </p:outputPanel>
+
+
+                        </div>
+
+
+
+                        <div class="col-sm-6 form-horizontal">
+
+
+
+                            <p:outputPanel rendered="#{gestionPresupuestoEscolar.busquedaAvanzada}" >
+
+
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Habilitado')}:" />
+                                    <div class="col-sm-8">
+                                        <h:selectOneRadio styleClass="radio" value="#{gestionPresupuestoEscolar.filtroHabilitado}">
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Si')}" itemValue="true"/>
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.No')}" itemValue="false"/>
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Todos')}" itemValue=""/>
+                                        </h:selectOneRadio>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label"  value="#{textMB.obtenerTexto('labels.Parametro')}:" />
+                                    <div class="col-sm-8">
+                                        <h:selectOneMenu  value="#{gestionPresupuestoEscolar.comboTiposParametros.selected}" styleClass="form-control textoMedio">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboTiposParametros.items}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                    <div class="col-sm-8">
+                                        <h:selectOneMenu  value="#{gestionPresupuestoEscolar.comboAnioFiscalFiltro.selected}"  styleClass="form-control textoMedio">
+                                            <f:selectItems value="#{gestionPresupuestoEscolar.comboAnioFiscalFiltro.items}" />
+                                        </h:selectOneMenu> 
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Convenio')}:"/>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="convenio" value="#{gestionPresupuestoEscolar.filtroConvenio}" autocomplete="off" styleClass="form-control textoLargo">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ComponenteConvenio')}:"/>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="categoria" value="#{gestionPresupuestoEscolar.filtroComponenteConvenio}" autocomplete="off" styleClass="form-control textoLargo">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="categoria" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CategoriaGastoConvenio')}:"/>
+                                    <div class="col-sm-9">
+                                        <h:inputText id="categoriaGastoConvenio" value="#{gestionPresupuestoEscolar.filtroCategoriaGastoConvenio}" autocomplete="off" styleClass="form-control textoLargo" >
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="categoriaGastoConvenio" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </p:outputPanel>
+
+
+
+
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+
+
+                                    <p:commandButton styleClass="btn btn-primary" 
+                                                     icon="glyphicon glyphicon-search" 
+                                                     update="tableForm formfiltro:mensajes" 
+                                                     value="#{textMB.obtenerTexto('labels.Consultar')}"  
+                                                     actionListener="#{gestionPresupuestoEscolar.filterTable()}"/>
+
+                                    <p:commandButton styleClass="btn btn-link" update="formfiltro tableForm" 
+                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}"
+                                                     action="#{gestionPresupuestoEscolar.cleanObject()}"/>
+                                    
+                                    <p:commandButton styleClass="btn btn-link" update="formfiltro" 
+                                                     value="#{gestionPresupuestoEscolar.busquedaAvanzada ? '-' : '+'} #{textMB.obtenerTexto('labels.BusquedaAvanzada')}" 
+                                                     action="#{gestionPresupuestoEscolar.toggleBusquedaAvanzada()}"/>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+
+
+        <!-- DATATABLE -->
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText 
+                    value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', gestionPresupuestoEscolar.lazyModel.rowCount)}" 
+                    styleClass="titulo-resultados"/>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{gestionPresupuestoEscolar.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Subcomponente" />
+                        </h:commandLink> 
+                    </f:facet>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Id')}"  sortBy="#{dummy.id}" >
+                        <h:outputText value="#{item.propertyMap['id']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}"  sortBy="#{dummy.cod}" >
+                        <h:outputText value="#{item.propertyMap['cod']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Componente')}" >
+                        <h:outputText value="#{item.propertyMap['categoriaPresupuestoEscolar.nombre']}" />
+                    </p:column> 
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Subcomponente')}"  sortBy="#{dummy.nombre}" >
+                        <h:outputText value="#{item.propertyMap['nombre']}" />
+                    </p:column> 
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}"  sortBy="#{dummy.habilitado}" >
+                        <h:outputText rendered="#{item.propertyMap['habilitado']}" value="#{textMB.obtenerTexto('labels.Si')}"  />
+                        <h:outputText rendered="#{!item.propertyMap['habilitado']}" value="#{textMB.obtenerTexto('labels.No')}"  />
+                    </p:column>           
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.TipoIngreso')}">
+                        <h:outputText value="#{item.propertyMap['tipo'].label}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Parametro')}">
+                        <h:outputText value="#{item.propertyMap['parametro'].label}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadMedida')}">
+                        <h:outputText value="#{item.propertyMap['unidadMedida'].label}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoMinimo')}">
+                        <h:outputText value="#{!empty item.propertyMap['montoMinimo'] ? (item.propertyMap['montoMinimo'] ? textMB.obtenerTexto('labels.Si') : textMB.obtenerTexto('labels.No')) : ''}"  />
+                    </p:column>
+
+                    
+                   <!-- <p:column headerText="#{textMB.obtenerTexto('labels.CantidadAnio')}">
+                        <h:outputText value="#{item.propertyMap['cantidadAnio']}"  />
+                    </p:column>-->
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Convenio')}"  sortBy="#{dummy.convenio}" >
+                        <h:outputText value="#{item.propertyMap['convenio']}" styleClass="cortarTexto" title="#{item.propertyMap['convenio']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Proyecto')}"  sortBy="#{dummy.proyecto}" >
+                        <h:outputText value="#{item.propertyMap['proyecto']}" styleClass="cortarTexto" title="#{item.propertyMap['proyecto']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ComponenteConvenio')}"  sortBy="#{dummy.categoria}" >
+                        <h:outputText value="#{item.propertyMap['categoria']}" styleClass="cortarTexto" title="#{item.propertyMap['categoria']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.SubcomponenteConvenio')}"  sortBy="#{dummy.subactividad}" >
+                        <h:outputText value="#{item.propertyMap['subactividad']}" styleClass="cortarTexto" title="#{item.propertyMap['subactividad']}"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.CategoriaGastoConvenio')}"  sortBy="#{dummy.categoriaGastoConvenio}" >
+                        <h:outputText value="#{item.propertyMap['categoriaGastoConvenio']}" styleClass="cortarTexto" title="#{item.propertyMap['categoriaGastoConvenio']}"/>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <h:outputLink  value="crearEditarGestionPresupuestoEscolar.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerHistorico')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-open-file" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.VerHistorico')}"  
+                                         oncomplete="$('#historicoModal').modal('show');" 
+                                         action="#{gestionPresupuestoEscolar.cargarHistorico(item.propertyMap['id'])}"  
+                                         update="modalHistoricoForm tableForm"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         actionListener="#{gestionPresupuestoEscolar.verificarEliminarComponente(item.propertyMap['id'])}"
+                                         update="confirmModalCallBackBody" />
+                    </p:column>
+                </p:dataTable>
+            </div>
+            <h:outputScript name="confirmModal.js" library="js"  />  
+        </h:form>
+
+
+        <!-- MODAL PARA CONFIRMACION DE ELIMINAR-->
+        <h:form id="formEliminar" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}: #{gestionPresupuestoEscolar.subcomponenteEliminar.nombre}" />
+                            </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminarSubComponente')} '#{gestionPresupuestoEscolar.subcomponenteEliminar.nombre}'?" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}" 
+                                             actionListener="#{gestionPresupuestoEscolar.eliminar()}"
+                                             update="formfiltro tableForm"
+                                             onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+
+                            <button type="button" class="btn btn-link" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+
+
+        <!-- Modal de historico -->
+        <div class="modal fade"  id="historicoModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalHistoricoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaHistorica')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tablaConScroll">
+                                <p:dataTable
+                                    id="dataTableHistorico"
+                                    var="item" 
+                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                    value="#{gestionPresupuestoEscolar.historico}" 
+                                    styleClass="table" >
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                                        <h:outputText value="#{item.cod}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                        <h:outputText value="#{item.nombre}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}">
+                                        <h:outputText value="#{item.habilitado}"  converter="booleanConverter"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaModificacion')}">
+                                        <h:outputText value="#{item.ultMod}"  converter="dateConverterHastaSegundos"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}">
+                                        <h:outputText value="#{item.ultUsuario}"  />
+                                    </p:column> 
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Tipo')}">
+                                        <h:outputText value="#{item.tipo}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Parametro')}">
+                                        <h:outputText value="#{item.parametro}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadMedida')}">
+                                        <h:outputText value="#{item.unidadMedida}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoMinimo')}">
+                                        <h:outputText value="#{item.montoMinimo}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.CantidadAnio')}">
+                                        <h:outputText value="#{item.cantidadAnio}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Cerrar')}" />
+                            </button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+
+    </ui:composition>
+</html>
+

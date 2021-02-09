@@ -1,0 +1,339 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoComponentePlanEstudio"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionComponentePlanEstudio}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionComponentePlanEstudio}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoComponentePlanEstudio}" icon="glyphicon glyphicon-plus" 
+                                 action="#{componentePlanEstudioBean.limpiarCombos()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarComponentePlanEstudio" styleClass="btn btn-secondary" 
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PLANES_ESTUDIO)}"/>
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.COMPONENTES_PLAN_ESTUDIO)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo" value="#{componentePlanEstudioBean.filtro.cpeCodigo}" />                 
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{componentePlanEstudioBean.filtro.cpeHabilitado}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{componentePlanEstudioBean.filtro.cpeNombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.tipo}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="combo_tipo_filro" value="#{componentePlanEstudioBean.comboFiltroTiposCompPlanEst.selected}" styleClass="form-control">
+                                <f:selectItems value="#{componentePlanEstudioBean.comboFiltroTiposCompPlanEst.items}"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{componentePlanEstudioBean.buscar()}" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{componentePlanEstudioBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado">
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{componentePlanEstudioBean.componentePlanEstudioLazyModel}"  
+                         lazy="true"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="cpePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{componentePlanEstudioBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{componentePlanEstudioBean.totalResultados lt 
+                                                (componentePlanEstudioBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' :
+                                                'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" />
+                                <h:outputText styleClass="cantidad" 
+                                              value="#{componentePlanEstudioBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="componentes plan de estudio" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{msg.harea}" >
+                    <h:outputText value="#{elem.nombreArea}" />
+                </p:column>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.cpeCodigo}">
+                    <h:outputText value="#{elem.cpeCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.cpeNombre}">
+                    <h:outputText value="#{elem.cpeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.htipo}" sortBy="#{elem.cpeTipo.text}">
+                    <h:outputText value="#{elem.cpeTipo.text}" />
+                </p:column>
+                <p:column headerText="#{msg.hhabilitado}">
+                    <h:outputText value="#{elem.cpeHabilitado}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.cpeUltModUsuario}">
+                    <h:outputText value="#{elem.cpeUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.cpeUltModFecha}">
+                    <h:outputText value="#{elem.cpeUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PLANES_ESTUDIO)}">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                     icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" 
+                                     action="#{componentePlanEstudioBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{componentePlanEstudioBean.historial(elem.cpePk)}"/>
+                </p:column>
+
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_PLANES_ESTUDIO)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{componentePlanEstudioBean.actualizar(elem)}"/>
+
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{componentePlanEstudioBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.hcomponentePlanEstudio}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">  
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>
+                <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_sede">
+                    <h:outputLabel value="#{msg.tipo}"  for="combo_tipo_sede" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                        <h:selectOneMenu id="combo_tipo_sede"  value="#{componentePlanEstudioBean.comboTiposCompPlanEst.selected}" disabled="#{componentePlanEstudioBean.entidadEnEdicion != null}" styleClass="form-control dropdown">
+                            <f:selectItems value="#{componentePlanEstudioBean.comboTiposCompPlanEst.items}"/>
+                            <p:ajax event="change" listener="#{componentePlanEstudioBean.agregar()}" update=":form:itemDetail"/>
+                        </h:selectOneMenu>                                
+                    </p:outputPanel>
+                </p:outputPanel> 
+                <h:panelGroup id="panel_campos" rendered="#{not empty componentePlanEstudioBean.entidadEnEdicion}"  >        
+                    <p:outputPanel id="formularioComponentePlanEstudio">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo"  styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                            
+                                <h:inputText autocomplete="off" id="input_codigo" styleClass="form-control" value="#{componentePlanEstudioBean.entidadEnEdicion.cpeCodigo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo_externo" >
+                            <h:outputLabel value="#{msg.codigoExterno}" for="input_codigo_externo" 
+                                           styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                            
+                                <p:inputNumber autocomplete="off" id="input_codigo_externo" 
+                                               value="#{componentePlanEstudioBean.entidadEnEdicion.cpeCodigoExterno}" 
+                                               styleClass="form-control" thousandSeparator="" decimalPlaces="0"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{componentePlanEstudioBean.entidadEnEdicion.cpeNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_pub">
+                            <h:outputLabel value="#{msg.nombrePublicable}" for="input_nombre_pub" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" id="input_nombre_pub" styleClass="form-control" value="#{componentePlanEstudioBean.entidadEnEdicion.cpeNombrePublicable}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_desc">
+                            <h:outputLabel value="#{msg.descripcion}" for="input_nombre_pub" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" id="input_desc" styleClass="form-control" value="#{componentePlanEstudioBean.entidadEnEdicion.cpeDescripcion}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <div class="col-sm-8 col-md-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{componentePlanEstudioBean.entidadEnEdicion.cpeHabilitado}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <h:panelGroup id="panel_camposIndicador" rendered="#{componentePlanEstudioBean.esIndicador}"  >   
+                            <p:outputPanel styleClass="form-group row" id="fila_camposIndicador">
+                                <h:outputLabel value="#{msg.area}" for="combo_tipo_area_indicador" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                                    <h:selectOneMenu id="combo_tipo_area_indicador"  value="#{componentePlanEstudioBean.comboAreaIndicador.selected}" styleClass="form-control dropdown">
+                                        <f:selectItems value="#{componentePlanEstudioBean.comboAreaIndicador.items}"/>
+                                    </h:selectOneMenu>                                
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+
+                        <h:panelGroup id="panel_camposAreaAsign" rendered="#{componentePlanEstudioBean.esAsignaturaModulo}"  >   
+                            <p:outputPanel styleClass="form-group row" id="fila_camposAsignatura">
+                                <h:outputLabel value="#{msg.area}" for="combo_tipo_area_asignatura" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9" >
+                                    <h:selectOneMenu id="combo_tipo_area_asignatura"  value="#{componentePlanEstudioBean.comboAreaAsigMod.selected}" styleClass="form-control dropdown">
+                                        <f:selectItems value="#{componentePlanEstudioBean.comboAreaAsigMod.items}"/>
+                                    </h:selectOneMenu>                                
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+
+                        <p:outputPanel styleClass="form-group row" rendered="#{componentePlanEstudioBean.entidadEnEdicion.cpeTipo eq TipoComponentePlanEstudio.PRU}" >   
+                            <h:outputText value="#{msg.esPaes}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <div class="col-sm-8 col-md-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_es_paes" styleClass="form-check-input" value="#{componentePlanEstudioBean.entidadEnEdicion.cpeEsPaes}">
+                                        <p:ajax update="parent_tipo_prueba_paes" />
+                                    </h:selectBooleanCheckbox>
+                                    <h:outputLabel for="input_es_paes" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <h:panelGroup id="parent_tipo_prueba_paes">
+
+                            <p:outputPanel styleClass="form-group row" rendered="#{componentePlanEstudioBean.entidadEnEdicion.cpeEsPaes}" >   
+                                <h:outputText value="#{msg.area}" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>
+                                <div class="col-sm-8 col-md-9">
+                                    <h:selectOneMenu id="combo_tipos_paes"  value="#{componentePlanEstudioBean.comboTiposPaes.selected}" styleClass="form-control dropdown">
+                                        <f:selectItems value="#{componentePlanEstudioBean.comboTiposPaes.items}"/>
+                                    </h:selectOneMenu>       
+                                </div>
+                            </p:outputPanel>
+
+                        </h:panelGroup>
+
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" 
+                                                 action="#{componentePlanEstudioBean.guardar()}" 
+                                                 update="pnlResultado itemDetail" styleClass="btn btn-primary" 
+                                                 icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />  
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>       
+                    </p:outputPanel> 
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.historialComponentePlanEstudio}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{componentePlanEstudioBean.historialComponentePlanEstudio}" /> 
+            </ui:include>   
+        </p:dialog>    
+    </h:form>
+</ui:composition>

@@ -1,0 +1,241 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui">    
+
+
+    <c:set var="sistemaIntegrado" value="#{sistemaIntegrado}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{indicadoresBean.setSoloLectura(soloLectura)}"/>
+    </f:metadata>        
+    <p:outputPanel>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.sedeEducativa}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete"
+                                                styleClass="form-control texto-medio"
+                                                value="#{indicadoresBean.sedeSeleccionada}"
+                                                completeMethod="#{indicadoresBean.completeSede}"
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                                itemValue="#{sed}"
+                                                widgetVar="b_inst_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax listener="#{indicadoresBean.seleccionarSede}" event="itemSelect"  process="@this" 
+                                            update="b_nivel b_ciclos b_modalidad_educativa b_grado b_modalidad_atencion b_sub_modalidad b_opcion b_programa_educativo"/>
+                                    <p:ajax process="@this" event="change" immediate="true" listener="#{indicadoresBean.deseleccionarSede}" />
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>                        
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+             
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.niveles}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_nivel" value="#{indicadoresBean.comboNivel.selected}"
+                                                   styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{indicadoresBean.comboNivel.items}" />
+                                    <p:ajax listener="#{indicadoresBean.seleccionarNivel}" process="@this"
+                                            update="b_ciclos b_modalidad_educativa b_modalidad_atencion b_sub_modalidad b_grado b_opcion"></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.ciclos}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_ciclos" value="#{indicadoresBean.comboCiclo.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{indicadoresBean.comboNivel.selectedT==null}">
+                                    <f:selectItems value="#{indicadoresBean.comboCiclo.items}" />
+                                    <p:ajax listener="#{indicadoresBean.seleccionarCiclo}" process="@this"  
+                                            update="b_opcion b_modalidad_educativa b_modalidad_atencion b_sub_modalidad b_grado" ></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.modalidad}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_modalidad_educativa" value="#{indicadoresBean.comboModalidad.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{indicadoresBean.comboCiclo.selectedT==null}">
+                                    <f:selectItems value="#{indicadoresBean.comboModalidad.items}" />
+                                    <p:ajax listener="#{indicadoresBean.seleccionarModalidad()}" process="@this" 
+                                            update="b_opcion b_modalidad_atencion b_sub_modalidad b_grado" ></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.modalidadAtencion}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_modalidad_atencion" value="#{indicadoresBean.comboModalidadAtencion.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{indicadoresBean.comboModalidad.selectedT == null}">
+                                    <f:selectItems value="#{indicadoresBean.comboModalidadAtencion.items}" />
+                                    <p:ajax listener="#{indicadoresBean.seleccionarModalidadAtencion()}" process="@this" 
+                                        update="b_sub_modalidad b_grado" event="change" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.subModalidadAtencion}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_sub_modalidad" value="#{indicadoresBean.comboSubModalidad.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{indicadoresBean.comboModalidadAtencion.selectedT == null or indicadoresBean.comboSubModalidad.isEmpty()}">
+                                    <f:selectItems value="#{indicadoresBean.comboSubModalidad.items}" />
+                                    <p:ajax listener="#{indicadoresBean.seleccionarSubModalidadAtencion()}" process="@this" 
+                                            update="b_grado" ></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.hopcion}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_opcion" value="#{indicadoresBean.comboOpcion.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{indicadoresBean.comboModalidad.selectedT == null}">
+                                    <f:selectItems value="#{indicadoresBean.comboOpcion.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.programa}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_programa_educativo" value="#{indicadoresBean.comboProgramaEducativo.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{indicadoresBean.comboProgramaEducativo.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.grado}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_grado" value="#{indicadoresBean.comboGrado.selected}"
+                                                   styleClass="form-control dropdown texto-medio"
+                                                   disabled="#{indicadoresBean.comboModalidadAtencion.selectedT == null or (!indicadoresBean.comboSubModalidad.isEmpty() and indicadoresBean.comboSubModalidad.selectedT == null)}">
+                                    <f:selectItems value="#{indicadoresBean.comboGrado.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+
+                <p:outputPanel styleClass="col-md-12" style="text-align: right;">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{indicadoresBean.cargarCalificacionesPorArea()}" update="pnlResultado"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />  
+                            <p:commandLink value="#{msg.limpiar}" action="#{indicadoresBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />    
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>   
+
+            </p:outputPanel>
+        </p:panel>
+
+
+        <p:outputPanel id="pnlResultado">
+
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{indicadoresBean.calificacionesPorArea}" 
+                         emptyMessage="#{msg.noHayResultados}"		
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         reflow="true" >
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{indicadoresBean.calificacionesPorArea.size()}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="indicadores" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.tipoComponente}">
+                    <h:outputText value="#{elem.enumText}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}">
+                    <h:outputText value="#{elem.nombreComponente}" />
+                </p:column>
+                <p:column headerText="#{msg.promedio}">
+                    <h:outputText value="#{indicadoresBean.roundDouble(elem.promedioCalificacion)}" />
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+    </p:outputPanel>
+</ui:composition>
+
+
+
+

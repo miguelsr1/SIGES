@@ -1,0 +1,110 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+    <c:set var="sedeEducativa" value="#{sedeEducativa}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{inmueblesSedesBean.setSedeSeleccionada(sedeEducativa)}"/>
+    </f:metadata>       
+
+    <p:outputPanel id="itemDetailInmueble">
+
+
+         <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{inmueblesSedesBean.inmueblesLazyModel}"   
+                         rendered="#{inmueblesSedesBean.inmueblesLazyModel != null}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="#{inmueblesSedesBean.totalResultados gt inmueblesSedesBean.paginado}"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="tisPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{inmueblesSedesBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}"  >
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}"  >
+                    <h:outputText styleClass="#{inmueblesSedesBean.totalResultados lt (inmueblesSedesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header" >
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{inmueblesSedesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="inmuebles" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column id="nroCorr"  sortBy="#{elem.tisNumeroCorrelativo}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.correlativo}"/>
+                        <p:tooltip position="bottom" value="#{msg.hnumeroCorrelativo}" for="nroCorr" />
+                    </f:facet>  
+                    <h:outputText value="#{elem.tisNumeroCorrelativo}"/>
+                </p:column>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.tisCodigo}">
+                    <h:outputText value="#{elem.tisCodigo}"/>
+                </p:column>
+                
+                <p:column id="propMined"   sortBy="#{elem.tisPropietario}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hpropMin}"/>
+                        <p:tooltip position="bottom" value="#{msg.hpropietarioMinedUCYT}" for="propMined" />
+                    </f:facet>    
+                    <h:outputText value="#{elem.tisPropietario}" converter="#{booleanConverter}"/>               
+                </p:column>
+                <p:column id="acFijo"   sortBy="#{elem.tisActivoFijo}">
+                    <f:facet name="header">
+                        <h:outputText value="AC"/>
+                        <p:tooltip position="bottom" value="#{msg.tieneActivoFijo}" for="acFijo" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.tisActivoFijo}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.harea}" sortBy="#{elem.tisAreaTotal}">
+                    <h:outputText value="#{elem.tisAreaTotal}" style="float: right;" converter="#{decimalConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.tisEstadoInmueble.einNombre}">
+                    <h:outputText value="#{elem.tisEstadoInmueble.einNombre}" />
+                </p:column>
+                <p:column id="valAdqu"   sortBy="#{elem.tisValorAdquisicion}">
+                    <f:facet name="header">
+                        <h:outputText value="Val. adq."/>
+                        <p:tooltip position="bottom" value="#{msg.hvalorAdquisicion}" for="valAdqu" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.tisValorAdquisicion}"  style="float: right;" converter="#{decimalConverter}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:link href="#{applicationBean.infraestructuraUrl}#{ConstantesPaginas.INFRAESTRUCTURA_INMUEBLE}?id=#{elem.tisPk}&amp;edit=false" title="#{msg.ver}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_INMUEBLE_O_TERRENO)}">
+                    <p:link href="#{applicationBean.infraestructuraUrl}#{ConstantesPaginas.INFRAESTRUCTURA_INMUEBLE}?id=#{elem.tisPk}&amp;edit=true"  title="#{msg.hedicion}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+    </p:outputPanel>
+
+   
+
+</ui:composition>

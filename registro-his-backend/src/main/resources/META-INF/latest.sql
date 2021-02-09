@@ -1,0 +1,1 @@
+INSERT INTO seguridad.sg_operaciones(ope_nombre, ope_codigo, ope_descripcion, ope_categoria_operacion_fk, ope_habilitado, ope_ult_mod_fecha, ope_ult_mod_usuario, ope_version) VALUES ('CREAR_INCORPORACIONES_MANUAL','H10',  '', 8, true, null, null,0);

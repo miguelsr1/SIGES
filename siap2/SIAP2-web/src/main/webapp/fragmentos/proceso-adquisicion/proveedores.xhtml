@@ -1,0 +1,312 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+
+    <ui:composition>
+
+        <div class="row">
+            <h:messages id="mensajesProveedores" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+            <div class="col-sm-6">
+                <div>
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ProveedoresSistema')}" styleClass="subtitulo-proceso"/>
+                    <h:form id="formFiltroProveedor"  prependId="false"   styleClass="form-horizontal"> 
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <fieldset class="fieldsetSmall fieldset">
+                                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.FiltrarProveedor')}" /></legend>
+                                    <div class="buscador-filtros form-horizontal">
+
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nombre')}:" />
+                                            <div class="col-sm-8">
+                                                <h:inputText  value="#{proveedores.nombre}" styleClass="form-control textoMedio" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.NIT')}:" />
+                                            <div class="col-sm-8">
+                                                <h:inputText  value="#{proveedores.nit}" styleClass="form-control textoMedio" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Identificación')}:" />
+                                            <div class="col-sm-8">
+                                                <h:inputText  value="#{proveedores.id}" styleClass="form-control textoMedio" />
+                                            </div>
+                                        </div>
+
+
+                                        <div class="form-group">
+                                            <div class="col-sm-offset-4 col-sm-8">
+                                                <p:commandButton styleClass="btn btn-default" icon="glyphicon glyphicon-search" update="formFiltroProveedor formProveedoresSistema mensajesProveedores" value="#{textMB.obtenerTexto('labels.Filtrar')}" action="#{proveedores.presionoBtnFiltrar()}"/>
+                                                <p:commandButton styleClass="btn btn-link" update="formFiltroProveedor formProveedoresSistema" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{proveedores.limparFiltros()}"/>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                        </div>
+                    </h:form>
+
+                    <h:form id="formProveedoresSistema"  prependId="false" styleClass="form-horizontal">
+                        <div>
+                            <p:dataTable
+                                id="tablaProveedorSistema"
+                                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                paginator="true" rows="25"
+                                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                                rowsPerPageTemplate="5,10,25,50"
+                                styleClass="table tabla-resultados"
+
+                                lazy="true"
+                                value="#{proveedores.lazyModelProveedores}" 
+                                var="p" 
+                                selection="#{proveedores.proveedoresSeleccionados}"
+
+                                rowSelectMode="checkbox"
+                                >
+
+
+                                <p:ajax event="toggleSelect" listener="#{nodeController.onAllRowsSelect}" />
+                                <p:ajax event="rowSelectCheckbox" listener="#{nodeController.onRowSelect}" />
+                                <p:ajax event="rowUnselectCheckbox" listener="#{nodeController.onRowUnselect}" />
+
+
+                                <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.ID')}" >
+                                    <h:outputText value="#{p.idOferente}" />
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                    <h:outputText value="#{p.nombreComercial}"/>
+                                </p:column>
+
+                                <p:column headerText="#{textMB.obtenerTexto('labels.NIT')}">
+                                    <h:outputText value="#{p.nitOferente}"/>
+                                </p:column>
+
+
+                            </p:dataTable>
+                            <div class="row">
+                                <div class="col-sm-6">
+
+                                </div>
+                                <div class="botonesPasaje col-sm-6">
+                                    <p:commandButton styleClass="btn btn-secundary"
+                                                     icon="glyphicon glyphicon-chevron-right" 
+                                                     value="#{textMB.obtenerTexto('labels.AgregarProveedores')}" 
+                                                     actionListener="#{proveedores.agregarProveedor}"  
+                                                     update="formProveedoresSistema formAProveedoresProceso mensajesProveedores accionesProveedores" />
+                                </div>
+                            </div>     
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ProveedoresProceso')}" styleClass="subtitulo-proceso"/>
+
+                <h:form id="formAProveedoresProceso"  prependId="false" >
+                    <!-- El siguiente fieldset se comenta por incidente: 7672/n 23/2/17 Eduardo-->
+                    <!--                    <fieldset class="fieldsetSmall fieldset" style="min-height: 219px;" >
+                                            <legend><h:outputText value="#{textMB.obtenerTexto('labels.CrearGrupoEnPlantilla')}" /></legend>
+                    
+                                        </fieldset>-->
+
+                    <div>
+                        <p:dataTable id="tablaProveedorProceso"
+                                     value="#{proveedores.proveedoresDelProceso}" 
+                                     var="dataProveedor"
+                                     selection="#{proveedores.proveedoresABorrar}"  
+                                     rowKey="#{dataProveedor.index}"
+                                     emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+
+                            <p:ajax event="rowSelectCheckbox" />
+                            <p:ajax event="rowUnselectCheckbox"/>
+                            <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.ID')}" >
+                                <h:outputText value="#{dataProveedor.adquisicionProveedor.proveedor.idOferente}" />
+                            </p:column>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                <h:outputText value="#{dataProveedor.adquisicionProveedor.proveedor.nombreComercial}"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.fechaAsociacion')}">
+                                <h:outputText value="#{dataProveedor.adquisicionProveedor.fechaAsociacion}">
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Invitado')}" styleClass="columnaAcciones">
+                                <h:selectBooleanCheckbox value="#{dataProveedor.invitado}" disabled="#{not (procesoAdqMain.objeto.estado eq 'INVITACION')}">
+                                    <p:ajax/>
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Propuesta')}"  rendered="#{not (procesoAdqMain.objeto.estado eq 'INVITACION')}">
+                                <h:outputText value="#{dataProveedor.archivoNombre}" rendered="#{dataProveedor.archivoNombre!=null and dataProveedor.archivo eq null}"/>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.NoSeSubioPropuesta')}" rendered="#{dataProveedor.archivoNombre==null}"/>
+                                <p:commandLink  actionListener="#{utilsMB.downloadFile(dataProveedor.archivo)}" ajax="false" rendered="#{dataProveedor.archivo != null}">
+                                    <h:outputText value="#{dataProveedor.archivo.nombreOriginal}" /> 
+                                </p:commandLink>
+                            </p:column>
+                            <p:column  headerText="#{textMB.obtenerTexto('labels.AgregarPropuesta')}" styleClass="columnaAcciones" rendered="#{not (procesoAdqMain.objeto.estado eq 'INVITACION')}">
+                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                 update="formAProveedoresProceso"
+                                                 action="#{proveedores.cargarDataProveedor(dataProveedor)}"
+                                                 oncomplete="$('#anadirDocumento').modal('show');" 
+                                                 immediate="true">
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+
+                        <h:panelGroup id="accionesProveedores" layout="block" styleClass="eliminarInsumo botones-derecha" rendered="#{proveedores.proveedoresDelProceso.size() > 0}">
+                            <p:commandButton icon="glyphicon glyphicon-remove" 
+                                             styleClass="btn btn-danger btn-default" 
+                                             title="#{textMB.obtenerTexto('labels.Eliminar')}" 
+                                             action="#{proveedores.eliminarProveedor()}"
+                                             value="#{textMB.obtenerTexto('labels.Eliminar')}"
+                                             update="formProveedoresSistema formAProveedoresProceso mensajesProveedores">
+                            </p:commandButton>
+
+                            <p:commandLink rendered="#{procesoAdqMain.objeto.estado eq 'INVITACION' and proveedores.habilitarBotonGenerarInvitaciones and permisosMB.permisos['PROCESO_ADQ_GENERAR_REPORTE_INVITACIONES']}"
+                                           styleClass="btn btn-secundary"
+                                           title="#{textMB.obtenerTexto('labels.GenerarInvitaciones')}"
+                                           value="#{textMB.obtenerTexto('labels.GenerarInvitaciones')}"
+                                           actionListener="#{proveedores.prepararGeneracionInvitaciones()}"
+                                           update="mensajesProveedores">
+                                <span class="glyphicon glyphicon-download-alt" />
+                            </p:commandLink>   
+                        </h:panelGroup>
+                    </div>
+                </h:form>
+            </div> 
+        </div>
+        <div class="separador"></div>
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2 botones-derecha">
+                    <h:form>
+
+                        <p:commandButton id="guardar" styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{proveedores.guardar}" update="tablaProveedorProceso mensajesProveedores accionesProveedores"/>
+                        <p:commandButton id="deshacer"
+                                         styleClass="btn btn-link"  
+                                         value="#{textMB.obtenerTexto('labels.Deshacer')}" 
+                                         actionListener="#{proveedores.deshacer()}" update="formProveedoresSistema formAProveedoresProceso">
+                        </p:commandButton>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL PARA AGREGAR DOCUMENTOS-->  
+        <h:panelGroup id="blockDocumento"  layout="block">
+            <div class="modal fade"  id="anadirDocumento" tabindex="-1" role="dialog" aria-labelledby="anadirDocumento">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalDocumento">
+                        <h:form id="anadirDocumentoForm"  prependId="false"  enctype="multipart/form-data"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirDocumento')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="documento-descripcion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Documento')}:" />
+                                        <div class="col-sm-9">
+                                            <p:fileUpload value="#{proveedores.uploadedFile}"
+                                                          mode="advanced"
+                                                          multiple="false"
+                                                          auto="true"
+                                                          label="#{textMB.obtenerTexto('labels.Seleccionar')}"
+                                                          fileUploadListener="#{proveedores.fileUploadListener}"
+                                                          update="archivoAsubir" />     
+
+                                            <h:panelGroup layout="block" id="archivoAsubir" >
+                                                <ui:fragment rendered="#{proveedores.uploadedFile != null}">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoAAsociar')}:" />
+                                                    <h:outputText value="#{proveedores.uploadedFile.fileName}" />                                         
+                                                </ui:fragment>
+                                            </h:panelGroup>
+
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proveedores.fileUpload()}"   update="formAProveedoresProceso"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+
+
+
+        <!-- MODAL PARA GENERAR REPORTE INVITACIONES A PROVEEDORES-->  
+        <h:panelGroup   layout="block">
+            <div class="modal fade"  id="generarReporteInvitaciones" tabindex="-1" role="dialog" aria-labelledby="anadirDocumento">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" >
+                        <h:form   prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.GenerarInvitaciones')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Observaciones')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputTextarea value="#{procesoAdqMain.objeto.observaciones}" rows="6" cols="30" />
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton styleClass="btn btn-secundary"
+                                                 title="#{textMB.obtenerTexto('labels.GenerarInvitaciones')}"
+                                                 actionListener="#{proveedores.invitarProveedores()}"
+                                                 value="#{textMB.obtenerTexto('labels.GenerarInvitaciones')}"
+                                                 onclick="$('#generarReporteInvitaciones').modal('hide');"
+                                                 ajax="false"
+                                                 update="@form">
+                                </p:commandButton>   
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+    </ui:composition>
+</html>

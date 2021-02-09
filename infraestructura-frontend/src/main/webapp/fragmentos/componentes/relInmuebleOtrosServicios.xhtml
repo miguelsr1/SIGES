@@ -1,0 +1,49 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relInmuebleOtroServicioBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relInmuebleOtroServicioBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relInmuebleOtroServicioBean.entidadEnEdicion}">
+
+        
+   
+            <p:outputPanel styleClass="form-group row" id="fila_input_servicios" >                      
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaServicio"    
+                                 styleClass="table-scroll"
+                                 emptyMessage="#{msg.noHayResultados}"                                      
+                                 disabledSelection="#{not (!relInmuebleOtroServicioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_SERVICIO_BASICO))}"
+                                 rowSelectMode="checkbox"
+                                 var="servicio" selection="#{relInmuebleOtroServicioBean.inmueblesServicioSeleccionados}" 
+                                 value="#{relInmuebleOtroServicioBean.inmueblesServicio}" rowKey="#{servicio.risServicio.sbaPk}" style="margin-bottom:0" >
+
+                        <p:column id="seleccionarS" selectionMode="multiple" style="width:16px;text-align:center" />                               
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{servicio.risServicio.sbaNombre}" />
+                        </p:column>
+
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardarServicio" value="#{msg.guardar}" action="#{relInmuebleOtroServicioBean.guardar()}" rendered="#{!relInmuebleOtroServicioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_SERVICIO_BASICO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardarServicio" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

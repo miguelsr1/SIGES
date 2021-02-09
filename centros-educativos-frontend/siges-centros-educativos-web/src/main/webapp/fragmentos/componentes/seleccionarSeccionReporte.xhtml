@@ -1,0 +1,161 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <c:set var="controllerParam" value="#{controllerParam}" scope="request"/>
+    <c:set var="actionParam" value="#{actionParam}" scope="request"/>
+    <c:set var="seccion" value="#{seccion}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="retornarSoloSeccionesAbiertas" value="#{retornarSoloSeccionesAbiertas}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+            <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_anio_lectivo" value="#{filtrosSeccionBean.comboAnioLectivo.selected}"  styleClass="form-control texto-medio">
+                    <f:selectItems value="#{filtrosSeccionBean.comboAnioLectivo.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarAnioLectivo}" process="@this" update="@form"/>
+                </h:selectOneMenu>
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <p:autoComplete id="input_sede_autocomplete" 
+                                styleClass="form-control texto-medio"
+                                value="#{filtrosSeccionBean.sedeSeleccionada}"
+                                completeMethod="#{filtrosSeccionBean.completeSede}"
+                                var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                itemValue="#{sed}" 
+                                widgetVar="b_inst_resp_autocomplete"
+                                forceSelection="true"
+                                maxResults="10"
+                                queryDelay="500"
+                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                converter="#{sedesConverter}"
+                                multiple="false">
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarSede}" event="itemSelect"  process="@this" update="@form"/>
+                </p:autoComplete>
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_nivel">
+            <h:outputLabel value="#{msg.niveles}" for="input_nivel" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_nivel" value="#{filtrosSeccionBean.comboNivel.selected}"  styleClass="form-control texto-medio" disabled="#{filtrosSeccionBean.sedeSeleccionada == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboNivel.items}" />
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarNivel}"  process="@this" update="@form"/>
+                </h:selectOneMenu>                 
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_ciclo">
+            <h:outputLabel value="#{msg.ciclos}" for="input_ciclo" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_ciclo" value="#{filtrosSeccionBean.comboCiclo.selected}"  styleClass="form-control texto-medio" disabled="#{filtrosSeccionBean.comboNivel.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboCiclo.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarCiclo}"  process="@this" update="@form"/>
+                </h:selectOneMenu>
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_modalidad">
+            <h:outputLabel value="#{msg.modalidadEducativa}" for="input_modalidad" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_modalidad" value="#{filtrosSeccionBean.comboModalidad.selected}"  styleClass="form-control texto-medio" disabled="#{filtrosSeccionBean.comboCiclo.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboModalidad.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarModalidad}" process="@this" update="@form"/>
+                </h:selectOneMenu>
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <h:panelGroup rendered="#{filtrosSeccionBean.comboOpcion.items.size() > 1}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_opcion">
+                <h:outputLabel value="#{msg.opcion}" for="input_opcion" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_opcion" value="#{filtrosSeccionBean.comboOpcion.selected}"  
+                                     styleClass="form-control texto-medio" 
+                                     disabled="#{filtrosSeccionBean.comboModalidad.selectedT == null}"
+                                     >
+                        <f:selectItems value="#{filtrosSeccionBean.comboOpcion.items}"/>
+                        <p:ajax listener="#{filtrosSeccionBean.seleccionarOpcion}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>                    
+            </p:outputPanel> 
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{filtrosSeccionBean.comboProgramaEducativo.items.size() > 1}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_programa">
+                <h:outputLabel value="#{msg.programa}" for="input_programa" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_programa" value="#{filtrosSeccionBean.comboProgramaEducativo.selected}"  
+                                     styleClass="form-control texto-medio" 
+                                     disabled="#{filtrosSeccionBean.comboOpcion.selectedT == null}"
+                                     >
+                        <f:selectItems value="#{filtrosSeccionBean.comboProgramaEducativo.items}"/>
+                        <p:ajax listener="#{filtrosSeccionBean.seleccionarProgramaEducativo()}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>                    
+            </p:outputPanel> 
+        </h:panelGroup>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_mod_aten">
+            <h:outputLabel value="#{msg.modalidadAtencion}" for="input_mod_aten" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_mod_aten" value="#{filtrosSeccionBean.comboModalidadAtencion.selected}" 
+                                 disabled="#{filtrosSeccionBean.comboModalidad.selectedT == null}" styleClass="form-control dropdown texto-medio">
+                    <f:selectItems value="#{filtrosSeccionBean.comboModalidadAtencion.items}" />    
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarModalidadAtencion}" process="@this" update="@form"/>
+                </h:selectOneMenu>  
+            </p:outputPanel>                    
+        </p:outputPanel>     
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_submod_aten" rendered="#{filtrosSeccionBean.comboSubModalidadAtencion != null}">
+            <h:outputLabel value="#{msg.subModalidadAtencion}" for="input_submod_aten" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_submod_aten" value="#{filtrosSeccionBean.comboSubModalidadAtencion.selected}" 
+                                 disabled="#{filtrosSeccionBean.comboModalidadAtencion.selectedT == null or filtrosSeccionBean.comboModalidadAtencion.isEmpty()}" styleClass="form-control dropdown texto-medio">
+                    <f:selectItems value="#{filtrosSeccionBean.comboSubModalidadAtencion.items}" />    
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarSubModalidadAtencion}" process="@this" update="@form"/>
+                </h:selectOneMenu>  
+            </p:outputPanel>                    
+        </p:outputPanel>   
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_grado">
+            <h:outputLabel value="#{msg.grado}" for="input_grado" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_grado" value="#{filtrosSeccionBean.comboGrado.selected}"  styleClass="form-control texto-medio" 
+                                 disabled="#{filtrosSeccionBean.comboModalidadAtencion.selectedT == null or (!filtrosSeccionBean.comboSubModalidadAtencion.isEmpty() and filtrosSeccionBean.comboSubModalidadAtencion.selectedT == null)}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboGrado.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarGrado}" process="@this" update="@form"/>
+                </h:selectOneMenu>
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_seccion">
+            <h:outputLabel value="#{msg.secciones}" for="input_seccion" styleClass="col-sm-4 col-form-label "/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_seccion" value="#{filtrosSeccionBean.comboSeccion.selected}"  styleClass="form-control texto-medio col-sm-8"
+                                 disabled="#{filtrosSeccionBean.comboAnioLectivo.selectedT == null or filtrosSeccionBean.comboGrado.selectedT == null}">
+                    <f:selectItems value="#{filtrosSeccionBean.comboSeccion.items}"/>
+                    <p:ajax listener="#{filtrosSeccionBean.seleccionarSeccion}"  process="@this"/>
+                </h:selectOneMenu>
+            </p:outputPanel>  
+
+        </p:outputPanel>
+
+
+    </p:outputPanel>
+
+</ui:composition>

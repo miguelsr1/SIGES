@@ -1,0 +1,736 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionCargos}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionCargos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.CARGO}" title="#{msg.agregarCargo}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_BIEN_DEPRECIABLE)}"
+                        styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarCargo}"/>
+                </p:link>
+               
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CARGOS)}" />
+                </ui:include>
+            </p:outputPanel>
+
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        
+        
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                   <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}">  
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_tipoUnidad">
+                            <h:outputLabel value="#{msg.tipoUnidad}" for="filtro_tipoUnidad" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_tipoUnidad" styleClass="form-control dropdown texto-medio" value="#{cargosBean.comboTiposUnidad.selected}" >
+                                    <f:selectItems value="#{cargosBean.comboTiposUnidad.items}" />
+                                    <p:ajax event="change" listener="#{cargosBean.seleccionarTipoUnidadAF()}" process="@this" update="filtro_municipio fila_filtro_unidadadministrativa asignadoA"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_tipoUnidad" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_unidadactivofijo">
+                            <h:outputLabel value="#{msg.unidadActivoFijo}" for="filtro_unidadactivofijo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_unidadactivofijo" styleClass="form-control dropdown texto-medio" value="#{cargosBean.comboUnidadesActivoFijo.selected}">
+                                    <f:selectItems value="#{cargosBean.comboUnidadesActivoFijo.items}" />
+                                    <p:ajax event="change" listener="#{cargosBean.seleccionarUnidadActivoFijo()}" process="@this"  update="filtro_municipio fila_filtro_unidadadministrativa asignadoA"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_unidadactivofijo" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MUNICIPIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio">
+                            <h:outputLabel value="#{msg.municipio}" for="filtro_municipio" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_municipio"  styleClass="form-control dropdown texto-medio" value="#{cargosBean.comboMunicipios.selected}">
+                                    <f:selectItems value="#{cargosBean.comboMunicipios.items}" />
+                                    <p:ajax event="change" listener="#{cargosBean.seleccionarMunicipio()}" process="@this"  update="fila_filtro_unidadadministrativa asignadoA"/>
+                                </h:selectOneMenu>
+                                <p:blockUI block="@form" trigger="filtro_municipio" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.unidadAdministrativa}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9"  >
+                                <h:panelGroup id="fila_filtro_unidadadministrativa">
+                                    <p:selectOneMenu rendered="#{cargosBean.esUnidadAdministrativa}" id="filtro_unidadadministrativa"  
+                                                     value="#{cargosBean.unidadSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                        effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                         <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                        <f:selectItems value="#{cargosBean.unidadesAdministrativas}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                        <p:ajax event="change" listener="#{cargosBean.seleccionarUnidadAdministrativa()}"  process="@this" update="asignadoA filtro_empleado"/>
+                                       <p:column>
+                                           <h:outputText value="#{u.codigoNombre}" />
+                                       </p:column>
+                                   </p:selectOneMenu>
+                                    <p:selectOneMenu rendered="#{!cargosBean.esUnidadAdministrativa}" id="filtro_sede" value="#{cargosBean.sedeSeleccionada}" converter="#{sedeConverter}"
+                                                effect="fade" var="s"  styleClass="texto-medio" filter="true" filterMatchMode="contains">
+                                           <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                            <f:selectItems value="#{cargosBean.sedes}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                            <p:ajax event="change" listener="#{cargosBean.seleccionarUnidadAdministrativa()}"  process="@this" update="asignadoA"/>
+                                           <p:column>
+                                               <h:outputText value="#{s.sedCodigoNombre}" />
+                                           </p:column>
+                                       </p:selectOneMenu>
+                                    <p:blockUI block="@form" trigger="fila_filtro_unidadadministrativa filtro_sede" />
+                                </h:panelGroup>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_CATEGORIA)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_categoria">
+                            <h:outputLabel value="#{msg.categoria}" for="filtro_categoria" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_categoria"  value="#{cargosBean.comboCategoriaBienes.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{cargosBean.comboCategoriaBienes.items}" />
+                                    <p:ajax listener="#{cargosBean.verificarCategoriaTipoBien()}"   process="@this" update="filtro_tipobien"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_BIEN)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_tipobien">
+                            <h:outputLabel value="#{msg.tipoBien}" for="filtro_tipobien" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="filtro_tipobien" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{cargosBean.tipoBienSeleccionado}"
+                                                completeMethod="#{cargosBean.completeTipoBien}"
+                                                var="tipoBien" itemLabel="#{tipoBien.tbiCodigoNombreCategoria}" 
+                                                itemValue="#{tipoBien}" 
+                                                widgetVar="b_inst_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{tipoBienConverter}"
+                                                multiple="false">
+                                </p:autoComplete>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_CALIDAD)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_calidad">
+                            <h:outputLabel value="#{msg.calidad}" for="filtro_calidad" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="filtro_calidad"  value="#{cargosBean.comboEstadosCalidad.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{cargosBean.comboEstadosCalidad.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_ESTADO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_estado">
+                            <h:outputLabel value="#{msg.estado}" for="filtro_estado" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="filtro_estado"  value="#{cargosBean.comboEstadosBienes.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{cargosBean.comboEstadosBienes.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_CODIGO_INVENTARIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_codinventario">
+                            <h:outputLabel value="#{msg.codigoInventario}" for="filtro_codinventario" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_codigoinventario" value="#{cargosBean.filtroBienes.codigoInventario}" maxlength="20"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FORMA_ADQUISICION)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_forma_adquisicion">
+                            <h:outputLabel value="#{msg.formaAdquisicion}" for="filtro_estadoDescargo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_forma_adquisicion"  value="#{cargosBean.comboFormaAdquisicion.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{cargosBean.comboFormaAdquisicion.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+            <p:panel header="#{msg.filtrosAvanzados}" id="panelAvanzado" 
+                     styleClass="panel-filtro"
+                     closable="true"
+                     rendered="#{cargosBean.panelAvanzado}">
+                <p:outputPanel styleClass="row">
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FUENTE)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_fuente">
+                            <h:outputLabel value="#{msg.fuente}" for="filtro_fuente" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_fuente" value="#{cargosBean.comboFuenteFinanciamiento.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{cargosBean.comboFuenteFinanciamiento.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_PROYECTO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_proyecto">
+                            <h:outputLabel value="#{msg.proyecto}" for="filtro_proyecto" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_proyecto"  value="#{cargosBean.comboProyectos.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{cargosBean.comboProyectos.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COMBO_ASIGNADO_A)}">
+                        <h:panelGroup id="asignadoA">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_asignadoa" >
+                                <h:outputLabel value="#{msg.asignadoA}" for="input_asignadoa" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:selectOneMenu id="filtro_empleado" rendered="#{cargosBean.esUnidadAdministrativa}"
+                                                     value="#{cargosBean.empleadoSeleccionado}" converter="#{empleadoConverter}"
+                                            effect="fade" var="f" styleClass="texto-medio" filter="true" filterMatchMode="contains" >
+                                        <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                        <f:selectItems value="#{cargosBean.empleados}" var="empleado" itemLabel="#{empleado.nombresApellidos}" itemValue="#{empleado}" />
+                                       <p:column>
+                                           <h:outputText value="#{f.nombresApellidos}" />
+                                       </p:column>
+                                   </p:selectOneMenu>
+                                    
+                                    <h:inputText autocomplete="off" styleClass="form-control" id="input_asignadoa_texto" rendered="#{!cargosBean.esUnidadAdministrativa}"
+                                                 value="#{cargosBean.filtroBienes.asignadoA}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+                    </p:outputPanel>
+                    <p:outputPanel id="dui"  styleClass="col-md-6"  rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_DUI)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_dui">
+                            <h:outputLabel value="#{msg.dui}" for="filtro_dui" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_dui" value="#{cargosBean.filtroBienes.dui}" maxlength="20"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel id="nombresEmpleado"  styleClass="col-md-6"   rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_NOMBRE_EMPLEADO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_nombres_empleado">
+                            <h:outputLabel value="#{msg.nombresEmpleados}" for="filtro_nombres_empleado" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_nombres_empleado" value="#{cargosBean.filtroBienes.nombresEmpleado}" maxlength="50"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MARCA)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_marca">
+                            <h:outputLabel value="#{msg.marca}" for="filtro_marca" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_marca" value="#{cargosBean.filtroBienes.marca}" maxlength="50"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MODELO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_modelo">
+                            <h:outputLabel value="#{msg.modelo}" for="filtro_modelo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_modelo" value="#{cargosBean.filtroBienes.modelo}" maxlength="50"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_NO_SERIE)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_numeroserie">
+                            <h:outputLabel value="#{msg.noSerie}" for="filtro_numeroserie" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_numeroserie" value="#{cargosBean.filtroBienes.noSerie}" maxlength="50"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_USUARIO_MODIFICACION)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_usuario_modificacion">
+                            <h:outputLabel value="#{msg.usuarioModificacion}" for="filtro_usuario_modificacion" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="filtro_usuario_modificacion" value="#{cargosBean.filtroBienes.usuarioModificacion}" maxlength="50"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-12" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_VALOR_ADQUISICION)}">
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_valoradquisicion_desde">
+                                    <h:outputLabel value="#{msg.valorAdquisicionDesde}" for="filtro_valoradquisicion_desde" styleClass="col-sm-3 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:inputNumber autocomplete="off" id="filtro_valoradquisicion_desde" value="#{cargosBean.filtroBienes.valorAdquisicionDesde}"
+                                               styleClass="form-control texto-medio"
+                                               maxValue="9999999999"
+                                               minValue="0"
+                                               decimalPlaces="2" thousandSeparator=""/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_valoradquisicion_hasta">
+                                    <h:outputLabel value="#{msg.valorAdquisicionHasta}" for="filtro_valoradquisicion_hasta" styleClass="col-sm-3 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:inputNumber autocomplete="off" id="filtro_valoradquisicion_hasta" value="#{cargosBean.filtroBienes.valorAdquisicionHasta}"
+                                               styleClass="form-control texto-medio"
+                                               minValue="#{cargosBean.filtroBienes.valorAdquisicionDesde}"
+                                               decimalPlaces="2" thousandSeparator=""/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-12" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_ADQUISICION)}">
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_adquisicion_desde">
+                                    <h:outputLabel value="#{msg.fechaAdquisicionDesde}" for="filtro_fecha_adquisicion_desde" styleClass="col-sm-3 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:calendar id="filtro_fecha_adquisicion_desde" styleClass="form-control" 
+                                                    maxdate="#{applicationBean.today()}"
+                                                    mask="true" 
+                                                    value="#{cargosBean.filtroBienes.fechaAdquisicionDesde}"
+                                                    pattern="#{applicationBean.patternFecha}"
+                                                    converter="#{localDateConverter}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_adquisicion_dhasta">
+                                    <h:outputLabel value="#{msg.fechaAdquisicionHasta}" for="filtro_fecha_adquisicion_hasta" styleClass="col-sm-3 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:calendar id="filtro_fecha_adquisicion_hasta" styleClass="form-control" 
+                                                    maxdate="#{cargosBean.filtroBienes.fechaAdquisicionDesde}"
+                                                    mask="true" 
+                                                    value="#{cargosBean.filtroBienes.fechaAdquisicionHasta}"
+                                                    pattern="#{applicationBean.patternFecha}"
+                                                    converter="#{localDateConverter}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-md-12" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_CREACION)}">
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-md-6" id="fila_filtro_rango_fecha_creacion">
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_creacion_desde">
+                                    <h:outputLabel value="#{msg.fechaCreacionDesde}" for="filtro_fecha_creacion_desde" styleClass="col-sm-3 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:calendar id="filtro_fecha_creacion_desde" styleClass="form-control" 
+                                                    maxdate="#{applicationBean.today()}"
+                                                    mask="true" 
+                                                    value="#{cargosBean.filtroBienes.fechaCreacionDesde}"
+                                                    pattern="#{applicationBean.patternFecha}"
+                                                    converter="#{localDateConverter}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_creacion_hasta">
+                                    <h:outputLabel value="#{msg.fechaCreacionHasta}" for="filtro_fecha_creacion_hasta" styleClass="col-sm-3 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:calendar id="filtro_fecha_creacion_hasta" styleClass="form-control" 
+                                                    maxdate="#{cargosBean.filtroBienes.fechaCreacionDesde}"
+                                                    mask="true" 
+                                                    value="#{cargosBean.filtroBienes.fechaCreacionHasta}"
+                                                    pattern="#{applicationBean.patternFecha}"
+                                                    converter="#{localDateConverter}"/>
+                                    </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                    <p:outputPanel styleClass="col-md-12" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_MODIFICACION)}">
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-md-6" id="fila_filtro_rango_fecha_modificacion">
+                                    <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_modificacion_desde">
+                                        <h:outputLabel value="#{msg.fechaModificacionDesde}" for="filtro_fecha_modificacion_desde" styleClass="col-sm-3 col-form-label "/>
+                                        <p:outputPanel styleClass="col-sm-9">
+                                            <p:calendar id="filtro_fecha_modificacion_desde" styleClass="form-control" 
+                                                        maxdate="#{applicationBean.today()}"
+                                                        mask="true" 
+                                                        value="#{cargosBean.filtroBienes.fechaModificacionDesde}"
+                                                        pattern="#{applicationBean.patternFecha}"
+                                                        converter="#{localDateConverter}"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                            </p:outputPanel>
+
+                             <p:outputPanel styleClass="col-md-6" >
+                                    <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_modificacion_hasta">
+                                        <h:outputLabel value="#{msg.fechaModificacionHasta}" for="filtro_fecha_modificacion_hasta" styleClass="col-sm-3 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-9">
+                                            <p:calendar id="filtro_fecha_modificacion_hasta" styleClass="form-control" 
+                                                        maxdate="#{cargosBean.filtroBienes.fechaModificacionDesde}"
+                                                        mask="true" 
+                                                        value="#{cargosBean.filtroBienes.fechaModificacionHasta}"
+                                                        pattern="#{applicationBean.patternFecha}"
+                                                        converter="#{localDateConverter}"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+            </p:panel>
+            <p:outputPanel  style="margin-top: -15px;" styleClass="col-md-12">
+                <p:outputPanel styleClass="form-group row">
+                    <p:outputPanel styleClass="col-sm-12 texto-right">
+                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                         action="#{cargosBean.buscar()}" update="pnlResultado"/>
+                        <p:commandLink value="#{cargosBean.txtFiltroAvanzado}" id="btnAvanzado"
+                                       action="#{cargosBean.verPanelAvanzado()}" 
+                                       update="searchPanels @this panelAvanzado" styleClass="btn btn-link" />
+                        <p:commandLink value="#{msg.limpiar}" action="#{cargosBean.limpiar()}" 
+                                       update="pnlSearch panelAvanzado pnlResultado" immediate="true" styleClass="btn btn-link">
+                            <p:resetInput target="pnlSearch panelAvanzado pnlResultado" />
+                        </p:commandLink>
+                        <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                        <p:blockUI block="@form" trigger="btnBuscar btnAvanzado" />
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </h:panelGroup>
+        
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="dataTableWidgetVar"                         
+                         var="elem" 
+                         rendered="#{cargosBean.bienesDepreciablesLazyModel != null}"                         
+                         value="#{cargosBean.bienesDepreciablesLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="bdePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{cargosBean.paginado}"
+                         reflow="true"  
+                         selection="#{cargosBean.bienesSeleccionados}"
+                         rowSelectMode="checkbox"
+                         rowKey="#{elem.bdePk}"
+                         disabledSelection="#{!cargosBean.bienPuedeEliminarse(elem)}"
+                        > 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{cargosBean.totalResultados lt (cargosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{cargosBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <p:commandButton id="btnEliminarLista" value="#{msg.eliminarSeleccionados}" oncomplete="PF('confirmListDialog').show()"  
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_BIEN_DEPRECIABLE) 
+                                                             or sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_BIEN_VALOR_ADQUISICION_MENOR_LIMITE_AF)}"
+                                                 styleClass="btn btn-link rojo" icon="glyphicon glyphicon-trash " 
+                                                 update="form:pnlResultado">
+                                    <p:blockUI block="@form" trigger="btnEliminarLista">
+                                        <h:panelGrid columns="2">
+                                            <h:outputText value="${msg.porFavorEspere}" style="white-space: nowrap;"/>  
+                                        </h:panelGrid>
+                                    </p:blockUI>
+                                </p:commandButton>
+
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="listadoBienes" pageOnly="false"/>
+                                </h:commandLink>
+
+                                <p:commandButton id="generarReporte" action="#{cargosBean.generarNuevo()}" value="#{msg.generarReporteCargos}"  
+                                                 oncomplete="PF('reporteDialogDialog').show()" update="formReporte:itemDetailDialog"
+                                     styleClass="btn btn-secondary" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_CARGOS)}"               
+                                     disabled="#{cargosBean.totalResultados == 0}"/>
+                                
+                                <p:commandButton id="toggler" value="#{msg.hcolumnas}"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-align-justify"/>
+                                <p:columnToggler datasource="basicDT" trigger="toggler">
+                                    <p:ajax event="toggle" listener="#{cargosBean.onToggle}"/>
+                                </p:columnToggler>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+              
+                <p:column selectionMode="multiple"  headerText="" exportable="false" style="width:16px;text-align:center" toggleable="false"/>
+                
+                
+                <p:column headerText="#{msg.hid}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText value="#{elem.bdePk}"/>
+                </p:column>
+                
+                <p:column headerText="#{msg.hcodigoInventario}" sortBy="#{elem.bdeCodigoInventario}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_CODIGO_INVENTARIO)}"
+                          exportable="false" toggleable="false">
+                    <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                </p:column>
+                <p:column headerText="#{msg.hInventario}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                </p:column>
+                
+                <p:column headerText="#{msg.hunidadAdministrativa}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_UNIDAD_ADMINISTRATIVA)}" toggleable="false">
+                    <h:outputText value="#{elem.bdeCodigoNombreUnidadAdministrativa}"/>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.bdeEstadosBienes.ebiNombre}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_ESTADO)}"
+                          toggleable="false">
+                    <h:outputText value="#{elem.bdeEstadosBienes.ebiNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hestadoSolicitud}" sortBy="#{elem.bdeEstadosSolicitud.ebiNombre}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_ESTADO_SOLICITUD)}"
+                          exportable="false" id="col13" visible="#{cargosBean.colVisibilityMap['col13']}">
+                    <h:outputText value="#{elem.bdeEstadosSolicitud.ebiNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hcategoria}" toggleable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_CATEGORIA)}" sortBy="#{elem.bdeTipoBien.tbiCategoriaBienes.cabNombre}">
+                    <h:outputText value="#{elem.bdeNombreCategoria}"/>
+                </p:column>
+                <p:column headerText="#{msg.hdescripcion}" id="col4" visible="#{cargosBean.colVisibilityMap['col4']}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_DESCRIPCION)}">
+                    <h:outputText value="#{elem.bdeDescripcion}" />
+                </p:column>
+                <p:column headerText="#{msg.hmarca}" sortBy="#{elem.bdeMarca}" id="col5" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_MARCA)}"
+                          visible="#{cargosBean.colVisibilityMap['col5']}">
+                    <h:outputText  value="#{elem.bdeMarca}" />
+                </p:column>
+                <p:column headerText="#{msg.hmodelo}" sortBy="#{elem.bdeModelo}" id="col6" visible="#{cargosBean.colVisibilityMap['col6']}"
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_MODELO)}">
+                    <h:outputText  value="#{elem.bdeModelo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnoSerie}" id="col7" visible="#{cargosBean.colVisibilityMap['col7']}"
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_SERIE)}">
+                    <h:outputText  value="#{elem.bdeNoSerie}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaAdquisicion}" sortBy="#{elem.bdeFechaAdquisicion}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_FECHA_ADQUISICION)}"
+                          id="col8" visible="#{cargosBean.colVisibilityMap['col8']}">
+                    <h:outputText  value="#{elem.bdeFechaAdquisicion}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hvalorAdquisicion}" sortBy="#{elem.bdeValorAdquisicion}" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_VALOR_ADQUISICION)}"
+                          exportable="false" id="col9" visible="#{cargosBean.colVisibilityMap['col9']}" styleClass="fondo_verde">
+                    <h:outputText value="#{elem.bdeValorAdquisicion}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hprecio}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText value="#{elem.bdeValorAdquisicion}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hactivoFijo}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{(elem.bdeValorAdquisicion >= applicationBean.valorActivoFijoLimite) ? 'Si' : 'No'}"/>
+                </p:column>
+                
+                <p:column headerText="#{msg.hasignadoA}" sortBy="#{elem.bdeBienAsignadoA}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_ASIGNADO_A)}"
+                          exportable="false" id="col10" visible="#{cargosBean.colVisibilityMap['col10']}"> 
+                    <h:outputText  value="#{elem.bdeBienAsignadoA}" />
+                </p:column>
+                <p:column headerText="#{msg.hfuente}" id="col11" visible="#{cargosBean.colVisibilityMap['col11']}"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_FUENTE)}" sortBy="#{elem.bdeFuenteFinanciamiento.ffiNombre}">
+                    <h:outputText  value="#{elem.bdeFuenteFinanciamiento.ffiNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hproyecto}" id="col12" visible="#{cargosBean.colVisibilityMap['col12']}"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_COLUMNA_PROYECTO)}" sortBy="#{elem.bdeProyectos.proNombre}">
+                    <h:outputText  value="#{elem.bdeProyectos.proNombre}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.hDocumentoAdquisicion}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeDocumentoAdquisicion}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.hcalidad}" exportable="false" visible="true" toggleable="true">
+                    <h:outputText  value="#{elem.bdeEstadoCalidad.ecaNombre}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.hProveedor}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeProveedor}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.husuarioUltimaModificacion}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaUltimaModificacion}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeUltModFecha}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.hfechaCreacion}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeFechaCreacion}" converter="#{localDateTimeConverter}"/>
+                </p:column>
+                
+                <p:column headerText="#{msg.hmontoDepreciado}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeMontoDepreciado}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.hvalorActual}" exportable="true" visible="false" toggleable="false">
+                    <h:outputText  value="#{elem.bdeValorActual}" />
+                </p:column>
+                
+                <p:column styleClass="columnaAcciones"  exportable="false" toggleable="false">
+                    <p:link outcome="#{ConstantesPaginas.CARGO}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.bdePk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                
+                <p:column styleClass="columnaAcciones" exportable="false" toggleable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_BIEN_DEPRECIABLE)}">
+                    <p:link outcome="#{ConstantesPaginas.CARGO}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.bdePk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" toggleable="false">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}"                 
+                                     rendered="#{cargosBean.bienPuedeEliminarse(elem)}"
+                                     action="#{cargosBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" toggleable="false">
+                    <p:commandButton icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{cargosBean.cargarHistorial(elem.bdePk)}"  
+                                     update=":form:historialDetail" oncomplete="PF('historialDialog').show()" />
+                </p:column>
+            </p:dataTable>
+            
+            <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                     oncomplete="PF('confirmDialog').hide()"
+                                     styleClass="btn btn-primary"
+                                     action="#{cargosBean.eliminar()}"  />
+                    <p:blockUI block="@form" trigger="confirmDelete"/>
+                    <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                                   onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </p:confirmDialog>
+            
+            <p:confirmDialog id="confirmListDialog"
+                         message="#{msg.textoConfirmacionEliminacionSeleccionados}"
+                         header="#{msg.confirmacionEliminacionLista}" severity="alert" widgetVar="confirmListDialog">
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="confirmDeleteList" value="#{msg.hconfirmar}" update="pnlResultado"
+                                     oncomplete="PF('confirmListDialog').hide()"
+                                     styleClass="btn btn-primary"
+                                     action="#{cargosBean.eliminarLista()}"  />
+                    <p:blockUI block="@form" trigger="confirmDeleteList"/>
+                    <p:commandLink id="cancelarDeleteList" value="#{msg.cancelar}"
+                                   onclick="PF('confirmListDialog').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </p:confirmDialog>
+            
+            
+            <p:dialog header="#{msg.hHistorialCargo}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('historialDialog').initPosition()">
+                <ui:include src="componentes/historial.xhtml">
+                    <ui:param name="historial" value="#{cargosBean.historial}" />
+                </ui:include>
+            </p:dialog>
+            
+            
+        </p:outputPanel>
+    </h:form>
+    
+    <h:form id="formReporte">
+        <p:dialog header="#{msg.htipoDocumento}" widgetVar="reporteDialogDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('reporteDialogDialog').initPosition()">
+            <p:outputPanel id="itemDetailDialog">                                                             
+                <h:panelGroup >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioReporte">
+                        <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CARGOS}" method="get" target="_blank">
+                            <input type="hidden" name="tu"  value="#{cargosBean.tipoUnidad}"/>
+                            <input type="hidden" name="uaf" value="#{cargosBean.filtroBienes.unidadActivoFijoId}"/>
+                            <input type="hidden" name="uad" value="#{cargosBean.filtroBienes.unidadAdministrativaId}"/>
+                            <input type="hidden" name="depId" value="#{cargosBean.filtroBienes.departamentoId}"/>
+                            <input type="hidden" name="munId" value="#{cargosBean.filtroBienes.municipioId}"/>
+                            <input type="hidden" name="catId" value="#{cargosBean.filtroBienes.categoriaId}"/>
+                            <input type="hidden" name="tipoBienId" value="#{cargosBean.filtroBienes.tipoBienId}"/>
+                            <input type="hidden" name="calidadId" value="#{cargosBean.filtroBienes.calidadId}"/>
+                            <input type="hidden" name="estadoId" value="#{cargosBean.filtroBienes.estadoId}"/>
+                            <input type="hidden" name="formaAdqId" value="#{cargosBean.filtroBienes.formaAdquisicionId}"/>
+                            <input type="hidden" name="fuenteId" value="#{cargosBean.filtroBienes.fuenteId}"/>
+                            <input type="hidden" name="proyectoId" value="#{cargosBean.filtroBienes.proyectoId}"/>
+                            <input type="hidden" name="empId" value="#{cargosBean.filtroBienes.empleadoId}"/>
+                            <input type="hidden" name="codInventario" value="#{cargosBean.filtroBienes.codigoInventario}"/>
+                            <input type="hidden" name="asignadoA" value="#{cargosBean.filtroBienes.asignadoA}"/>
+                            <input type="hidden" name="marca" value="#{cargosBean.filtroBienes.marca}"/>
+                            <input type="hidden" name="modelo" value="#{cargosBean.filtroBienes.modelo}"/>
+                            <input type="hidden" name="noSerie" value="#{cargosBean.filtroBienes.noSerie}"/>
+
+                            <input type="hidden" name="usuarioModif" value="#{cargosBean.filtroBienes.usuarioModificacion}"/>
+                            <input type="hidden" name="valEstSolVacio" value="#{cargosBean.filtroBienes.validarEstadoSolicitudVacio}"/>
+                            <input type="hidden" name="valEstSol" value="#{cargosBean.filtroBienes.validarEstadoSolicitud}"/>
+                            <input type="hidden" name="activos" value="#{cargosBean.filtroBienes.activos}"/>
+                            <input type="hidden" name="valAdqDesde" value="#{cargosBean.filtroBienes.valorAdquisicionDesde}"/>
+                            <input type="hidden" name="valAdqHasta" value="#{cargosBean.filtroBienes.valorAdquisicionHasta}"/>
+
+                            <input type="hidden" name="fechaAdqDesde" value="#{cargosBean.filtroBienes.fechaAdquisicionDesde}"/>
+                            <input type="hidden" name="fechaAdqHasta" value="#{cargosBean.filtroBienes.fechaAdquisicionHasta}"/>
+                            <input type="hidden" name="fechaCreaDesde" value="#{cargosBean.filtroBienes.fechaCreacionDesde}"/>
+                            <input type="hidden" name="fechaCreaHasta" value="#{cargosBean.filtroBienes.fechaCreacionHasta}"/>
+
+                            <input type="hidden" name="fechaModifDesde" value="#{cargosBean.filtroBienes.fechaModificacionDesde}"/>
+                            <input type="hidden" name="fechaModifHasta" value="#{cargosBean.filtroBienes.fechaModificacionHasta}"/>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_reporte">                        
+                                <h:outputLabel value="#{msg.fechaReporte}" for="input_fecha_reporte" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <input type="date" id="fechaReporte" name="fechaReporte" onblur="true" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel  styleClass="control-group" >
+                                <p:outputPanel styleClass="float-right">
+                                    <input type="submit" value="#{msg.generarReporteCargos}"  onclick="PF('reporteDialogDialog').hide();" class="btn btn-secondary" />
+                                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('reporteDialogDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                                </p:outputPanel>                    
+                            </p:outputPanel>  
+                        </form>    
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel> 
+        </p:dialog>
+    </h:form>
+</ui:composition>

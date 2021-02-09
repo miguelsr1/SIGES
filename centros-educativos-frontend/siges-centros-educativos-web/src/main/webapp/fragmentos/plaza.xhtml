@@ -1,0 +1,469 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoPlaza" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoSolicitudPlaza" />
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#{(plazaBean.origen!=null and plazaBean.origen eq 1)?ConstantesPaginas.SOLICITUDES_PLAZAS:
+                               (plazaBean.origen!=null and plazaBean.origen eq 2)?ConstantesPaginas.PLAZAS:ConstantesPaginas.PLAZAS_DISPONIBLES}">
+                       #{(plazaBean.origen!=null and plazaBean.origen eq 1)?msg.gestionPlaza:
+                         (plazaBean.origen!=null and plazaBean.origen eq 2)?msg.plazasAprobadas:msg.plazasDisponibles}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">#{plazaBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{plazaBean.tituloPagina}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="formularioSede">
+            <p:panel toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+                    
+                    <p:messages id="popupmsgValoracion" showDetail="true" globalOnly="false" for="popupmsgValoracion" closable="false"/>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo_plaza">
+                        <h:outputLabel value="#{msg.tipoPlaza}" for="input_tipo_plaza" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_tipo_plaza" value="#{plazaBean.comboTipoPlaza.selected}"   
+                                             styleClass="form-control texto-medio" rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales() and plazaBean.entidadEnEdicion.splPk==null}" >
+                                <f:selectItems value="#{plazaBean.comboTipoPlaza.items}" />
+                                <p:ajax process="@all" update="@form" listener="#{plazaBean.seleccionarTipoPlaza}"/>
+                            </h:selectOneMenu>
+                            <h:outputText styleClass="form-control-plaintext" value="#{plazaBean.entidadEnEdicion.splTipoPlaza.text}" 
+                                          rendered="#{plazaBean.habilitadoEdicionDatosPrincipales() or plazaBean.entidadEnEdicion.splPk != null}" />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <f:subview id="seleccionarServicio">
+                        <ui:include src="componentes/seleccionarServicioEducativo.xhtml"  >   
+                            <ui:param name="controllerParam2" value="#{plazaBean}" />                            
+                            <ui:param name="soloLectura" value="#{plazaBean.habilitadoEdicionDatosPrincipales()}" />
+                            <ui:param name="actionParam3" value="seleccionadoSede" />
+                        </ui:include>
+                    </f:subview>
+
+                    <h:panelGroup id="pg_docente" rendered="#{plazaBean.entidadEnEdicion.splTipoPlaza eq EnumTipoPlaza.D}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_componente_plan_estudio">
+                            <h:outputLabel value="#{msg.componentePlanEstudio}" for="input_componente_plan_estudio" 
+                                           styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_componente_plan_estudio" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{plazaBean.componenteSeleccionado}"
+                                                rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}"
+                                                completeMethod="#{plazaBean.completeComponente}"
+                                                var="comp" itemLabel="#{comp.cpeNombre}" 
+                                                itemValue="#{comp}" 
+                                                widgetVar="b_inst_resp_autocomplete_comp"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{componentePlanEstudioConverter}"
+                                                multiple="false">
+                                </p:autoComplete>
+                                <h:outputText value="#{plazaBean.entidadEnEdicion.splComponentePlanEstudio.cpeNombre}" 
+                                              styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_especialidad">
+                            <h:outputLabel value="#{msg.especialidad}" for="input_especialidad" 
+                                           styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_especialidad" value="#{plazaBean.comboEspecialidad.selected}"  
+                                                 styleClass="form-control texto-medio" rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}" >
+                                    <f:selectItems value="#{plazaBean.comboEspecialidad.items}" />
+                                </h:selectOneMenu>
+                                <h:outputText value="#{plazaBean.entidadEnEdicion.splEspecialidad.espNombre}" 
+                                              styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fuente_financiamiento">
+                            <h:outputLabel value="#{msg.fuenteFinanciamiento}" for="input_fuente_financiamiento" 
+                                           styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_fuente_financiamiento" value="#{plazaBean.comboFuenteFinanciamiento.selected}"  
+                                                 styleClass="form-control texto-medio" rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}" >
+                                    <f:selectItems value="#{plazaBean.comboFuenteFinanciamiento.items}" />
+                                </h:selectOneMenu>
+                                <h:outputText value="#{plazaBean.entidadEnEdicion.splFuenteFinanciamiento.ffiNombre}" 
+                                              styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_desde">
+                            <h:outputLabel value="#{msg.fechaDesde}" for="input_fecha_desde" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha_desde"
+                                            value="#{plazaBean.entidadEnEdicion.splFechaDesde}" 
+                                            pattern="#{applicationBean.patternFecha}" 
+                                            locale="#{sessionBean.locale}" 
+                                            converter="#{localDateConverter}"
+                                            rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}"
+                                            readonlyInput="true">
+                                </p:calendar>
+                                <h:outputText value="#{plazaBean.entidadEnEdicion.splFechaDesde}" converter="#{localDateConverter}"
+                                              styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta">
+                            <h:outputLabel value="#{msg.fechaHasta}" for="input_fecha_hasta" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha_hasta"
+                                            value="#{plazaBean.entidadEnEdicion.splFechaHasta}" 
+                                            pattern="#{applicationBean.patternFecha}" 
+                                            locale="#{sessionBean.locale}" 
+                                            converter="#{localDateConverter}"
+                                            rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}"
+                                            readonlyInput="true" >
+                                </p:calendar>
+                                <h:outputText value="#{plazaBean.entidadEnEdicion.splFechaHasta}" converter="#{localDateConverter}"
+                                              styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_jornada">
+                        <h:outputLabel value="#{msg.jornadaLaboral}" for="input_jornada" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_jornada" value="#{plazaBean.comboJornada.selected}"  
+                                             styleClass="form-control texto-medio" rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}" >
+                                <f:selectItems value="#{plazaBean.comboJornada.items}" />
+                            </h:selectOneMenu>
+                            <h:outputText value="#{plazaBean.entidadEnEdicion.splJornada.jlaNombre}" 
+                                          styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <h:panelGroup id="pg_nombramiento" 
+                                  rendered="#{plazaBean.entidadEnEdicion.splTipoPlaza eq EnumTipoPlaza.A and plazaBean.entidadEnEdicion.splTipoPlaza != null}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombramiento" >
+                            <h:outputLabel value="#{msg.tipoNombramiento}" for="input_nombramiento" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_nombramiento" value="#{plazaBean.comboTipoNombramiento.selected}"  
+                                                 styleClass="form-control texto-medio" rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales()}" >
+                                    <f:selectItems value="#{plazaBean.comboTipoNombramiento.items}" />
+                                    <p:ajax process="@all" update="@form"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="#{plazaBean.entidadEnEdicion.splTipoNombramiento.carNombre}" 
+                                              styleClass="form-control-plaintext" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">
+                        <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" 
+                                       styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:inputTextarea id="input_descripcion"  
+                                             styleClass="form-control texto-medio"
+                                             disabled="#{plazaBean.habilitadoEdicionDatosPrincipales()}" 
+                                             value="#{plazaBean.entidadEnEdicion.splDescripcion}" 
+                                             counter="displayObs" maxlength="400" counterTemplate="{0} caracteres restantes." autoResize="false"/>
+                            <h:outputText id="displayObs" />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estado" rendered="#{plazaBean.entidadEnEdicion.splPk!=null}">
+                        <h:outputLabel value="#{msg.estadoSolicitud}" for="input_estado" 
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_estado" value="#{plazaBean.entidadEnEdicion.splEstado.text}" 
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row" >
+                            <h:outputText value="#{msg.plazaExistente}" styleClass="col-sm-4 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{plazaBean.entidadEnEdicion.splPlazaExistente}"  disabled="#{plazaBean.soloLectura}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <p:ajax update="plazaExistente plaza" listener="#{plazaBean.seleccionarPlazaExistente()}" />
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel id="plazaExistente">
+                        <p:outputPanel rendered="#{plazaBean.renderizarBotonSeleccionarPlaza()}" >
+
+                            <p:outputPanel styleClass="form-group row">
+                                <p:outputPanel id="panelFile" styleClass="offset-sm-4 col-sm-8">
+                                    <p:commandButton value="#{msg.seleccionarPlaza}" 
+                                                     oncomplete="PF('itemDialog').show()"  update="form:itemDetail"
+                                                     id="btnAgregarCalificacionImportada" styleClass="btn btn-primary"  />
+                                </p:outputPanel>
+                            </p:outputPanel>                        
+
+
+
+                            <p:outputPanel styleClass="form-group row"  >
+                                <h:outputLabel value="#{msg.estado}" for="input_estado_plaza_2" 
+                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">                                  
+                                    <p:selectOneRadio layout="responsive" columns="2" id="input_estado_plaza_2"                                                         
+                                                      value="#{plazaBean.entidadEnEdicion.splEstadoPlaza}" >
+                                        <f:selectItems value="#{plazaBean.listEstadoPlaza}" 
+                                                       var="list" itemLabel="#{list.text}" itemValue="#{list}" />
+                                    </p:selectOneRadio>                                 
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                        </p:outputPanel>    
+                    </p:outputPanel>                     
+
+
+                    <p:outputPanel id="plaza">
+                        <h:panelGroup 
+                            rendered="#{(plazaBean.entidadEnEdicion.splPlazaFk!=null)}">
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_codigo_plaza"  >
+                                <h:outputLabel value="#{msg.codigoPlaza}" 
+                                               styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:outputPanel rendered="#{plazaBean.entidadEnEdicion.splPlazaFk != null}">
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splPlazaFk.plaCodigoPlaza}"  
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="form-group row" id="fila_input_anio_partida"  >
+                                <h:outputLabel value="#{msg.anioPartida}" for="input_anio_partida" 
+                                               styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:outputPanel rendered="#{plazaBean.entidadEnEdicion.splPlazaFk != null}">
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splPlazaFk.plaAnioPartida}"  
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_id_plaza" >
+                                <h:outputLabel value="#{msg.idPuesto}" for="input_id_plaza" 
+                                               styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:outputPanel rendered="#{plazaBean.entidadEnEdicion.splPlazaFk != null}">
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splPlazaFk.plaIdPuesto}"  
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nombre_plaza"  >
+                                <h:outputLabel value="#{msg.nombrePlaza}" for="input_nombre_plaza" 
+                                               styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:outputPanel rendered="#{plazaBean.entidadEnEdicion.splPlazaFk != null}">
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splPlazaFk.plaNombre}"  
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_caracterizacion" 
+                                           rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}" >
+                                <h:outputLabel value="#{msg.caracterizacion}" for="input_caracterizacion" 
+                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">                          
+                                    <h:panelGroup rendered="#{plazaBean.aprobacion}">
+                                        <p:selectOneRadio layout="responsive" columns="2" id="input_caracterizacion"  
+                                                          value="#{plazaBean.entidadEnEdicion.splCaracterizacion}" >
+                                            <f:selectItems value="#{plazaBean.listCaracterizacion}" 
+                                                           var="list" itemLabel="#{list.text}" itemValue="#{list}" />
+                                        </p:selectOneRadio>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{plazaBean.entidadEnEdicion.splCaracterizacion.text}" 
+                                                  rendered="#{!plazaBean.aprobacion}" 
+                                                  styleClass="form-control-plaintext" />
+
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_estado_plaza" 
+                                           rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}" >
+                                <h:outputLabel value="#{msg.estado}" for="input_estado_plaza" 
+                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">                               
+                                    <p:outputPanel rendered="#{plazaBean.entidadEnEdicion.splPlazaFk != null}">
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splEstadoPlaza.text}" 
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+
+                            <p:fieldset legend="#{msg.periodoPostulacion}" rendered="#{plazaBean.habilitadoEdicionDatosPrincipales()}" style="background:none;">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_periodo_postulacion_inicio"  >
+                                    <h:outputLabel value="#{msg.fechaInicio}" for="input_periodo_postulacion_inicio" 
+                                                   styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:calendar id="input_periodo_postulacion_inicio" styleClass="form-control" 
+                                                    value="#{plazaBean.entidadEnEdicion.splPostulacionInicio}" 
+                                                    pattern="#{applicationBean.patternFecha}"
+                                                    rendered="#{plazaBean.aprobacion}"
+                                                    converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}" 
+                                                    mask="true" showOn="button" />   
+                                        <h:message for="input_periodo_postulacion_inicio" styleClass="msj-danger"/> 
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splPostulacionInicio}" 
+                                                      rendered="#{!plazaBean.aprobacion}" 
+                                                      converter="#{localDateConverter}"
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_periodo_postulacion_fin"  >
+                                    <h:outputLabel value="#{msg.fechaFin}" for="input_periodo_postulacion_fin" 
+                                                   styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:calendar id="input_periodo_postulacion_fin" styleClass="form-control" 
+                                                    value="#{plazaBean.entidadEnEdicion.splPostulacionFin}" 
+                                                    pattern="#{applicationBean.patternFecha}"
+                                                    rendered="#{plazaBean.aprobacion}"
+                                                    converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}" 
+                                                    mask="true" showOn="button" />   
+                                        <h:message for="input_periodo_postulacion_fin" styleClass="msj-danger"/> 
+                                        <h:outputText value="#{plazaBean.entidadEnEdicion.splPostulacionFin}" 
+                                                      rendered="#{!plazaBean.aprobacion}" 
+                                                      converter="#{localDateConverter}"
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                            </p:fieldset>
+                           
+                            <p:fieldset legend="#{msg.hpostulante}" style="background:none;">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_calidad_docente"  >
+                                    <h:outputLabel value="#{msg.aplicaCalidad}" for="input_calidad_docente" 
+                                                   styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu id="input_calidad_docente" value="#{plazaBean.comboAplicaCalidad.selected}" 
+                                                         rendered="#{plazaBean.aplicarPlaza and sessionBean.operaciones.contains(ConstantesOperaciones.PERMITE_SELECCION_CALIDAD_DOCENTE_PLAZA)}"
+                                                         disabled="#{not sessionBean.operaciones.contains(ConstantesOperaciones.PERMITE_SELECCION_CALIDAD_DOCENTE_PLAZA)}"  
+                                                         styleClass="form-control texto-medio">
+                                            <f:selectItems value="#{plazaBean.comboAplicaCalidad.items}" />
+                                        </h:selectOneMenu>
+                                        
+                                        <h:outputText value="#{plazaBean.aplicoEnCalidad}" 
+                                                      rendered="#{!plazaBean.aprobacion}"
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                            </p:fieldset>    
+                        </h:panelGroup>
+                    </p:outputPanel>     
+                </p:outputPanel>
+            </p:panel> 
+
+            <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardar" value="#{msg.guardar}" action="#{plazaBean.guardar()}" 
+                                     rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales() and (plazaBean.entidadEnEdicion.splEstado eq EnumEstadoSolicitudPlaza.EN_CREACION or plazaBean.entidadEnEdicion.splPk==null)}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+
+                    <p:commandButton id="btnEnviar" value="#{msg.enviar}" action="#{plazaBean.enviar()}" 
+                                     rendered="#{!plazaBean.habilitadoEdicionDatosPrincipales() and (plazaBean.entidadEnEdicion.splEstado eq EnumEstadoSolicitudPlaza.EN_CREACION or plazaBean.entidadEnEdicion.splPk==null)}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-secondary" icon="glyphicon glyphicon-send"/>
+
+
+
+
+                    <p:commandButton id="btnAprobar" value="#{msg.aprobar}" action="#{plazaBean.aprobar()}" 
+                                     rendered="#{plazaBean.habilitadoEdicionDatosPrincipales() and plazaBean.aprobacion}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-ok"/>
+
+                    <p:commandButton id="btnRechazar" value="#{msg.rechazar}" action="#{plazaBean.rechazar()}" 
+                                     rendered="#{plazaBean.habilitadoEdicionDatosPrincipales() and plazaBean.aprobacion}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-secondary" icon="glyphicon glyphicon-remove"/>
+
+                    <!--<div class="requeridos"><h:outputText value="#{plazaBean.textoAplico}"/></div>-->
+                    <p:commandButton id="btnAplicar" value="#{msg.aplicar}" action="#{plazaBean.aplicar()}" 
+                                     rendered="#{plazaBean.aplicarPlaza}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-ok"/>
+
+                    <p:blockUI block="@form" trigger="btnRechazar btnAprobar btnEnviar btnGuardar btnAplicar" />
+                    <p:defaultCommand target="btnGuardar" scope="formularioSede"/>  
+                </p:outputPanel>                    
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <p:dialog header="#{msg.hplazas}" widgetVar="itemDialog" modal="true" showEffect="fade"    onHide="PF('dialogTable').clearFilters();" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioCargo">                   
+                        <p:dataTable id="radioDT" 
+                                     value="#{plazaBean.listaPlazas}" 
+                                     selection="#{plazaBean.plazaSeleccionada}" 
+                                     rowKey="#{plaza.plaPk}"
+                                     filteredValue="#{plazaBean.listaPlazasAux}" 
+                                     emptyMessage="No hay plazas para la sede seleccionada."                                 
+                                     styleClass="table-scroll"
+                                     var="plaza"
+                                     widgetVar="dialogTable"
+                                     >
+                            <p:column headerText="#{msg.hcodigo}" sortBy="#{plaza.plaCodigoPlaza}" filterBy="#{plaza.plaCodigoPlaza}" filterMatchMode="contains">
+                                <h:outputText value="#{plaza.plaCodigoPlaza}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hnombre}" >
+                                <h:outputText value="#{plaza.plaNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hanioPartida}" sortBy="#{plaza.plaAnioPartida}"   filterBy="#{plaza.plaAnioPartida}" filterMatchMode="contains">
+                                <h:outputText value="#{plaza.plaAnioPartida}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hidPuesto}" sortBy="#{plaza.plaIdPuesto}"   filterBy="#{plaza.plaIdPuesto}" filterMatchMode="contains">
+                                <h:outputText value="#{plaza.plaIdPuesto}" />
+                            </p:column>
+                            <p:column selectionMode="single" style="width:16px;text-align:center"/>                                         
+                        </p:dataTable>
+
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarDialog"  value="#{msg.seleccionar}" rendered="#{not empty plazaBean.listaPlazas }"  action="#{plazaBean.actualizarPlaza()}" update="plaza" styleClass="btn btn-primary" />                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide(); PF('dialogTable').clearFilters();"  update="form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarDialog" />  
+                        <p:defaultCommand target="btnGuardarDialog" scope="itemDetail"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>  
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

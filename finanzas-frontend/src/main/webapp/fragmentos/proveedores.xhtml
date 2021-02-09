@@ -1,0 +1,204 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumFacturaEstado" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoDocumentoPago"/>
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.administracion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.menuProveedores}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.menuProveedores}"/></h2>          
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+            <h3><h:outputText value="#{msg.busqueda}"/></h3>  
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nombre" value="#{proveedorBean.filtro.proNombre}" />
+                            </p:outputPanel>
+                        </p:outputPanel>                    
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.nit}" for="b_nit" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nit" value="#{proveedorBean.filtro.proNit}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                         <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.mined}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{proveedorBean.filtro.proveedorMined}">
+                                    <f:selectItems value="#{applicationBean.minedValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                                <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{proveedorBean.buscar()}" update="pnlResultado"/>
+                                <p:commandLink value="#{msg.limpiar}" action="#{proveedorBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch pnlResultado" />
+                                </p:commandLink>
+                                <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                                <p:blockUI block="@form" trigger="btnBuscar" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>                 
+            <p:outputPanel id="pnlResultado">
+                <p:dataTable id="basicDT" widgetVar="widResultado" var="elem" value="#{proveedorBean.proveedorLazyModel}" emptyMessage="#{msg.noHayResultados}" paginator="true" lazy="true" paginatorPosition="bottom" currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}" sortField="proId" paginatorTemplate="#{applicationBean.paginatorTemplate}" rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}" rows="#{proveedorBean.paginado}" reflow="true">
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}" />
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{proveedorBean.totalResultados lt (proveedorBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;" />
+                    </f:facet>
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{proveedorBean.totalResultados} #{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                        <p:dataExporter type="csv" target="basicDT" fileName="Proveedores" pageOnly="false" />
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.pronit}">
+                        <h:outputText value="#{elem.proNit}" />
+                    </p:column>                    
+                    <p:column headerText="#{msg.pronombre}">
+                        <h:outputText value="#{elem.proNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.protelefono}">
+                        <h:outputText value="#{elem.proTelefonoRepresentante}" />
+                    </p:column>
+                    <p:column headerText="#{msg.prodireccion}">
+                        <h:outputText value="#{elem.proDireccionFactura}" />
+                    </p:column>
+                    <p:column headerText="#{msg.promined}">
+                        <h:outputText value="#{elem.proveedorMined}" converter="#{booleanConverter}" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PROVEEDOR)}" exportable="false">
+                        <p:commandButton update="@form" 
+                                         oncomplete="PF('itemDialog').show()" 
+                                         icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono" 
+                                         title="#{msg.editar}"
+                                         rendered="#{!elem.proveedorMined}"
+                                         action="#{proveedorBean.actualizar(elem)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PROVEEDOR)}" exportable="false">
+                        <p:commandButton oncomplete="PF('confirmDialog').show()" 
+                                         update="@form :form:confirmDialog"
+                                         icon="glyphicon glyphicon-trash " 
+                                         styleClass="btn btn-icono rojo" 
+                                         title="#{msg.eliminar}"
+                                         rendered="#{!elem.proveedorMined and !proveedorBean.inicializarBorrar(elem)}"                                         
+                                         action="#{proveedorBean.actualizar(elem)}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>            
+        </p:outputPanel>
+         <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+        
+        <p:dialog header="#{msg.hproveedorEdicion}" id="dialog" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty proveedorBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formProveedor">     
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_proveedor">
+                        <h:outputLabel value="#{msg.nombre}" for="input_proveedor" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:inputText maxlength="150" 
+                                         autocomplete="off" 
+                                         id="input_proveedor" 
+                                         styleClass="form-control texto-medio" 
+                                         disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.CAMBIAR_DATOS_PROVEEDOR)}"
+                                         value="#{proveedorBean.entidadEnEdicion.proNombre}"  />                                
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nit">
+                        <h:outputLabel value="#{msg.nit}" for="input_nit" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">                            
+                            <p:inputMask maxlength="17" 
+                                         autocomplete="off" 
+                                         id="input_nit" 
+                                         styleClass="form-control texto-medio" 
+                                         value="#{proveedorBean.entidadEnEdicion.proNit}" 
+                                         disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.CAMBIAR_DATOS_PROVEEDOR)}"
+                                         mask="#{applicationBean.maskNit}" />                         
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proveedor_direccion">
+                        <h:outputLabel value="#{msg.direccion}" for="input_proveedor_direccion" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:inputTextarea id="input_proveedor_direccion" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{proveedorBean.entidadEnEdicion.proDireccionFactura}" />                     
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proveedor_telefono">
+                        <h:outputLabel value="#{msg.telefono}" for="input_proveedor_telefono" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:inputText maxlength="20" 
+                                         autocomplete="off" 
+                                         id="input_proveedor_telefono" 
+                                         styleClass="form-control texto-medio" 
+                                         value="#{proveedorBean.entidadEnEdicion.proTelefonoRepresentante}"  />                                
+                        </p:outputPanel>
+                    </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar" value="#{msg.guardar}" action="#{proveedorBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion} - Proveedor : #{proveedorBean.entidadEnEdicion.proNombre}" 
+                         severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{proveedorBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+    </h:form>
+</ui:composition>

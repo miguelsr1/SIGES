@@ -1,0 +1,480 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaPAC')}" /> 
+                </h2>
+                <div class="pull-right" role="group" aria-label="Opciones"> 
+                    <div class="btn-group">
+                        <button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-triangle-bottom"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.MasOpciones')}" />                             
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" >                           
+                            <ui:fragment rendered="#{permisosMB.permisos['EMITIR_REPORTE_PAC'] }">
+                                <li>
+                                    <p:commandButton styleClass="btn"
+                                                     icon="glyphicon glyphicon-lock"
+                                                     value="#{textMB.obtenerTexto('labels.BloquearPAC')}" 
+                                                     update="bloquearPACForm"
+                                                     oncomplete="$('#bloquearPAC').modal('show');" 
+                                                     actionListener="#{pacConsulta.initConfigReportePACParaAnio()}"
+                                                     immediate="true">
+                                    </p:commandButton>     
+                                </li>
+                                <li> 
+                                    <p:commandButton styleClass="btn"  
+                                                     value="#{textMB.obtenerTexto('labels.GenerarReportePAC')}" 
+                                                     update="generarReportePACForm"
+                                                     oncomplete="$('#generarReportePAC').modal('show');" 
+                                                     actionListener="#{pacConsulta.initConfigReportePACParaAnio()}"
+                                                     immediate="true">
+                                    </p:commandButton>                        
+                                </li>
+                                <li role="separator" class="divider"></li>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{permisosMB.permisos['EMITIR_REPORTE_PEP'] }">
+                                <li>
+                                    <p:commandButton styleClass="btn"  
+                                                     icon="glyphicon glyphicon-lock"
+                                                     value="#{textMB.obtenerTexto('labels.BloquearFCM')}" 
+                                                     update="bloquearFCMForm"
+                                                     oncomplete="$('#bloquearFCM').modal('show');" 
+                                                     actionListener="#{pacConsulta.initConfigReportePEPParaAnio()}"
+                                                     immediate="true">
+                                    </p:commandButton>        
+                                </li>
+                                <li>   
+                                    <p:commandButton styleClass="btn"  
+                                                     value="#{textMB.obtenerTexto('labels.GenerarReportePEP')}" 
+                                                     update="generarReportePEPForm"
+                                                     oncomplete="$('#generarReportePEP').modal('show');" 
+                                                     actionListener="#{pacConsulta.initConfigReportePEPParaAnio()}"
+                                                     immediate="true">
+                                    </p:commandButton>                         
+                                </li>
+                            </ui:fragment>
+                        </ul>
+                    </div>
+                </div>
+<!--                <h:outputLink  styleClass="btn btn-default pull-right" value="crearEditarPAC.xhtml"  rendered="#{permisosMB.permisos['CREAR_EDITAR_PAC'] }">
+                    <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                </h:outputLink>-->
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel for="comboAnioFiscalConsulta" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Anio')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="comboAnioFiscalConsulta" value="#{pacConsulta.comboAnioFiscalConsulta.selected}"  styleClass="form-control textoMedio" >
+                                        <f:selectItems value="#{pacConsulta.comboAnioFiscalConsulta.items}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nroPAC')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{pacConsulta.nroPAC}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nombrePAC')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{pacConsulta.nombrePAC}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.estado')}" for="estado"/>
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu  value="#{pacConsulta.estadoPAC}"  styleClass="form-control textoMedio" id="estado"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getEstadosPAC()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{pacConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{pacConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', pacConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+                <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    value="#{pacConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados"
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="PAC" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NroPac')}"  sortBy="#{dummy.id}" >
+                        <h:outputText value="#{item.id}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Anio')}"  sortBy="#{dummy.anio}" >
+                        <h:outputText value="#{item.anio}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NombrePAC')}"  sortBy="#{dummy.nombre}" >
+                        <h:outputText value="#{item.nombre}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.TipoPOA')}" sortBy="#{dummy.tipoPOA}">
+                        <h:outputText value="#{textMB.obtenerTexto(item.tipoPOA.label)}" rendered="#{not empty item.tipoPOA.label}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NombrePOA')}">
+                        <h:outputText value="#{pacConsulta.getNombrePOA(item)}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.CantUT')}" styleClass="numericos">
+                        <h:outputText value="#{pacConsulta.countUnidadTecnicas(item)}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}" sortBy="#{dummy.estado}" >
+                        <h:outputText value="#{textMB.obtenerTexto(item.estado.label)}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass="numericos">
+                        <h:outputText value="#{pacConsulta.sumarTotal(item)}" >
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_PAC'] }">
+                        <h:outputLink  value="crearEditarPAC.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.id}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.CargarFCM')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_FLUJO_CAJA_MENSUAL'] }">
+                        <h:outputLink  value="crearEditarFlujoCajaMensual.xhtml" rendered="#{item.estado eq 'CERRADO'}"
+                                       class="btn btn-icono" title="#{textMB.obtenerTexto('labels.CargarFCM')}">
+                            <f:param name="id" value="#{item.id}" />
+                            <span class="glyphicon glyphicon-usd"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Reportes')}" styleClass="columnaAcciones" >
+                        <h:panelGroup layout="block" styleClass="btn-group" rendered="#{item.borradorPAC != null or item.borradorPEP != null or item.reportePAC != null or item.reportePEP!= null}">
+                            <p:commandButton id="dynaButton" title="Reportes" type="button" icon="glyphicon glyphicon-option-vertical" styleClass="btn btn-icono"/>
+                            <p:menu overlay="true" trigger="dynaButton" my="left top" at="left bottom" styleClass="menuDesplegable">
+                                <p:menuitem value="#{textMB.obtenerTexto('labels.DescargarBorradorPAC')}" rendered="#{item.borradorPAC != null }" actionListener="#{pacConsulta.downloadFile(item.borradorPAC )}" ajax="false"/>
+                                <p:menuitem value="#{textMB.obtenerTexto('labels.DescargarBorradorPEP')}" rendered="#{item.borradorPEP != null}" actionListener="#{pacConsulta.downloadFile(item.borradorPEP )}" ajax="false"/>
+                                <p:separator/>
+                                <p:menuitem value="#{textMB.obtenerTexto('labels.DescargarReportePAC')}" rendered="#{item.reportePAC != null }" actionListener="#{pacConsulta.downloadFile(item.reportePAC )}" ajax="false"/>
+                                <p:menuitem value="#{textMB.obtenerTexto('labels.DescargarReportePEP')}" rendered="#{item.reportePEP!= null}" actionListener="#{pacConsulta.downloadFile(item.reportePEP )}" ajax="false"/>
+                            </p:menu>                           
+                        </h:panelGroup>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+
+
+
+
+
+
+        <!-- MODAL PARA bloquear PAC -->  
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="bloquearPAC" tabindex="-1" role="dialog" aria-labelledby="bloquearPAC">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="bloquearPACContenidoModal">
+                        <h:form id="bloquearPACForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.bloquearPAC')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="anioFiscalBP" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="anioFiscalBP" value="#{pacConsulta.comboAnioFiscal.selected}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:ajax render="bloquearPACFooter infoPAC" listener="#{pacConsulta.initConfigReportePACParaAnio()}"/> 
+                                                <f:selectItems value="#{pacConsulta.comboAnioFiscal.items}" />
+                                            </h:selectOneMenu>
+                                            <h:message for="anioFiscalBP" styleClass="help-inline msj-danger" />
+                                        </div>
+                                        <h:panelGroup  id="infoPAC" layout="block" >
+                                            <h:outputText  styleClass="alert alert-info" rendered="#{pacConsulta.pacReporteGenerado}" value="#{textMB.obtenerTexto('labels.YaSeEncuentraEmitidoElReporteParaElAnioActual')}" />
+                                        </h:panelGroup>
+                                    </div>                                
+                                </div>
+                            </div>
+                            <h:panelGroup id="bloquearPACFooter" layout="block" styleClass="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-lock" value="#{textMB.obtenerTexto('labels.Bloquear')}" actionListener="#{pacConsulta.bloquearPAC(true)}"   update="@form" rendered="#{pacConsulta.mostrarBloquearDesbloquearPAC and !pacConsulta.pacBloqueado }"/>
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-lock" value="#{textMB.obtenerTexto('labels.DesBloquear')}" actionListener="#{pacConsulta.bloquearPAC(false)}"   update="@form" rendered="#{pacConsulta.mostrarBloquearDesbloquearPAC and pacConsulta.pacBloqueado}"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </h:panelGroup>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+        <!-- MODAL PARA GENERAR PAC -->  
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="generarReportePAC" tabindex="-1" role="dialog" aria-labelledby="generarReportePAC">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="generarReportePACContenidoModal">
+                        <h:form id="generarReportePACForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.generarReportePAC')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="anioFiscalReporte" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="anioFiscalReporte" value="#{pacConsulta.comboAnioFiscal.selected}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:ajax render="generarReportePACFooter"  listener="#{pacConsulta.initConfigReportePACParaAnio()}"/> 
+                                                <f:selectItems value="#{pacConsulta.comboAnioFiscal.items}" />
+                                            </h:selectOneMenu>
+                                            <h:message for="anioFiscalReporte" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>     
+
+                                </div>
+                            </div>
+                            <h:panelGroup id="generarReportePACFooter" layout="block" styleClass="modal-footer">
+                                <p:commandButton  styleClass="btn btn-default" value="#{textMB.obtenerTexto('labels.GenerarBorradorPAC')}" actionListener="#{pacConsulta.generarReportePAC(true)}"   update="@form tableForm:dataTable" />
+                                <p:commandButton  styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.GenerarReportePAC')}" actionListener="#{pacConsulta.generarReportePAC(false)}"   update="@form tableForm:dataTable" rendered="#{pacConsulta.mostrarGenerarReportePAC}"/>
+                                <p:commandButton  styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.GenerarReportePACGlobal')}" actionListener="#{pacConsulta.generarReportePACGlobal()}"   update="@form tableForm:dataTable"  ajax="false" rendered="#{pacConsulta.mostrarGenerarReportePAC}" />
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </h:panelGroup>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+
+        <!-- MODAL PARA bloquear FCM -->  
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="bloquearFCM" tabindex="-1" role="dialog" aria-labelledby="bloquearFCM">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="bloquearFCMContenidoModal">
+                        <h:form id="bloquearFCMForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.bloquearFCM')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="anioFiscalFCM" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="anioFiscalFCM" value="#{pacConsulta.comboAnioFiscal.selected}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:ajax render="bloquearFCMFooter bloquearFCMinfo" listener="#{pacConsulta.initConfigReportePEPParaAnio()}"/> 
+                                                <f:selectItems value="#{pacConsulta.comboAnioFiscal.items}" />
+                                            </h:selectOneMenu>
+                                            <h:message for="anioFiscalFCM" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+                                    <h:panelGroup  id="bloquearFCMinfo" layout="block" >
+                                        <h:outputText styleClass="alert alert-info" rendered="#{pacConsulta.pepReporteGenerado}" value="#{textMB.obtenerTexto('labels.YaSeEncuentraEmitidoElReporteParaElAnioActual')}" />
+                                        <ui:fragment rendered="#{pacConsulta.mostrarErroresPEP}">
+                                            <div class="alert alert-warning">
+                                                <strong><h:outputText value="#{textMB.obtenerTexto('labels.NoSePuedeBloquearFCM')}"/></strong><br/>
+                                                <h:outputText rendered="#{pacConsulta.hayPACSinCerrar}"
+                                                              value="#{textMB.obtenerTexto('labels.ExistenPACSinCerrarParaElAnio')}" />
+                                            </div>
+                                            <p:tabView>
+                                                <p:tab title="#{textMB.obtenerTexto('labels.InsumosSinFCM')}">
+                                                    <p:dataTable
+                                                        id="insumosSinFCM"
+                                                        var="item" 
+                                                        emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                        value="#{pacConsulta.insumosSinFCMDataProvider}" 
+                                                        paginator="true" rows="5"
+                                                        paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                                                        rowsPerPageTemplate="5,10,25,50"
+                                                        lazy="true"
+                                                        styleClass="table">
+                                                        <f:facet name="{Exporters}">
+                                                            <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                                                <span class="glyphicon glyphicon-export"></span>
+                                                                <p:dataExporter type="csv" target="insumosSinFCM" fileName="insumosSinFCM" />
+                                                            </h:commandLink> 
+                                                        </f:facet>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}" >
+                                                            <h:outputText value="#{item.id}" />
+                                                        </p:column>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Insumo')}" >
+                                                            <h:outputText value="#{item.insumo.nombre}" />
+                                                        </p:column>
+<!--                                                        <p:column headerText="#{textMB.obtenerTexto('labels.UT')}" >
+                                                            <h:outputText value="#{item.poa.unidadTecnica.nombre}" />
+                                                        </p:column>-->
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.POA')}" >
+                                                            <h:outputText value="#{item.poa.nombre}" />
+                                                        </p:column>
+                                                    </p:dataTable>
+                                                </p:tab>
+                                                <p:tab title="#{textMB.obtenerTexto('labels.GruposSinFCM')}">
+                                                    <p:dataTable
+                                                        id="gruposSinFCM"
+                                                        var="item" 
+                                                        emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                        value="#{pacConsulta.gruposSinFCMDataProvider}" 
+                                                        paginator="true" rows="5"
+                                                        paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                                                        rowsPerPageTemplate="5,10,25,50"
+                                                        lazy="true"
+                                                        styleClass="table">
+                                                        <f:facet name="{Exporters}">
+                                                            <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                                                <span class="glyphicon glyphicon-export"></span>
+                                                                <p:dataExporter type="csv" target="gruposSinFCM" fileName="gruposSinFCM" />
+                                                            </h:commandLink> 
+                                                        </f:facet>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}" >
+                                                            <h:outputText value="#{item.id}" />
+                                                        </p:column>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" >
+                                                            <h:outputText value="#{item.nombre}" />
+                                                        </p:column>                                                        
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.NroPAC')}" >
+                                                            <h:outputText value="#{item.pac.id}" />
+                                                        </p:column>
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.PAC')}" >
+                                                            <h:outputText value="#{item.pac.nombre}" />
+                                                        </p:column>
+                                                    </p:dataTable>
+                                                </p:tab>
+                                            </p:tabView>
+                                        </ui:fragment>
+                                    </h:panelGroup>
+                                </div>
+                            </div>
+                            <h:panelGroup id="bloquearFCMFooter" layout="block" styleClass="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-lock" value="#{textMB.obtenerTexto('labels.Bloquear')}" actionListener="#{pacConsulta.bloquearFCM(true)}"   update="@form" rendered="#{pacConsulta.mostrarBloquearDesbloquearPEP and !pacConsulta.pepBloqueado}"/>
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-lock" value="#{textMB.obtenerTexto('labels.Desbloquear')}" actionListener="#{pacConsulta.bloquearFCM(false)}"   update="@form" rendered="#{pacConsulta.mostrarBloquearDesbloquearPEP and pacConsulta.pepBloqueado}"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </h:panelGroup>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+
+        <!-- MODAL PARA GENERAR PEP -->  
+        <h:panelGroup layout="block">
+            <div class="modal fade"  id="generarReportePEP" tabindex="-1" role="dialog" aria-labelledby="generarReportePEP">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="generarReportePEPContenidoModal">
+                        <h:form id="generarReportePEPForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.generarReportePEP')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="anioFiscalReportePEP" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="anioFiscalReportePEP" value="#{pacConsulta.comboAnioFiscal.selected}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:ajax render="generarReportePEPFooter"  listener="#{pacConsulta.initConfigReportePEPParaAnio()}"/> 
+                                                <f:selectItems value="#{pacConsulta.comboAnioFiscal.items}" />
+                                            </h:selectOneMenu>
+                                            <h:message for="anioFiscalReportePEP" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>     
+
+                                </div>
+                            </div>
+                            <h:panelGroup id="generarReportePEPFooter" layout="block" styleClass="modal-footer">
+<!--                                <p:commandButton  styleClass="btn btn-default"  value="#{textMB.obtenerTexto('labels.BloquearPEP')}" actionListener="#{pacConsulta.bloquearPEP()}"   update="@form tableForm:dataTable"  />-->
+                                <p:commandButton  styleClass="btn btn-default"  value="#{textMB.obtenerTexto('labels.GenerarPEP')}" actionListener="#{pacConsulta.generarReportePEP(true)}"   update="@form tableForm:dataTable"  ajax="false"/>
+
+                                
+                                
+
+<!--                                <p:commandButton  styleClass="btn btn-default"  value="#{textMB.obtenerTexto('labels.GenerarBorradorPEP')}" actionListener="#{pacConsulta.generarReportePEP(true)}"   update="@form tableForm:dataTable" />
+<p:commandButton  styleClass="btn btn-primary"  value="#{textMB.obtenerTexto('labels.GenerarReportePEP')}" actionListener="#{pacConsulta.generarReportePEP(false)}"   update="@form tableForm:dataTable" rendered="#{pacConsulta.mostrarGenerarReportePEP}"/>-->
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </h:panelGroup>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+    </ui:composition>
+</html>
+

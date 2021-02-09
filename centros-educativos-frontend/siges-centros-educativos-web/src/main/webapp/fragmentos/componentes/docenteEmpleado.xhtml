@@ -1,0 +1,394 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+    <c:set var="personalSede" value="#{personalSede}" scope="request"/>
+    <c:set var="soloLecturaDatoEmpleado" value="#{soloLecturaDatoEmpleado}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{docenteEmpleadoBean.setSoloLectura(soloLecturaDatoEmpleado)}"/>
+    </f:metadata>   
+
+
+    <p:outputPanel id="formularioDocenteEmpleado">
+
+
+        <fieldset>
+            <legend><h:outputText value="#{msg.especialidades}"/></legend>
+            <p:outputPanel styleClass="form-action-buttons margen-sup">
+                <p:commandButton value="#{msg.agregarEspecialidad}" icon="glyphicon glyphicon-plus" 
+                                 update="especialidadesPersonalDetalle" 
+                                 oncomplete="PF('especialidadesPersonalDialog').show()"  
+                                 id="btnAgregarRelEspecialidadPersonal" styleClass="btn btn-secondary" 
+                                 actionListener="#{docenteEmpleadoBean.agregarEspecialidad()}" 
+                                 rendered="#{!docenteEmpleadoBean.soloLectura and 
+                                             sessionBean.getOperaciones().contains(ConstantesOperaciones.CREAR_REL_PERSONAL_ESPECIALIDAD)}"/>
+            </p:outputPanel>
+            <p:outputPanel id="pnlEspecialidades">
+                <p:dataTable id="basicDTEspecialidades"                         
+                             widgetVar="widResultadoEspecialidades"                         
+                             var="elem"                          
+                             value="#{docenteEmpleadoBean.listaRelEspecialidades}"                          
+                             emptyMessage="#{msg.noHayResultados}"		
+                             paginator="true"
+                             paginatorPosition="bottom"
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="rpePk"
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                             rows="#{docenteEmpleadoBean.paginado}"
+                             reflow="true" >
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{docenteEmpleadoBean.listaRelEspecialidades.size() lt (docenteEmpleadoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                    </f:facet>
+
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{docenteEmpleadoBean.listaRelEspecialidades.size()}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.hcodigo}">
+                        <h:outputText value="#{elem.rpeEspecialidad.espCodigo}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hnombre}">
+                        <h:outputText value="#{elem.rpeEspecialidad.espNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaGraduacion}">
+                        <h:outputText value="#{elem.rpeFechaGraduacion}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hcum}">
+                        <h:outputText value="#{elem.rpeCum}" />
+                    </p:column>
+
+                    <p:column styleClass="columnaAcciones"  exportable="false" 
+                              rendered="#{!docenteEmpleadoBean.soloLectura and sessionBean.getOperaciones().contains(ConstantesOperaciones.ELIMINAR_REL_PERSONAL_ESPECIALIDAD)}">
+                        <p:commandButton oncomplete="PF('confirmDialogESP').show()"
+                                         icon="glyphicon glyphicon-trash" 
+                                         styleClass="btn btn-icono rojo" 
+                                         action="#{docenteEmpleadoBean.actualizarEspecialidad(elem)}"
+                                         title="#{msg.eliminar}" />
+                    </p:column>                                         
+                </p:dataTable>   
+            </p:outputPanel>
+        </fieldset>
+
+        <fieldset>
+            <legend><h:outputText value="#{msg.escalafon}"/></legend>
+
+
+            <p:outputPanel styleClass="row" id="pnlEscalafon">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.estado}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{docenteEmpleadoBean.entidadEnEdicion.demEstado}" 
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" style="text-align: right;">
+                    <p:outputPanel styleClass="form-action-buttons">
+                        <p:commandButton value="#{msg.modificarEscalafon}" icon="glyphicon glyphicon-pencil" 
+                                         update="escalafonDetalle" oncomplete="PF('escalafonDialog').show()"  
+                                         id="btnModificarEscalafon" styleClass="btn btn-secondary" 
+                                         rendered="#{!docenteEmpleadoBean.soloLectura and sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_MODIFICAR_ESCALAFON)}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" >
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.niveles}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{docenteEmpleadoBean.entidadEnEdicion.demNivelFk.nemNombre}" 
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>                                                                               
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6" >
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.categorias}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{docenteEmpleadoBean.entidadEnEdicion.demCategoriaFk.cemNombre}" 
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.fechaRegistro}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{docenteEmpleadoBean.entidadEnEdicion.demFechaRegistro}" 
+                                          converter="#{localDateConverter}"
+                                          styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </fieldset>
+
+        <fieldset>
+            <legend><h:outputText value="#{msg.datosGenerales}"/></legend>
+
+            <h:panelGroup id="es_mineducyt">
+                <p:outputPanel styleClass="row" >
+                    
+                    <p:outputPanel styleClass="col-sm-6" id="fila_input_empleado_mineducyt">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.empleadoMineducyt}" for="input_empleado_mineducyt" 
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:selectOneRadio layout="responsive" columns="2" id="input_empleado_mineducyt" 
+                                                  value="#{docenteEmpleadoBean.entidadEnEdicion.demEmpleadoMineducyt}" 
+                                                  disabled="#{docenteEmpleadoBean.soloLectura or !sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_ES_EMPLEADO)}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <p:ajax event="change" process="@this" update="es_mineducyt"/>
+                                </p:selectOneRadio>
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-sm-6" id="fila_input_puede_aplicar_plaza">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.puedeAplicarPlaza}" for="input_puede_aplicar_plaza" 
+                                           styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:selectOneRadio layout="responsive" columns="2" id="input_puede_aplicar_plaza" 
+                                                  value="#{docenteEmpleadoBean.entidadEnEdicion.demPuedeAplicarPlaza}" 
+                                                  disabled="#{docenteEmpleadoBean.soloLectura or !sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_PERSONAL_APLICA_PARA_PLAZA)}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                </p:selectOneRadio>
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="col-md-6" id="fila_input_codigo_empleado" 
+                                   rendered="#{docenteEmpleadoBean.entidadEnEdicion.demEmpleadoMineducyt}">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.codigoEmpleado}" for="input_codigo_empleado" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_codigo_empleado" value="#{docenteEmpleadoBean.entidadEnEdicion.demCodigoEmpleado}" 
+                                             styleClass="form-control texto-corto"  maxlength="45" disabled="#{docenteEmpleadoBean.soloLectura or !sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_ES_EMPLEADO)}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" id="fila_input_fecha_ingreso_gob" rendered="#{docenteEmpleadoBean.entidadEnEdicion.demEmpleadoMineducyt}">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.fechaIngresoGob}" for="input_fecha_ingreso_gob" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <p:calendar id="input_fecha_ingreso_gob" value="#{docenteEmpleadoBean.entidadEnEdicion.demFechaIngresoGob}" styleClass="form-control"  
+                                            pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" 
+                                            converter="#{localDateConverter}" disabled="#{docenteEmpleadoBean.soloLectura or !sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_ES_EMPLEADO)}" maxdate="#{applicationBean.today()}"/>
+                                <h:message for="input_fecha_ingreso_gob" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" id="fila_input_demafp" rendered="#{docenteEmpleadoBean.entidadEnEdicion.demEmpleadoMineducyt}">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.afp}" for="input_demafp" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu  id="input_demafp" value="#{docenteEmpleadoBean.comboAfp.selected}" 
+                                                  styleClass="form-control texto-corto" disabled="#{docenteEmpleadoBean.soloLectura or !sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_ES_EMPLEADO)}">
+                                    <f:selectItems value="#{docenteEmpleadoBean.comboAfp.items}" />
+                                </h:selectOneMenu>
+                                <h:message for="input_demafp" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6" id="fila_input_fecha_ingreso_mined" rendered="#{docenteEmpleadoBean.entidadEnEdicion.demEmpleadoMineducyt}">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.fechaIngresoMined}" for="input_fecha_ingreso_mined" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha_ingreso_mined" value="#{docenteEmpleadoBean.entidadEnEdicion.demFechaIngresoMined}" styleClass="form-control"  
+                                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}" 
+                                                converter="#{localDateConverter}" disabled="#{docenteEmpleadoBean.soloLectura or !sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_ES_EMPLEADO)}" maxdate="#{applicationBean.today()}"/>
+                                <h:message for="input_fecha_ingreso_mined" styleClass="msj-danger"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>  
+                </p:outputPanel>
+
+                <div class="form-action-buttons">
+                    <p:commandButton  id="btnGuardarDatoEmpleado" value="#{msg.guardar}" 
+                                      action="#{docenteEmpleadoBean.guardar()}" update="@form" styleClass="btn btn-primary" 
+                                      icon="glyphicon glyphicon-floppy-disk" 
+                                      rendered="#{!docenteEmpleadoBean.soloLectura and 
+                                                  (sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_ES_EMPLEADO) 
+                                                  or sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_INDICAR_SI_PERSONAL_APLICA_PARA_PLAZA))}"/>
+                    <p:blockUI block="formularioDocenteEmpleado" trigger="btnGuardarDatoEmpleado" />
+                    <p:defaultCommand target="btnGuardarDatoEmpleado" scope="formularioDocenteEmpleado"/>   
+                </div>
+            </h:panelGroup>
+        </fieldset>
+        
+    </p:outputPanel>
+
+    <p:dialog id="escalafonDialog" header="#{msg.escalafon}" widgetVar="escalafonDialog" modal="true" 
+              showEffect="fade" hideEffect="fade" resizable="false" closable="true" >
+        <p:ajax event="close" update="pnlEscalafon" />
+        <p:outputPanel id="escalafonDetalle"> 
+            <p:messages id="popupmsgEscalafon" showDetail="true" globalOnly="false" for="popupmsgEscalafon" closable="true"/>   
+
+            <p:outputPanel styleClass="form-group row" >
+                <h:outputLabel value="#{msg.estado}" for="input_estado_dato_empleado" 
+                               styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <h:selectOneMenu  id="input_estado_dato_empleado" 
+                                      value="#{docenteEmpleadoBean.comboEstadoDatoEmpleado.selected}" 
+                                      styleClass="form-control texto-medio" 
+                                      disabled="#{docenteEmpleadoBean.soloLectura}">
+                        <f:selectItems value="#{docenteEmpleadoBean.comboEstadoDatoEmpleado.items}" />
+                    </h:selectOneMenu>
+                    <h:message for="input_estado_dato_empleado" styleClass="msj-danger"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_nivel" >
+                <h:outputLabel value="#{msg.niveles}" for="input_nivel" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <h:selectOneMenu id="input_nivel" value="#{docenteEmpleadoBean.comboNivel.selected}" 
+                                     styleClass="form-control texto-medio" disabled="#{docenteEmpleadoBean.soloLectura}">
+                        <f:selectItems value="#{docenteEmpleadoBean.comboNivel.items}" />
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_categoria" >
+                <h:outputLabel value="#{msg.categorias}" for="input_categoria" styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <h:selectOneMenu id="input_categoria" value="#{docenteEmpleadoBean.comboCategoria.selected}" 
+                                     styleClass="form-control texto-medio" disabled="#{docenteEmpleadoBean.soloLectura}">
+                        <f:selectItems value="#{docenteEmpleadoBean.comboCategoria.items}" />
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_registro" >
+                <h:outputLabel value="#{msg.fechaRegistro}" for="input_fecha_registro" 
+                               styleClass="col-sm-3 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:calendar id="input_fecha_registro" styleClass="form-control" 
+                                value="#{docenteEmpleadoBean.entidadEnEdicion.demFechaRegistro}" 
+                                pattern="#{applicationBean.patternFecha}"
+                                maxdate="#{applicationBean.today()}"
+                                disabled="#{docenteEmpleadoBean.soloLectura}"
+                                converter="#{localDateConverter}"  
+                                converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />
+                    <h:message for="input_fecha_registro" styleClass="msj-danger"/> 
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarEscalafon"   value="#{msg.aceptar}" 
+                                     action="#{docenteEmpleadoBean.modificarEscalafon()}" 
+                                     styleClass="btn btn-primary" 
+                                     icon="glyphicon glyphicon-floppy-disk"  
+                                     disabled="#{!sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_MODIFICAR_ESCALAFON)}"  
+                                     rendered="#{!docenteEmpleadoBean.soloLectura}"/>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('escalafonDialog').hide();"  styleClass="btn btn-link"/>                        
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="escalafonDetalle" trigger="btnGuardarEscalafon" />
+            <p:defaultCommand target="btnGuardarEscalafon" scope="escalafonDetalle"/>   
+        </p:outputPanel>
+    </p:dialog>
+
+    <p:dialog id="especialidadesPersonalDialog" header="#{msg.especialidadesPersonal}" 
+              widgetVar="especialidadesPersonalDialog" modal="true" 
+              showEffect="fade" hideEffect="fade" resizable="false" closable="true" >
+        <p:outputPanel id="especialidadesPersonalDetalle"> 
+            <p:messages id="popupmsgEspecialidades" showDetail="true" globalOnly="false" for="popupmsgEspecialidades" closable="true"/>   
+
+            <p:outputPanel styleClass="form-group row" >
+                <h:outputLabel value="#{msg.especialidad}" for="input_especialidad" 
+                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:autoComplete id="input_especialidad" 
+                                    styleClass="form-control texto-medio"
+                                    value="#{docenteEmpleadoBean.especialidadSeleccionada}"
+                                    completeMethod="#{docenteEmpleadoBean.completeEspecialidad}"
+                                    var="esp" itemLabel="#{esp.espNombre}" 
+                                    itemValue="#{esp}" 
+                                    widgetVar="b_inst_resp_autocomplete_esp"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{especialidadConverter}"
+                                    multiple="false">
+                    </p:autoComplete>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" >
+                <h:outputLabel value="#{msg.fechaGraduacion}" for="input_fecha_graduacion" 
+                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:calendar id="input_fecha_graduacion" 
+                                styleClass="form-control texto-corto"  
+                                value="#{docenteEmpleadoBean.entidadEnEdicionEspecialidad.rpeFechaGraduacion}"
+                                pattern="#{applicationBean.patternFecha}" 
+                                locale="#{sessionBean.locale}" 
+                                converter="#{localDateConverter}" />
+                    <h:message for="input_fecha_graduacion" styleClass="msj-danger"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" >
+                <h:outputLabel value="#{msg.cum}" for="input_especialidad" 
+                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:inputNumber styleClass="form-control texto-corto" decimalPlaces="2" 
+                                   value="#{docenteEmpleadoBean.entidadEnEdicionEspecialidad.rpeCum}"
+                                   decimalSeparator="." thousandSeparator="" minValue="0" maxValue="10"/>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarEspecialidadesPersonal"   value="#{msg.guardar}" 
+                                     action="#{docenteEmpleadoBean.guardarEspecialidad()}" 
+                                     update="especialidadesPersonalDetalle pnlEspecialidades" styleClass="btn btn-primary" 
+                                     icon="glyphicon glyphicon-floppy-disk"  
+                                     rendered="#{!docenteEmpleadoBean.soloLectura and 
+                                                 sessionBean.getOperaciones().contains(ConstantesOperaciones.CREAR_REL_PERSONAL_ESPECIALIDAD)}"/>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('especialidadesPersonalDialog').hide();"  
+                                   styleClass="btn btn-link"/>                        
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="especialidadesPersonalDetalle" trigger="btnGuardarEspecialidadesPersonal" />
+            <p:defaultCommand target="btnGuardarEspecialidadesPersonal" scope="especialidadesPersonalDetalle"/>   
+        </p:outputPanel>
+    </p:dialog>
+
+        <p:confirmDialog id="confirmDialogESP"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogESP">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDeleteESP" value="#{msg.hconfirmar}" update="pnlEspecialidades"
+                                 oncomplete="PF('confirmDialogESP').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{docenteEmpleadoBean.eliminarEspecialidad()}"  />
+                <p:blockUI block="@form" trigger="confirmDeleteESP"/>
+                <p:commandLink id="cancelarDeleteESP" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogESP').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+    
+</ui:composition>

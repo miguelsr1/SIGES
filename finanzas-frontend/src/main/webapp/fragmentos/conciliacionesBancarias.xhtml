@@ -1,0 +1,185 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumFacturaEstado" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoDocumentoPago"/>
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.administracion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionConciliacionBancaria}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionConciliacionBancaria}"/></h2>          
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.CONCILIACIONES_BANCARIAS_DETALLE}" title="#{msg.verConciliaciones}"                        
+                        styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                    <h:outputText styleClass="" value="#{msg.verConciliaciones}"/>
+                </p:link>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+            <h3><h:outputText value="#{msg.busqueda}"/></h3>  
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.sede}" for="filtro_sede_autocomplete_b" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="ui-outputpanel ui-widget col-sm-9">
+                                <p:autoComplete id="filtro_sede_autocomplete_b"
+                                                styleClass="form-control texto-largo"
+                                                value="#{conciliacionBancariaBean.sedeSeleccionadaFiltro}"
+                                                completeMethod="#{conciliacionBancariaBean.completeSedeFiltro}"
+                                                var="sedB" itemLabel="#{sedB.sedCodigoNombre}"
+                                                itemValue="#{sedB}"
+                                                widgetVar="filtro_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax listener="#{conciliacionBancariaBean.setearSede()}" event="itemSelect" process="@this" update="fila_input_item_mov" />
+                                </p:autoComplete>
+                            </p:outputPanel>    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_item_mov" >
+                            <h:outputLabel value="#{msg.fNumeroCuenta}" for="input_cuenta" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="ui-outputpanel ui-widget col-sm-9">
+                                <h:selectOneMenu id="input_cuenta" value="#{conciliacionBancariaBean.comboCuentasBancarias.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{conciliacionBancariaBean.comboCuentasBancarias.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="rango_filtro_fecha_desde">
+                            <h:outputLabel value="#{msg.rangoFechaFactura}" styleClass="col-sm-3 col-form-label" />
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_desde">
+                            <h:outputLabel value="#{msg.desde}" for="filtro_fecha_desde" styleClass="col-sm-3 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar id="filtro_fecha_desde" styleClass="form-control" value="#{conciliacionBancariaBean.filtroMov.mcbFechaDesdeS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_dhasta">
+                            <h:outputLabel value="#{msg.hasta}" for="filtro_fecha_hasta" styleClass="col-sm-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar id="filtro_fecha_hasta" styleClass="form-control" value="#{conciliacionBancariaBean.filtroMov.mcbFechaHastaS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_saldo" >
+                            <h:outputLabel value="#{msg.saldoActual}" for="input_codigo" styleClass="col-sm-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputNumber styleClass="form-control texto-corto" minValue="0" id="input_preciounitario" value="#{conciliacionBancariaBean.entidadEnEdicion.conMonto}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                                <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{conciliacionBancariaBean.buscar()}" update="pnlResultado" process="pnlSearch"/>
+                                <p:commandLink value="#{msg.limpiar}" action="#{conciliacionBancariaBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch pnlResultado" />
+                                </p:commandLink>
+                                <p:commandButton value="#{msg.conciliarCuenta}" 
+                                                 id="btnConciliar" 
+                                                 styleClass="btn btn-secondary" 
+                                                 icon="glyphicon glyphicon-usd" 
+                                                 action="#{conciliacionBancariaBean.guardar()}" 
+                                                 update="pnlResultado" 
+                                                 process="pnlSearch"/>
+                                <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel> 
+            <p:outputPanel id="pnlResultado" >
+                <p:dataTable id="basicDT"                         
+                             widgetVar="widResultado"                         
+                             var="elem"                          
+                             value="#{conciliacionBancariaBean.movimientoCuentaBancariaLazyModel}"                          
+                             emptyMessage="#{msg.noHayResultados}"		
+                             paginator="true"
+                             lazy="true"
+                             paginatorPosition="bottom"
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="mcbFecha"
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                             rows="#{conciliacionBancariaBean.paginado}"
+                             reflow="true" >
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{conciliacionBancariaBean.totalResultados lt (conciliacionBancariaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                    </f:facet>
+
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{conciliacionBancariaBean.totalResultados} #{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                        <p:dataExporter type="csv" target="basicDT" fileName="ConciliacionBancaria" pageOnly="false"/>
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel id="pnlHeaderTabla2" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.saldoPosible}"/>
+                                    <h:outputText styleClass="cantidad columnaRoja" value="#{conciliacionBancariaBean.saldoPosible}" >
+                                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                                    </h:outputText>
+                                </h3>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </f:facet>
+
+
+
+                    <p:column headerText="#{msg.hfecha}" sortBy="#{elem.mcbFecha}">
+                        <h:outputText value="#{elem.mcbFecha}" converter="#{localDateTimeConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hDetalle}" sortBy="#{elem.mcbDetalle}">
+                        <h:outputText value="#{elem.mcbDetalle}" />
+                    </p:column> 
+                    <p:column headerText="#{msg.hfacProveedor}" sortBy="#{elem.facProveedorFk.proNombre}">
+                        <h:outputText value="#{elem.mcbPagoFk.pgsFactura.facProveedorFk.proNombre}" />
+                    </p:column>                
+                    <p:column headerText="#{msg.hnocheque}" exportable="false" >                    
+                        <h:outputText value="#{elem.mcbChequeCb}" rendered="#{mcbChequeCb == null}" id="chequeRetiro"/>                    
+                        <p:tooltip for="chequeRetiro"  position="top" value="#{elem.datosChequePagoTooltip}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hnocheque}" style="display: none !important;" >                    
+                        <h:outputText value="#{elem.mcbChequeCb}" />  
+                    </p:column>                
+                    <p:column headerText="#{msg.hegresos}" sortBy="#{elem.mcbMonto}" styleClass="columna-derecha columnaRoja">
+                        <h:outputText value="#{elem.mcbMonto}">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                        </h:outputText>
+                        <f:facet name="footer">
+                            <h:outputText value="#{conciliacionBancariaBean.totalt}" styleClass="columna-derecha">
+                                <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{conciliacionBancariaBean.locale}" />
+                            </h:outputText>
+                        </f:facet>
+                    </p:column>
+                    <p:column headerText="#{msg.hchequeCobrado}" styleClass="columna-derecha">                     
+                        <h:outputText  value="#{elem.mcbChequeCobrado}" rendered="#{elem.mcbTipoMovimiento eq 'DEBE'}" converter="#{booleanConverter}" />
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+        </p:outputPanel>
+         <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>        
+    </h:form>
+</ui:composition>

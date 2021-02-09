@@ -1,0 +1,137 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.validarCertificadoDispPorProceso')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.validarCertificadoDispPorProceso')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.validarCertificadoDispPorProceso')}" escape="false" /> 
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false" >     
+            <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <div class="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText  value="#{validarCertificadoDispPorProceso.ut.nombre}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProcesoAdquisicion')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText   value="#{validarCertificadoDispPorProceso.proceso.nombre}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="grupoCampos">
+                    <!-- tabla de montos de direcciones -->
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                    <p:dataTable id="distribuccionCertificadoEnInsumo"
+                                 emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                 styleClass="table table-padding tabla-resultados"
+                                 value="#{validarCertificadoDispPorProceso.montosFuenteInsumos}" var="monto" 
+                                 selection="#{validarCertificadoDispPorProceso.montosSeleccionadosParaAprobar}"
+                                 rowKey="#{monto.id}">
+
+                        <p:column   headerText="#{textMB.obtenerTexto('labels.Insumo')}" sortBy="#{monto.insumo.nombre}">
+                            <h:outputText  value="#{monto.insumo.nombre}, " />
+                        </p:column>
+                        <p:column headerText="#{textMB.obtenerTexto('labels.Fuente')}" sortBy="#{monto.fuente.fuenteRecursos.nombre}">
+                            <h:outputText  value="#{monto.fuente.fuenteRecursos.nombre}, " />
+                            <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" />
+                        </p:column>
+                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoFuente')}" styleClass="numericos" sortBy="#{monto.monto}">
+                            <h:outputText  value="#{monto.monto}" >
+                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                            </h:outputText>
+                        </p:column>
+                        <p:column  headerText="#{textMB.obtenerTexto('labels.MontoCertificado')}" styleClass="numericos" sortBy="#{monto.certificado}">
+                            <h:outputText  value="#{monto.certificado}" >
+                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                            </h:outputText>
+                        </p:column>
+                        <p:column selectionMode="multiple" 
+                                  exportable="false" style="width:16px;text-align:center"
+                                  headerText="#{textMB.obtenerTexto('labels.Aprobar')}"/>
+<!--                        <p:column  headerText="#{textMB.obtenerTexto('labels.Aprobar')}">
+                            <div class="checkbox">
+                                <label>
+                                    <h:selectBooleanCheckbox value="#{monto.certificadoDisponibilidadPresupuestariaAprobada}" />
+                                </label>
+                            </div>
+                        </p:column>-->
+                        <p:column  headerText="#{textMB.obtenerTexto('labels.GenerarCertificado')}">
+                            <p:commandLink actionListener="#{utilsMB.generarCertificadoDisponibilidadPOInsumo(monto)}" ajax="false" styleClass="btn btn-link">
+                                <span class="glyphicon glyphicon-download"></span>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.GenerarCertificado')}" /> 
+                            </p:commandLink>
+                        </p:column>
+
+
+
+
+
+                    </p:dataTable>
+
+
+
+
+
+
+
+
+                </div>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton icon="glyphicon glyphicon-saved" 
+                                         styleClass="btn btn-primary"  
+                                         value="#{textMB.obtenerTexto('labels.Validar')}" 
+                                         action="#{validarCertificadoDispPorProceso.guardar}"  
+                                         update="@form"/>
+<!--                        <p:commandLink actionListener="#{validarCertificadoDispPorProceso.generarCertificadoDisponibilidadProceso()}"
+                                       rendered="#{not empty validarCertificadoDispPorProceso.montosFuenteInsumos}"
+                                       ajax="false" 
+                                       styleClass="btn btn-link">
+                            <span class="glyphicon glyphicon-download"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.GenerarCertificadoDisponibilidadProceso')}" /> 
+                        </p:commandLink>-->
+                        <!--
+                                                <p:commandLink 
+                                                    styleClass="btn btn-link"  
+                                                    actionListener="#{validarCertificadoDispPorProceso.descargarReporte()}"
+                                                    ajax="false">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.Descargar')}" /> 
+                                                </p:commandLink>-->
+                        <h:outputLink styleClass="btn btn-link" value="#{validarCertificadoDispPorProceso.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+
+            </h:panelGroup>
+        </h:form>
+
+    </ui:composition>
+</html>

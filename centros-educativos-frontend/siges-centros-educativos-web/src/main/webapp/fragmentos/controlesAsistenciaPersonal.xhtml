@@ -1,0 +1,237 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        #{controlesAsistenciaPersonalBean.forceInit()}
+        <f:passThroughAttribute name="autocomplete" value="off"/>        
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hcontrolAsistenciaPersonal}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hcontrolAsistenciaPersonal}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA_PERSONAL}" title="#{msg.agregarControlAsistencia}"
+                        styleClass="btn btn-secondary" 
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CONTROL_ASISTENCIA_PERSONAL_CABEZAL)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarControlAsistencia}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CONTROL_ASISTENCIA_PERSONAL_CABEZAL)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.departamento}" for="filtro_departamento" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_departamento" value="#{controlesAsistenciaPersonalBean.comboDepartamento.selected}" 
+                                             styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{controlesAsistenciaPersonalBean.comboDepartamento.items}" />
+                                <p:ajax listener="#{controlesAsistenciaPersonalBean.seleccionarDepartamento}" event="change" 
+                                        process="@this" update="fila_filtro_municipio"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" id="fila_filtro_municipio">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.municipio}" for="filtro_municipio" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_municipio" value="#{controlesAsistenciaPersonalBean.comboMunicipio.selected}" 
+                                             styleClass="form-control dropdown texto-medio" 
+                                             disabled="#{controlesAsistenciaPersonalBean.comboDepartamento.selectedT==null}">
+                                <f:selectItems value="#{controlesAsistenciaPersonalBean.comboMunicipio.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.desde}" for="input_calFechaInicio" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_calFechaInicio" styleClass="form-control" 
+                                        value="#{controlesAsistenciaPersonalBean.filtro.cpcDesde}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_calFechaInicio" styleClass="msj-danger"/> 
+                        </p:outputPanel>     
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.hasta}" for="input_calFechaFin" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_calFechaFin" 
+                                        styleClass="form-control" 
+                                        value="#{controlesAsistenciaPersonalBean.filtro.cpcHasta}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}"  converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />
+                            <h:message for="input_calFechaFin" styleClass="msj-danger"/> 
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6" >
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{controlesAsistenciaPersonalBean.sedeSeleccionada}"
+                                            completeMethod="#{controlesAsistenciaPersonalBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                            itemValue="#{sed}" 
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500" 
+                                            placeholder="#{msg.autoCompleteEmptyItem}" 
+                                            converter="#{sedesConverter}" 
+                                            multiple="false">
+                            </p:autoComplete>
+                        </p:outputPanel>   
+                    </p:outputPanel>                 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:defaultCommand target="buscarAsistencia"/>
+                            <p:commandButton id="buscarAsistencia" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{controlesAsistenciaPersonalBean.buscar()}" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{controlesAsistenciaPersonalBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="buscarAsistencia" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+            </p:outputPanel>
+        </p:panel>
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{controlesAsistenciaPersonalBean.controlAsistenciaPersonalCabezalLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="cpcPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{controlesAsistenciaPersonalBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{controlesAsistenciaPersonalBean.totalResultados lt (controlesAsistenciaPersonalBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{controlesAsistenciaPersonalBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="controlesAsistencia" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hdepartamento}">
+                    <h:outputText value="#{elem.cpcSede.sedDireccion.dirDepartamento.depNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hmunicipio}">
+                    <h:outputText value="#{elem.cpcSede.sedDireccion.dirMunicipio.munNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSedeEducativa}">
+                    <h:outputText value="#{elem.cpcSede.sedCodigoNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfecha}" >
+                    <h:outputText value="#{elem.cpcFecha}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hpresentes}" styleClass="texto-right" >
+                    <h:outputText value="#{elem.cpcPersonalPresente}" />
+                </p:column>
+                <p:column id="columnaJustificados"  headerText="#{msg.hfaltaronJustificado}"   styleClass="texto-right" >
+                    <h:outputText value="#{elem.cpcPersonalAusentesJustificados}" />
+                </p:column>
+                <p:column id="columnSinJustificar" headerText="#{msg.hfaltaronSinJustificar}" styleClass="texto-right" >
+                    <h:outputText value="#{elem.cpcPersonalAusentesSinJustificar}" />
+                </p:column>
+                <p:column headerText="#{msg.htotal}" styleClass="texto-right columnaVerde"   >
+                    <h:outputText value="#{elem.cpcPersonalEnLista}" />
+                </p:column>
+
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CONTROL_ASISTENCIA_CABEZAL) }">
+                    <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA_PERSONAL}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.cpcPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>  
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA_PERSONAL}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.cpcPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{controlesAsistenciaPersonalBean.historial(elem.cpcPk)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+
+
+        <p:dialog header="#{msg.historialControlAsistencia}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{controlesAsistenciaPersonalBean.historialControlAsistenciaPersonalCabezal}" /> 
+            </ui:include>    
+        </p:dialog>    
+    </h:form>
+</ui:composition>

@@ -1,0 +1,462 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionSede}</li>
+            </ol>
+        </nav>        
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoSede"/>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSede}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.SEDE}" title="#{msg.agregarSede}"
+                        styleClass="btn btn-secondary" 
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CENTRO_EDUCATIVO_PRIVADO)
+                                    or sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CENTRO_EDUCATIVO_OFICIAL)
+                                    or sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SEDE_CIRCULO_INFANCIA)
+                                    or sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SEDE_CIRCULO_ALFABETIZACION)
+                                    or sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_EDUCAME)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarSede}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SEDES)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro" collapsed="#{sedesBean.cerrarFiltro}">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-12">
+                       
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo">
+                            <h:outputLabel value="#{msg.tiposede}" for="b_tipo" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4  ">
+                                <h:selectOneMenu   id="b_tipo" value="#{sedesBean.comboTiposSede.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.comboTiposSede.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarTipo}" event="change" 
+                                            process="@this" update="fila_input_tipo filtro_impleme"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+
+                            <h:panelGroup rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_SEDES_INCLUIR_ADSCRITAS)}">
+                                <h:outputText value="#{msg.incluirSedesAdscritas}" styleClass="col-sm-2 col-form-label"/>
+                                <div class="col-sm-4">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_inc_adsc" styleClass="form-check-input" value="#{sedesBean.filtro.incluirAdscritas}" />
+                                        <h:outputLabel for="input_inc_adsc" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>                  
+                            </h:panelGroup>
+                        </p:outputPanel>
+
+
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo" value="#{sedesBean.filtro.sedCodigo}" /> 
+                            </p:outputPanel>
+                            <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{sedesBean.filtro.sedNombre}" />    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                            <h:outputLabel value="#{msg.departamento}" for="b_departamento" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4  ">
+                                <h:selectOneMenu   id="b_departamento" value="#{sedesBean.comboDepartamentos.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.comboDepartamentos.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarDepartamento}" event="change" 
+                                            process="@this" update="fila_input_departamento"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                            <h:outputLabel value="#{msg.municipio}" for="b_municipio" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4 ">
+                                <h:selectOneMenu   id="b_municipio" value="#{sedesBean.comboMunicipios.selected}" 
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.comboMunicipios.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel  id="filtro_impleme">
+                            <p:outputPanel styleClass="form-group row"  rendered="#{sedesBean.comboTiposSede.selectedT eq TipoSede.CIR_ALF}">   
+                                <h:outputLabel value="#{msg.administrador}" for="b_imple" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4  ">
+                                    <h:selectOneMenu   id="b_imple" value="#{sedesBean.comboImplementadora.selected}"
+                                                       styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedesBean.comboImplementadora.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel>                                
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row"  rendered="#{sedesBean.comboTiposSede.selectedT eq TipoSede.CIR_ALF}">
+                                <h:outputLabel value="#{msg.alfabetizador}" for="b_nombre_alf" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel id="filtroAlfabetizador" styleClass="col-sm-4">
+                                    <div class="ui-inputgroup">
+                                        <h:inputText autocomplete="off" styleClass="form-control" 
+                                                     style="display: inline-block;"
+                                                     value="#{sedesBean.filtro.sedAlfAlfabetizadorNombre}" rendered="#{sedesBean.filtroNombreCompletoAlfabetizador.nombreCompleto == null}">
+                                            <p:ajax event="keyup" listener="#{sedesBean.limpiarFiltroPromotor()}"  update=":form:filtroPromotor" />
+                                        </h:inputText>
+                                        
+                                        <h:inputText autocomplete="off" styleClass="form-control"
+                                                     style="display: inline-block;"
+                                                     disabled="true"
+                                                     rendered="#{sedesBean.filtroNombreCompletoAlfabetizador.nombreCompleto != null}"
+                                                     value="#{sedesBean.filtroNombreCompletoAlfabetizador.nombreCompleto}" /> 
+                                        <f:subview id="busquedaNombre">
+                                            <ui:include src="componentes/busquedaNombreComponente.xhtml"  >   
+                                                <ui:param name="controllerParam" value="#{sedesBean}" />
+                                                <ui:param name="actionParam" value="filtroNombreAlfabetizadorCompletoSeleccionar" />
+                                                <ui:param name="filtroNombreCompleto" value="#{sedesBean.filtroNombreCompletoAlfabetizador}" />
+                                            </ui:include>
+                                        </f:subview>
+                                    </div>
+                                </p:outputPanel>
+                                <h:outputLabel value="#{msg.promotor}" for="b_nombre_pro" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel id="filtroPromotor" styleClass="col-sm-4">
+                                    <div class="ui-inputgroup">
+                                        <h:inputText autocomplete="off" styleClass="form-control" 
+                                                     style="display: inline-block;"
+                                                     value="#{sedesBean.filtro.sedAlfPromotorNombre}" rendered="#{sedesBean.filtroNombreCompletoPromotor.nombreCompleto == null}">
+                                            <p:ajax event="keyup" listener="#{sedesBean.limpiarFiltroAlfabetizador()}"  update=":form:filtroAlfabetizador" />
+                                        </h:inputText>
+                                        <h:inputText autocomplete="off" styleClass="form-control"
+                                                     style="display: inline-block;"
+                                                     disabled="true"
+                                                     rendered="#{sedesBean.filtroNombreCompletoPromotor.nombreCompleto != null}"
+                                                     value="#{sedesBean.filtroNombreCompletoPromotor.nombreCompleto}" /> 
+                                        <f:subview id="busquedaNombrePromotor">
+                                            <ui:include src="componentes/busquedaNombreComponente2.xhtml"  >   
+                                                <ui:param name="controllerParam2" value="#{sedesBean}" />
+                                                <ui:param name="actionParam2" value="filtroNombrePromotorCompletoSeleccionar" />
+                                                <ui:param name="filtroNombreCompleto2" value="#{sedesBean.filtroNombreCompletoPromotor}" />
+                                            </ui:include>
+                                        </f:subview>
+                                    </div>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                                
+                        </p:outputPanel>    
+                    </p:outputPanel>
+
+                </p:outputPanel>
+            </p:panel>	
+
+            <p:panel header="#{msg.filtrosAvanzados}" id="panelAvanzado" 
+                     styleClass="panel-filtro"
+                     closable="true"
+                     rendered="#{sedesBean.panelAvanzado}">
+                <p:outputPanel id="pnlSearch2" styleClass="row" >
+                    <p:outputPanel styleClass="col-md-12">
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.legalizada}" for="b_legalizada" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <p:outputPanel styleClass="col-sm-4 col-md-10">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="b_legalizada" value="#{sedesBean.filtro.sedLegalizada}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <h:outputLabel value="#{msg.zona}" for="b_zona" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_zona" value="#{sedesBean.comboZonas.selected}" 
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.comboZonas.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>               
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.subvencionada}" for="b_legalizada" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <p:outputPanel styleClass="col-sm-4 col-md-10">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="b_subvencionada" value="#{sedesBean.filtro.priSubvencionada}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <h:outputLabel value="#{msg.htipoCalendario}" for="b_tipoCalendario" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_tipoCalendario" value="#{sedesBean.tipoCalendarioFiltroCombo.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.tipoCalendarioFiltroCombo.items}" />
+
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.finDeLucro}" for="b_finlucro" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4  ">
+                                <p:outputPanel styleClass="col-sm-4 col-md-10">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="b_finlucro" value="#{sedesBean.filtro.cedFineDeLucro}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <h:outputLabel value="#{msg.niveles}" for="b_nivel" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_nivel" value="#{sedesBean.comboNivel.selected}"
+                                                   styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{sedesBean.comboNivel.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarNivel}" process="@this"
+                                            update="b_ciclos b_modalidad_educativa b_modalidad_atencion b_sub_modalidad b_grado b_opcion"></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.habilitado}" for="b_habilitado" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4  ">
+                                <p:outputPanel styleClass="col-sm-4 col-md-10">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{sedesBean.filtro.sedHabilitado}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel> 
+
+                            <h:outputLabel value="#{msg.ciclos}" for="b_ciclos" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_ciclos" value="#{sedesBean.comboCiclo.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{sedesBean.comboNivel.selectedT==null}">
+                                    <f:selectItems value="#{sedesBean.comboCiclo.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarCiclo}" process="@this"  
+                                            update="b_modalidad_educativa b_modalidad_atencion b_sub_modalidad b_grado" ></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.modalidad}" for="b_modalidad_educativa" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_modalidad_educativa" value="#{sedesBean.comboModalidad.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{sedesBean.comboCiclo.selectedT==null}">
+                                    <f:selectItems value="#{sedesBean.comboModalidad.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarModalidad()}" process="@this" 
+                                            update="b_opcion b_modalidad_atencion b_sub_modalidad b_grado" ></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+
+
+                            <h:outputLabel value="#{msg.hopcion}" for="b_opcion" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_opcion" value="#{sedesBean.comboOpcion.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{sedesBean.comboModalidad.selectedT == null}">
+                                    <f:selectItems value="#{sedesBean.comboOpcion.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.modalidadAtencion}" for="b_modalidad_atencion" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_modalidad_atencion" value="#{sedesBean.comboModalidadAtencion.selected}"
+                                                   disabled="#{sedesBean.comboModalidad.selectedT == null}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.comboModalidadAtencion.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarModalidadAtencion}" process="@this" 
+                                            update="b_sub_modalidad b_grado"></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+
+                            <h:outputLabel value="#{msg.subModalidadAtencion}" for="b_sub_modalidad" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_sub_modalidad" value="#{sedesBean.comboSubModalidad.selected}"
+                                                   styleClass="form-control dropdown texto-medio" 
+                                                   disabled="#{sedesBean.comboModalidadAtencion.selectedT == null or sedesBean.comboSubModalidad.isEmpty()}">
+                                    <f:selectItems value="#{sedesBean.comboSubModalidad.items}" />
+                                    <p:ajax listener="#{sedesBean.seleccionarSubModalidadAtencion()}" process="@this" 
+                                            update="b_grado" ></p:ajax>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.grado}" for="b_grado" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_grado" value="#{sedesBean.comboGrado.selected}"
+                                                   styleClass="form-control dropdown texto-medio"
+                                                   disabled="#{sedesBean.comboModalidadAtencion.selectedT == null or (!sedesBean.comboSubModalidad.isEmpty() and sedesBean.comboSubModalidad.selectedT == null)}">
+                                    <f:selectItems value="#{sedesBean.comboGrado.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel> 
+
+                            <h:outputLabel value="#{msg.programa}" for="b_programa_educativo" styleClass="col-sm-2 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu   id="b_programa_educativo" value="#{sedesBean.comboProgramaEducativo.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.comboProgramaEducativo.items}" />
+
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.tipoOrganismoAdministrativo}" for="input_tipo_org" styleClass="col-sm-2 col-form-label"/>                                                        
+                            <p:outputPanel styleClass="col-sm-4 ">                            
+                                <h:selectOneMenu id="input_tipo_org"  value="#{sedesBean.tipoOrganismoAdministrativoCombo.selected}"  styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sedesBean.tipoOrganismoAdministrativoCombo.items}"/>
+                                </h:selectOneMenu>                                    
+                                <h:message for="input_tipo_org" styleClass="msj-danger"/>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+
+        </h:panelGroup>
+
+        <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+            <p:outputPanel styleClass="form-group row">
+                <p:outputPanel styleClass="col-sm-12 texto-right">
+                    <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                     action="#{sedesBean.buscar()}" update="searchPanels pnlResultado"/>
+                    <p:commandLink value="#{sedesBean.txtFiltroAvanzado}" 
+                                   action="#{sedesBean.verPanelAvanzado()}" 
+                                   update="searchPanels @this" styleClass="btn btn-link">
+                    </p:commandLink>
+                    <p:commandLink value="#{msg.limpiar}" action="#{sedesBean.limpiar()}" 
+                                   update="pnlSearch pnlSearch2 pnlResultado" immediate="true" styleClass="btn btn-link">
+                        <p:resetInput target="pnlSearch pnlSearch2 pnlResultado" />
+                    </p:commandLink>
+                    <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                    <p:blockUI block="@form" trigger="btnBuscar" />
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="pnlResultado" >            
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{sedesBean.sedesLazyModel}"     
+                         rendered="#{sedesBean.sedesLazyModel != null}"
+                         emptyMessage="#{msg.noHayResultados}"
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="sedPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{sedesBean.paginado}"
+                         reflow="true"> 
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{sedesBean.totalResultados lt (sedesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{sedesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="sedes" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.sedCodigo}">                     
+                    <h:outputText value="#{elem.sedCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.sedNombre}">                     
+                    <h:outputText value="#{elem.sedNombre}" />
+                    <o:graphicImage style="margin-left:5px" alt="#{msg.htieneSedesAdscritas}" title="#{msg.htieneSedesAdscritas}" name="/imagenes/tieneAdscritas.png" rendered="#{elem.sedTieneAdscritas}"/>
+                    <o:graphicImage style="margin-left:5px" alt="#{msg.hesAdscritaAOtraSede}" title="#{msg.hesAdscritaAOtraSede}" name="/imagenes/esAdscrita.png" rendered="#{elem.sedSedeAdscritaDe != null}"/>
+                </p:column>
+                <p:column headerText="#{msg.hDepartamento}">    
+                    <h:outputText value="#{elem.sedDireccion.dirDepartamento.depNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hMunicipio}">            
+                    <h:outputText value="#{elem.sedDireccion.dirMunicipio.munNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hTipoSede}" sortBy="#{elem.sedTipo}">
+                    <h:outputText value="#{elem.sedTipo.text}" />
+                </p:column>
+                <p:column headerText="#{msg.htelefono}" sortBy="#{elem.sedTelefono}">                     
+                    <h:outputText value="#{elem.sedTelefono}" />
+                </p:column>
+                <p:column headerText="Es adscripta?" exportable="true" visible="false">                     
+                    <h:outputText value="#{elem.esAdscripta()}" converter="#{booleanConverter}" />
+                </p:column>
+                <p:column headerText="Adscripta de" exportable="true" visible="false">                     
+                    <h:outputText value="#{elem.sedSedeAdscritaDe.sedCodigoNombre}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.SEDE}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.sedPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column> 
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CENTRO_EDUCATIVO_PRIVADO)
+                                      or sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CENTRO_EDUCATIVO_OFICIAL)
+                                      or sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SEDE_CIRCULO_INFANCIA)
+                                      or sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SEDE_CIRCULO_ALFABETIZACION)
+                                      or sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_EDUCAME)}">
+                    <p:link outcome="#{ConstantesPaginas.SEDE}" title="#{msg.editar}" styleClass="btn btn-icono" disabled="#{!sedesBean.verEditar(elem)}">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.sedPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{sedesBean.historial(elem.sedPk)}"  
+                                     update=":form:historialDetail" oncomplete="PF('historialDialog').show()" />
+                </p:column>
+            </p:dataTable>              
+        </p:outputPanel>        
+
+
+        <p:dialog header="#{msg.historialSede}" widgetVar="historialDialog" modal="true" positionType="absolute" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial"  value="#{sedesBean.historialSede}" /> 
+                <ui:param name="navegacion" value="#{ConstantesPaginas.SEDE}" /> 
+            </ui:include>
+        </p:dialog>   
+
+    </h:form>
+</ui:composition>

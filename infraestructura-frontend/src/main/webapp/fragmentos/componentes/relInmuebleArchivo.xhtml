@@ -1,0 +1,188 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relInmuebleArchivoBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relInmuebleArchivoBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relInmuebleArchivoBean.entidadEnEdicion}">
+
+            <p:outputPanel id='pnlMedia'>
+                <p:outputPanel styleClass="form-action-buttons margen-sup">
+                    <p:commandButton value="#{msg.agregarImagen}" icon="glyphicon glyphicon-plus" 
+                                     action="#{relInmuebleArchivoBean.agregar()}"
+                                     update=":form:tabs:galeriaImagenes:itemCargaDialogImagenesPanel"
+                                     oncomplete="PF('itemCargaDialogImagenes').show()"  
+                                     id="btnAgregarImagen" 
+                                     styleClass="btn btn-secondary" 
+                                     rendered="#{!relInmuebleArchivoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_REL_INMUEBLE_ARCHIVO)}">
+                    </p:commandButton>
+                </p:outputPanel>                            
+                <p:outputPanel styleClass="galeriaMultimedia" id="itemCargaDialogImagenesCarousel">
+                    <h:panelGroup>
+                        <p:dataGrid 
+                            id="dataGridDT"
+                            var="imagen"
+                            value="#{relInmuebleArchivoBean.relInmuebleArchivoLazyModel}" 
+                            rendered="#{relInmuebleArchivoBean.totalResultados!=null and relInmuebleArchivoBean.totalResultados>0}"
+                            emptyMessage="#{msg.noHayResultados}"
+                            columns="3" 
+                            layout="grid"
+                            rows="#{relInmuebleArchivoBean.paginado}"
+                            lazy="true"
+                            paginator="true"  
+                            paginatorPosition="bottom"
+                            currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                            paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                            rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate3}"
+                            >
+                            <f:facet name="{anterior}"  >
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}"  >
+                                <h:outputText styleClass="#{relInmuebleArchivoBean.totalResultados lt (relInmuebleArchivoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+                            <p:panel header="#{imagen.riaArchivo.achNombre} " style="text-align:center">
+                                <h:panelGrid columns="1" style="width:100%">
+                                    <o:graphicImage value="#{imagenesBean.getFileLowQuality(imagen.riaArchivo.achPk)}" width="220" 
+                                                    alt="#{imagen.riaArchivo.achNombre}" title="#{imagen.riaArchivo.achNombre}"
+                                                    rendered="#{imagen.riaArchivo != null and imagen.riaArchivo.achPk != null and !imagen.riaArchivo.achShowTmpFile}" />
+
+                                    <h:outputText rendered="#{imagen.riaTipoImagen.tiiNombre!=null}"  styleClass="form-control-plaintext"
+                                                  value="Tipo: #{imagen.riaTipoImagen.tiiNombre}"/>
+                                    <h:outputText rendered="#{imagen.riaPublicable!=null and imagen.riaPublicable}"  styleClass="form-control-plaintext"
+                                                  value="Publicable"/>
+                                    <p:commandButton title="#{msg.actualizar}" icon="glyphicon glyphicon-pencil" 
+                                                     action="#{relInmuebleArchivoBean.actualizar(imagen)}"
+                                                     rendered="#{!relInmuebleArchivoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ARCHIVO)}"
+                                                     update=":form:tabs:galeriaImagenes:itemCargaDialogImagenesPanel"
+                                                     oncomplete="PF('itemCargaDialogImagenes').show()"  
+                                                     styleClass="btn btn-icono"
+                                                     id="btnActualizarImagen"/>
+                                    <p:commandButton title="#{msg.eliminarImagen}" icon="glyphicon glyphicon-trash" 
+                                                     action="#{relInmuebleArchivoBean.actualizar(imagen)}"
+                                                     update=":form:tabs:galeriaImagenes:itemCargaDialogImagenes"
+                                                     rendered="#{!relInmuebleArchivoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_REL_INMUEBLE_ARCHIVO)}"
+                                                     onclick="PF('confirmBorrarImagenDialog').show()"
+                                                     styleClass="btn btn-icono rojo"
+                                                     id="btnEliminarImagen"/>                                    
+                                </h:panelGrid>
+                            </p:panel>
+
+                        </p:dataGrid>                                 
+                    </h:panelGroup>
+                </p:outputPanel>   
+            </p:outputPanel>
+
+            <p:dialog id="itemCargaDialogImagenes" header="#{msg.agregarImagen}" positionType="fixed" widgetVar="itemCargaDialogImagenes" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                <p:outputPanel id="itemCargaDialogImagenesPanel" styleClass="form-horizontal">
+                    <p:messages id="popupmsgMediaSede" showDetail="true" globalOnly="false" for="popupmsgMediaSede" closable="true"/>   
+                    <h:panelGroup rendered="#{not empty relInmuebleArchivoBean.archivoEnEdicion}">      
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.tipo}"  styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:selectOneMenu id="input_fuente_financiamiento_combo" value="#{relInmuebleArchivoBean.comboTipoImagen.selected}" styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{relInmuebleArchivoBean.comboTipoImagen.items}" />
+                                </h:selectOneMenu>     
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_propietario">
+                            <h:outputLabel value="#{msg.publicable}" for="input_propietario" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="input_propietario" disabled="#{relInmuebleArchivoBean.soloLectura}"
+                                                  value="#{relInmuebleArchivoBean.archivoEnEdicion.riaPublicable}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row"  >
+                            <h:outputLabel for="file_upload" styleClass="col-sm-3 col-form-label"/>
+
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                           
+                                <p:fileUpload fileUploadListener="#{relInmuebleArchivoBean.handleFileUpload}"
+                                              id="file_upload"
+                                              mode="advanced" 
+                                              dragDropSupport="true"
+                                              label="Cargar foto"
+                                              rendered="#{!relInmuebleArchivoBean.soloLectura}"
+                                              uploadLabel="#{msg.confirmar}"
+                                              invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                              invalidFileMessage="#{msg.formatoNoPermitidoFotos} "
+                                              update="@parent"
+                                              cancelLabel="#{msg.cancelar}"
+                                              auto="true"
+                                              sizeLimit="#{applicationBean.fotosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png)$/" />
+                                
+                                <div class="item">
+                                    <span class="glyphicon glyphicon-info-sign" style="color:#00498d;" title="#{msg.tiposImagenesInmuebles}"></span>
+                                </div>
+                                <!-- Se muestra imagen guardada en tmp -->
+                                <o:graphicImage value="#{imagenesBean.getTmpFile(relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achTmpPath)}" width="220" 
+                                                alt="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achNombre}" title="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achNombre}"
+                                                rendered="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo != null and
+                                                            relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achPk == null }" />
+                                <o:graphicImage value="#{imagenesBean.getFile(relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achPk)}" width="220" 
+                                                alt="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achNombre}" title="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achNombre}"
+                                                rendered="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo != null and
+                                                            relInmuebleArchivoBean.archivoEnEdicion.riaArchivo.achPk != null }" />
+                                <o:graphicImage name="/imagenes/subir_imagen.png" width="220" rendered="#{relInmuebleArchivoBean.archivoEnEdicion.riaArchivo == null }"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <!-- Al guardar se pasa del temporal al local -->
+                        <p:outputPanel styleClass="control-group">
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.guardar}" action="#{relInmuebleArchivoBean.guardar()}"                                             
+                                                 update=":form:tabs:galeriaImagenes:itemCargaDialogImagenesPanel form:tabs:galeriaImagenes:pnlMedia" 
+                                                 rendered="#{!relInmuebleArchivoBean.soloLectura}"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                                <p:commandLink value="#{msg.cancelar}"  oncomplete="PF('itemCargaDialogImagenes').hide();"  update=":form:tabs:galeriaImagenes:itemCargaDialogImagenes" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+                </p:outputPanel>
+            </p:dialog>
+            <p:confirmDialog id="confirmBorrarImagenDialog"
+                             message="#{msg.textoConfirmacionEliminacion}"
+                             header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmBorrarImagenDialog">
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="ConfirmImagenDelete" value="#{msg.hconfirmar}" 
+                                     update="form:tabs:galeriaImagenes:pnlMedia"
+                                     oncomplete="PF('confirmBorrarImagenDialog').hide()" 
+                                     styleClass="btn btn-primary"
+                                     action="#{relInmuebleArchivoBean.eliminar()}"  />
+                    <p:blockUI block="@form" trigger="ConfirmImagenDelete"/>
+                    <p:commandLink id="CancelarImagenDelete" 
+                                   value="#{msg.cancelar}" 
+                                   styleClass="btn btn-link"
+                                   onclick="PF('confirmBorrarImagenDialog').hide()"  />
+                </p:outputPanel>
+            </p:confirmDialog> 
+
+
+
+
+
+
+    </h:panelGroup>
+
+
+
+
+
+</ui:composition>

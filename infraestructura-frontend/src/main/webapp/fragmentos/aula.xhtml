@@ -1,0 +1,102 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+   
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.AULAS}.xhtml">#{msg.gestionAula}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{aulaBean.entidadEnEdicion.aulPk!= null}" value="#{msg.edicionAula}"/>
+                    <h:outputText rendered="#{aulaBean.entidadEnEdicion.aulPk == null}" value="#{msg.nuevoAula}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionAula}"/></h2>
+            
+            <p:outputPanel styleClass="float-right">
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.AULA)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{aulaBean.entidadEnEdicion.aulPk != null}" value="#{msg.edicionAula} #{aulaBean.nombreEntidadEdicion}"/>
+            <h:outputText rendered="#{aulaBean.entidadEnEdicion.aulPk == null}" value="#{msg.nuevoAula}" />
+        </h3>
+
+
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup>
+                <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+                <p:tabView id="tabs"  dynamic="false" onTabChange="PF('tabsBlocker').show()">
+                    <p:ajax event="tabChange" listener="#{aulaBean.changeTab}" update="@form" process="@form" />
+                    <p:tab id="tabDatosGenerales" title="#{msg.datosGenerales}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_aula">
+                            <p:outputPanel styleClass="col-md-12">
+                                <f:subview id="seleccionarAula">
+                                    <ui:include src="componentes/aulaDatos.xhtml" > 
+                                        <ui:param name="aula" value="#{aulaBean.entidadEnEdicion}" />
+                                        <ui:param name="soloLectura" value="#{aulaBean.soloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                    </p:tab>  
+                    <p:tab id="tabEspacioComun" title="#{msg.espacioComplementario}" disabled="#{aulaBean.entidadEnEdicion.aulPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_AULA_ESPACIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_espacio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{aulaBean.tabActiveId == 'tabEspacioComun'}">
+                                    <f:subview id="seleccionarEspacio">
+                                        <ui:include src="componentes/relAulaEspacio.xhtml" > 
+                                            <ui:param name="aula" value="#{aulaBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{aulaBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                    <p:tab id="tabServicio" title="#{msg.servicios}" disabled="#{aulaBean.entidadEnEdicion.aulPk== null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_REL_AULA_SERVICIO)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_servicio">
+                            <p:outputPanel styleClass="col-md-12">
+                                <c:if test="#{aulaBean.tabActiveId == 'tabServicio'}">
+                                    <f:subview id="seleccionarServicio">
+                                        <ui:include src="componentes/relAulaServicio.xhtml" > 
+                                            <ui:param name="aula" value="#{aulaBean.entidadEnEdicion}" />
+                                            <ui:param name="soloLectura" value="#{aulaBean.soloLectura}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </c:if>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </p:tab>
+                </p:tabView>   
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

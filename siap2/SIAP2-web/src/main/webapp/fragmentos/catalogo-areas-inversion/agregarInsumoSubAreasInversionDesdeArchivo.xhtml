@@ -1,0 +1,150 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.AdicionInsumoDesdeArchivo')}"/>
+                </h2>
+            </div>
+        </ui:fragment> 
+
+
+
+        <h:form id="tranferenciaForm" prependId="false">
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+
+                <p:outputPanel id="bloqueNoModal" styleClass="form-horizontal">
+                    <!-- PRINCIPAL -->
+                    <div class="grupoCampos">
+                        <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Area')}:" />
+                           
+                            <div class="col-sm-9">
+                                <p:autoComplete id="filtro_area" 
+                                        styleClass="form-control textoLargo" 
+                                        value="#{adicionInsumosAreasInversionDesdeArchivoMB.areaSelected}"  
+                                        completeMethod="#{adicionInsumosAreasInversionDesdeArchivoMB.completeAreasInversion}" 
+                                        maxResults="10"
+                                        var="ut" itemLabel="#{ut.nombre}"  
+                                        itemValue="#{ut}" 
+                                        onclick="PF('filtro_area').search(PF('filtro_area').input.val())" 
+                                        widgetVar="filtro_area" 
+                                        forceSelection="true" 
+                                        queryDelay="500" 
+                                        converter="#{areasInversionConverter}"
+                                        multiple="false">
+                                        <p:ajax event="itemSelect"  process="@this" />
+                                    </p:autoComplete>
+                            </div>
+                        </div>  
+
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Subarea')}:" />
+                            <div class="col-sm-9">
+                                <p:autoComplete id="filtro_subarea" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{adicionInsumosAreasInversionDesdeArchivoMB.subAreaSelected}"  
+                                            completeMethod="#{adicionInsumosAreasInversionDesdeArchivoMB.completeSubAreasInversion}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('filtro_subarea').search(PF('filtro_subarea').input.val())" 
+                                            widgetVar="filtro_subarea" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{areasInversionConverter}"
+                                            multiple="false">
+                                            <p:ajax event="itemSelect"  process="@this" />
+                                        </p:autoComplete>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel for="ordenInicioArchivoAsubir" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                            <div class="col-sm-9">
+                                <p:fileUpload label="#{textMB.obtenerTexto('labels.Selecionar')}"
+                                              value="#{adicionInsumosAreasInversionDesdeArchivoMB.uploadedFile}"
+                                              mode="advanced"
+                                              multiple="false"
+                                              update="ordenInicioArchivoAsubir"
+                                              auto="true"
+                                              fileUploadListener="#{adicionInsumosAreasInversionDesdeArchivoMB.fileUploadListener}"/>     
+
+                                <h:panelGroup layout="tranferenciaForm" id="ordenInicioArchivoAsubir" >
+                                    <ui:fragment rendered="#{adicionInsumosAreasInversionDesdeArchivoMB.crearDTO.file != null}">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoAGuardar')}: " />
+                                        <h:outputText value="#{adicionInsumosAreasInversionDesdeArchivoMB.crearDTO.file.fileName}" />                                         
+                                    </ui:fragment>
+                                </h:panelGroup>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-9">
+
+                                <p:commandButton styleClass="btn btn-primary" id="btnGuardar"
+                                                 icon="glyphicon glyphicon-saved" 
+                                                 value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                                 update="tranferenciaForm"
+                                                 process="tranferenciaForm"
+                                                 action="#{adicionInsumosAreasInversionDesdeArchivoMB.guardarActualizar()}"/>
+                                <p:blockUI block="tranferenciaForm" trigger="btnGuardar" />
+                                <h:outputLink styleClass="btn btn-link" value="#{adicionInsumosAreasInversionDesdeArchivoMB.cerrar()}">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                </h:outputLink>
+                               <!-- <h:outputLink value="crearEditarGestionPresupuestoEscolar.xhtml" rendered="#{!transferenciasArchivoMB.editable}">
+                                    <f:param name="id" value="#{transferenciasArchivoMB.relPresupuesto.componentePresupuestoEscolar.id}" />
+                                    <f:param name="tab" value="1" />
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                </h:outputLink >-->
+                            </div>
+                        </div>
+                    </div>
+                </p:outputPanel>
+            </div>
+        </h:form> 
+
+        <!-- MODAL PARA CONFIRMACION DE PROCESO-->
+        <h:form id="formProceso" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.EjecucionProceso')}" />
+                            </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.ProcesoTransferenciasDesdeArchivoIniciado')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <h:outputLink styleClass="btn btn-primary" value="#{transferenciasArchivoMB.confirmar()}"  >
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Confirmar')}"  />
+                            </h:outputLink>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+        
+    </ui:composition>
+</html>

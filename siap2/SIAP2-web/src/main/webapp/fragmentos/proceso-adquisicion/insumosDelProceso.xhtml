@@ -1,0 +1,520 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" id="insumosDelProceso">
+        <h:form prependId="false">
+            <h:panelGroup layout="block" id="divMensajesInsumosProceso">
+                <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+            </h:panelGroup>
+            <div>
+                <fieldset class="fieldsetSmall fieldset">
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros">
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <p:outputLabel for="filtroRubro" value="#{textMB.obtenerTexto('labels.OEG')}:" />
+                                <h:inputText value="#{insumosDelProceso.rubro}" styleClass="form-control" id="filtroRubro"/>
+                            </div>
+                            <div class="form-group">
+                                <p:outputLabel value="#{textMB.obtenerTexto('labels.Codigo')}:" for="filtroCodigo" />
+                                <h:inputText value="#{insumosDelProceso.codigo}" styleClass="form-control" id="filtroCodigo"/>
+                            </div>
+                            <div class="form-group">
+                                <p:outputLabel value="#{textMB.obtenerTexto('labels.nombre')}:" for="filtroNombre" />
+                                <h:inputText value="#{insumosDelProceso.nombre}" styleClass="form-control" id="filtroNombre"/>
+                            </div>
+                            <p:commandButton actionListener="#{insumosDelProceso.getInsumosDataTable(true)}" styleClass="btn btn-default" icon="glyphicon glyphicon-search" update="@form" value="#{textMB.obtenerTexto('labels.Consultar')}"  />
+                            <p:commandButton styleClass="btn btn-link" update="@form" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{insumosDelProceso.limpiar()}"/>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" />
+            <p:dataTable
+                id="tablaDeInsumos"
+                var="item" 
+                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                value="#{insumosDelProceso.getInsumosDataTable(false)}"
+                paginator="true" rows="25"
+                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                rowsPerPageTemplate="5,10,25,50"
+                styleClass="table"
+                lazy="false">
+
+                <p:column sortBy="#{item.unidadTecnica.nombre}" >
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.UnidadTecnicaCabezalTabla')}" title="#{textMB.obtenerTexto('labels.UnidadTecnicaTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.unidadTecnica.nombre}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.OEG')}"  sortBy="#{item.insumo.objetoEspecificoGasto.clasificador}" >
+                    <h:outputText value="#{item.insumo.objetoEspecificoGasto.clasificador}" />
+                </p:column>
+                <p:column sortBy="#{item.poInsumo.id}" >
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CodigoInsumoCabezalTabla')}" title="#{textMB.obtenerTexto('labels.CodigoInsumoTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.poInsumo.id}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.NombreInsumo')}" sortBy="#{item.insumo.nombre}" >
+                    <h:outputText value="#{item.insumo.nombre}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.FechaDeAlgo')}"  sortBy="#{item.fechaContratacion}" >
+                    <h:outputText value="#{item.fechaContratacion}" converter="dateConverter"/>
+                </p:column>
+                <p:column sortBy="#{item.poInsumo.cantidad}"  styleClass=" numericos">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CantidadSolicitadaCabezalTabla')}" title="#{textMB.obtenerTexto('labels.CantidadSolicitadaTooltip')}"/>
+                    </f:facet>  
+                    <h:outputText value="#{item.poInsumo.cantidad}" />
+                </p:column>
+                <p:column sortBy="#{item.poInsumo.montoUnit}"  styleClass=" numericos">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.$PrecioUnitarioEstimadoCabezalTabla')}" title="#{textMB.obtenerTexto('labels.MonedaSistema')} #{textMB.obtenerTexto('labels.$PrecioUnitarioEstimadoTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.poInsumo.montoUnit}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+                <p:column sortBy="#{item.poInsumo.montoTotal}" styleClass=" numericos" >
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.$TotalEstimadoCabezalTabla')}" title="#{textMB.obtenerTexto('labels.MonedaSistema')} #{textMB.obtenerTexto('labels.$TotalEstimadoTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.poInsumo.montoTotal}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>  
+                <p:column sortBy="#{item.poInsumo.montoTotalCertificado}" styleClass=" numericos" >
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.MontoTotalCertificadoCabezalTabla')}" title="#{textMB.obtenerTexto('labels.MonedaSistema')} #{textMB.obtenerTexto('labels.MontoTotalCertificadoTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.poInsumo.montoTotalCertificado ne null?item.poInsumo.montoTotalCertificado: 0.00}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>  
+                <p:column sortBy="#{item.cantidadAdjudicada}"  styleClass=" numericos">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CantidadAdjudicadaCabezalTabla')}" title="#{textMB.obtenerTexto('labels.CantidadAdjudicadaTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.cantidadAdjudicada}" />
+                </p:column>        
+                <p:column  sortBy="#{item.montoTotalAdjudicado}"  styleClass=" numericos">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.$TotalAdjudicadoCabezalTabla')}" title="#{textMB.obtenerTexto('labels.MonedaSistema')} #{textMB.obtenerTexto('labels.$TotalAdjudicadoTooltip')}"/>
+                    </f:facet>
+                    <h:outputText value="#{item.montoTotalAdjudicado}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>  
+                <p:column styleClass="columnaAcciones">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.poInsumoRecepcionFisicaTDR')}" title="#{textMB.obtenerTexto('labels.poInsumoRecepcionFisicaTDRTooltip')}"/>
+                    </f:facet>
+                    <p:selectBooleanCheckbox value="#{item.poInsumo.recepcionFisicaTDR}" 
+                                             rendered="#{item.poInsumo.tdr != null and insumosDelProceso.getEstadoProceso() eq 'RECEPCION_TDR_ET_CERT_DISP'}">                        
+                        <f:ajax event="change" listener="#{insumosDelProceso.cambiarRecepcionFisicaTDR(item.poInsumo.id)}"/>
+                    </p:selectBooleanCheckbox>
+                    <h:outputText value="#{item.poInsumo.recepcionFisicaTDR?'Si':'No'}" 
+                                  rendered="#{item.poInsumo.tdr != null and insumosDelProceso.getEstadoProceso() ne 'RECEPCION_TDR_ET_CERT_DISP'}">                        
+                    </h:outputText>
+                </p:column>    
+                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.TDR/ET')}" styleClass="columnaAcciones" >
+                    <p:commandButton styleClass="btn btn-icono"    
+                                     icon="glyphicon glyphicon-file"
+                                     title="#{textMB.obtenerTexto('labels.TDR/ET')}"  
+                                     rendered="#{item.poInsumo.tdr!=null}"
+                                     update="verTDRInsumoForm"
+                                     action="#{insumosDelProceso.initTDR(item.poInsumo)}"
+
+                                     immediate="true">
+
+                    </p:commandButton>
+                </p:column>    
+                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerDetalles')}" styleClass="columnaAcciones">
+                    <p:commandButton styleClass="btn btn-icono"    
+                                     icon="glyphicon glyphicon-eye-open"
+                                     title="#{textMB.obtenerTexto('labels.VerDetalles')}"
+                                     update="verDetallesInsumoForm"
+                                     action="#{insumosDelProceso.cargarDetallesInsumo(item)}"
+                                     immediate ="true">
+                    </p:commandButton>
+                </p:column>  
+                <p:column exportable="false" 
+                          headerText="#{textMB.obtenerTexto('labels.cargaCertDispPres')}"
+                          styleClass="columnaAcciones"
+                          rendered="#{permisosMB.permisos['PROCESO_ADQ_CARGAR_CERT_DISP_PRES'] }">
+                    <p:commandButton styleClass="btn btn-icono"    
+                                     icon="glyphicon glyphicon-pencil"
+                                     title="#{textMB.obtenerTexto('labels.CertificadoDisponivilidadPresupuestaria')}"
+                                     update="anadirCertificadoDispPresForm"
+                                     action="#{insumosDelProceso.initCertificadoDispPres()}"
+                                     immediate ="true"
+                                     oncomplete="$('#anadirCertificadoDispPres').modal('show');"  >
+                        <f:setPropertyActionListener target="#{insumosDelProceso.insumoSeleccionado}" value="#{item}" />
+                    </p:commandButton>
+
+                </p:column>
+<!--                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerDetallesProyectoAccionCentral')}" styleClass="columnaAcciones">
+                    <p:commandButton styleClass="btn btn-icono"    
+                                     icon="glyphicon glyphicon-eye-open"
+                                     title="#{textMB.obtenerTexto('labels.VerDetallesProyectoAccionCentral')}"
+                                     update="labels.VerDetallesProyectoAccionCentralForm"
+                                     action="#{insumosDelProceso.cargarDetallesInsumo(item)}"
+                                     immediate ="true">
+                    </p:commandButton>
+                </p:column> -->
+                <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                     styleClass="btn btn-danger btn-icono" 
+                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                     onclick="if (!existeConfirmacion(this.id))
+                                                 return false" 
+                                     actionListener="#{insumosDelProceso.eliminarInsumo(item)}"
+                                     update="otrosDatos tablaDeInsumos confirmModalCallBackBody divNotificarUTSobreTDR formPrincipal divMensajesInsumosProceso"
+                                     immediate="true">
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+
+            <div style="display: none">
+                <p:dataTable id="tablaExportableLoteItemsInsumos"
+                             var="item"
+                             value="#{procesoAdqMain.relacionesLotesItemsInsumos}"       
+                             paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}">
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Lote')}" >
+                        <h:outputText value="#{item.lote}" />
+                    </p:column> 
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Item')}" >
+                        <h:outputText value="#{item.item}" />
+                    </p:column>   
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Insumo')}" >
+                        <h:outputText value="#{item.insumo}" />
+                    </p:column>   
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}" >
+                        <h:outputText value="#{item.cantidad}" />
+                    </p:column>   
+
+                </p:dataTable>
+            </div>
+            <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.ExportarDatosInsumos')}">
+                <span class="glyphicon glyphicon-export"></span>
+                <p:dataExporter type="csv" target="tablaDeInsumos" fileName="Insumos" />
+            </h:commandLink> 
+            <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.ExportarDatosLotesItemsInsumos')}">
+                <span class="glyphicon glyphicon-export"></span>
+                <p:dataExporter type="csv" target="tablaExportableLoteItemsInsumos" fileName="#{textMB.obtenerTexto('labels.LotesItemsInsumos')}"/>
+            </h:commandLink> 
+
+        </h:form>
+
+
+        <div class="row">
+            <div class="form-group">
+                <h:panelGroup layout="block" class="col-sm-10 col-sm-offset-2 botones-derecha" id="divNotificarUTSobreTDR">
+                    <h:form>
+                        <p:commandButton id="notificarUTSobreTDR" 
+                                         styleClass="btn btn-secundary" 
+                                         value="#{textMB.obtenerTexto('labels.NotificarUTSobreTDR')}" 
+                                         actionListener="#{insumosDelProceso.notificarUTSobreTDR}" 
+                                         update="insumosDelProceso" 
+                                         rendered="#{insumosDelProceso.getHabilitarBotonNotificacion() and permisosMB.permisos['PROCESO_ADQ_NOTIFICAR_UT_SIN_TDR']}" />
+                        <p:commandButton id="guardar" 
+                                         styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-saved" 
+                                         value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                         actionListener="#{insumosDelProceso.guardar}"
+                                         update="formPrincipal tablaDeInsumos insumosDelProceso"
+                                         rendered="#{insumosDelProceso.getEstadoProceso() eq 'RECEPCION_TDR_ET_CERT_DISP'}"/>
+
+                        <!--                        <p:commandButton id="deshacer"
+                                                                 styleClass="btn btn-link"  
+                                                                 value="#{textMB.obtenerTexto('labels.Deshacer')}"
+                                                                 action="#{insumosDelProceso.deshacer()}"
+                                                                 update="tablaDeInsumos insumosDelProceso"
+                                                                 rendered="#{insumosDelProceso.getEstadoProceso() eq 'RECEPCION_TDR_ET_CERT_DISP'}"/>-->
+                    </h:form>
+                </h:panelGroup>
+            </div>
+        </div>
+
+    </h:panelGroup>
+
+
+
+
+
+    <!-- MODAL PARA GUARDAR CERTIFICADS DE DISPONIBILIDAD PRESUPUESTARIA -->
+    <div class="modal fade"  id="anadirCertificadoDispPres" tabindex="-1" role="dialog" aria-labelledby="anadirCertificadoDispPres">
+        <div class="modal-dialog" role="document">
+            <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalAnadirCertificadoDispPres">
+                <h:form id="anadirCertificadoDispPresForm"    enctype="multipart/form-data"> 
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                        <span class="modal-title">
+                            <h:outputText value="#{textMB.obtenerTexto('labels.CertificadosDeDisponibilidadPresupuestaria')}" /> 
+                        </span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-horizontal">
+                            <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+
+                            <div class="form-group">
+                                <h:outputLabel for="documento-descripcion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Documento')}:" />
+                                <div class="col-sm-9">
+                                    <p:fileUpload value="#{insumosDelProceso.uploadedFile}"
+                                                  mode="advanced"
+                                                  multiple="false"
+                                                  fileUploadListener="#{insumosDelProceso.fileUploadListener}"
+                                                  uploadLabel="#{textMB.obtenerTexto('labels.Seleccionar')}"
+                                                  label="#{textMB.obtenerTexto('labels.Selecionar')}"
+                                                  auto="true"
+                                                  update="archivoAsubir" />   
+
+                                    <h:panelGroup layout="block" id="archivoAsubir" >
+                                        <ui:fragment rendered="#{not empty  insumosDelProceso.archivosAGuardar}" >
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.ArchivosAGuardar')}:" />
+                                            <ui:repeat value="#{insumosDelProceso.archivosAGuardar}" var="asubir" varStatus="status" >
+                                                <p:commandLink  actionListener="#{utilsMB.downloadTempFile(asubir)}" ajax="false">
+                                                    <h:outputText value="#{asubir.fileName}" /> 
+                                                </p:commandLink>
+                                                <h:outputText value=", " rendered="#{not status.last }" />
+                                            </ui:repeat>
+                                        </ui:fragment>
+                                    </h:panelGroup>
+
+                                    <p:dataTable
+                                        id="archivosDelInsumo"
+                                        var="archivo" 
+                                        emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                        value="#{insumosDelProceso.insumoSeleccionado.poInsumo.archivosCertificacionPresupuestaria}"
+                                        paginator="true" rows="25"
+                                        paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} "
+                                        rowsPerPageTemplate="5,10,25,50"
+                                        styleClass="table"
+                                        lazy="false">
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Archivos')}"  >
+                                            <p:commandLink  actionListener="#{utilsMB.downloadFile(archivo)}" ajax="false">
+                                                <h:outputText value="#{archivo.nombreOriginal}" /> 
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                                            <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                             styleClass="btn btn-danger btn-icono" 
+                                                             title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                             actionListener="#{insumosDelProceso.eliminarArchivo(archivo)}"
+                                                             update="archivosDelInsumo"
+                                                             immediate="true">
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{insumosDelProceso.guardarCertificadosDispPres()}"   update="tablaDeInsumos @form" ajax="true"/>
+                        <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                    </div>
+                </h:form> 
+            </h:panelGroup>
+        </div>
+    </div> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- MODAL VER  .VerTDR/ET -->
+    <h:panelGroup id="verTDRInsumo"  layout="block">
+        <div class="modal fade"  id="verTDRInsumoModal" tabindex="-1" role="dialog" aria-labelledby="verTDRInsumoModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="verTDRInsumoContenidoModal">
+                    <h:form id="verTDRInsumoForm"  prependId="false" > 
+
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.VerTDR/ET')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <p:outputPanel styleClass="form-group" rendered="#{insumosDelProceso.tempTDR.archivo != null}">
+                                    <h:outputLabel for="verTDRInsumofileUpload" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Archivo')}:" rendered="#{insumosDelProceso.tempTDR.archivo != null}"/>
+                                    <div class="col-sm-9">
+                                        <p:commandLink  id="verTDRInsumofileUpload" rendered="#{insumosDelProceso.tempTDR.archivo != null}" actionListener="#{procesoAdqMain.downloadFile(insumosDelProceso.tempTDR.archivo)}" ajax="false">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.DescargarAdjunto')}" />
+                                        </p:commandLink>
+                                        <h:panelGroup layout="block" id="TDRProcesoArchivoCargado"  rendered="#{insumosDelProceso.tempTDR.archivo != null}" >
+                                            <ui:fragment rendered="#{insumosDelProceso.tempTDR.archivo != null}">
+                                                <h:outputText value="#{textMB.obtenerTexto('labels.ArchivoGuardado')}:" />
+                                                <h:outputText value="#{insumosDelProceso.tempTDR.archivo.nombreOriginal}" />                                         
+                                            </ui:fragment>
+                                        </h:panelGroup>
+                                    </div>
+                                </p:outputPanel>
+                                <div class="form-group">
+                                    <h:outputLabel for="verTDRInsumoContenido" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Contenido')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="verTDRInsumoContenido" value="#{insumosDelProceso.tempTDR.contenido}"  styleClass="form-control-static"   />
+                                        <h:message for="verTDRInsumoContenido" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+    <!-- MODAL VER  VerDetallesInsumo -->
+    <h:panelGroup id="verDetallesInsumo"  layout="block">
+        <div class="modal fade"  id="verDetallesInsumoModal" tabindex="-1" role="dialog" aria-labelledby="verDetallesInsumoModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="verDetallesInsumoContenidoModal">
+                    <h:form id="verDetallesInsumoForm"  prependId="false" > 
+
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.VerDetallesInsumo')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" />
+
+                                <p:outputPanel styleClass="form-group" rendered="#{insumosDelProceso.detalleTipo eq 'POA_PROYECTO'}">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Proyecto')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.detalleNompreObjeto}" styleClass="form-control-static" />
+                                    </div>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group" rendered="#{insumosDelProceso.detalleTipo eq 'POA_ACCION_CENTRA'}">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AccionCentral')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.detalleNompreObjeto}" styleClass="form-control-static" />
+                                    </div>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group" rendered="#{insumosDelProceso.detalleTipo eq 'POA_ASIGNACION_NP'}">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AsignacionNP')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.detalleNompreObjeto}" styleClass="form-control-static" />
+                                    </div>
+                                </p:outputPanel>
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.POAUT')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.insumoSeleccionado.poInsumo.poa.unidadTecnica.nombre}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioPOA')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.insumoSeleccionado.poInsumo.poa.anioFiscal.anio}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+                                <p:outputPanel styleClass="form-group" rendered="#{insumosDelProceso.detalleTipo eq 'POA_PROYECTO'}">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Producto')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.getPOSelecionadoLinea().producto.producto.nombre}" styleClass="form-control-static" />
+                                    </div>
+                                </p:outputPanel>
+
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ActividadPOA')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.getNombreActividadPOA()}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.PAC')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.insumoSeleccionado.poInsumo.pacGrupo.pac.nombre}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.GrupoPAC')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{insumosDelProceso.insumoSeleccionado.poInsumo.pacGrupo.nombre}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+
+
+
+
+
+                                <p:dataTable styleClass="margenSup"
+                                             var="relacion"
+                                             value="#{insumosDelProceso.relacionesDelInsumo}"
+                                             emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                             sortBy="#{relacion.item.nombre}">
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Item')}">
+                                        <h:outputText value="#{relacion.item.nombre}" >
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </p:column> 
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.CantidadAdjudicadaInsumoItem')}" styleClass=" numericos">
+                                        <h:outputText value="#{relacion.cantidadAdjudicada}">
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </p:column> 
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoUnitAdjudicadoInsumoItem')}" styleClass=" numericos">
+                                        <h:outputText value="#{relacion.montoUnitAdjudicado}" >
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </p:column> 
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotalAdjudicadoInsumoItem')}" styleClass=" numericos">
+                                        <h:outputText value="#{relacion.montoTotalAdjudicado}" >
+                                            <f:convertNumber minFractionDigits="2" />
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:columnGroup type="footer">
+                                        <p:row>
+                                            <p:column footerText="#{textMB.obtenerTexto('labels.TotalesDelInsumo')}:" styleClass=" numericos"/>
+                                            <p:column footerText="#{insumosDelProceso.insumoSeleccionado.cantidadAdjudicada}" styleClass=" numericos"/>
+                                            <p:column/>
+                                            <p:column footerText="#{utilsMB.formatNumber(insumosDelProceso.insumoSeleccionado.montoTotalAdjudicado)}" styleClass=" numericos"/>
+                                        </p:row>
+                                    </p:columnGroup>
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+</ui:composition>
+

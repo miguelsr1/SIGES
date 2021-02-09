@@ -1,0 +1,506 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTiposPeriodosCalificaciones" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado" />
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CALIFICACIONES}.xhtml">#{msg.gestionCalificacionEstudiante}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{calificacionBean.obtenerNombrePagina()}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{calificacionBean.obtenerNombrePagina()}"/></h2>
+
+            <p:outputPanel styleClass="float-right">               
+                
+                 <p:commandButton value="#{msg.descarPlantilla}" 
+                                 icon="glyphicon glyphicon-save" 
+                                 id="btnDescargarPlantilla" 
+                                 styleClass="btn btn-secondary"  
+                                 style="margin-left: 0.5em;"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CALIFICAR_ARCHIVO) and calificacionBean.importandoArchivo  and calificacionBean.plantillaImportacion !=null}" 
+                                 ajax="false" 
+                                 onclick="this.form.target = '_blank';">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(calificacionBean.plantillaImportacion.plaArchivo)}" />
+                </p:commandButton>   
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param  name="ayuda" id="uso" value="#{ayudaBean.getAyuda(calificacionBean.importandoArchivo? ConstantesAyuda.IMPORTAR_CALIFICACION: ConstantesAyuda.CALIFICACION)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+
+
+            <p:panel  toggleable="false" styleClass="panel-filtro">                        
+                <p:outputPanel>
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{calificacionBean}" />
+                            <ui:param name="actionParam" value="componentePlanEstudioCargaCombo" />
+                            <ui:param name="seccion" value="#{calificacionBean.seccionEnEdicion}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_CALIFICACIONES}" />
+                            <ui:param name="incluirCamposSeccion" value="#{calificacionBean.incluirCamposSeccion}"/>
+
+                        </ui:include>
+                    </f:subview>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_opcion" rendered="#{calificacionBean.seccionEnEdicion.secServicioEducativo.sduOpcion!=null}">
+                        <h:outputLabel value="#{msg.opcion}" for="input_opcion" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_opcion" styleClass="form-control-plaintext texto-medio" value="#{calificacionBean.seccionEnEdicion.secServicioEducativo.sduOpcion.opcNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proged" rendered="#{calificacionBean.seccionEnEdicion.secServicioEducativo.sduProgramaEducativo!=null}">
+                        <h:outputLabel value="#{msg.programa}" for="input_proged" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_proged" styleClass="form-control-plaintext texto-medio" value="#{calificacionBean.seccionEnEdicion.secServicioEducativo.sduProgramaEducativo.pedNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>                    
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_planEstudio" rendered="#{calificacionBean.seccionEnEdicion.secPlanEstudio!=null}">
+                        <h:outputLabel value="#{msg.planEstudio}" for="input_planEstudio" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_planEstudio" styleClass="form-control-plaintext texto-medio" value="#{calificacionBean.seccionEnEdicion.secPlanEstudio.pesNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_combo_cpe" rendered="#{not (calificacionBean.importandoArchivo and (calificacionBean.configuracionMetodoImportacion eq 1))}">
+                        <h:outputLabel value="#{msg.componentePlanEstudio}" for="combo_cpe" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="combo_cpe" value="#{calificacionBean.comboComponentePlanEstudio.selected}" rendered="#{calificacionBean.calificacionId == null}" disabled="#{calificacionBean.seccionEnEdicion == null and calificacionBean.seccionId==null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{calificacionBean.comboComponentePlanEstudio.items}" />  
+                                <p:ajax update="@form"  listener="#{calificacionBean.componentePlanEstudioSelected}" />
+                            </h:selectOneMenu>  
+                            <h:outputText value="#{calificacionBean.entidadEnEdicion.calComponentePlanEstudio.cpeNombre}"
+                                          styleClass="form-control-plaintext" rendered="#{calificacionBean.calificacionId != null}" />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="select_one">
+                        <h:outputLabel value="#{msg.tipoPeriodo}" for="select_tipo_calendario" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="2" id="select_tipo_calendario"  value="#{calificacionBean.entidadEnEdicion.calTipoPeriodoCalificacion}" disabled="#{(calificacionBean.importandoArchivo) or calificacionBean.calificacionId != null or calificacionBean.comboComponentePlanEstudio.selectedT == null}">
+                                <f:selectItems value="#{calificacionBean.periodoOrdinarioList}" var="periodo" itemLabel="#{periodo.text}" itemValue="#{periodo}" />
+                                <p:ajax update="@form" listener="#{calificacionBean.cargarPeriodoCalificacion()}"  />
+                            </p:selectOneRadio>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel  id="periodo_ordinario">
+                        <p:outputPanel rendered="#{calificacionBean.entidadEnEdicion.calTipoPeriodoCalificacion eq EnumTiposPeriodosCalificaciones.ORD}">
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_pcal">
+                                <h:outputLabel value="#{msg.periodoCalificacion}" for="combo_pcal" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_pcal" value="#{calificacionBean.comboPeriodoCalificacion.selected}" rendered="#{calificacionBean.calificacionId == null}" disabled="#{(calificacionBean.comboComponentePlanEstudio.selectedT==null) and(not calificacionBean.importandoArchivo)}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionBean.comboPeriodoCalificacion.items}" />  
+                                        <p:ajax update="@form" listener="#{calificacionBean.cargarRangoFecha()}"  />
+                                    </h:selectOneMenu>  
+                                    <h:outputText value="#{calificacionBean.entidadEnEdicion.calRangoFecha.rfePeriodoCalificacion.nombreTipoPeriodo}"
+                                                  styleClass="form-control-plaintext" rendered="#{calificacionBean.calificacionId != null}" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>                    
+
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fecha">
+                                <h:outputLabel value="#{msg.rangoFecha}" for="combo_rango_fecha" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_rango_fecha" value="#{calificacionBean.comboRangoFecha.selected}" rendered="#{calificacionBean.calificacionId == null}" disabled="#{calificacionBean.comboPeriodoCalificacion.selectedT==null}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionBean.comboRangoFecha.items}" />  
+                                        <p:ajax update="@form" onstart="PF('blockerOrd').show()" listener="#{calificacionBean.cargaTabla()}" />
+                                        <p:blockUI block="@form" widgetVar="blockerOrd" />  
+                                    </h:selectOneMenu>  
+
+                                    <h:outputText value="#{calificacionBean.entidadEnEdicion.calRangoFecha.rfeCodigo}"
+                                                  styleClass="form-control-plaintext" rendered="#{calificacionBean.calificacionId != null}" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel  rendered="#{calificacionBean.entidadEnEdicion.calTipoPeriodoCalificacion eq EnumTiposPeriodosCalificaciones.EXORD}">
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_pcalescolar">
+                                <h:outputLabel value="#{msg.periodoCalificacion}" for="combo_pcalescolar" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_pcalescolar" value="#{calificacionBean.comboTipoPeriodoCalendario.selected}" rendered="#{calificacionBean.calificacionId == null}" disabled="#{calificacionBean.comboComponentePlanEstudio.selectedT==null }" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionBean.comboTipoPeriodoCalendario.items}" />  
+                                        <p:ajax update="@form" listener="#{calificacionBean.cargarRangoFechaCalendarioEscolar()}"  />
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{calificacionBean.entidadEnEdicion.calTipoCalendarioEscolar.text}"
+                                                  styleClass="form-control-plaintext" rendered="#{calificacionBean.calificacionId != null}" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>                    
+
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fechaescolar">
+                                <h:outputLabel value="#{msg.rangoFecha}" for="combo_rango_fechaescolar" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_rango_fechaescolar" value="#{calificacionBean.comboPeriodoSeleccionado}" rendered="#{calificacionBean.calificacionId == null}" disabled="#{calificacionBean.comboTipoPeriodoCalendario.selectedT==null}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{calificacionBean.comboPeriodos}" />  
+                                        <p:ajax update="@form" onstart="PF('blockerExord').show()" listener="#{calificacionBean.cargaTabla()}"  />
+                                        <p:blockUI block="@form" widgetVar="blockerExord" /> 
+                                    </h:selectOneMenu>  
+                                    <h:outputText value="#{msg.calificacion} #{calificacionBean.entidadEnEdicion.calNumero}"
+                                                  styleClass="form-control-plaintext" rendered="#{calificacionBean.calificacionId != null}" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_import">
+                        <h:outputLabel value="Fecha de la calificación:" rendered="#{(calificacionBean.importandoArchivo and (calificacionBean.configuracionMetodoImportacion eq 1)) and calificacionBean.calificacionId == null and (calificacionBean.comboRangoFecha.selectedT !=null)}"
+                                       for="input_fecha" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha_import"
+                                        value="#{calificacionBean.fechaCalificacionImport}" 
+                                        pattern="#{applicationBean.patternFecha}" 
+                                        locale="#{sessionBean.locale}" 
+                                        converter="#{localDateConverter}"
+                                        rendered="#{(calificacionBean.importandoArchivo and (calificacionBean.configuracionMetodoImportacion eq 1)) and calificacionBean.calificacionId == null and (calificacionBean.comboRangoFecha.selectedT !=null)}"
+                                        readonlyInput="true"
+                                        maxdate="#{applicationBean.today()}" >    
+                                <p:ajax listener="#{calificacionBean.seleccionFechaArchivo}" event="dateSelect" /> 
+                            </p:calendar>
+
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                        <h:outputLabel value="#{msg.fecha}" rendered="#{(not calificacionBean.importandoArchivo) and calificacionBean.calificacionId == null}"
+                                       for="input_fecha" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha"
+                                        value="#{calificacionBean.fechaCalificaciones}" 
+                                        pattern="#{applicationBean.patternFecha}" 
+                                        locale="#{sessionBean.locale}" 
+                                        converter="#{localDateConverter}"
+                                        rendered="#{(not calificacionBean.importandoArchivo) and calificacionBean.calificacionId == null}"
+                                        disabled="#{((not(calificacionBean.comboRangoFecha != null and calificacionBean.comboRangoFecha.getSelectedT() != null)) and (not (calificacionBean.comboPeriodoSeleccionado gt 0)))}"
+                                        readonlyInput="true"
+                                        maxdate="#{applicationBean.today()}" >
+                                <p:ajax listener="#{calificacionBean.dateSelect}" event="dateSelect" update="@(.fechaCalificacion)" />                                   
+                            </p:calendar>
+
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+                    <p:outputPanel id="componentesPosibles" styleClass="form-group row" rendered="#{(calificacionBean.importandoArchivo and (calificacionBean.configuracionMetodoImportacion eq 1))  and (calificacionBean.comboRangoFecha != null and calificacionBean.comboRangoFecha.getSelectedT() != null)}">
+                        <p:outputPanel styleClass="col-sm-4"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:commandButton value="Ver componentes disponibles" 
+                                             oncomplete="PF('dialogTable').clearFilters();PF('itemDialog').show()"
+                                             update="form:componenteDialog"
+                                             styleClass="btn btn-secondary"  />
+
+                        </p:outputPanel> 
+                    </p:outputPanel>    
+
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel id="panelFile" styleClass="offset-sm-4 col-sm-8">
+                            <p:fileUpload fileUploadListener="#{calificacionBean.calificarConArchivo}"
+                                          id="file_upload_archivo"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar archivo"                                              
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoXLSX} "
+                                          update="@form"            
+                                          cancelLabel="#{msg.cancelar}" 
+                                          auto="true"
+                                          rendered="#{calificacionBean.importandoArchivo and (calificacionBean.comboRangoFecha != null and calificacionBean.comboRangoFecha.getSelectedT() != null)}" 
+                                          sizeLimit="#{calificacionBean.tamanioImportArchivo}" allowTypes="#{calificacionBean.tipoImportArchivo}"/>
+                            <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>              
+
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel rendered="#{calificacionBean.importandoArchivo and calificacionBean.configuracionImportMensaje !=null and (calificacionBean.comboRangoFecha != null and calificacionBean.comboRangoFecha.getSelectedT() != null)}" styleClass="ui-messages">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" escape="false" value="#{calificacionBean.configuracionImportMensaje.conValor}" />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+
+            </p:panel>  
+
+            <p:outputPanel styleClass="texto-right">
+                <p:commandButton value="#{msg.procesar}" 
+                                 rendered="#{calificacionBean.puedeGuardarArchivo  and (calificacionBean.comboRangoFecha != null and calificacionBean.comboRangoFecha.getSelectedT() != null)}"
+                                 action="#{calificacionBean.guardarArchivo()}" update="@form"
+                                 id="btnAgregarCalificacionImportada" styleClass="btn btn-primary" icon="glyphicon glyphicon glyphicon-cog" />
+                <p:blockUI block="@form" trigger="btnAgregarCalificacionImportada" /> 
+            </p:outputPanel>           
+
+
+
+            <p:outputPanel id="pnlResultado" >
+
+                <p:messages id="popupmsg4"  showDetail="true" globalOnly="false" for="popupmsg4" closable="true"/>  
+                <p:outputPanel rendered="#{calificacionBean.soloLectura and (calificacionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA)}" styleClass="ui-messages">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.seccionEnEstadoCerrado}" />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+
+                <h:panelGroup rendered="#{(not calificacionBean.importandoArchivo)and(calificacionBean.calificacionId != null or (calificacionBean.comboRangoFecha != null and calificacionBean.comboRangoFecha.getSelectedT() != null) or calificacionBean.comboPeriodoSeleccionado gt 0)}"  >
+
+
+                    <p:outputPanel rendered="#{calificacionBean.entidadEnEdicion.calPk != null}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.controlCalificacionesRealizado}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{calificacionBean.nuevosEstudiantesSeccionSinCalificacion}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.nuevosEstudiantesSeccionSinCalificacion}" />
+                                </li>         
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{calificacionBean.entidadEnEdicion.calCalificacionesEstudiante.size() == 0}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.noHayEstudiantes}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel rendered="#{(not calificacionBean.puedeCalificarComponente) and (not calificacionBean.soloLectura)}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="No tiene permisos para calificar el componente seleccionado." />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+
+
+                    <p:dataTable id="basicDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"      
+                                 rendered="#{calificacionBean.entidadEnEdicion.calCalificacionesEstudiante.size() gt 0}"
+                                 value="#{calificacionBean.entidadEnEdicion.calCalificacionesEstudiante}"                              
+                                 emptyMessage="#{msg.noHayResultados}"	
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                 sortField="estPersona.perPrimerApellido"                        
+                                 rowIndexVar="rowIndex">              
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">                        
+                                <p:outputPanel styleClass="col-md-12">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="basicDT" fileName="calificacion" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.hnie}" sortBy="#{elem.caeEstudiante.estPersona.perNie}" >
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perNie}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.caeEstudiante.estPersona.perPrimerApellido}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perPrimerApellido}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.caeEstudiante.estPersona.perSegundoApellido}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perSegundoApellido}" />
+                        </p:column>  
+                        <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.caeEstudiante.estPersona.perPrimerNombre}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perPrimerNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.caeEstudiante.estPersona.perSegundoNombre}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perSegundoNombre}" />
+                        </p:column>                                              
+                        <p:column headerText="#{msg.fechaCalificado}" id="columFecha"  exportFunction="#{calificacionBean.fechaComoString(elem)}"   >
+                            <p:outputPanel styleClass="fechaCalificacion" >
+                                <p:calendar id="input_fecha_desde" styleClass="form-control" 
+                                            value="#{elem.caeFechaRealizado}" 
+                                            pattern="#{applicationBean.patternFecha}"
+                                            disabled="#{ calificacionBean.soloLectura or (not calificacionBean.verificarEstudianteHabilitadoPExtraordinario(elem.caeEstudiante.estPk))}"
+                                            converter="#{localDateConverter}"
+                                            maxdate="#{applicationBean.today()}" 
+                                            mask="true"/>  
+                            </p:outputPanel>                            
+                        </p:column>    
+                        <p:column headerText="#{msg.calificacion}" sortBy="#{calificacionBean.escalaNumerica?elem.caeCalificacionNumericaEstudiante:elem.caeCalificacionConceptualEstudiante.calValor}" styleClass="#{calificacionBean.escalaNumerica?texto-right:''}"
+                                  exportFunction="#{calificacionBean.obtenerValorCalificacion(elem)}" >
+                            <h:selectOneMenu id="combo_cpe" rendered="#{not calificacionBean.escalaNumerica and !calificacionBean.soloLectura}" 
+                                             value="#{calificacionBean.comboCalificacion[rowIndex].selected}" 
+                                             disabled="#{ calificacionBean.deshabilitarIngresoCalificacion(elem) or (not calificacionBean.verificarEstudianteHabilitadoPExtraordinario(elem.caeEstudiante.estPk))}"  
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{calificacionBean.comboCalificacion[rowIndex].items}" />  
+                                <p:ajax listener="#{calificacionBean.calificacionSelected(elem, rowIndex)}" event="change"/>
+                            </h:selectOneMenu> 
+                            <p:tooltip position="bottom" rendered="#{not calificacionBean.escalaNumerica and !calificacionBean.soloLectura and calificacionBean.deshabilitarIngresoCalificacion(elem)}" value="#{calificacionBean.obtenerTooltipDeshabilitacion(elem)}" for="combo_cpe" />
+                            <h:outputText rendered="#{not calificacionBean.escalaNumerica and calificacionBean.soloLectura}" value="#{elem.caeCalificacionConceptualEstudiante.calValor}" />
+                            <p:inputNumber id="input_n_cal"
+                                           rendered="#{calificacionBean.escalaNumerica and !calificacionBean.soloLectura}" 
+                                           disabled="#{calificacionBean.deshabilitarIngresoCalificacion(elem) or (not calificacionBean.verificarEstudianteHabilitadoPExtraordinario(elem.caeEstudiante.estPk))}"
+                                           emptyValue="empty" styleClass="form-control texto-medio" inputStyle="text-align: right"  
+                                           maxValue="#{calificacionBean.escalaCalificacion.ecaMaximo}" 
+                                           minValue="0" 
+                                           thousandSeparator="" 
+                                           decimalSeparator="." 
+                                           decimalPlaces="#{calificacionBean.escalaCalificacion.ecaPrecision}" 
+                                           value="#{elem.caeCalificacionNumericaEstudiante}"/>
+                            <p:tooltip position="bottom" rendered="#{calificacionBean.escalaNumerica and !calificacionBean.soloLectura and calificacionBean.deshabilitarIngresoCalificacion(elem)}" value="#{calificacionBean.obtenerTooltipDeshabilitacion(elem)}" for="input_n_cal" />
+                            <h:outputText rendered="#{calificacionBean.escalaNumerica and calificacionBean.soloLectura}" value="#{elem.caeCalificacionNumericaEstudiante}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hObservacion}" >
+                            <h:inputText id="input_orden_mod" styleClass="form-control" value="#{elem.caeObservacion}" disabled="#{ calificacionBean.soloLectura or (not calificacionBean.verificarEstudianteHabilitadoPExtraordinario(elem.caeEstudiante.estPk))}" />                   
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}">
+                            <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_FICHA_ESTUDIANTE}?id=#{elem.caeEstudiante.estPk}" 
+                                    target="_blank" styleClass="btn btn-icono" 
+                                    title="#{msg.hfichaEstudiante}">
+                                <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            </p:link>
+                        </p:column>
+
+                    </p:dataTable>
+
+                    <p:dataTable id="otrasCalDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"      
+                                 rendered="#{calificacionBean.otrasCalificaciones.size() gt 0}"
+                                 value="#{calificacionBean.otrasCalificaciones}"                              
+                                 emptyMessage="#{msg.noHayResultados}"	
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                 sortField="estPersona.perPrimerApellido"            
+                                 rowIndexVar="rowIndex">              
+
+                        <f:facet name="header">
+                            <p:outputPanel styleClass="row">       
+                                <p:outputPanel styleClass="col-md-8">
+                                    <p:outputPanel styleClass="form-inline" style="margin-top:10px">
+                                        <strong>Estudiantes de esta sección que ya fueron calificados en otra sección para el componente y período seleccionados</strong>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-4">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="otrasCalDT" fileName="calificacion" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.hsede}">
+                            <h:outputText value="#{elem.caeCalificacion.calSeccion.secServicioEducativo.sduSede.sedCodigoNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hnie}" sortBy="#{elem.caeEstudiante.estPersona.perNie}" >
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perNie}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.caeEstudiante.estPersona.perPrimerApellido}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perPrimerApellido}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.caeEstudiante.estPersona.perSegundoApellido}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perSegundoApellido}" />
+                        </p:column>  
+                        <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.caeEstudiante.estPersona.perPrimerNombre}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perPrimerNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.caeEstudiante.estPersona.perSegundoNombre}">
+                            <h:outputText value="#{elem.caeEstudiante.estPersona.perSegundoNombre}" />
+                        </p:column>                                              
+                        <p:column headerText="#{msg.fechaCalificado}" id="columFecha" >                         
+                            <h:outputText value="#{elem.caeFechaRealizado}" converter="#{localDateConverter}" />                
+                        </p:column>                         
+                        <p:column headerText="#{msg.calificacion}" sortBy="#{calificacionBean.escalaNumerica?elem.caeCalificacionNumericaEstudiante:elem.caeCalificacionConceptualEstudiante.calValor}" styleClass="#{calificacionBean.escalaNumerica?texto-right:''}">
+                            <h:outputText rendered="#{not calificacionBean.escalaNumerica}"  value="#{elem.caeCalificacionConceptualEstudiante.calValor}" />
+                            <h:outputText rendered="#{calificacionBean.escalaNumerica}" value="#{elem.caeCalificacionNumericaEstudiante}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hObservacion}" >
+                            <h:outputText value="#{elem.caeObservacion}" />                   
+                        </p:column>
+
+                    </p:dataTable>
+
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton value="#{msg.guardar}" 
+                                         rendered="#{!calificacionBean.soloLectura and calificacionBean.puedeCalificarComponente and calificacionBean.entidadEnEdicion.calCalificacionesEstudiante.size() gt 0}"
+                                         action="#{calificacionBean.guardar()}" update="@form"
+                                         id="btnAgregarCalificacion" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                        <p:blockUI block="@form" trigger="btnAgregarCalificacion" /> 
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <p:dialog id="componenteDialog" header="Lista de componentes que pueden ser calificados con los datos seleccionados" onHide="PF('dialogTable').clearFilters();" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+
+            <p:dataTable id="radioDT" 
+                         value="#{calificacionBean.msjImportacionComponentesPosiblesList}" 
+                         emptyMessage="La lista de componentes es vacia."                                 
+                         styleClass="table-scroll"
+                         var="componente"
+                         widgetVar="dialogTable"
+                         >
+                <p:column headerText="#{msg.hnombre}"    filterBy="#{componente}" filterMatchMode="contains">
+                    <h:outputText value="#{componente}" />
+                </p:column>
+
+            </p:dataTable>
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">                        
+                    <p:commandLink value="#{msg.cerrar}" oncomplete="PF('itemDialog').hide(); PF('dialogTable').clearFilters();"  update="form:componenteDialog"
+                                   styleClass="btn btn-link" />
+                </p:outputPanel>                    
+            </p:outputPanel>        
+        </p:dialog>        
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>      
+
+    </h:form>
+</ui:composition>

@@ -1,0 +1,285 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CodigueraFuenteFinanciamiento')}" /> 
+                </h2>
+                <p:commandButton styleClass="btn btn-default pull-right"  
+                                 icon="glyphicon glyphicon-plus"
+                                 value="#{textMB.obtenerTexto('labels.Crear')}" 
+                                 update="modalEditarForm"
+                                 action="#{codigueraFuenteFinanciamiento.crearCategoria()}"
+                                 oncomplete="$('#editModal').modal('show');" 
+                                 immediate="true"
+                                 rendered="#{permisosMB.permisos['CODIGUERA_FUENTE_FINANCIAMIENTO_CREAR_EDITAR']}"/>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{codigueraFuenteFinanciamiento.filtroCodigo}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{codigueraFuenteFinanciamiento.filtroNombre}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Orden')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText id="filtroOrden" value="#{codigueraFuenteFinanciamiento.filtroOrden}" styleClass="form-control textoMedio" />
+                                    <h:message for="filtroOrden" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu  value="#{codigueraFuenteFinanciamiento.filtroHabilitado}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Habilitado')}" itemValue="#{codigueraFuenteFinanciamiento.ESTADO_HABILITADO}"/>
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Deshabilitado')}" itemValue="#{codigueraFuenteFinanciamiento.ESTADO_DESHABILITADO}"/>
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{codigueraFuenteFinanciamiento.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{codigueraFuenteFinanciamiento.limpiar()}" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>            
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', codigueraFuenteFinanciamiento.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{codigueraFuenteFinanciamiento.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Categoria" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Orden')}"  sortBy="#{dummy.orden}">
+                        <h:outputText value="#{item.propertyMap['orden']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}"  sortBy="#{dummy.codigo}">
+                        <h:outputText value="#{item.propertyMap['codigo']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}"  sortBy="#{dummy.nombre}">
+                        <h:outputText value="#{item.propertyMap['nombre']}"  />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}"  sortBy="#{dummy.habilitado}">
+                        <h:outputText rendered="#{item.propertyMap['habilitado']}" value="#{textMB.obtenerTexto('labels.Si')}"  />
+                        <h:outputText rendered="#{!item.propertyMap['habilitado']}" value="#{textMB.obtenerTexto('labels.No')}"  />
+                    </p:column>
+
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CODIGUERA_FUENTE_FINANCIAMIENTO_CREAR_EDITAR']}">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         oncomplete="$('#editModal').modal('show');" 
+                                         action="#{codigueraFuenteFinanciamiento.cargarToEditar(item.propertyMap['id'])}"  
+                                         update="modalEditarForm tableForm"/>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerHistorico')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CODIGUERA_FUENTE_FINANCIAMIENTO_VER_HISTORICO']}">
+                        <p:commandButton icon="glyphicon glyphicon-open-file" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.VerHistorico')}"  
+                                         oncomplete="$('#historicoModal').modal('show');" 
+                                         action="#{codigueraFuenteFinanciamiento.cargarHistorico(item.propertyMap['id'])}"  
+                                         update="modalHistoricoForm tableForm"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CODIGUERA_FUENTE_FINANCIAMIENTO_ELIMINAR']}">
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         onclick="if (!existeConfirmacion(this.id))
+                                                 return false" 
+                                         action="#{codigueraFuenteFinanciamiento.eliminar(item.propertyMap['id'])}"
+                                         update="tableForm confirmModalCallBackBody"
+                                         immediate="true">
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>  
+            </div>
+        </h:form>
+        <!-- Modal de editar -->
+        <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Orden')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="orden" value="#{codigueraFuenteFinanciamiento.editando.orden}" styleClass="form-control"  />
+                                        <h:message for="orden" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>                                    
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="codigo" value="#{codigueraFuenteFinanciamiento.editando.codigo}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="codigo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="nombre" value="#{codigueraFuenteFinanciamiento.editando.nombre}" styleClass="form-control"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="nombre" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox value="#{codigueraFuenteFinanciamiento.editando.habilitado}" />
+                                                #{textMB.obtenerTexto('labels.Habilitado')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{codigueraFuenteFinanciamiento.guardarEditando()}"   update="modalEditarForm tableForm"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+        <!-- end modal editar-->
+
+
+        <!-- Modal de historico -->
+        <div class="modal fade"  id="historicoModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalHistoricoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.ConsultaHistorica')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tablaConScroll">
+                                <p:dataTable
+                                    id="dataTableHistorico"
+                                    var="item" 
+                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                    value="#{codigueraFuenteFinanciamiento.historico}" 
+                                    styleClass="table" >
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Orden')}">
+                                        <h:outputText value="#{item.orden}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                                        <h:outputText value="#{item.codigo}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                        <h:outputText value="#{item.nombre}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}">
+                                        <h:outputText value="#{item.habilitado}"  converter="booleanConverter"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaModificacion')}">
+                                        <h:outputText value="#{item.ultMod}"  converter="dateConverterHastaSegundos"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}">
+                                        <h:outputText value="#{item.ultUsuario}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-primary" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cerrar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+        <!-- end modal historico-->
+
+        <!-- Modal de eliminar -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+
+
+
+
+
+
+
+
+
+
+    </ui:composition>
+</html>
+

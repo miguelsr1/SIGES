@@ -1,0 +1,220 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearCatalogoInsumos')}" rendered="#{!catalogoInsumosCE.update}"/>
+                    <h:outputText value="#{textMB.obtenerTexto('labels.EditarCatalogoInsumos')}" rendered="#{catalogoInsumosCE.update}"/>
+                </h2>
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false"   enctype="multipart/form-data">
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <fieldset class="fieldset fieldsetSmall">
+                        <legend><h:outputText value="#{textMB.obtenerTexto('labels.Insumo')}" /></legend>
+
+                        <div class="form-group">
+                            <h:outputLabel for="fileUpload_input" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Imagen')}:" />
+                            <div class="col-sm-9">
+                                <img id="image-asociadaAFileUpload" data-src="holder.js/140x140" class="img-circle" alt="140x140"  src="#{imgUtils.getImgPath(catalogoInsumosCE.objeto.archivo)}"  style="width: 140px; height: 140px; margin-right: 20px;"/>
+                                <p:fileUpload id="fileUpload" value="#{catalogoInsumosCE.file}" mode="simple" skinSimple="true" fileLimit="1" allowTypes="/(\.|\/)(gif|jpe?g|png)$/" label="#{textMB.obtenerTexto('labels.Selecionar')}" />
+                                <!-- js que setea la imagen cuando cambia el file upload-->
+                                <h:outputScript library="js" name="setImageWhenChangeFileUpload.js" />  
+
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel for="nombre" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                            <div class="col-sm-9">
+                                <h:inputText id="nombre"  maxlength="255" value="#{catalogoInsumosCE.objeto.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:validateLength maximum="255" />
+                                </h:inputText>
+                                <h:message for="nombre" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel for="segmento" styleClass="col-sm-3  control-label" value="*#{textMB.obtenerTexto('labels.Segmento')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu id="segmento" value="#{catalogoInsumosCE.idSegemnto}"  styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:ajax render="familiaselect clase articulo"/> 
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                    <f:selectItems value="#{utilsMB.getSegmentosONU()}" />
+                                </h:selectOneMenu> 
+                                <h:message for="segmento" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel for="familiaselect" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Familia')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu id="familiaselect" value="#{catalogoInsumosCE.idFamilia}"  styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:ajax render="clase articulo"/> 
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                    <f:selectItems value="#{utilsMB.getFamiliasONU(catalogoInsumosCE.idSegemnto)}" />
+                                </h:selectOneMenu> 
+                                <h:message for="familiaselect" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel for="clase" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Clase')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu id="clase" value="#{catalogoInsumosCE.idClase}"  styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:ajax render="articulo"/> 
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                    <f:selectItems value="#{utilsMB.getClaseONU(catalogoInsumosCE.idFamilia)}" />
+                                </h:selectOneMenu> 
+                                <h:message for="clase" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel for="articulo" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Articulo')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu id="articulo" value="#{catalogoInsumosCE.idArticulo}"  styleClass="form-control textoLargo" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:ajax render=""/> 
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                    <f:selectItems value="#{utilsMB.getArticuloONU(catalogoInsumosCE.idClase)}" />
+                                </h:selectOneMenu> 
+                                <h:message for="articulo" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.tipoBien')}:" />
+                            <div class="col-sm-9">
+                                <p:autoComplete id="tipo_bien_resp_autocomplete" 
+                                                styleClass="form-control textoLargo" 
+                                                value="#{catalogoInsumosCE.objeto.tipoBien}"
+                                                completeMethod="#{catalogoInsumosCE.completeTiposBienes}"
+                                                maxResults="10"
+                                                var="tipobien" itemLabel="#{tipobien.tbiCodigoNombreCategoria}"  
+                                                itemValue="#{tipobien}" 
+                                                onclick="PF('tipo_bien_resp_autocomplete').search(PF('tipo_bien_resp_autocomplete').input.val())" 
+                                                widgetVar="tipo_bien_resp_autocomplete" 
+                                                forceSelection="true" 
+                                                queryDelay="500" 
+                                                converter="#{tipoBienConverter}"
+                                                multiple="false">
+                                        </p:autoComplete>
+                                        <h:message for="tipo_bien_resp_autocomplete" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <h:outputLabel for="codigo" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                            <div class="col-sm-9">
+                                <h:inputText id="codigo"  maxlength="255" value="#{catalogoInsumosCE.objeto.codigo}" styleClass="form-control textoLargo" >
+                                    <f:validateLength maximum="255" />
+                                </h:inputText>
+                                <h:message for="codigo" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel for="codigo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.aplicaACentrosEducativos')}:" />
+                            <div class="col-sm-9">
+                                <div class="checkbox">
+                                    <label>
+                                        <h:selectBooleanCheckbox  styleClass="form-control" value="#{catalogoInsumosCE.objeto.aplicaACentrosEducativos}" />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel for="codigo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.correspondeActivoFijo')}:" />
+                            <div class="col-sm-9">
+                                <div class="checkbox">
+                                    <label>
+                                        <h:selectBooleanCheckbox  styleClass="form-control" value="#{catalogoInsumosCE.objeto.correspondeActivoFijo}" />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.conocidoPor')}:" />
+                            <div class="col-sm-9">
+                                <h:inputText id="conocidoPor"  maxlength="100" value="#{catalogoInsumosCE.objeto.conocidoPor}" styleClass="form-control textoLargo" >
+                                    <f:validateLength maximum="100" />
+                                </h:inputText>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                            <div class="col-sm-9">
+                                <h:inputTextarea id="objetivo" value="#{catalogoInsumosCE.objeto.descripcion}" styleClass="form-control textoLargo" rows="10" />
+                                <h:message for="objetivo" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="fieldset fieldsetSmall">
+                        <legend><h:outputText value="#{textMB.obtenerTexto('labels.ObjetoEspecificoDeGasto')}" /></legend>
+                        <h:panelGroup layout="block" id="numerosDeOEG" styleClass="row">
+                            <h:panelGroup layout="block" styleClass="col-sm-6">
+                                <ui:repeat varStatus="loop" value="#{catalogoInsumosCE.oegs}" var="oeg">
+                                    <div class="form-group">
+                                        <h:outputLabel for="rubro" styleClass="col-sm-6 control-label" value="#{textMB.obtenerTexto('labels.OEG_nivel_'.concat(loop.index))}:" />
+                                        <div class="col-sm-6">
+                                            <p:inputText id="rubro" value="#{catalogoInsumosCE.oegs[loop.index]}" styleClass="form-control ">
+                                                <p:ajax event="keyup" update="infoOEG"  />
+                                            </p:inputText>
+                                            <h:message for="rubro" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </ui:repeat>
+                            </h:panelGroup>                        
+                            <h:panelGroup styleClass="col-sm-6" id="infoOEG" layout="block">
+                                <ui:fragment rendered="#{catalogoInsumosCE.getObjetoEspecificoGasto() != null}">
+                                    <div class="form-group">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Clasificador')}:" styleClass="col-sm-3 control-label"/>
+                                        <div class="col-sm-9">
+                                            <h:outputText value="#{catalogoInsumosCE.getObjetoEspecificoGasto().clasificador}" styleClass="form-control-static" /> 
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Nombre')}:" styleClass="col-sm-3 control-label"/>
+                                        <div class="col-sm-9">
+                                            <h:outputText value="#{catalogoInsumosCE.getObjetoEspecificoGasto().nombre}" styleClass="form-control-static"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Descripcion')}:" styleClass="col-sm-3 control-label"/>
+                                        <div class="col-sm-9">
+                                            <h:outputText value="#{catalogoInsumosCE.getObjetoEspecificoGasto().descripcion}" styleClass="form-control-static"/>
+                                        </div>
+                                    </div>
+                                </ui:fragment>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </fieldset>
+
+<!--                     <p:inputText id="importeNeto" validator="#{contratoCE.validarNoSupereMontoContrato}"
+                                     value="#{contratoCE.tempActa.importeNeto}" styleClass="form-control numericos" >
+                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                            <p:ajax event="keyup" update="anadirPagoForm:anticipo anadirPagoForm:devolucion anadirPagoForm:totalApagar" listener="#{contratoCE.updateMontos()}" />
+                        </p:inputText>-->
+                </p:outputPanel>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{catalogoInsumosCE.guardar}"  update="bloqueNoModal" ajax="false"/>
+                        <h:outputLink styleClass="btn btn-link" value="#{catalogoInsumosCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+
+        </h:form>
+    </ui:composition>
+</html>

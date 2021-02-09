@@ -1,0 +1,225 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumDesembolsoEstado"/>
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        <f:passThroughAttribute name="autocomplete" value="off"/>          
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">             
+                <li class="breadcrumb-item active" ><a href="#{ConstantesPaginas.DESEMBOLSOS}.xhtml">#{msg.desembolsos}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.detalleDesembolsos}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.detalleDesembolsos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nroDesembolso}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" styleClass="form-control texto-medio" id="b_numero_des" value="#{detallesDesembolsoBean.filtro.dedDesembolsoFk}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.componente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_componente"  styleClass="form-control texto-medio" value="#{detallesDesembolsoBean.comboComponente.selected}">
+                                <f:selectItems value="#{detallesDesembolsoBean.comboComponente.items}" />
+                                <p:ajax listener="#{detallesDesembolsoBean.cargarSubComponente()}" event="change" update="f_subcomponente" process="@this"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sacUFI}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="f_sac_ufi" value="#{detallesDesembolsoBean.filtro.sacUfi}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nroRequerimiento}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" styleClass="form-control texto-medio" id="b_numero_req" value="#{detallesDesembolsoBean.filtro.requerimientoPk}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.subcomponente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_subcomponente" value="#{detallesDesembolsoBean.comboSubComponente.selected}"  styleClass="form-control texto-medio" >
+                                <f:selectItems value="#{detallesDesembolsoBean.comboSubComponente.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sacGOES}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="f_sac_goes" value="#{detallesDesembolsoBean.filtro.sacGoes}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{detallesDesembolsoBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{detallesDesembolsoBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </p:panel>
+        
+        
+        <p:outputPanel  id="pnlResultado">
+                
+            <p:dataTable id="detDesembolsoDT"
+                         widgetVar="widResultadoDetDesembolso"                         
+                         var="elem"                          
+                         value="#{detallesDesembolsoBean.detalleDesembolsosLazyModel}"     
+                         rowKey="#{elem.dedPk}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="dedPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{detallesDesembolsoBean.paginadoDet}"
+                         reflow="true">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{detallesDesembolsoBean.totalResultadosDet lt (detallesDesembolsoBean.paginadoDet +1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTablaDetDesembolso" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{detallesDesembolsoBean.totalResultadosDet} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="detalleDT" fileName="detalleRequerimiento" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                
+                
+                <p:column sortBy="#{elem.dedPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hnumero}" title="#{msg.hnumero}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedPk}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedDesembolsoFk.dsbPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroDes}" title="#{msg.hnumeroDesembolso}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedDesembolsoFk.dsbPk}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedReqFondoFk.strTransferenciaGDepFk.tgdDepartamentoFk.depCodigo}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.codDepartamento}" title="#{msg.hCodigoDep}"/>
+                    </f:facet>
+                    <h:outputText title="#{elem.dedReqFondoFk.strTransferenciaGDepFk.tgdDepartamentoFk.depNombre}" value="#{elem.dedReqFondoFk.strTransferenciaGDepFk.tgdDepartamentoFk.depCodigo}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedReqFondoFk.strPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroReq}" title="#{msg.hnroRequerimiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedReqFondoFk.strPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hComponente}" >
+                    <h:outputText value="#{elem.dedReqFondoFk.strTransferenciaGDepFk.tgdTransferenciaFk.traSubcomponente.gesCategoriaComponente.cpeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSubcomponente}" >
+                    <h:outputText value="#{elem.dedReqFondoFk.strTransferenciaGDepFk.tgdTransferenciaFk.traSubcomponente.gesNombre}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedReqFondoFk.strCompromisoPresupuestario}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hcompromisoPresupuestario}" title="#{msg.compromisoPresupuestario}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedReqFondoFk.strCompromisoPresupuestario}" />
+                </p:column>
+                <p:column headerText="#{msg.hsacUFI}" sortBy="#{elem.dedReqFondoFk.strSacUFI}">
+                    <h:outputText value="#{elem.dedReqFondoFk.strSacUFI}" />
+                </p:column>
+                <p:column headerText="#{msg.hsacGOES}" sortBy="#{elem.dedReqFondoFk.strSacGOES}">
+                    <h:outputText value="#{elem.dedReqFondoFk.strSacGOES}" />
+                </p:column>
+                <p:column sortBy="#{elem.dedFuenteRecursosFk.fuenteFinanciamiento.nombre}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.fuenteFin}" title="#{msg.hfuenteFinanciamiento}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.dedFuenteRecursosFk.fuenteFinanciamiento.nombre}"/>
+                </p:column>
+                <p:column sortBy="#{elem.dedFuenteRecursosFk.nombre}" headerText="#{msg.hFuenteRecursos}">
+                    <h:outputText value="#{elem.dedFuenteRecursosFk.nombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hPorcentaje}" sortBy="#{elem.dedPorcentaje}">
+                    <h:outputText value="#{elem.dedPorcentaje}" >
+                        <f:convertNumber pattern="#{applicationBean.formatPorcentaje}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hDesembolso}" styleClass="align-right">
+                    <h:outputText value="#{elem.dedMonto}" >
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.DETALLE_DESEMBOLSO}"  title="#{msg.edicionDetalleDesembolsos}"  
+                            styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.dedPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+        
+        
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{detallesDesembolsoBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+        
+    </h:form>
+</ui:composition>

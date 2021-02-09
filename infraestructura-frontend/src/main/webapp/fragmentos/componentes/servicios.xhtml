@@ -1,0 +1,460 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relInmuebleServicioBasicoBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relInmuebleServicioBasicoBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relInmuebleServicioBasicoBean.entidadEnEdicion}">
+
+        <p:fieldset id="servicioSanitario" legend="#{msg.hserviciosSanitarios}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_servicio_sanitario" >                       
+                <p:outputPanel styleClass="col-sm-12">
+                    <p:dataTable id="listaServicioSanitario"  
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_SERVICIO_BASICO))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndexEdif"
+                                 var="espacio" selection="#{relInmuebleServicioBasicoBean.inmueblesServicioSanitarioSeleccionado}" 
+                                 value="#{relInmuebleServicioBasicoBean.inmueblesServicioSanitario}" rowKey="#{espacio.ritServicioSanitario.tssPk}" style="margin-bottom:0"
+                                 >
+                        <p:ajax event="toggleSelect" listener="#{relInmuebleServicioBasicoBean.toggleSelect}" update=":form:tabs:seleccionarServicio:listaServicioSanitario"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:listaServicioSanitario"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:listaServicioSanitario" /> 
+
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column colspan="2">
+                                </p:column>
+                                <p:column colspan="4">
+                                    <f:facet name="header"><h:outputText value="#{msg.condiciones}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="5">
+                                    <f:facet name="header"><h:outputText   value="#{msg.tipoUsuario}"/></f:facet>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column  selectionMode="multiple" style="width:16px;text-align:center" />
+
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="#{msg.hnombre}"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Bueno"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Regular"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Malo"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Total"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Niños"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Niñas"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Maestros(as)"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Administrativos(as)"/></f:facet></p:column>
+                                <p:column colspan="1"><f:facet name="header"><h:outputText value="Total"/></f:facet>
+                                </p:column>
+                            </p:row>
+
+                        </p:columnGroup>
+                        <p:column id="eleccionServicioSanitario"  selectionMode="multiple" style="width:16px;text-align:center" />
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{espacio.ritServicioSanitario.tssNombre}" />
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.ritBueno}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalCondiciones" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.ritMalo}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalCondiciones" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.ritRegular}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalCondiciones" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalCondiciones" value="#{espacio.totalCondiciones}" />
+                        </p:column>  
+                        <p:column style="width: 75px;text-align:center" headerText="Niños"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.ritNinos}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Niñas"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.ritNinas}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Maestros(as)"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.ritMaestros}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Administrativos(as)"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.ritAdministrativos}" disabled="#{relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoServicioSanitario[rowIndexEdif]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaServicioSanitario:totalTipoUsuario" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalTipoUsuario" value="#{espacio.totalTipoUsuario}" />
+                        </p:column>  
+
+
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>   
+
+        <p:fieldset id="accesibilidad" legend="#{msg.haccesibilidad}">
+            <p:outputPanel styleClass="form-group row"  >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaAccesibilidad"       
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ACCESIBILIDAD))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndex"
+                                 var="espacio" selection="#{relInmuebleServicioBasicoBean.inmueblesAccesibilidadSeleccionados}"                                  
+                                 value="#{relInmuebleServicioBasicoBean.inmueblesAccesibilidad}" rowKey="#{espacio.iacAccesibilidad.accPk}" style="margin-bottom:0" >
+                        <p:ajax event="toggleSelect" listener="#{relInmuebleServicioBasicoBean.toggleSelect}" update=":form:tabs:seleccionarServicio:listaAccesibilidad"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:listaAccesibilidad"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:listaAccesibilidad" /> 
+                        <p:column   selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{espacio.iacAccesibilidad.accNombre}" />
+                        </p:column> 
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                            <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{espacio.iacDescripcion}" rendered="#{espacio.iacAccesibilidad.accAplicaOtros}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAccesibilidad[rowIndex])}"/>
+                        </p:column>   
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.iacBueno}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAccesibilidad[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaAccesibilidad:totalAccesibilidad" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.iacMalo}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAccesibilidad[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaAccesibilidad:totalAccesibilidad" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.iacRegular}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAccesibilidad[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaAccesibilidad:totalAccesibilidad" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalAccesibilidad"  value="#{espacio.total}" />
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </p:fieldset>
+
+        <p:fieldset id="energiaElectrico" legend="#{msg.henergiaElectrica}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_tipo_abastecimiento_autocomplete">
+                <h:outputLabel value="#{msg.tipoAbastecimiento}" for="input_tipo_abastecimiento" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:autoComplete id="input_tipo_abastecimiento" 
+                                    styleClass="form-control texto-medio"
+                                    value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisTipoAbastecimiento}"
+                                    rendered="#{!relInmuebleServicioBasicoBean.soloLectura}"
+                                    completeMethod="#{relInmuebleServicioBasicoBean.completeTipoAbastecimiento}"
+                                    var="dis" itemLabel="#{dis.tabNombre}" 
+                                    itemValue="#{dis}" 
+                                    onclick="PF('b_disc_autocomplete').search(PF('b_disc_autocomplete').input.val())"
+                                    widgetVar="b_disc_autocomplete"
+                                    forceSelection="true"
+                                    queryDelay="500"
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{tipoAbastecimientoConverter}"
+                                    multiple="true" unique="true" >
+                        <p:ajax event="itemSelect"  process="@this" update=":form:tabs:seleccionarServicio:input_tipo_abastecimiento"/>
+                    </p:autoComplete>
+                    <h:outputText value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tipoAbastecimientoAsString}" styleClass="form-control-plaintext" rendered="#{relInmuebleServicioBasicoBean.soloLectura}" />
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_tiene_transformador">
+                <h:outputLabel value="#{msg.tieneTransformador}" for="input_tiene_transformador" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_tiene_transformador" disabled="#{relInmuebleServicioBasicoBean.soloLectura}"
+                                      value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisTieneTransformador}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax update="form:tabs:seleccionarServicio:fila_input_capacidad"  event="change" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel> 
+
+            <p:outputPanel  id="fila_input_capacidad">
+                <p:outputPanel styleClass="form-group row" rendered="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisTieneTransformador}">
+                    <h:outputLabel value="#{msg.capacidadTranformador}" for="input_capacidad" styleClass="col-sm-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-2">
+                        <p:inputNumber autocomplete="off" id="input_capacidad" rendered="#{!relInmuebleServicioBasicoBean.soloLectura}"
+                                       value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisCapacidadTransformador}"
+                                       styleClass="form-control texto-medio"
+                                       inputStyle="text-align: right"
+                                       maxValue="9999999999"
+                                       minValue="0"
+                                       decimalPlaces="0" thousandSeparator=""/>
+                        <h:outputText rendered="#{relInmuebleServicioBasicoBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisCapacidadTransformador}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel  id="fila_input_estado">
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.estado}" for="input_estado" styleClass="col-sm-3 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <h:selectOneMenu id="input_estado" value="#{relInmuebleServicioBasicoBean.comboEstado.selected}" rendered="#{!relInmuebleServicioBasicoBean.soloLectura}"  styleClass="form-control dropdown texto-medio">
+                            <f:selectItems value="#{relInmuebleServicioBasicoBean.comboEstado.items}"/>
+                        </h:selectOneMenu> 
+                        <h:outputText rendered="#{relInmuebleServicioBasicoBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisCondicionesInstalacionesElec.text}"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </p:outputPanel>  
+
+        </p:fieldset>
+
+        <p:fieldset id="accesoAgua" legend="#{msg.haaccesoAgua}">      
+            <p:outputPanel styleClass="form-group row" id="fila_input_almacenamiento_agua" >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaalmacenamiento_agua"       
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ALMACENAMIENTO_AGUA))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndex"
+                                 var="almacenamiento" selection="#{relInmuebleServicioBasicoBean.inmueblesAlmacenamientoAguaSeleccionados}" 
+                                 value="#{relInmuebleServicioBasicoBean.inmueblesAlmacenamientoAgua}" rowKey="#{almacenamiento.ialAlmacenamientoAgua.traPk}" style="margin-bottom:0" >
+                        <p:ajax event="toggleSelect" listener="#{relInmuebleServicioBasicoBean.toggleSelect}" update=":form:tabs:seleccionarServicio:listaalmacenamiento_agua"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:listaalmacenamiento_agua"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:listaalmacenamiento_agua" /> 
+                        <p:column   selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{almacenamiento.ialAlmacenamientoAgua.traNombre}" />
+                        </p:column> 
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                            <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{almacenamiento.ialDescripcion}" rendered="#{almacenamiento.ialAlmacenamientoAgua.traAplicaOtros}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAlmacenamientoAgua[rowIndex])}"/>
+                        </p:column>   
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{almacenamiento.ialBueno}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAlmacenamientoAgua[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaalmacenamiento_agua:totalAlmac" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{almacenamiento.ialMalo}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAlmacenamientoAgua[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaalmacenamiento_agua:totalAlmac" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{almacenamiento.ialRegular}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAlmacenamientoAgua[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaalmacenamiento_agua:totalAlmac" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalAlmac"  value="#{almacenamiento.total}" />
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:fieldset  legend="#{msg.htipoAbastecimientoAgua}">
+                <p:outputPanel styleClass="form-group row" id="fila_input_abastecimiento_agua" >                       
+                    <p:outputPanel styleClass="col-sm-12" >
+                        <p:dataTable id="listaabastecimiento_agua"       
+                                     styleClass="table-scroll"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_ABASTECIMIENTO_AGUA))}"
+                                     emptyMessage="#{msg.noHayResultados}"
+                                     rowSelectMode="checkbox"
+                                     rowIndexVar="rowIndex"
+                                     var="abastecimiento" selection="#{relInmuebleServicioBasicoBean.inmueblesAbastecimientoAguaSeleccionados}" 
+                                     value="#{relInmuebleServicioBasicoBean.inmueblesAbastecimientoAgua}" rowKey="#{abastecimiento.iaaAbastecimientoAgua.traPk}" style="margin-bottom:0" >
+                            <p:ajax event="toggleSelect" listener="#{relInmuebleServicioBasicoBean.toggleSelect}" update=":form:tabs:seleccionarServicio:listaabastecimiento_agua"/>
+                            <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:listaabastecimiento_agua"/>
+                            <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:listaabastecimiento_agua" /> 
+                            <p:column   selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                            <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                                <h:outputText styleClass="strong" value="#{abastecimiento.iaaAbastecimientoAgua.traNombre}" />
+                            </p:column> 
+                            <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                                <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{abastecimiento.iaaDescripcion}" rendered="#{abastecimiento.iaaAbastecimientoAgua.traAplicaOtros}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAbastecimientoAgua[rowIndex])}"/>
+                            </p:column>   
+                            <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                                <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{abastecimiento.iaaBueno}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAbastecimientoAgua[rowIndex])}" >
+                                    <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaabastecimiento_agua:totalAbast" />
+                                </p:inputNumber>
+                            </p:column>
+                            <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                                <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{abastecimiento.iaaMalo}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAbastecimientoAgua[rowIndex])}" >
+                                    <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaabastecimiento_agua:totalAbast" />
+                                </p:inputNumber>                                        
+                            </p:column>
+                            <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                                <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{abastecimiento.iaaRegular}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoAbastecimientoAgua[rowIndex])}" >
+                                    <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaabastecimiento_agua:totalAbast" />
+                                </p:inputNumber>
+                            </p:column>
+                            <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                                <h:outputText  id="totalAbast"  value="#{abastecimiento.total}" />
+                            </p:column> 
+                        </p:dataTable>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+            </p:fieldset>
+
+        </p:fieldset>
+
+        <p:fieldset id="drenajeAguasNegras" legend="#{msg.hdrenajesAguasNegras}">
+            <p:outputPanel styleClass="form-group row"  >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaAguasNegras"       
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_TIPO_DRENAJE))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndex"
+                                 var="tipoDrenaje" selection="#{relInmuebleServicioBasicoBean.inmueblesTipoDrenajeSeleccionados}" 
+                                 value="#{relInmuebleServicioBasicoBean.inmueblesTipoDrenaje}" rowKey="#{tipoDrenaje.itdTipoDrenaje.traPk}" style="margin-bottom:0" >
+                        <p:ajax event="toggleSelect" listener="#{relInmuebleServicioBasicoBean.toggleSelect}" update=":form:tabs:seleccionarServicio:listaAguasNegras"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:listaAguasNegras"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:listaAguasNegras" /> 
+                        <p:column   selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{tipoDrenaje.itdTipoDrenaje.traNombre}" />
+                        </p:column> 
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                            <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{tipoDrenaje.itdDescripcion}" rendered="#{tipoDrenaje.itdTipoDrenaje.traAplicaOtros}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoTipoDrenaje[rowIndex])}"/>
+                        </p:column>   
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{tipoDrenaje.itdBueno}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoTipoDrenaje[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaAguasNegras:totalManejoDesechos" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{tipoDrenaje.itdMalo}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoTipoDrenaje[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaAguasNegras:totalManejoDesechos" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{tipoDrenaje.itdRegular}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoTipoDrenaje[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:listaAguasNegras:totalManejoDesechos" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalManejoDesechos"  value="#{tipoDrenaje.total}" />
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+        </p:fieldset>
+
+
+        <p:fieldset id="fielddesechosSolidos" legend="#{msg.hdesechosSolidos}">
+            <p:outputPanel styleClass="form-group row"  >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="desechosSolidos"       
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_MANEJO_DESECHOS))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndex"
+                                 var="desechos" selection="#{relInmuebleServicioBasicoBean.inmueblesManejoDesechosSeleccionados}" 
+                                 value="#{relInmuebleServicioBasicoBean.inmueblesManejoDesechos}" rowKey="#{desechos.imdManejoDesechos.tmdPk}" style="margin-bottom:0" >
+                        <p:ajax event="toggleSelect" listener="#{relInmuebleServicioBasicoBean.toggleSelect}" update=":form:tabs:seleccionarServicio:desechosSolidos"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxSelect}" update=":form:tabs:seleccionarServicio:desechosSolidos"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relInmuebleServicioBasicoBean.checkboxUnselect}" update=":form:tabs:seleccionarServicio:desechosSolidos" /> 
+                        <p:column   selectionMode="multiple" style="width:16px;text-align:center" />                                                          
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{desechos.imdManejoDesechos.tmdNombre}" />
+                        </p:column> 
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                            <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{desechos.imdDescripcion}" rendered="#{desechos.imdManejoDesechos.tmdAplicaOtros}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoManejoDesechos[rowIndex])}"/>
+                        </p:column>   
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{desechos.imdBueno}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoManejoDesechos[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:desechosSolidos:totalManejoDesechos" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{desechos.imdMalo}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoManejoDesechos[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:desechosSolidos:totalManejoDesechos" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{desechos.imdRegular}" disabled="#{ (relInmuebleServicioBasicoBean.soloLectura or !relInmuebleServicioBasicoBean.habilitarEntradaTextoManejoDesechos[rowIndex])}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarServicio:desechosSolidos:totalManejoDesechos" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column  style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="totalManejoDesechos"  value="#{desechos.total}" />
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_posee_acopio">
+                <h:outputLabel value="#{msg.poseeAreaAcopio}" for="input_posee_acopio" styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9">
+                    <p:selectOneRadio layout="responsive" columns="3" id="input_posee_acopio" disabled="#{relInmuebleServicioBasicoBean.soloLectura}"
+                                      value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisPoseeAreaAcopio}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel> 
+
+
+        </p:fieldset>
+
+
+
+
+        <p:fieldset id="condicioneAcceso" legend="#{msg.hcondicioneAcceso}">
+
+            <h:panelGroup  id="panel_group_descripcion">
+                <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                    <h:outputLabel value="#{msg.observacion}" for="input_descripcion" 
+                                   styleClass="col-sm-3 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-9">
+                        <p:inputTextarea id="input_descripcion" styleClass="form-control" rendered="#{!relInmuebleServicioBasicoBean.soloLectura}"
+                                         value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisCondicionesAcceso}"
+                                         counter="display" maxlength="4000" counterTemplate="{0} caracteres restantes." 
+                                         autoResize="false" />
+                        <h:outputText rendered="#{relInmuebleServicioBasicoBean.soloLectura}" styleClass="form-control-plaintext"
+                                      value="#{relInmuebleServicioBasicoBean.entidadEnEdicion.tisCondicionesAcceso}"/>
+                        <h:outputText id="display" />
+                    </p:outputPanel>                        
+                    <h:message for="input_descripcion" styleClass="msj-danger"/>                    
+                </p:outputPanel> 
+            </h:panelGroup>
+        </p:fieldset>
+
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardarServicio" value="#{msg.guardar}" action="#{relInmuebleServicioBasicoBean.guardar()}" rendered="#{!relInmuebleServicioBasicoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_SERVICIO_BASICO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardarServicio" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

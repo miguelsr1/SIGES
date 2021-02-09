@@ -1,0 +1,369 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.SOLICITUDES_TRASLADO}.xhtml">#{msg.gestionSolicitudesTraslado}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.nuevoSolicitudTraslado}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{solicitudTrasladoBean.entidadEnEdicion.sotPk==null?msg.nuevoSolicitudTraslado:msg.solicitudTraslado}"/></h2>
+
+            <p:outputPanel styleClass="float-right">    
+
+                <p:commandButton value="#{msg.hverConfirmacionFirmada}" ajax="false" 
+                                 rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotPk != null and solicitudTrasladoBean.entidadEnEdicion.sotArchivoFirmado != null}"
+                                 onclick="this.form.target = '_blank';" 
+                                 styleClass="btn btn-secondary">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(solicitudTrasladoBean.entidadEnEdicion.sotArchivoFirmado)}" />
+                </p:commandButton>
+
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SOLICITUD_TRASLADO)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+            <h:panelGroup rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPk ==null}"  >
+                <p:panel  toggleable="false" styleClass="panel-filtro">                        
+                    <p:outputPanel id="pnlSearchNie">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nie" >
+                            <h:outputLabel value="#{msg.nie}" for="input_nie" styleClass="col-sm-3 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-9 control-inline">
+                                <p:inputNumber styleClass="form-control texto-medio" 
+                                               autocomplete="off"
+                                               decimalPlaces="0" 
+                                               thousandSeparator=""  
+                                               decimalSeparator="" 
+                                               padControl="false" 
+                                               disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.SOLICITAR_TRASLADO)}"
+                                               value="#{solicitudTrasladoBean.nieBuscar}"
+                                               id="input_nie"/>
+                                <p:commandButton value="#{msg.continuar}" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.SOLICITAR_TRASLADO)}"
+                                                 update="@form" 
+                                                 action="#{solicitudTrasladoBean.buscarNIE()}"
+                                                 id="btnBuscarNie" styleClass="btn btn-primary" >
+                                </p:commandButton>
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:defaultCommand target="btnBuscarNie" scope="pnlSearchNie"/>
+                    </p:outputPanel>
+                </p:panel>  
+            </h:panelGroup>
+
+
+            <p:outputPanel id="pnlResultado" >
+                <h:panelGroup rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPk !=null}"  >
+
+                    <p:fieldset legend="#{msg.datosEstudiantes}" >
+                        <p:outputPanel styleClass="row">
+                            <p:outputPanel styleClass="col-sm-8">   
+                                <p:outputPanel styleClass="form-group row" id="fila_input_est_nie">                        
+                                    <h:outputLabel value="#{msg.nie}" for="input_est_nie" styleClass="col-sm-5 col-form-label"/>                        
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="input_est_nie" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perNie}" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_primerNombre">                        
+                                    <h:outputLabel value="#{msg.nombreCompletoEstudiante}" for="input_primerNombre" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="input_primerNombre" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perNombreCompleto}" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_sexo">                        
+                                    <h:outputLabel value="#{msg.sexo}" for="input_sexo" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="input_sexo" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perSexo.sexNombre}" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_nac">                        
+                                    <h:outputLabel value="#{msg.fechaNacimiento}" for="input_fecha_nac" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">                            
+                                        <h:outputText styleClass="form-control-plaintext" id="input_fecha_nac" 
+                                                      converter="#{localDateConverter}"
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFechaNacimiento}" />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+
+
+
+                                <p:outputPanel styleClass="form-group row" id="fila_sede_origen">
+                                    <h:outputLabel value="#{msg.sedeEducativoOrigen}" for="sede_origen" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="sede_origen" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotSedeOrigen.sedCodigoNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_sede_origen_departamento">
+                                    <h:outputLabel value="#{msg.departamento}" for="sede_origen_departamento" 
+                                                   styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="sede_origen_departamento" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotSedeOrigen.sedDireccion.dirDepartamento.depNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_sede_origen_municipio">
+                                    <h:outputLabel value="#{msg.municipio}" for="sede_origen_municipio" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="sede_origen_municipio" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotSedeOrigen.sedDireccion.dirMunicipio.munNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_sede_origen_nivel">
+                                    <h:outputLabel value="#{msg.niveles}" for="sede_origen_nivel" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="sede_origen_nivel" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotServicioEducativoOrigen.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.modalidadEducativa}" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotServicioEducativoOrigen.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.modalidadAtencion}" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotServicioEducativoOrigen.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_sede_origen_grado">
+                                    <h:outputLabel value="#{msg.grado}" for="sede_origen_grado" styleClass="col-sm-5 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-7">
+                                        <h:outputText styleClass="form-control-plaintext" id="sede_origen_grado" 
+                                                      value="#{solicitudTrasladoBean.entidadEnEdicion.sotServicioEducativoOrigen.sduGrado.graNombre}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="col-sm-4">
+                                <o:graphicImage width="220" 
+                                                value="#{imagenesBean.getFile(solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto.achPk)}" 
+                                                lastModified="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto.achUltmodFechaAsDate}" 
+                                                alt="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto.achNombre}" 
+                                                title="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto.achNombre}"
+                                                rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto != null and solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto.achPk != null}" />
+                                <o:graphicImage name="/imagenes/usuario.jpg" width="220" 
+                                                rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto == null or solicitudTrasladoBean.entidadEnEdicion.sotEstudiante.estPersona.perFoto.achPk == null}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:fieldset>
+
+
+                    <p:fieldset legend="#{msg.datosSolicitud}" >
+                        <p:outputPanel styleClass="row">
+
+                            <p:outputPanel styleClass="col-sm-10" id="datos_solicitud">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_solicitud" >
+                                    <h:outputLabel value="#{msg.fechaSolicitud}" for="input_fecha_solicitud" 
+                                                   styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText id="input_fecha_solicitud" value="#{solicitudTrasladoBean.entidadEnEdicion.sotFechaSolicitud}" 
+                                                      converter="#{localDateConverter}"   
+                                                      styleClass="form-control-plaintext" />
+                                    </p:outputPanel>  
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_estado" >
+                                    <h:outputLabel value="#{msg.estado}" for="input_estado" 
+                                                   styleClass="col-sm-4 col-form-label  obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText id="input_estado" value="#{solicitudTrasladoBean.entidadEnEdicion.sotEstado}"
+                                                      styleClass="form-control-plaintext"  />
+                                    </p:outputPanel>  
+                                </p:outputPanel>    
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_motivo_traslado" >
+                                    <h:outputLabel value="#{msg.motivoTraslado}" for="input_motivo_traslado" 
+                                                   styleClass="col-sm-4 col-form-label  obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu  id="input_motivo_traslado" 
+                                                          rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotMotivoTraslado==null}" 
+                                                          value="#{solicitudTrasladoBean.comboMotivos.selected}"
+                                                          styleClass="form-control texto-medio" >
+                                            <f:selectItems value="#{solicitudTrasladoBean.comboMotivos.items}" />
+                                        </h:selectOneMenu>
+
+                                        <h:outputText value="#{solicitudTrasladoBean.entidadEnEdicion.sotMotivoTraslado.motNombre}" 
+                                                      styleClass="form-control-plaintext" rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotMotivoTraslado!=null}" />
+                                    </p:outputPanel>  
+                                </p:outputPanel>                   
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_observaciones" >
+                                    <h:outputLabel value="#{msg.observacionesProvisional}" for="input_observaciones" 
+                                                   styleClass="col-sm-4 col-form-label  obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:inputTextarea id="input_observaciones"  
+                                                         styleClass="form-control texto-medio" 
+                                                         value="#{solicitudTrasladoBean.entidadEnEdicion.sotObservacion}" 
+                                                         counter="displayObs" maxlength="250" counterTemplate="{0} caracteres restantes." autoResize="false" 
+                                                         rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotPk == null}"/>
+                                        <h:outputText id="displayObs" />
+
+                                        <h:outputText value="#{solicitudTrasladoBean.entidadEnEdicion.sotObservacion}" 
+                                                      styleClass="form-control-plaintext" 
+                                                      rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotPk != null}" />
+                                    </p:outputPanel>  
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:fieldset>
+
+                    <p:fieldset legend="#{msg.servicioEducativoIngreso}" >
+                        <p:outputPanel styleClass="row">
+                            <p:outputPanel styleClass="col-sm-10" >
+                                <f:subview id="seleccionarServicioEducativo">
+                                    <ui:include src="componentes/seleccionarServicioEducativo.xhtml"  >   
+                                        <ui:param name="controllerParam2" value="#{solicitudTrasladoBean}" />
+                                        <ui:param name="actionParam2" value="servicioEducativoSeleccionar" />
+                                        <ui:param name="servicioEducativo" value="#{solicitudTrasladoBean.servicioEnEdicion}" />
+                                        <ui:param name="soloLectura" value="#{solicitudTrasladoBean.soloLecturaServicio}" />
+                                        <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_SOLICITUD_TRASLADO}" />
+                                    </ui:include>
+                                </f:subview>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:fieldset>
+
+
+                    <h:panelGroup  rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotPk > 0 and solicitudTrasladoBean.permitirAcciones}">
+
+                        <p:fieldset legend="#{msg.datosTraslado}" >
+                            <p:outputPanel styleClass="row">
+
+                                <p:outputPanel styleClass="col-sm-10">
+                                    <h:panelGroup  rendered="#{solicitudTrasladoBean.entidadEnEdicion.sotPk!=null}">
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_input_acciones" rendered="#{solicitudTrasladoBean.continuar}">
+                                            <h:outputLabel value="#{msg.accion}" for="input_acciones" 
+                                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:selectOneMenu id="input_acciones" 
+                                                                 value="#{solicitudTrasladoBean.comboAcciones.selected}"  
+                                                                 styleClass="form-control texto-medio" >
+                                                    <f:selectItems value="#{solicitudTrasladoBean.comboAcciones.items}" />
+                                                    <p:ajax event="change" process="@form" update="@form" 
+                                                            listener="#{solicitudTrasladoBean.seleccionarAccion}"/>
+                                                </h:selectOneMenu>
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_input_observaciones_accion">
+                                            <h:outputLabel value="#{msg.observacion}" for="input_observaciones_accion" 
+                                                           styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <p:inputTextarea id="input_observaciones_accion"
+                                                                 value="#{solicitudTrasladoBean.entidadEnEdicion.sotResolucion}"
+                                                                 rendered="#{solicitudTrasladoBean.continuar}"
+                                                                 styleClass="form-control texto-medio" 
+                                                                 counter="displayRes" maxlength="500" counterTemplate="{0} caracteres restantes." autoResize="false"/>
+                                                <h:outputText id="displayRes" />
+
+                                                <h:outputText value="#{solicitudTrasladoBean.entidadEnEdicion.sotResolucion}" 
+                                                              styleClass="form-control-plaintext" 
+                                                              rendered="#{!solicitudTrasladoBean.continuar}" />
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>
+
+                                        <h:panelGroup rendered="#{solicitudTrasladoBean.opcAccion}">
+                                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_traslado" >
+                                                <h:outputLabel value="#{msg.fechaTraslado}" for="input_fecha_traslado" 
+                                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <p:calendar id="input_fecha_traslado" styleClass="form-control texto-medio" 
+                                                                value="#{solicitudTrasladoBean.entidadEnEdicion.sotFechaTraslado}" 
+                                                                converter="#{localDateConverter}"  
+                                                                pattern="#{applicationBean.patternFecha}" 
+                                                                maxdate="#{applicationBean.today()}" mask="true" showOn="button"
+                                                                disabled="#{!solicitudTrasladoBean.continuar }"/>
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                                                <h:outputLabel value="#{msg.anioLectivo}" for="input_grado" styleClass="col-sm-4 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="input_anio_lectivo" value="#{solicitudTrasladoBean.comboAnioLectivo.selected}"  rendered="#{solicitudTrasladoBean.continuar}"
+                                                                     styleClass="form-control texto-medio" >
+                                                        <f:selectItems value="#{solicitudTrasladoBean.comboAnioLectivo.items}"/>
+                                                        <p:ajax listener="#{solicitudTrasladoBean.seleccionarAnioLectivo}" process="@this" update="fila_input_seccion_ingresa"/>
+                                                    </h:selectOneMenu>                 
+                                                    <h:outputText styleClass="form-control-plaintext" value="#{solicitudTrasladoBean.entidadEnEdicion.sotSeccion.secAnioLectivo.aleAnio}" rendered="#{!solicitudTrasladoBean.continuar }" />
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="form-group row" id="fila_input_seccion_ingresa" >
+                                                <h:outputLabel value="#{msg.seccion}" for="input_seccion_ingresa" 
+                                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu  id="input_seccion_ingresa" 
+                                                                      value="#{solicitudTrasladoBean.comboSecciones.selected}"
+                                                                      rendered="#{solicitudTrasladoBean.continuar}"
+                                                                      styleClass="form-control texto-medio" disabled="#{solicitudTrasladoBean.comboAnioLectivo.selectedT==null}" >
+                                                        <f:selectItems value="#{solicitudTrasladoBean.comboSecciones.items}" />
+                                                    </h:selectOneMenu>
+                                                    <h:outputText styleClass="form-control-plaintext" value="#{solicitudTrasladoBean.entidadEnEdicion.sotSeccion.nombreSeccion}" rendered="#{!solicitudTrasladoBean.continuar }" />
+                                                </p:outputPanel>                    
+                                            </p:outputPanel>
+                                        </h:panelGroup>
+
+                                    </h:panelGroup>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:fieldset>
+                    </h:panelGroup>
+
+
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton value="#{msg.enviar}" 
+                                         action="#{solicitudTrasladoBean.guardar()}" 
+                                         update="@form" 
+                                         rendered="#{solicitudTrasladoBean.servicioEnEdicion != null and solicitudTrasladoBean.continuar}"
+                                         id="btnGuardarSolicitud" 
+                                         styleClass="btn btn-primary">
+                        </p:commandButton>
+                        <p:blockUI block="@form" trigger="btnGuardarSolicitud" />
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+    </h:form>
+</ui:composition>

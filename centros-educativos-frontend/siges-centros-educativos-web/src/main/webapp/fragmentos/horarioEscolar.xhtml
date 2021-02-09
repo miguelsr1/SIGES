@@ -1,0 +1,266 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <style>
+            .checkbox-lectivo{float: right;margin-top: 1px}
+        </style>
+        
+        
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">             
+                <li class="breadcrumb-item active" ><a href="#{ConstantesPaginas.HORARIOS_ESCOLARES}.xhtml">#{msg.gestionHorarioEscolar}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{horarioEscolarBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{horarioEscolarBean.tituloPagina}"/></h2>
+
+            <p:outputPanel styleClass="float-right">             
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.HORARIOS_ESCOLARES)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+
+
+
+            <p:outputPanel  >
+                <h:panelGroup   >   
+
+                    <p:tabView id="tab_actividades" activeIndex="#{horarioEscolarBean.selectedTab}"  >
+                        <p:ajax event="tabChange"  update="form:tab_actividades:pnlResultado form:tab_actividades:asignacionDocente" />
+                        <p:tab title="#{msg.datosgenerales}" id="tabDatosGenerales">
+
+                            <fieldset>
+                                <p:outputPanel id="horarioEscEdit" >
+
+                                    <f:subview id="seleccionarSeccion">
+                                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                                            <ui:param name="controllerParam" value="#{horarioEscolarBean}" />
+                                            <ui:param name="actionParam" value="seleccionarSeccion" />
+                                            <ui:param name="seccion" value="#{horarioEscolarBean.entidadEnEdicion.hesSeccion}" />
+                                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_HORARIOS_ESCOLARES}" />
+                                        </ui:include>
+                                    </f:subview>
+
+                                    <p:outputPanel  id="fila_text_docente" >
+                                        <p:outputPanel styleClass="form-group row" rendered="#{(not empty asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesPk) and (asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesUnicoDocente) and (not empty asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesDocente.psePk)}" >
+                                            <h:outputLabel value="#{msg.horarioImpartidoPor}" for="input_docente" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:outputText value="#{asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesDocente.psePersona.perDuiNombreCompleto}" styleClass="form-control-plaintext" />   
+                                            </p:outputPanel>
+                                        </p:outputPanel> 
+
+
+                                        <p:outputPanel styleClass="form-group row" rendered="#{(not empty asignacionDocenteComponenteBean.horarioEscolarEnEdicion.hesPk) and (not asignacionDocenteComponenteBean.existenDocentes())}" >
+                                            <h:outputLabel for="input_docente" styleClass="col-sm-2 col-form-label"/>
+                                            <p:outputPanel styleClass="ui-messages">                                
+                                                <div class="ui-messages-info messages-info-azul ui-corner-all">                                   
+                                                    <ul>
+                                                        <li class="control-inline">
+                                                            <h:outputText styleClass="ui-messages-info-summary" value="#{msg.aunNoHayDocentes}" style="padding-right: 15px"/>
+
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </p:outputPanel>
+
+                                        </p:outputPanel> 
+                                    </p:outputPanel>     
+
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnGuardarDatosGenerales"  value="#{msg.guardar}" 
+                                                         action="#{horarioEscolarBean.guardar()}" 
+                                                         update="@form" 
+                                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"
+                                                         rendered="#{(not horarioEscolarBean.soloLectura)and (horarioEscolarBean.entidadEnEdicion.hesPk==null) and (horarioEscolarBean.entidadEnEdicion.hesSeccion!=null) }"/>   
+                                        <p:blockUI block="@form" trigger="btnGuardarDatosGenerales"/>  
+                                        <p:defaultCommand target="btnGuardarDatosGenerales" scope="pnlResultado"/>   
+                                    </p:outputPanel>
+                                </p:outputPanel> 
+
+
+
+                            </fieldset>
+
+                        </p:tab>
+
+                        <p:tab title="#{msg.horariosEscolares}" id="tabDatosTabulares" disabled="#{(empty horarioEscolarBean.entidadEnEdicion.hesPk)}">
+                            <p:outputPanel styleClass="ui-messages" rendered="#{not horarioEscolarBean.soloLectura}">                                
+                                <div class="ui-messages-info messages-info-azul ui-corner-all">                                   
+                                    <ul>
+                                        <li class="control-inline">
+                                            <h:outputText styleClass="ui-messages-info-summary" value="Tenga en cuenta que debe guardar los cambios indicados en esta pestaña." style="padding-right: 15px"/>
+
+                                        </li>
+                                    </ul>
+                                </div>
+                            </p:outputPanel>
+
+                            <p:outputPanel id="pnlResultado" >
+                                <p:outputPanel styleClass="form-group row" id="fila_input_cantidad" rendered="#{not horarioEscolarBean.soloLectura}">
+                                    <h:outputLabel value="#{msg.cantidadFilas}" for="input_cantidad" styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">                           
+                                        <p:inputNumber autocomplete="off" id="input_cantidad" decimalPlaces="0" minValue="1" maxValue="100"
+                                                       thousandSeparator="" styleClass="form-control texto-medio" 
+                                                       value="#{horarioEscolarBean.cantidadFilas}" />                     
+                                        <p:commandButton value="#{msg.hmodificar}" icon="glyphicon glyphicon-list-alt" 
+                                                         action="#{horarioEscolarBean.cambiarNumeroFilas()}" 
+                                                         update=":form:tab_actividades:pnlResultado"
+                                                         id="btnCambiarFilas" styleClass="btn btn-secondary" />
+                                    </p:outputPanel>                         
+                                </p:outputPanel>
+
+
+
+                              
+                                <h:outputText class="comentario" value="Marque los días para indicar si son lectivos"/>
+                                <p:dataTable id="basicDT"                         
+
+                                             var="elem"                          
+                                             value="#{horarioEscolarBean.listaCantidad}"                          
+                                             rowIndexVar="rowIndex">                                
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Lunes"/>
+                                                    <h:selectBooleanCheckbox  id="checkLunes" class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[0]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" id="checkLunesAjax"   update="form:tab_actividades:basicDT" listener="#{horarioEscolarBean.seleccionarDiaLectivo(0)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkLunes"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Martes"/>
+                                                    <h:selectBooleanCheckbox id="checkMartes"   class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[1]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" update="form:tab_actividades:basicDT" listener="#{horarioEscolarBean.seleccionarDiaLectivo(1)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkMartes"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Miércoles"/>
+                                                    <h:selectBooleanCheckbox id="checkMiercoles"    class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[2]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" update="form:tab_actividades:basicDT" listener="#{horarioEscolarBean.seleccionarDiaLectivo(2)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkMiercoles"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Jueves"/>
+                                                    <h:selectBooleanCheckbox  id="checkJueves"    class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[3]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" update="form:tab_actividades:basicDT" listener="#{horarioEscolarBean.seleccionarDiaLectivo(3)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkJueves"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Viernes"/>
+                                                    <h:selectBooleanCheckbox   id="checkViernes"  class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[4]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" update="form:tab_actividades:basicDT" listener="#{horarioEscolarBean.seleccionarDiaLectivo(4)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkViernes"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Sábado"/>
+                                                    <h:selectBooleanCheckbox id="checkSabado"  class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[5]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" update="form:tab_actividades:basicDT" listener="#{horarioEscolarBean.seleccionarDiaLectivo(5)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkSabado"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column >
+                                                <f:facet name="header"><h:outputText value="Domingo"/>
+                                                    <h:selectBooleanCheckbox  id="checkDomingo"  class="checkbox-lectivo" title="Lectivo" rendered="#{horarioEscolarBean.habilitadoDiaLectivo}"  value="#{horarioEscolarBean.checkDiaLectivo[6]}" disabled="#{horarioEscolarBean.soloLectura}">       
+                                                        <p:ajax event="change" update="form:tab_actividades:basicDT"  listener="#{horarioEscolarBean.seleccionarDiaLectivo(6)}"  />
+                                                    </h:selectBooleanCheckbox>
+                                                    <p:blockUI block="@form" trigger="checkDomingo"/> 
+                                                </f:facet>
+                                            </p:column>
+                                        </p:row>
+                                    </p:columnGroup>    
+
+                                    <p:columns  value="#{horarioEscolarBean.listaDias}" var="modAt" columnIndexVar="colIndex" >
+                                        
+
+
+                                        <p:outputPanel id="celda">     
+                                            <h:selectOneMenu id="combo_plan_est" value="#{horarioEscolarBean.matrizComboComponentePlanEstudio[rowIndex][colIndex].selected}" rendered="#{not horarioEscolarBean.soloLectura}" disabled="#{not horarioEscolarBean.celdaDiaHoraHabilitado[colIndex]}"  styleClass="form-control dropdown texto-corto">
+                                                <f:selectItems value="#{horarioEscolarBean.matrizComboComponentePlanEstudio[rowIndex][colIndex].items}" />   
+                                                <p:ajax  listener="#{horarioEscolarBean.seleccionCeldaDiaHora(rowIndex,colIndex)}" />
+                                            </h:selectOneMenu> 
+                                            <h:outputText value="#{horarioEscolarBean.matrizComboComponentePlanEstudio[rowIndex][colIndex].selectedT!=null?horarioEscolarBean.matrizComboComponentePlanEstudio[rowIndex][colIndex].selectedT.cpeNombre:null}" rendered="#{horarioEscolarBean.soloLectura}"/>
+                                        </p:outputPanel>
+
+                                    </p:columns>
+                                </p:dataTable>
+
+
+                                <p:outputPanel style="text-align: right" >
+                                    <p:commandButton id="btnGuardar"  value="#{msg.guardar}" 
+                                                     action="#{horarioEscolarBean.guardar()}" 
+                                                     update="@form" 
+                                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"
+                                                     rendered="#{not horarioEscolarBean.soloLectura}"/>   
+                                    <p:blockUI block="@form" trigger="btnGuardar"/>  
+                                    <p:defaultCommand target="btnGuardar" scope="pnlResultado"/>   
+                                </p:outputPanel>
+
+
+                            </p:outputPanel> 
+
+
+                        </p:tab>
+                        <p:tab id="actividadEspecialTab" title="#{msg.hActividadEspecial}" disabled="#{(empty horarioEscolarBean.entidadEnEdicion.hesPk)}">
+
+                            <f:subview id="actividadEspecial">
+                                <ui:include src="componentes/actividadesEspecialesComponente.xhtml">
+                                    <ui:param name="seccion" value="#{horarioEscolarBean.entidadEnEdicion.hesSeccion}" />
+                                    <ui:param name="soloLecturaActividadesEspeciales" value="#{horarioEscolarBean.soloLectura}" />
+                                </ui:include>
+                            </f:subview>
+
+                        </p:tab>                      
+                        <p:tab id="asignacionDocenteTab"  title="#{msg.hAsignacionDocente}" disabled="#{(empty horarioEscolarBean.entidadEnEdicion.hesPk) or (not (sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_COMPONENTE_DOCENTE))) }">
+
+                            <f:subview id="asignacionDocente">                                 
+                                <ui:include src="componentes/asignacionDocenteComponente.xhtml">
+                                    <ui:param name="actionParam" value="cargarDatos" />
+                                    <ui:param name="horarioEscolar" value="#{horarioEscolarBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLectura" value="#{horarioEscolarBean.soloLectura}" />
+                                </ui:include>                               
+
+                            </f:subview>
+
+                        </p:tab> 
+                    </p:tabView>   
+                </h:panelGroup>
+            </p:outputPanel>  
+            <h:panelGroup styleClass="volverLink" layout="block">
+                <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+            </h:panelGroup>
+
+
+        </p:outputPanel>   
+
+
+
+    </h:form>
+</ui:composition>

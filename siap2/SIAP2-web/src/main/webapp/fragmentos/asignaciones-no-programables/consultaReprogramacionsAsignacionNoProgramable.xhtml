@@ -1,0 +1,190 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consultaReprogramacionAsignacionNoProgramable')}" /> 
+                </h2>
+                <div class="btn-group pull-right" role="group" aria-label="Opciones"> 
+                    <h:outputLink  styleClass="btn btn-default" value="reprogramacionAsignacionNoProgramable.xhtml" 
+                                   rendered="#{permisosMB.permisos['REPROGRAMACION_ASIGNACION_NO_PROGRAMABLE_CE']  }">
+                        <f:param name="proc" value="nuevo" />
+                        <span class="glyphicon glyphicon-plus"></span>
+                        <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                    </h:outputLink>
+                    <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                            data-container="body" 
+                            data-toggle="popover" 
+                            data-placement="bottom" 
+                            data-html="true"
+                            data-content="#{textMB.obtenerTextoAyuda('ayuda.consultaReprogramacionAsignacionNoProgramable')}">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                    </button>
+
+                </div>
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.consultaReprogramacionesAsginacionNoProgramable')}" 
+                              escape="false" /> 
+            </div>
+        </h:form>
+
+        
+       
+        
+        <h:form styleClass="buscador" id="formfiltro" >
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-8">                      
+                                    <h:selectOneMenu  value="#{consultaReprogramacionAsignacionNoProgramable.estado}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getEstadosReprogramacion()}" var="enum"  itemValue="#{enum}" itemLabel="#{textMB.obtenerTexto(enum.label)}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>   
+
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel for="componente-unidadTecnica" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="componente-unidadTecnica" value="#{consultaReprogramacionAsignacionNoProgramable.unidadTecnicaId}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getUnidadesTecnicas()}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                                     update="tableForm  " 
+                                                     value="#{textMB.obtenerTexto('labels.Consultar')}" 
+                                                     actionListener="#{consultaReprogramacionAsignacionNoProgramable.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" 
+                                                     update="tableForm  " 
+                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                     actionListener="#{consultaReprogramacionAsignacionNoProgramable.limpiar()}"/>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+
+
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', consultaReprogramacionAsignacionNoProgramable.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{consultaReprogramacionAsignacionNoProgramable.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="ReprogramacionProyecto" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.id')}"  sortBy="#{dummy.id}" >
+                        <h:outputText value="#{item.propertyMap['id']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.estado')}"  sortBy="#{dummy.estado}" >
+                        <h:outputText value="#{textMB.obtenerTexto(item.propertyMap['estado'].label)}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.tipoReprogramacion')}"  sortBy="#{dummy.tipoReprogramacion}" >
+                        <h:outputText value="#{textMB.obtenerTexto(item.propertyMap['tipoReprogramacion'].label)}" />
+                    </p:column>
+<!--                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadTecnica')}" sortBy="#{dummy.nombre}">
+                        <ui:repeat value="#{item.conjUnidadesTecnicas}" var="det">
+                            <h:outputText value="#{det.nombre}"/>
+                        </ui:repeat>
+                    </p:column>-->
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Fecha')}"  sortBy="#{dummy.ultMod}" >
+                        <h:outputText value="#{item.propertyMap['ultMod'] }"  >
+                            <f:convertDateTime pattern="#{aplicacionMB.patronFechaHora}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}" sortBy="#{dummy.ultUsuario}">
+                        <h:outputText value="#{item.propertyMap['ultUsuario']}" />
+                    </p:column>
+
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  
+                              rendered="#{permisosMB.permisos['CREAR_EDITAR_REPROGRAMACION_ASIGNACION_NO_PROGRAMABLE'] }">
+                        <h:outputLink  value="reprogramacionAsignacionNoProgramable.xhtml" class="btn btn-icono" 
+                                       title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.ImprimirReporteReprogramacion')}" styleClass="columnaAcciones">
+                        <p:commandLink
+                            styleClass="btn btn-icono"  
+                            actionListener="#{utilsMB.generarReporteReprogramacion(item.propertyMap['id'])}"
+                            ajax="false"
+                            title="#{textMB.obtenerTexto('labels.ImprimirReporteReprogramacion')}">
+                            <h:outputText styleClass="glyphicon glyphicon-print"/>
+                        </p:commandLink>
+                    </p:column>
+                </p:dataTable> 
+            </div>
+        </h:form>
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+
+
+    </ui:composition>
+</html>
+

@@ -1,0 +1,189 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consultaPoliza')}" /> 
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.consultaPoliza')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <div class="btn-group pull-right" role="group" aria-label="Opciones"> 
+                    <h:outputLink  styleClass="btn btn-default" value="crearEditarPoliza.xhtml"  rendered="#{permisosMB.permisos['CREAR_EDITAR_POLIZA']  }">
+                        <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                        <f:param name="volverAConsulta" value="true" />
+                    </h:outputLink>
+                </div>
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.consultaPoliza')}" escape="false" /> 
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CodigoInsumo')}:" />
+                                <div class="col-sm-9">
+                                    <h:inputText  value="#{polizaConsulta.codigoInsumo}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Anio')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu id="Anio" value="#{polizaConsulta.idAnioFiscal}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getAniosFiscales()}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="Anio" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu  value="#{polizaConsulta.estado}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getEstadosPolizas()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu value="#{polizaConsulta.idFuenteFinanciamiento}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getFuentesFinanciamiento()}" />
+                                        <f:ajax render="filtroFuenteRecursos"/>
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FuenteRecursos')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu value="#{polizaConsulta.idFuenteRecursos}" id="filtroFuenteRecursos"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getFuentesRecurso(polizaConsulta.idFuenteFinanciamiento)}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{polizaConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{polizaConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', polizaConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+                <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{polizaConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Polizas" />
+                        </h:commandLink> 
+                    </f:facet>
+
+
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Anio')}"  sortBy="#{dummy.fuente.insumo.poa.anioFiscal.anio}" >
+                        <h:outputText value="#{item.propertyMap['fuente.insumo.poa.anioFiscal.anio']}" />
+                    </p:column>
+
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.UT')}"  sortBy="#{dummy.fuente.insumo.poa.unidadTecnica.nombre}" >
+                        <h:outputText value="#{item.propertyMap['fuente.insumo.poa.unidadTecnica.nombre']}" />
+                    </p:column>
+
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Insumo')}"  sortBy="#{dummy.fuente.insumo.id}" >
+                        <h:outputText value="#{item.propertyMap['fuente.insumo.id']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecursos')}"  sortBy="#{dummy.fuente.fuente.fuenteRecursos.nombre}" >
+                        <h:outputText value="#{item.propertyMap['fuente.fuente.fuenteRecursos.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Categoria')}"  sortBy="#{dummy.fuente.fuente.categoriaConvenio.nombre}" >
+                        <h:outputText value="#{item.propertyMap['fuente.fuente.categoriaConvenio.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}"  sortBy="#{dummy.estado}" >
+                        <h:outputText value="#{textMB.obtenerTexto(item.propertyMap['estado'].label)}" />
+                    </p:column>
+
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.monto')}"  sortBy="#{dummy.monto}" >
+                        <h:outputText value="#{item.propertyMap['monto']}" >
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ImprimirPolizaConcentracion')}" styleClass="columnaAcciones">
+                        <p:commandLink
+                            styleClass="btn btn-icono"  
+                            actionListener="#{polizaConsulta.generarPolizaConcentracion(item.id)}"
+                            ajax="false"
+                            title="#{textMB.obtenerTexto('labels.ImprimirPolizaConcentracion')}">
+                            <h:outputText styleClass="glyphicon glyphicon-print"/>
+                        </p:commandLink>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_POLIZA'] }">
+                        <h:outputLink  value="crearEditarPoliza.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />                            
+                            <f:param name="volverAConsulta" value="true" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                </p:dataTable>       
+            </div>
+        </h:form>
+
+
+        <!-- Modal de eliminar -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+    </ui:composition>
+</html>
+

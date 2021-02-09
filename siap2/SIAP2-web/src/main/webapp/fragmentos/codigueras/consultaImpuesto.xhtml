@@ -1,0 +1,392 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.Impuestos')}" /> 
+                </h2>
+
+                <p:commandButton styleClass="btn btn-default pull-right"  
+                                 icon="glyphicon glyphicon-plus"
+                                 value="#{textMB.obtenerTexto('labels.Crear')}" 
+                                 update="modalEditarForm"
+                                 action="#{codigueraImpuestos.crearCategoria()}"
+                                 oncomplete="$('#editModal').modal('show');" 
+                                 immediate="true"
+                                 rendered="#{permisosMB.permisos['GESTIONAR_IMPUESTOS_CREAR_EDITAR'] }"  />
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{codigueraImpuestos.filtroCodigo}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{codigueraImpuestos.filtroNombre}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Orden')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText id="filtroOrden" value="#{codigueraImpuestos.filtroOrden}" styleClass="form-control textoMedio" />
+                                    <h:message for="filtroOrden" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu  value="#{codigueraImpuestos.filtroHabilitado}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Habilitado')}" itemValue="#{codigueraImpuestos.ESTADO_HABILITADO}"/>
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Deshabilitado')}" itemValue="#{codigueraImpuestos.ESTADO_DESHABILITADO}"/>
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{codigueraImpuestos.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{codigueraImpuestos.limpiar()}" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>            
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', codigueraImpuestos.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{codigueraImpuestos.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Categoria" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Orden')}"  sortBy="#{dummy.orden}">
+                        <h:outputText value="#{item.propertyMap['orden']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}"  sortBy="#{dummy.codigo}">
+                        <h:outputText value="#{item.propertyMap['codigo']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}"  sortBy="#{dummy.nombre}">
+                        <h:outputText value="#{item.propertyMap['nombre']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}"  sortBy="#{dummy.habilitado}">
+                        <h:outputText rendered="#{item.propertyMap['habilitado']}" value="#{textMB.obtenerTexto('labels.Si')}"  />
+                        <h:outputText rendered="#{!item.propertyMap['habilitado']}" value="#{textMB.obtenerTexto('labels.No')}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.tipoImpuesto')}"  sortBy="#{dummy.tipoImpuesto}">
+                        <h:outputText rendered="#{not empty item.propertyMap['tipoImpuesto']}" value="#{textMB.obtenerTexto(item.propertyMap['tipoImpuesto'].label)}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.valor')}"  sortBy="#{dummy.valor}">
+                        <h:outputText value="#{item.propertyMap['valor']}"  >
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['GESTIONAR_IMPUESTOS_CREAR_EDITAR'] }"  >
+                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         oncomplete="$('#editModal').modal('show');" 
+                                         action="#{codigueraImpuestos.cargarToEditar(item.propertyMap['id'])}"  
+                                         update="modalEditarForm tableForm"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerHistorico')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['GESTIONAR_IMPUESTOS_VER_HISTORICO'] }"  >
+                        <p:commandButton icon="glyphicon glyphicon-open-file" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.VerHistorico')}"  
+                                         oncomplete="$('#historicoModal').modal('show');" 
+                                         action="#{codigueraImpuestos.cargarHistorico(item.propertyMap['id'])}"  
+                                         update="modalHistoricoForm tableForm"/>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['GESTIONAR_IMPUESTOS_ELIMINAR'] }"  >
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         onclick="if (!existeConfirmacion(this.id))
+                                                     return false" 
+                                         action="#{codigueraImpuestos.eliminar(item.propertyMap['id'])}"
+                                         update="tableForm confirmModalCallBackBody"
+                                         immediate="true"/>
+                    </p:column>
+                </p:dataTable>  
+            </div>
+        </h:form>
+        <!-- Modal de editar -->
+        <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Impuesto')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Orden')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="orden" value="#{codigueraImpuestos.editando.orden}" styleClass="form-control"  />
+                                        <h:message for="orden" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>                                    
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="codigo" value="#{codigueraImpuestos.editando.codigo}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="codigo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="nombre" value="#{codigueraImpuestos.editando.nombre}" styleClass="form-control"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="nombre" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox value="#{codigueraImpuestos.editando.habilitado}" />
+                                                #{textMB.obtenerTexto('labels.Habilitado')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu  value="#{codigueraImpuestos.editando.tipoImpuesto}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                            <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{utilsMB.getTipoImpuestos()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                        </h:selectOneMenu> 
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Valor')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="valor" value="#{codigueraImpuestos.editando.valor}" styleClass="form-control"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                            <f:validateLength maximum="255" />
+                                        </h:inputText>
+                                        <h:message for="valor" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group" >
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.TipoFactura')}:" for="tipoF" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneRadio  id="tipoF"   styleClass="radio" value="#{codigueraImpuestos.editando.tipoFactura}" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                            <f:selectItems value="#{utilsMB.getTiposFacturas()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                        </h:selectOneRadio>                                            
+                                        <h:message for="tipoF" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox value="#{codigueraImpuestos.editando.porDefectoEnContrato}" />
+                                                #{textMB.obtenerTexto('labels.porDefectoEnContrato')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <table class="table"> 
+                                    <thead> 
+                                        <tr> 
+                                            <th>#{textMB.obtenerTexto('labels.TipoRetencion')}</th>
+                                            <th>#{textMB.obtenerTexto('labels.RetencionParaNacionales')}</th>
+                                            <th>#{textMB.obtenerTexto('labels.RetencionparaExtranjeras')}</th>
+                                        </tr> 
+                                    </thead>
+                                    <tbody> 
+                                        <tr> 
+                                            <td>#{textMB.obtenerTexto('labels.RetencionParaPersonaFisica')}</td>
+                                            <td>
+                                                <h:inputText id="porcentajeRetencionPersonaFisicaNacional" value="#{codigueraImpuestos.editando.porcentajeRetencionPersonaFisicaNacional}" styleClass="form-control numericos"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:message for="porcentajeRetencionPersonaFisicaNacional" styleClass="help-inline msj-danger" />
+                                            </td>
+                                            <td>
+                                                <h:inputText id="porcentajeRetencionPersonaFisicaExtranjera" value="#{codigueraImpuestos.editando.porcentajeRetencionPersonaFisicaExtranjera}" styleClass="form-control numericos"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>                                                
+                                                <h:message for="porcentajeRetencionPersonaFisicaExtranjera" styleClass="help-inline msj-danger" />
+                                            </td>
+                                        </tr> 
+                                        <tr> 
+                                            <td>#{textMB.obtenerTexto('labels.RetencionParaPersonaJuridica')}</td>
+                                            <td>
+                                                <h:inputText id="porcentajeRetencionPersonaJuridicaNacional" value="#{codigueraImpuestos.editando.porcentajeRetencionPersonaJuridicaNacional}" styleClass="form-control numericos"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:message for="porcentajeRetencionPersonaJuridicaNacional" styleClass="help-inline msj-danger" />
+                                            </td>                                            
+                                            <td>
+                                                <h:inputText id="porcentajeRetencionPersonaJuridicaExtranjera" value="#{codigueraImpuestos.editando.porcentajeRetencionPersonaJuridicaExtranjera}" styleClass="form-control numericos"   required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:message for="porcentajeRetencionPersonaJuridicaExtranjera" styleClass="help-inline msj-danger" />
+                                            </td>
+                                        </tr> 
+                                    </tbody> 
+                                </table>       
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{codigueraImpuestos.guardarEditando()}"   update="modalEditarForm tableForm"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+        <!-- end modal editar-->
+
+        <!-- Modal de historico -->
+        <div class="modal fade"  id="historicoModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalHistoricoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.ConsultaHistorica')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tablaConScroll">
+                                <p:dataTable
+                                    id="dataTableHistorico"
+                                    var="item" 
+                                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                    value="#{codigueraImpuestos.historico}" 
+                                    styleClass="table" >
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Orden')}">
+                                        <h:outputText value="#{item.orden}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                                        <h:outputText value="#{item.codigo}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                        <h:outputText value="#{item.nombre}"  />
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Habilitado')}">
+                                        <h:outputText value="#{item.habilitado}"  converter="booleanConverter"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.tipoImpuesto')}">
+                                        <h:outputText value="#{textMB.obtenerTexto(item.tipoImpuesto.label)}"  rendered="#{not empty item.tipoImpuesto.label}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.valor')}" styleClass="numericos">
+                                        <h:outputText value="#{item.valor}"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.tipoFactura')}">
+                                        <h:outputText value="#{textMB.obtenerTexto(item.tipoFactura.label)}"  rendered="#{not empty item.tipoFactura.label}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.porcentajeRetencionPersonaFisicaNacional')}" styleClass="numericos">
+                                        <h:outputText value="#{item.porcentajeRetencionPersonaFisicaNacional}"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.porcentajeRetencionPersonaJuridicaNacional')}" styleClass="numericos">
+                                        <h:outputText value="#{item.porcentajeRetencionPersonaJuridicaNacional}"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.porcentajeRetencionPersonaFisicaExtranjera')}" styleClass="numericos">
+                                        <h:outputText value="#{item.porcentajeRetencionPersonaFisicaExtranjera}"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.porcentajeRetencionPersonaJuridicaExtranjera')}" styleClass="numericos">
+                                        <h:outputText value="#{item.porcentajeRetencionPersonaJuridicaExtranjera}"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.FechaModificacion')}">
+                                        <h:outputText value="#{item.ultMod}"  converter="dateConverterHastaSegundos"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Usuario')}">
+                                        <h:outputText value="#{item.ultUsuario}"  />
+                                    </p:column>
+
+
+                                </p:dataTable>
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-primary" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cerrar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+        <!-- end modal historico-->        
+
+        <!-- Modal de eliminar -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+    </ui:composition>
+</html>
+

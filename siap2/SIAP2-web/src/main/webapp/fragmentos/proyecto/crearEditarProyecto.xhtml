@@ -1,0 +1,1696 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:c="http://java.sun.com/jsp/jstl/core"      
+      xmlns:sc="http://java.sun.com/jsf/composite/siapComponent">
+
+    <ui:composition>
+        <!-- el js para los diagramas -->        
+        <h:outputScript library="d3js" name="d3.v3.js" /> 
+        <!-- se usa para la sugerencia de formulas -->     
+        <h:outputScript library="js" name="bootstrap3-typeahead.min.js" /> 
+
+        <ui:fragment>
+            <h:form id="formTituloDeProyecto">
+                <div class="panelTituloPagina">
+                    <h2 id="overview" class="page-header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CrearProyecto')}" rendered="#{!proyectoCE.update}"/>
+                        <h:outputText value="#{textMB.obtenerTexto('labels.EditarProyecto')}" rendered="#{proyectoCE.update}" />
+                    </h2>
+
+                    <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                            data-container="body" 
+                            data-toggle="popover" 
+                            data-placement="bottom" 
+                            data-html="true"
+                            data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearEditarProyecto')}">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                    </button>
+
+                    <div class="btn-group pull-right">
+                        <p:commandLink actionListener="#{proyectoCE.descargarReporte()}" ajax="false" styleClass="btn btn-link">
+                            <span class="glyphicon glyphicon-download"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.DescargarReporte')}" /> 
+                        </p:commandLink>
+                        <p:commandButton styleClass="btn btn-default" icon="glyphicon glyphicon-lock"
+                                         value="#{textMB.obtenerTexto('labels.CerrarParametrosDelProyecto')}" 
+                                         onclick="$('#modalConfirmarCerrar').modal('show');"
+                                         update="modalConfirmarCerrarForm"
+                                         rendered="#{permisosMB.permisos['CERRAR_PROYECTO']}" />
+                    </div>
+
+                    <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.CrearEditarProyecto')}" escape="false" /> 
+                </div>
+                <ui:fragment rendered="#{ not empty proyectoCE.objeto.nombre}">
+                    <h3>  <h:outputText value="#{proyectoCE.objeto.nombre}"/></h3>
+                </ui:fragment>
+            </h:form>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false" >     
+            <p:defaultCommand target="save" />
+            <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+
+                <p:tabView id="tabs" prependId="false" activeIndex="#{proyectoCE.activeTab}"  cache="false">
+                    <p:tab title="#{textMB.obtenerTexto('labels.1-DatosGenerales')}"  >
+                        <ui:include src="./datosGenerales.xhtml"></ui:include>
+                    </p:tab>
+                    <p:tab title="#{textMB.obtenerTexto('labels.2-Financiacion')}" disabled="#{proyectoCE.objeto.pasoActual lt 1}">
+                        <ui:include src="./financiacion.xhtml"></ui:include>
+                    </p:tab>    
+                    <p:tab title="#{textMB.obtenerTexto('labels.3-Estructura')}" disabled="#{proyectoCE.objeto.pasoActual lt 2}" >
+                        <ui:include src="./estructura.xhtml"></ui:include>
+                    </p:tab>    
+                    <p:tab title="#{textMB.obtenerTexto('labels.4-Documentos')}" >
+                        <ui:include src="./documentos.xhtml"></ui:include>
+                    </p:tab >     
+
+                    <!-- aca se incluia indicadores ./otros.xhtml -->
+                    <!-- aca se incluia indicadores ./indicadores.xhtml -->
+
+                    <p:tab title="#{textMB.obtenerTexto('labels.5-DiagramaEstructura')}" disabled="#{proyectoCE.objeto.pasoActual lt 2}">
+                        <ui:include src="./diagramaEstructura.xhtml"></ui:include>
+                    </p:tab> 
+
+                    <!-- aca se incluia indicadores ./indicadores.xhtml -->
+<!--                    <p:tab title="#{textMB.obtenerTexto('labels.7-DistribucionDeMontos')}" disabled="#{proyectoCE.objeto.pasoActual lt 2}">
+                        <ui:include src="./graficoTorta.xhtml"></ui:include>
+                    </p:tab> -->
+                    
+                    
+                </p:tabView>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{proyectoCE.guardar}"  update="bloqueNoModal formTituloDeProyecto"/>
+                        <h:outputLink id="save" styleClass="btn btn-link" value="#{proyectoCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </h:panelGroup>
+        </h:form>
+
+
+
+
+        <!-- MODAL PARA AGREGAR FUENTES-->  
+        <h:panelGroup id="blockFuente"  layout="block">
+            <div class="modal fade"  id="anadirFuente" tabindex="-1" role="dialog" aria-labelledby="anadirFuente">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalFuente">
+                        <h:form id="anadirFuenteForm"  prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirFuente')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <p:focus context="anadirFuenteForm" />
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="fuente-financiamiento22" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="fuente-financiamiento22" value="#{proyectoCE.tmpIdFuenteFinanciamiento}"  styleClass="form-control textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getFuentesFinanciamiento()}" />
+                                                <f:ajax render="fuente-recurso22"  />
+                                            </h:selectOneMenu> 
+                                            <h:message for="fuente-financiamiento22" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="fuente-recurso22" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.FuenteRecurso')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="fuente-recurso22" value="#{proyectoCE.tmpIdFuenteRecurso}"  styleClass="form-control textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getFuentesRecurso(proyectoCE.tmpIdFuenteFinanciamiento)}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="fuente-recurso22" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="fuente-monto22" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Monto')}:" />
+                                        <div class="col-sm-8">
+                                            <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:inputText id="fuente-monto22" value="#{proyectoCE.tmpFuente.monto}" styleClass="form-control numericos"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                             >
+                                                    <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                </h:inputText>	
+                                            </h:panelGroup>  
+                                            <h:message for="fuente-monto22" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveFuente()}"   update="@form fuenteTabla aporteTabla"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+
+
+
+
+
+
+        <!-- MODAL PARA AGREGAR APORTE-->  
+<!--        <h:panelGroup id="blockAportes"  layout="block">
+            <div class="modal fade"  id="anadirAporte" tabindex="-1" role="dialog" aria-labelledby="anadirAporte">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalAporteTramo">
+                        <h:form id="anadirAporteForm"  prependId="false" rendered="#{proyectoCE.tempTramo== null}"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Aporte')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <p:focus context="anadirAporteForm" />
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.CategoriaConvenio')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText  id="aporte-categoria" styleClass="form-control-static" value="#{proyectoCE.tmpAporte.categoriaConvenio.nombre}" />
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="fuente-recurso2" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FuenteRecurso')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText  id="fuente-recurso2"  styleClass="form-control-static" value="#{proyectoCE.tmpAporte.fuenteRecursos.nombre}" />
+                                        </div>
+                                    </div>
+
+                                     inicia parte de porcentaje 
+                                    <p:outputPanel  id="porcentajeOtramo">
+                                        <p:outputPanel  id="porcentajes"  rendered="#{proyectoCE.tmpAporte.categoriaConvenio.tipo eq 'POR_PORCENTAJE'}">
+                                            <div class="form-group">
+                                                <h:outputLabel for="fuente-porcentaje2" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Porcentaje')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                        <p:inputText id="fuente-porcentaje2" value="#{proyectoCE.tmpAporte.porcentaje}" styleClass="form-control numericos"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                            <p:ajax event="keyup" update="fuente-monto2" listener="#{proyectoCE.aportePorcentajeToMonto()}" />
+                                                            <f:validateDoubleRange minimum="0" maximum="100" />
+                                                        </p:inputText>	
+                                                    </h:panelGroup>  
+                                                    <h:message for="fuente-porcentaje2" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>                                                
+                                            <div class="form-group">
+                                                <h:outputLabel for="fuente-monto2" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Monto')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                        <h:inputText id="fuente-monto2" value="#{proyectoCE.tmpAporte.monto}" styleClass="form-control numericos"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                                     >
+                                                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                        </h:inputText>	
+                                                    </h:panelGroup>  
+                                                    <h:message for="fuente-monto2" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </p:outputPanel>
+
+                                         el monto va para todos 
+
+                                         inicia financiamiento por tramos 
+                                        <p:outputPanel   rendered="#{proyectoCE.tmpAporte.categoriaConvenio.tipo eq 'POR_TRAMOS'}">
+                                            <div class="form-group">
+                                                <h:outputLabel  styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Porcentaje')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:outputText value="#{proyectoCE.tmpAporte.porcentaje}"  styleClass="form-control-static">
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </div>
+                                            </div>                                            
+                                            <div class="form-group">
+                                                <h:outputLabel  styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Monto')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:outputText value="#{proyectoCE.tmpAporte.monto}"  styleClass="form-control-static">
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group margenSup">
+                                                <div class="col-sm-6">
+                                                    <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Tramos')}" />
+                                                </div>
+                                                <div class="col-sm-6 clearfix">                        
+                                                    <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                     icon="glyphicon glyphicon-plus"
+                                                                     value="#{textMB.obtenerTexto('labels.AnadirTramo')}" 
+                                                                     update="contenidoModalAporteTramo"
+                                                                     action="#{proyectoCE.reloadTramo()}"/>
+                                                </div>
+                                                <h:panelGroup  layout="block" id="categoria-tablaTramos" styleClass="col-sm-12 margenSup">
+                                                    <p:dataTable var="tramo" 
+                                                                 value="#{proyectoCE.tmpAporte.tramos}" 
+                                                                 sortBy="#{tramo.montoHasta}">
+
+                                                        <p:column headerText="#{textMB.obtenerTexto('montoHasta')}" sortBy="#{tramo.montoHasta}" styleClass="numericos">
+                                                            <h:outputText  value="#{tramo.montoHasta}" >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </p:column>
+
+                                                        <p:column headerText="#{textMB.obtenerTexto('financiaPorcentaje')}" sortBy="#{tramo.financiaPorcentaje}" styleClass="numericos">
+                                                            <h:outputText  value="#{tramo.financiaPorcentaje}" >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </p:column>
+
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" >
+                                                            <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                             styleClass="btn btn-icono"  
+                                                                             title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                             update="contenidoModalAporteTramo"
+                                                                             actionListener="#{proyectoCE.reloadTramo()}">
+                                                                <f:setPropertyActionListener target="#{proyectoCE.tempTramo}" value="#{tramo}" />
+                                                            </p:commandButton>
+                                                        </p:column>
+
+                                                        <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" >
+                                                            <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                             styleClass="btn btn-danger btn-icono" 
+                                                                             title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                             actionListener="#{proyectoCE.eliminarTramo(tramo)}"
+                                                                             update="categoria-tablaTramos"
+                                                                             immediate="true">
+                                                            </p:commandButton>
+                                                        </p:column>
+                                                    </p:dataTable>
+
+                                                </h:panelGroup>
+                                            </div>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+
+
+                                     end tabla tramos
+
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveAporte()}"   update="estructuraComponentes aporteTabla contenidoModalAporteTramo"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+
+
+                         TRAMO FORM 
+                        <h:form id="anadirTramoForm"  prependId="false" rendered="#{proyectoCE.tempTramo!= null}"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirTramo')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="tramo-montoHasta" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.montoHasta')}:" />
+                                        <div class="col-sm-8">
+                                            <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:inputText id="tramo-montoHasta" value="#{proyectoCE.tempTramo.montoHasta}" styleClass="form-control numericos"  >
+                                                    <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                </h:inputText>	
+                                            </h:panelGroup>   
+                                            <h:message for="tramo-montoHasta" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="tramo-financiaPorcentaje" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.financiaPorcentaje')}:" />
+                                        <div class="col-sm-8">
+                                            <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                <h:inputText id="tramo-financiaPorcentaje" value="#{proyectoCE.tempTramo.financiaPorcentaje}" styleClass="form-control numericos"  >
+                                                    <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                </h:inputText>	
+                                            </h:panelGroup>   
+                                            <h:message for="tramo-financiaPorcentaje" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveTramo()}"   update="contenidoModalAporteTramo"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                                <p:commandButton  styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.Cancelar')}" update="contenidoModalAporteTramo">
+                                    <f:setPropertyActionListener target="#{proyectoCE.tempTramo}" value="#{null}" />
+                                </p:commandButton>
+                            </div>
+                        </h:form>
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>-->
+
+
+
+        <!-- MODAL PARA AGREGAR PRORROGAS-->  
+<!--        <h:panelGroup id="blockProrroga"  layout="block">
+            <div class="modal fade"  id="anadirProrroga" tabindex="-1" role="dialog" aria-labelledby="anadirProrroga">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalProrroga">
+                        <h:form id="anadirProrrogaForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirProrroga')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <p:outputLabel for="fecha-prorroga" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.FechaHasta')}:"/>
+                                        <div class="col-sm-9">
+                                            <p:calendar value="#{proyectoCE.tmpProrroga.prorroga}" styleClass="textoMedio" id="fecha-prorroga" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" locale="es" pattern="dd/MM/yyyy"/>
+                                            <h:message for="fecha-prorroga" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Documento')}:" />
+                                        <div class="col-sm-9">
+                                            <p:fileUpload value="#{proyectoCE.uploadedFile}"
+                                                          mode="advanced"
+                                                          multiple="false"
+                                                          fileUploadListener="#{proyectoCE.fileUploadListener}"
+                                                          auto="true"
+                                                          update="archivoAsubir3" />
+                                            <h:panelGroup layout="block" id="archivoAsubir3" >
+                                                <ui:fragment rendered="#{proyectoCE.hayArchivo(proyectoCE.tmpDocumento)}">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                                    <p:commandLink  actionListener="#{proyectoCE.downloadFileDeDocumento(proyectoCE.tmpDocumento)}" ajax="false">
+                                                        <h:outputText value="#{proyectoCE.getNombreArchivo(proyectoCE.tmpDocumento)}" /> 
+                                                    </p:commandLink>                                                       
+                                                </ui:fragment>
+                                            </h:panelGroup>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveProrroga()}"   update="prorrogaTabla contenidoModalProrroga"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>-->
+
+
+        <!-- MODAL PARA SELECCIONAR PROGRAMA INSTITUCIONAL Y PRESUPUESTARIO-->  
+        <h:panelGroup id="blockAsignarPrograma"  layout="block">
+            <div class="modal fade"  id="anadirAsignarPrograma">
+                <div class="modal-dialog  modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalAsignarPrograma">
+                        <h:form id="anadirAsignarProgramaForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.SelecionarPrograma')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="pInstitucional" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProgramaInstitucional')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="pInstitucional" value="#{proyectoCE.idProgramaInstitucional}"  styleClass="form-control " >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getProgramasInstitucionales()}" />
+                                                <f:ajax render="psPresupuestario indicadoresSelecionados"   />
+                                            </h:selectOneMenu> 
+                                            <h:message for="pInstitucional" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="pPresupuestario" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProgramaPresupuestario')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="pPresupuestario" value="#{proyectoCE.idProgramaPresupuestario}"  styleClass="form-control " >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:ajax render="psPresupuestario indicadoresSelecionados"   />
+                                                <f:selectItems value="#{utilsMB.getProgramasPrespuestario()}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="pPresupuestario" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="psPresupuestario" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.SubProgramaPresupuestario')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="psPresupuestario" value="#{proyectoCE.idSubProgramaPresupuestario}"  styleClass="form-control " >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getSubProgramasPrespuestario(proyectoCE.idProgramaPresupuestario)}" />
+                                                <f:ajax render="indicadoresSelecionados"   />
+                                            </h:selectOneMenu> 
+                                            <h:message for="psPresupuestario" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="margenInf">
+                                        <div class="form-group">
+                                            <div class="col-sm-5">
+                                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Indicadores')}" />
+                                            </div>
+                                        </div>
+                                        <p:dataTable id="indicadoresSelecionados" var="item" value="#{proyectoCE.indicadoresASeleccionar}" 
+                                                     selection="#{proyectoCE.objeto.indicadoresAsociados}" 
+                                                     rowKey="#{item.id}" >
+                                            <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                                <h:outputText value="#{item.indicador.nombre}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.TipoSeguimiento')}">
+                                                <h:outputText value="#{textMB.obtenerTexto(item.indicador.tipo.tipoSeguimiento.label)}" rendered="#{not empty  item.indicador.tipo.tipoSeguimiento.label}" />
+                                            </p:column>
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Descripcion')}">
+                                                <h:outputText value="#{item.indicador.descripcion}" />
+                                            </p:column>
+                                        </p:dataTable> 
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.asignarProgramas()}"   update="segmentoProgramas contenidoModalAsignarPrograma"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+        
+        
+        
+        
+        
+        
+        
+
+        <!-- MODAL PARA AGREGAR Paripassu-->  
+        <h:outputScript library="js" name="sugerencias-montos.js" /> 
+        
+        <h:panelGroup id="blockParipassu"  layout="block">
+            <div class="modal fade"  id="anadirParipassu" tabindex="-1" role="dialog" aria-labelledby="anadirParipassu">
+                <div class="modal-dialog  modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalParipassu">
+                        <h:form id="anadirParipassuForm"  prependId="false" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AsociarParipassu')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <p:focus context="anadirParipassuForm" />
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="desembolsoComentario" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.categoria')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText styleClass="form-control-static" value="#{proyectoCE.tmpProyCategoriaConvenio.categoriaConvenio.nombre}" /> 
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.DefinicionPor')}:"  />
+                                        <div class="col-sm-8">
+                                            <h:selectOneRadio id="paripassu-def" styleClass="radio" value="#{proyectoCE.tmpProyCategoriaConvenio.tipoParipassuEnConstruccion}" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:selectItems value="#{utilsMB.getTiposParipassu()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                                <f:ajax render="paripassu-lista" onevent="cambioTipoMonto" listener="#{proyectoCE.cambiaTipo()}"/> 
+                                            </h:selectOneRadio>
+                                            <h:message for="paripassu-def" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    
+                                    <div class="separador"></div>
+                                    
+                                    <p:outputPanel id="paripassu-lista">
+                                        <ui:repeat  var="aporte" value="#{proyectoCE.tmpFuentesParipassu}" varStatus="status">
+                                            <div class="form-group">
+                                                <h:outputText value="#{aporte.fuenteRecursos.codigo}:" styleClass="col-sm-4 control-label" />
+                                                <div class="col-sm-8">
+                                                    <div class="row">
+                                                    <div class="col-xs-6">    
+                                                        <h:panelGroup  styleClass="input-group" layout="block">
+                                                            <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                            <p:inputText   value="#{aporte.montoParipassuEnConstruccion}"  styleClass="form-control numericos" disabled="#{proyectoCE.tmpProyCategoriaConvenio.tipoParipassuEnConstruccion ne 'PORCENTAJE'}"  >
+                                                                <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                                <p:ajax event="keyup" update="paripass-total-porcentaje"/>
+                                                            </p:inputText>	
+                                                        </h:panelGroup>  
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <p:inputText   value="#{aporte.formulaParipassuEnConstruccion}"  styleClass="form-control typeahead" autocomplete="off" disabled="#{proyectoCE.tmpProyCategoriaConvenio.tipoParipassuEnConstruccion ne 'FORMULA'}"  >
+                                                        </p:inputText>	
+                                                    </div>
+                                                    </div>
+                                                    <h:message for="componente-monto-fuente" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </ui:repeat>
+                                    </p:outputPanel>
+                                    
+                                    <div class="separador"></div>
+                                    
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-4 col-sm-8">
+                                            <div class="row">
+                                                <div class="col-xs-6">    
+                                                    <h:outputText id="paripass-total-porcentaje" styleClass="form-control-static numericos" value="#{proyectoCE.getTotalFuentesParipassu()}" />	
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                                                        
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveParipassu()}"   update="@form aporteTabla"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        <!-- MODAL PARA AGREGAR Paripassu CON TRAMOS-->  
+        <h:panelGroup id="blockParipassuConTramos"  layout="block">
+            <div class="modal fade"  id="anadirParipassuConTramos" tabindex="-1" role="dialog" aria-labelledby="anadirParipassu">
+                <div class="modal-dialog  modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalParipassuPorTramos">
+                        <!-- FORMULARIO DE PARIPASSU -->
+                        <h:form   prependId="false"  rendered="#{proyectoCE.tempTramo== null}"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AsociarParipassu')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="desembolsoComentario" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.categoria')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText styleClass="form-control-static" value="#{proyectoCE.tmpProyCategoriaConvenio.categoriaConvenio.nombre}" /> 
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.DefinicionPor')}:"  />
+                                        <div class="col-sm-8">
+                                            <h:selectOneRadio id="paripassu-ConTramos-def" styleClass="radio" value="#{proyectoCE.tmpProyCategoriaConvenio.tipoParipassuEnConstruccion}" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:selectItems value="#{utilsMB.getTiposParipassu()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                                <f:ajax render="paripassu-ConTramos-lista" onevent="cambioTipoMonto" listener="#{proyectoCE.cambiaTipo()}"/> 
+                                            </h:selectOneRadio>
+                                            <h:message for="paripassu-ConTramos-def" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    
+                                    <div class="separador"></div>
+                                    
+                                    <p:outputPanel id="paripassu-ConTramos-lista">
+                                        
+                                        
+                                        
+                                            <div class="form-group margenSup">
+                                                <div class="col-sm-6">
+                                                    <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Tramos')}" />
+                                                </div>
+                                                <div class="col-sm-6 clearfix">                        
+                                                    <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                     icon="glyphicon glyphicon-plus"
+                                                                     value="#{textMB.obtenerTexto('labels.AnadirTramo')}" 
+                                                                     update="contenidoModalParipassuPorTramos"
+                                                                     immediate="true"
+                                                                     action="#{proyectoCE.reloadTramo()}"/>
+                                                </div>
+                                                <h:panelGroup  layout="block" id="categoria-tablaTramos" styleClass="col-sm-12 margenSup">
+                                                    <table class="ui-datatable table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class=""><h:outputText value="#{textMB.obtenerTexto('labels.Tramo')}" /> </th>
+                                                                <th class=""> <h:outputText value="#{textMB.obtenerTexto('labels.Hasta')}" /> </th>
+                                                                <th class="numericos"> <h:outputText value="#{textMB.obtenerTexto('labels.FuenteRecursos')}" /> </th>
+                                                                <th class="numericos"> <h:outputText value="#{textMB.obtenerTexto('labels.Porcentaje')}" /> </th>
+                                                                <th class=""> <h:outputText value="#{textMB.obtenerTexto('labels.Formula')}" /> </th>
+                                                                <th class="columnaAcciones"> <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" /> </th>
+                                                                <th class="columnaAcciones"> <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <ui:fragment rendered="#{ empty proyectoCE.tmpProyCategoriaConvenio.tramos}">
+                                                                <tr class="ui-widget-content ui-datatable-empty-message"><td colspan="7">#{textMB.obtenerTexto('labels.TablaVacia')}</td></tr>
+                                                            </ui:fragment>
+                                                            <ui:fragment rendered="#{ not empty  proyectoCE.tmpProyCategoriaConvenio.tramos}">
+                                                                <!--imprime los tramos -->
+                                                                 <ui:repeat var="tramo" 
+                                                                            value="#{proyectoCE.tmpProyCategoriaConvenio.tramos}"   
+                                                                            varStatus="status">
+                                                                     <tr>
+                                                                        <td>    
+                                                                            <h:outputText value="#{textMB.obtenerTexto('labels.TRAMO')} " /><h:outputText value="#{status.index}"/>
+                                                                        </td>   
+                                                                         <td class="numericos">                                                                             
+                                                                            <h:outputText  value="#{tramo.montoHastaEnConstruccion}" >
+                                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                            </h:outputText>
+                                                                         </td>
+                                                                         <td >             
+                                                                         </td>
+                                                                         <td class="numericos">  
+                                                                         </td>
+                                                                         <td>  
+                                                                         </td>
+                                                                         <td  class="columnaAcciones">  
+                                                                            <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                                             styleClass="btn btn-icono"  
+                                                                                             title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                                             update="contenidoModalParipassuPorTramos"
+                                                                                             actionListener="#{proyectoCE.reloadTramo()}"
+                                                                                             immediate="true">
+                                                                                <f:setPropertyActionListener target="#{proyectoCE.tempTramo}" value="#{tramo}" />
+                                                                            </p:commandButton>
+                                                                         </td>
+                                                                         <td  class="columnaAcciones">  
+                                                                            <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                                             styleClass="btn btn-danger btn-icono" 
+                                                                                             title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                                             actionListener="#{proyectoCE.eliminarTramo(tramo)}"
+                                                                                             update="paripassu-ConTramos-lista"
+                                                                                             immediate="true">
+                                                                            </p:commandButton>
+                                                                         </td>
+                                                                    </tr>
+                                                                     <!-- para cada tramo imprime los paripassu-->
+                                                                     <ui:repeat var="paripassuTramo" 
+                                                                                value="#{tramo.paripassus}">
+                                                                        <tr>
+                                                                           <td>    
+                                                                           </td>   
+                                                                            <td class="numericos">       
+                                                                            </td>
+                                                                            <td >                                                                                                                                                      
+                                                                                <h:outputText  value="#{paripassuTramo.fuenteRecursos.nombre}" />
+                                                                            </td>
+                                                                            <td class="numericos">  
+                                                                                <h:panelGroup  styleClass="input-group" layout="block">
+                                                                                    <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                                                    <p:inputText   value="#{paripassuTramo.montoParipassuEnConstruccion}"  styleClass="form-control numericos" disabled="#{proyectoCE.tmpProyCategoriaConvenio.tipoParipassuEnConstruccion ne 'PORCENTAJE'}"  >
+                                                                                        <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                                                        <p:ajax event="keyup" update="paripass-total-porcentaje"/>
+                                                                                    </p:inputText>	
+                                                                                </h:panelGroup>  
+                                                                            </td>
+                                                                            <td> 
+                                                                                <p:inputText   value="#{paripassuTramo.formulaParipassuEnConstruccion}"  styleClass="form-control typeahead" autocomplete="off" disabled="#{proyectoCE.tmpProyCategoriaConvenio.tipoParipassuEnConstruccion ne 'FORMULA'}"  >
+                                                                                </p:inputText>	
+                                                                            </td>
+                                                                            <td  class="columnaAcciones">  
+                                                                            </td>
+                                                                            <td  class="columnaAcciones"> 
+                                                                            </td>
+                                                                       </tr>
+                                                                     
+                                                                    </ui:repeat>
+                                                                 </ui:repeat>                                                                
+                                                            </ui:fragment>
+                                                        </tbody>
+                                                    </table>
+                                                </h:panelGroup>
+                                            </div>
+                                    </p:outputPanel>
+                                    
+                                    <div class="separador"></div>
+                                                                        
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveParipassuConTramos()}"   update="@form aporteTabla"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                        <!-- FORMULARIO DE EDICION DE UN TRAMO -->
+                        <h:form  prependId="false"  rendered="#{proyectoCE.tempTramo!= null}" > 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Tramo')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <div class="form-group">
+                                        <h:outputLabel for="tramo-montoHasta" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.montoHasta')}:" />
+                                        <div class="col-sm-8">
+                                            <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:inputText id="tramo-montoHasta" value="#{proyectoCE.tempTramo.montoHastaEnConstruccion}" styleClass="form-control numericos"  >
+                                                    <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                </h:inputText>	
+                                            </h:panelGroup>   
+                                            <h:message for="tramo-montoHasta" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+<!--                                    <div class="form-group">
+                                        <h:outputLabel for="tramo-financiaPorcentaje" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.financiaPorcentaje')}:" />
+                                        <div class="col-sm-8">
+                                            <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                <h:inputText id="tramo-financiaPorcentaje" value="#{proyectoCE.tempTramo.financiaPorcentaje}" styleClass="form-control numericos" >
+                                                    <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                    <f:validateLongRange  maximum="#{proyectoCE.tmpProyCategoriaConvenio.monto}" />
+                                                </h:inputText>	
+                                            </h:panelGroup>   
+                                            <h:message for="tramo-financiaPorcentaje" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>                                    -->
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveTramo()}"   update="contenidoModalParipassuPorTramos aporteTabla"/>
+                                <p:commandButton  styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.Cancelar')}" update="contenidoModalParipassuPorTramos">
+                                    <f:setPropertyActionListener target="#{proyectoCE.tempTramo}" value="#{null}" />
+                                </p:commandButton>
+                            </div>
+                        </h:form>
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+
+        <!-- MODAL PARA AGREGAR DESEMBOLSO-->  
+        <h:panelGroup id="blockDesembolso"  layout="block">
+            <div class="modal fade"  id="anadirDesembolso" tabindex="-1" role="dialog" aria-labelledby="anadirDesembolso">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalDesembolso">
+                        <h:form id="anadirDesembolsoForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirDesembolso')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <p:outputLabel for="fecha-desembolso" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Fecha')}:"/>
+                                        <div class="col-sm-9">
+                                            <p:calendar value="#{proyectoCE.tmpDesembolso.fecha}" styleClass="textoMedio" id="fecha-desembolso" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="es" pattern="dd/MM/yyyy"/>
+                                            <h:message for="fecha-desembolso" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="desembolsoComentario" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.comentario')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputTextarea id="desembolsoComentario" value="#{proyectoCE.tmpDesembolso.comentario}" styleClass="form-control textoLargo"   rows="10" />
+                                            <h:message for="desembolsoComentario" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="documento-descripcion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Documento')}:" />
+                                        <div class="col-sm-9">
+                                            <p:fileUpload value="#{proyectoCE.uploadedFile}"
+                                                          mode="advanced"
+                                                          multiple="false"
+                                                          label="#{textMB.obtenerTexto('labels.Seleccionar')}"
+                                                          fileUploadListener="#{proyectoCE.fileUploadListener}"
+                                                          auto="true"
+                                                          update="archivoAsubir2" />
+                                            <h:panelGroup layout="block" id="archivoAsubir2" >
+                                                <ui:fragment rendered="#{proyectoCE.hayArchivo(proyectoCE.tmpDocumento)}">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                                    <p:commandLink  actionListener="#{proyectoCE.downloadFileDeDocumento(proyectoCE.tmpDocumento)}" ajax="false">
+                                                        <h:outputText value="#{proyectoCE.getNombreArchivo(proyectoCE.tmpDocumento)}" /> 
+                                                    </p:commandLink>                                                       
+                                                </ui:fragment>
+                                            </h:panelGroup>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveDesembolso()}"   update="desembolsoTabla contenidoModalDesembolso"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+        <!-- MODAL PARA AGREGAR ENMIENDA-->  
+<!--        <h:panelGroup id="blockEnmienda"  layout="block">
+            <div class="modal fade"  id="anadirEnmienda" tabindex="-1" role="dialog" aria-labelledby="anadirEnmienda">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalEnmienda">
+                        <h:form id="anadirEnmiendaForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirEnmienda')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <p:outputLabel for="fecha-enmienda" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Fecha')}:"/>
+                                        <div class="col-sm-9">
+                                            <p:calendar value="#{proyectoCE.tmpEnmienda.fecha}" styleClass="textoMedio" id="fecha-enmienda" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" locale="es" pattern="dd/MM/yyyy"/>
+                                            <h:message for="fecha-enmienda" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="enmienda-codigo" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputText id="enmienda-codigo"  maxlength="255"  value="#{proyectoCE.tmpEnmienda.codigo}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:validateLength maximum="255" />
+                                            </h:inputText>
+                                            <h:message for="enmienda-codigo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="enmienda-nombre" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputText id="enmienda-nombre"  maxlength="255" value="#{proyectoCE.tmpEnmienda.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:validateLength maximum="255" />
+                                            </h:inputText>
+                                            <h:message for="enmienda-nombre" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="comentario-enmienda" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Comentario')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputTextarea id="comentario-enmienda" value="#{proyectoCE.tmpEnmienda.comentario}" styleClass="form-control textoLargo"   rows="10" />
+                                            <h:message for="comentario-enmienda" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Documento')}:" />
+                                        <div class="col-sm-9">
+                                            <p:fileUpload value="#{proyectoCE.uploadedFile}"
+                                                          mode="advanced"
+                                                          multiple="false"
+                                                          fileUploadListener="#{proyectoCE.fileUploadListener}"
+                                                          auto="true"
+                                                          update="archivoAsubir4" />
+                                            <h:panelGroup layout="block" id="archivoAsubir4" >
+                                                <ui:fragment rendered="#{proyectoCE.hayArchivo(proyectoCE.tmpDocumento)}">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                                    <p:commandLink  actionListener="#{proyectoCE.downloadFileDeDocumento(proyectoCE.tmpDocumento)}" ajax="false">
+                                                        <h:outputText value="#{proyectoCE.getNombreArchivo(proyectoCE.tmpDocumento)}" /> 
+                                                    </p:commandLink>                                                       
+                                                </ui:fragment>
+                                            </h:panelGroup>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveEnmienda()}"   update="tablaEnmienda contenidoModalEnmienda"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>-->
+
+
+        <!-- MODAL PARA AGREGAR COEJECUTORAS-->  
+        <h:panelGroup id="blockCoEjecutora"  layout="block">
+            <div class="modal fade"  id="anadirCoEjecutora" tabindex="-1" role="dialog" aria-labelledby="anadirCoEjecutora">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalCoEjecutora">
+                        <h:form id="anadirCoEjecutoraForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirCoEjecutora')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="coEjecutora-nombre" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputText id="coEjecutora-nombre"  maxlength="255" value="#{proyectoCE.tmpCoEjecutora.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:validateLength maximum="255" />
+                                            </h:inputText>
+                                            <h:message for="coEjecutora-nombre" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <p:outputLabel for="fechaFirmaConvenio-coEjecutora" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.FechaFirmaConvenio')}:"/>
+                                        <div class="col-sm-8">
+                                            <p:calendar value="#{proyectoCE.tmpCoEjecutora.fechaFirmaConvenio}" styleClass="textoMedio" id="fechaFirmaConvenio-coEjecutora" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="es" pattern="dd/MM/yyyy"/>
+                                            <h:message for="fechaFirmaConvenio-coEjecutora" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <p:outputLabel for="fechaVigenciaConvenio-coEjecutora" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.FechaVigenciaConvenio')}:"/>
+                                        <div class="col-sm-8">
+                                            <p:calendar value="#{proyectoCE.tmpCoEjecutora.fechaVigenciaConvenio}" styleClass="textoMedio" id="fechaVigenciaConvenio-coEjecutora" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" locale="es" pattern="dd/MM/yyyy"/>
+                                            <h:message for="fechaVigenciaConvenio-coEjecutora" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="descripcion-coEjecutora" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Descricpion')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputTextarea id="descripcion-coEjecutora" value="#{proyectoCE.tmpCoEjecutora.descripcion}" styleClass="form-control textoLargo"   rows="10" />
+                                            <h:message for="descripcion-coEjecutora" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveCoEjecutora()}"   update="tablaCoEjecutora contenidoModalCoEjecutora"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+        <!-- MODAL PARA AGREGAR DOCUMENTOS-->  
+        <h:panelGroup id="blockDocumento"  layout="block">
+            <div class="modal fade"  id="anadirDocumento" tabindex="-1" role="dialog" aria-labelledby="anadirDocumento">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalDocumento">
+                        <h:form id="anadirDocumentoForm"  prependId="false"  enctype="multipart/form-data"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirDocumento')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="documento-tipo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.TipoDocumento')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="documento-tipo" value="#{proyectoCE.idTipoDocuemnto}"  styleClass="form-control " required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getTiposDocumentoProyecto()}"  var="enum"  itemValue="#{enum}" itemLabel="#{textMB.obtenerTexto(enum.label)}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="documento-tipo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="documento-descripcion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Documento')}:" />
+                                        <div class="col-sm-9">
+                                            <p:fileUpload value="#{proyectoCE.uploadedFile}"
+                                                          mode="advanced"
+                                                          multiple="false"
+                                                          fileUploadListener="#{proyectoCE.fileUploadListener}"
+                                                          auto="true"
+                                                          label="#{textMB.obtenerTexto('labels.Seleccionar')}"
+                                                          update="archivoAsubir" />     
+
+
+                                            <h:panelGroup layout="block" id="archivoAsubir" >
+                                                <ui:fragment rendered="#{proyectoCE.hayArchivo(proyectoCE.tmpDocumento)}">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.Archivo')}:" />
+                                                    <p:commandLink  actionListener="#{proyectoCE.downloadFileDeDocumento(proyectoCE.tmpDocumento)}" ajax="false">
+                                                        <h:outputText value="#{proyectoCE.getNombreArchivo(proyectoCE.tmpDocumento)}" /> 
+                                                    </p:commandLink>                                                       
+                                                </ui:fragment>
+                                            </h:panelGroup>
+
+
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="documento-descripcion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputTextarea id="documento-descripcion" value="#{proyectoCE.tmpDocumento.descripcion}" styleClass="form-control textoLargo"   rows="10"  />
+                                            <h:message for="documento-descripcion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveDocumento()}"   update="tablaDocumento @form" ajax="true"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+        <!-- MODAL PARA AGREGAR COMPONENTE-->  
+        <h:panelGroup id="blockComponente"  layout="block">
+            <div class="modal fade"  id="anadirComponente" tabindex="-1" role="dialog" aria-labelledby="anadirComponente">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalComponente">
+                        <h:form id="anadirComponenteForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirComponente')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="componente-numero" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Numero')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputText id="componente-numero" value="#{proyectoCE.tmpComponente.numero}" styleClass="form-control textoCorto" >
+                                                <f:validateLongRange minimum="0" />
+                                            </h:inputText>
+                                            <h:message for="componente-numero" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="componente-nombre" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputText id="componente-nombre" value="#{proyectoCE.tmpComponente.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  />
+                                            <h:message for="componente-nombre" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="componentePadre" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ComponentePadre')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="componentePadre" value="#{proyectoCE.tempComponentePadreIndex}"  styleClass="form-control textoMedio"  >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{proyectoCE.getPosiblesComponentePadres()}" />
+                                                <f:ajax render="componente-bloque-responsables"  listener="#{proyectoCE.updateComponentePadre()}"   />
+                                            </h:selectOneMenu> 
+                                            <h:message for="componentePadre" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <p:outputPanel id="componente-bloque-responsables">
+                                        <div class="form-group">
+                                            <h:outputLabel  styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                            <div class="col-sm-8">
+                                                <ui:include src="./../fragmentoSelectOneUT.xhtml">
+                                                    <ui:param name="parameterBean" value="#{proyectoCE}" />
+                                                    <ui:param name="externalUpdate" value="componente-responsable" />
+                                                    <ui:param name="externalId" value="componente-unidadT" />
+                                                    <ui:param name="requerido" value="#{not empty proyectoCE.tempComponentePadreIndex }" />
+                                                </ui:include>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="componente-responsable" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Responsable')}:" />
+                                            <div class="col-sm-8">                                            
+                                                <p:autoComplete id="componente-responsable" 
+                                                                required="#{not empty proyectoCE.tempComponentePadreIndex }"
+                                                                styleClass="autocompleteLargo"
+                                                                dropdown="true"
+                                                                value="#{proyectoCE.tmpComponente.responsable}" 
+                                                                completeMethod="#{proyectoCE.completeTextUsuario}" 
+                                                                var="usuario"
+                                                                itemLabel="#{proyectoCE.getNombreResponsable(usuario)}" itemValue="#{usuario}" 
+                                                                scrollHeight="#{utilsMB.autoCompleteScrollHeight}">
+                                                    <f:converter  binding="#{usuarioConverter}" />               
+                                                </p:autoComplete>
+    <!--                                            <h:inputText id="componente-responsable" value="#{proyectoCE.tmpComponente.responsable}" styleClass="form-control textoLargo" />-->
+                                                <h:message for="componente-responsable" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                    </p:outputPanel>
+
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TipoMonto')}:"  />
+                                        <div class="col-sm-8">
+                                            <h:selectOneRadio id="componente-tipo-estructura" styleClass="radio" value="#{proyectoCE.tmpComponente.tipoMontoEstructura}" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:selectItems value="#{utilsMB.getTipoMontoEstructuraProyecto()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                                <f:ajax render="componente-bloque-motno-estructura"/> 
+                                            </h:selectOneRadio>
+                                            <h:message for="componente-tipo-estructura" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+                                    <p:outputPanel id="componente-bloque-motno-estructura">
+                                        <p:outputPanel styleClass="form-group" >
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Valor')}" />
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <div class="row">
+                                                <div class="col-xs-6">
+                                                    <h:panelGroup  styleClass="input-group " layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                        <p:inputText  id="componente-porcentaje" value="#{proyectoCE.tmpComponente.porcentaje}"  styleClass="form-control numericos" disabled="#{proyectoCE.tmpComponente.tipoMontoEstructura ne 'PORCENTAJE'}"
+                                                                      required="#{proyectoCE.tmpComponente.tipoMontoEstructura eq 'PORCENTAJE'}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                            <p:ajax event="keyup" update="componente-montos-fuentes componente-monto"  listener="#{proyectoCE.recalcularImporte(proyectoCE.tmpComponente)}"  />
+                                                        </p:inputText>	
+                                                    </h:panelGroup>
+                                                </div>
+                                                <div class="col-xs-6">
+                                                    <h:panelGroup  styleClass="input-group " layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                        <p:inputText  id="componente-monto" value="#{proyectoCE.tmpComponente.importe}"  styleClass="form-control numericos" disabled="#{proyectoCE.tmpComponente.tipoMontoEstructura ne 'IMPORTE'}"
+                                                                      required="#{proyectoCE.tmpComponente.tipoMontoEstructura eq 'IMPORTE'}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                            <p:ajax event="keyup" update="componente-montos-fuentes componente-porcentaje" listener="#{proyectoCE.recalcularImporte(proyectoCE.tmpComponente)}"  />
+                                                        </p:inputText>	
+                                                    </h:panelGroup>  
+                                                </div>
+                                                </div>
+                                                <h:message for="componente-monto" styleClass="help-inline msj-danger" />
+                                                <h:message for="componente-porcentaje" styleClass="help-inline msj-danger" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>   
+                                    </p:outputPanel>
+                                    <div class="separador"></div>
+
+                                    <p:outputPanel id="componente-montos-fuentes">
+                                        <ui:repeat  var="monto" value="#{proyectoCE.getMontosEstructoraOrdenados(proyectoCE.tmpComponente.montosFuentes)}" varStatus="status">
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" for="componente-monto-fuente">  
+                                                    <h:outputText  value="*#{monto.fuente.fuenteRecursos.codigo}" />
+                                                </h:outputLabel>
+                                                <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" styleClass="col-sm-3 control-label" />
+                                                <div class="col-sm-8">
+                                                    <div class="row">
+<!--                                                    <div class="col-xs-6">
+                                                        <h:panelGroup  styleClass="input-group" layout="block">
+                                                            <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                            <p:inputText  id="componente-monto-fuente" value="#{monto.porcentaje}"  styleClass="form-control numericos" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                                <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                                <p:ajax event="keyup" update="componente-monto-fuente-calculado"  listener="#{proyectoCE.recalcularMontosApoerte(proyectoCE.tmpComponente)}"  />
+                                                            </p:inputText>	
+                                                        </h:panelGroup>  
+                                                    </div>-->
+                                                        <div class="col-xs-12">       
+                                                            <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                                <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                                <p:inputText  id="componente-monto-fuente" value="#{monto.montoEnConstruccion}"  styleClass="form-control numericos" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                                    <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                                </p:inputText>	
+                                                            </h:panelGroup>  
+                                                        </div>
+                                                    </div>
+                                                    <h:message for="componente-monto-fuente" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </ui:repeat>
+                                    </p:outputPanel>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveComponente()}"   update="tablaComponente contenidoModalComponente"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form>
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+        <!-- MODAL PARA AGREGAR MACROACTIVIDAD-->  
+        <h:panelGroup id="blockMacroActividad"  layout="block">
+            <div class="modal fade"  id="anadirMacroActividad" tabindex="-1" role="dialog" aria-labelledby="anadirMacroActividad">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalMacroActividad">
+                        <h:form id="anadirMacroActividadForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirMacroActividad')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>	
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="macroActividad-numero" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Numero')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputText id="macroActividad-numero" value="#{proyectoCE.tmpMacroActividad.numero}" styleClass="form-control textoCorto" >
+                                                <f:validateLongRange minimum="0" />
+                                            </h:inputText>
+                                            <h:message for="macroActividad-numero" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="macroActividad" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.MacroActividad')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="macroActividad" value="#{proyectoCE.idMacroActividad}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"   >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getMacroActividadesParaProyecto()}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="macroActividad" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="macroActividad-unidadTecnica" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                        <div class="col-sm-8">
+                                            <ui:include src="./../fragmentoSelectOneUT.xhtml">
+                                                <ui:param name="parameterBean" value="#{proyectoCE}" />
+                                                <ui:param name="externalUpdate" value="macroActividad-responsable" />
+                                                <ui:param name="externalId" value="macroActividad-unidadT" />
+                                                <ui:param name="requerido" value="false" />
+                                            </ui:include>
+                                            <h:message for="macroActividad-unidadTecnica" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="macroActividad-responsable" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Responsable')}:" />
+                                        <div class="col-sm-8">
+                                            <p:autoComplete id="macroActividad-responsable" 
+                                                            styleClass="autocompleteLargo"
+                                                            dropdown="true" 
+                                                            value="#{proyectoCE.tmpMacroActividad.responsable}" 
+                                                            completeMethod="#{proyectoCE.completeTextUsuario}"  
+                                                            var="usuario" itemLabel="#{proyectoCE.getNombreResponsable(usuario)}" itemValue="#{usuario}" 
+                                                            scrollHeight="#{utilsMB.autoCompleteScrollHeight}" >
+                                                <f:converter  binding="#{usuarioConverter}" />               
+                                            </p:autoComplete>
+                                            <h:message for="macroActividad-responsable" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+<!--                                    <ui:repeat  var="monto" value="#{proyectoCE.tmpMacroActividad.montosFuentes}" varStatus="status">
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-1 control-label" for="componente-monto-fuente">  
+                                                <h:outputText  value="*#{monto.fuente.fuenteRecursos.codigo}" />
+                                            </h:outputLabel>
+                                            <h:outputText value="#{monto.fuente.convenio.nombre}:" styleClass="col-sm-1 control-label" rendered="false"/>
+                                            <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" styleClass="col-sm-3 control-label" />
+                                            <div class="col-sm-8">                                                
+                                                <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                    <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                    <p:inputText  id="componente-monto-fuente" value="#{monto.monto}"   styleClass="form-control numericos" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                        <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                    </p:inputText>	
+                                                </h:panelGroup>  
+                                                <h:message for="componente-monto-fuente" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                    </ui:repeat>-->
+
+
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TipoMonto')}:"  />
+                                        <div class="col-sm-8">
+                                            <h:selectOneRadio id="macroActividad-tipo-estructura" styleClass="radio" value="#{proyectoCE.tmpMacroActividad.tipoMontoEstructura}" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:selectItems value="#{utilsMB.getTipoMontoEstructuraProyecto()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                                <f:ajax render="macroActividad-bloque-motno-estructura"/> 
+                                            </h:selectOneRadio>
+                                            <h:message for="macroActividad-tipo-estructura" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+
+                                    <p:outputPanel id="macroActividad-bloque-motno-estructura">
+                                        <p:outputPanel styleClass="form-group" >
+                                            <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Valor')}" />
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <div class="col-xs-6">
+                                                    <h:panelGroup  styleClass="input-group " layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                        <p:inputText  id="macroActividad-porcentaje" value="#{proyectoCE.tmpMacroActividad.porcentaje}"  styleClass="form-control numericos" disabled="#{proyectoCE.tmpMacroActividad.tipoMontoEstructura ne 'PORCENTAJE'}"
+                                                                      required="#{proyectoCE.tmpMacroActividad.tipoMontoEstructura eq 'PORCENTAJE'}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                            <p:ajax event="keyup" update="macroActividad-montos-fuentes macroActividad-monto"  listener="#{proyectoCE.recalcularImporte(proyectoCE.tmpMacroActividad)}"  />
+                                                        </p:inputText>	
+                                                    </h:panelGroup>
+                                                </div>
+                                                <div class="col-xs-6">
+                                                    <h:panelGroup  styleClass="input-group " layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                        <p:inputText  id="macroActividad-monto" value="#{proyectoCE.tmpMacroActividad.importe}"  styleClass="form-control numericos" disabled="#{proyectoCE.tmpMacroActividad.tipoMontoEstructura ne 'IMPORTE'}"
+                                                                      required="#{proyectoCE.tmpMacroActividad.tipoMontoEstructura eq 'IMPORTE'}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                            <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                            <p:ajax event="keyup" update="macroActividad-montos-fuentes macroActividad-porcentaje" listener="#{proyectoCE.recalcularImporte(proyectoCE.tmpMacroActividad)}"  />
+                                                        </p:inputText>	
+                                                    </h:panelGroup>  
+                                                </div>
+                                                <h:message for="macroActividad-monto" styleClass="help-inline msj-danger" />
+                                                <h:message for="macroActividad-porcentaje" styleClass="help-inline msj-danger" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>   
+                                    </p:outputPanel>
+                                    <div class="separador"></div>
+
+
+                                    <p:outputPanel id="macroActividad-montos-fuentes">
+                                        <ui:repeat  var="monto" value="#{proyectoCE.getMontosEstructoraOrdenados(proyectoCE.tmpMacroActividad.montosFuentes)}" varStatus="status">
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" for="macroActividad-monto-fuente">  
+                                                    <h:outputText  value="*#{monto.fuente.fuenteRecursos.codigo}" />
+                                                </h:outputLabel>
+                                                <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" styleClass="col-sm-3 control-label" />
+                                                <div class="col-sm-8">
+<!--                                                    <div class="col-xs-6">
+                                                        <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                            <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.%')}" />
+                                                            <p:inputText  id="macroActividad-monto-fuente" value="#{monto.porcentaje}"  styleClass="form-control numericos" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                                <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                                <p:ajax event="keyup" update="macroActividad-monto-fuente-calculado"  listener="#{proyectoCE.recalcularMontosApoerte(proyectoCE.tmpMacroActividad)}"  />
+                                                            </p:inputText>	
+                                                        </h:panelGroup>  
+                                                    </div>-->
+                                                    <div class="col-xs-12">       
+                                                        
+                                                        <h:panelGroup  styleClass="input-group textoMedio" layout="block">
+                                                            <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                            <p:inputText  id="macroActividad-monto-fuente" value="#{monto.montoEnConstruccion}"  styleClass="form-control numericos" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                                <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                                            </p:inputText>	
+                                                        </h:panelGroup>                                                        
+<!--                                                        
+                                                        #{textMB.obtenerTexto('labels.MonedaSistema')} 
+                                                        <h:outputText id="macroActividad-monto-fuente-calculado"  value="#{monto.monto}" >
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>-->
+                                                    </div>
+                                                    <h:message for="macroActividad-monto-fuente" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </ui:repeat>
+                                    </p:outputPanel>
+
+
+
+
+
+
+
+
+
+
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveMacroActividad()}"   update="tablaMacroActividad contenidoModalMacroActividad"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+
+
+        <!-- MODAL PARA ASOCIAR PRODUCTOS-->  
+        <h:panelGroup id="blockAsociarProducto"  layout="block">
+            <div class="modal fade"  id="asociarProducto" tabindex="-1" role="dialog" aria-labelledby="asociarProducto">
+                <div class="modal-dialog  modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="asociarProductoContenidoModal">
+                        <h:form id="asociarProductoForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.asociarProducto')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    
+                                    <div class="form-group">
+                                        <h:outputLabel for="asociarProducto-padrenombre" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Padre')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText id="asociarProducto-padrenombre" value="#{proyectoCE.getNombreItemEstructura()}" styleClass="form-control-static" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <h:outputLabel for="asociarProducto-numero" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Numero')}:" />
+                                        <div class="col-sm-8">
+                                            <h:inputText id="asociarProducto-numero" value="#{proyectoCE.pdroductoEstructura.numero}" styleClass="form-control textoCorto" >
+                                                <f:validateLongRange minimum="0" />
+                                            </h:inputText>
+                                            <h:message for="asociarProducto-numero" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="asociarProducto-producto" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Producto')}:" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="asociarProducto-producto" value="#{proyectoCE.idProducto}"  styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{utilsMB.getProductos()}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="asociarProducto-producto" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <p:outputLabel for="asociarProducto-cantidad" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Cantidad')}:"/>
+                                        <div class="col-sm-8">
+                                            <h:inputText id="asociarProducto-cantidad" value="#{proyectoCE.pdroductoEstructura.cantidad}" styleClass="form-control textoMedio numericos"  
+                                                         required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:convertNumber minFractionDigits="2" maxFractionDigits="2" />
+                                            </h:inputText>	
+                                            <h:message for="asociarProducto-cantidad" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel  styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                        <div class="col-sm-8">
+                                            <ui:include src="./../fragmentoSelectOneUT.xhtml">
+                                                <ui:param name="parameterBean" value="#{proyectoCE}" />
+                                                <ui:param name="externalUpdate" value="producto-responsable" />
+                                                <ui:param name="externalId" value="producto-unidadT" />
+                                                <ui:param name="requerido" value="true" />
+                                            </ui:include>
+                                        </div>
+                                    </div>
+                                    <p:outputPanel id="producto-responsable" >
+                                    </p:outputPanel>
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{proyectoCE.saveProductoEstructura()}"   update="@form tablaComponente tablaMacroActividad"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+        <!-- MODAL QUE SE USA PARA CONFIRMAR EL CERRAR PROYECTO -->
+        <p:outputPanel  styleClass="modal fade"  id="modalConfirmarCerrar"  rendered="#{permisosMB.permisos['CERRAR_PROYECTO']}" >
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <h:form id="modalConfirmarCerrarForm">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <h4 class="modal-title"> <h:outputText value="#{textMB.obtenerTexto('labels.CerrarProyecto')} " />   </h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <div class="col-xs-12">
+                                    <h:messages showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                    <p> <h:outputText value="#{textMB.obtenerTexto('labels.SeguroDeseaCerrarElProyecto?')} " />   </p>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel   styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Reporte')}:" />
+                                    <div class="col-sm-9">
+                                        <p:commandLink actionListener="#{proyectoCE.descargarReporte()}" ajax="false" styleClass="btn btn-link">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.DescargarReporte')}" /> 
+                                        </p:commandLink>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.montoGlobal')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{proyectoCE.objeto.montoGlobalEnConstruccion}" styleClass="form-control-static " >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText> 
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <p:dataTable  id="fuenteTabla"
+                                                  var="item" 
+                                                  value="#{proyectoCE.objeto.aportesProyecto}" 
+                                                  emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                                  rowIndexVar="rowIndex">
+
+<!--                                        <p:column headerText="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}" sortBy="#{item.fuenteFinanciamiento.nombre}">
+                                            <h:outputText value="#{item.fuenteFinanciamiento.nombre}" />
+                                        </p:column>-->
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Categoria')}" sortBy="#{item.categoriaConvenio.nombre}">
+                                            <h:outputText value="#{item.categoriaConvenio.nombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.FuenteRecursos')}" sortBy="#{item.fuenteRecursos.nombre}">
+                                            <h:outputText value="#{item.fuenteRecursos.codigo} " />  | <h:outputText value=" #{item.fuenteRecursos.nombre}" />
+                                        </p:column>
+
+<!--                                        <p:column headerText="#{textMB.obtenerTexto('labels.Financiacion')}"  styleClass="numericos">
+                                            <h:outputText value="#{item.porcentaje}" rendered="#{item.categoriaConvenio.tipo eq 'POR_PORCENTAJE' }" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <h:outputText value="#{item.tramosTexto}" rendered="#{item.categoriaConvenio.tipo eq 'POR_TRAMOS' }" escape="false" />
+                                        </p:column> -->
+<!--                                        <p:column headerText="#{textMB.obtenerTexto('labels.Porcentaje')}" sortBy="#{item.monto}" styleClass="numericos">
+                                            <h:outputText value="#{proyectoCE.getPorcentajeFuente(item)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>-->
+                                        
+                                        
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoAsignado')}" styleClass="numericos">
+                                            <h:outputText value="#{proyectoCE.getMontoAsignado(item)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <p:outputPanel style="width:100%;text-align:right">
+                                                    <h:outputText value="#{proyectoCE.getMontoTotalAsignado()}" >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </p:outputPanel>
+                                            </f:facet>
+                                        </p:column>
+                                        
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Monto')}" sortBy="#{item.monto}" styleClass="numericos">
+                                            <h:outputText value="#{item.monto}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <p:outputPanel style="width:100%;text-align:right">
+                                                    <h:outputText value="#{proyectoCE.getSumaTotalFuente()}" >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </p:outputPanel>
+                                            </f:facet>
+                                        </p:column>
+                                    </p:dataTable>  
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-lock" value="#{textMB.obtenerTexto('labels.CerrarProyecto')}" action="#{proyectoCE.cerrarProyecto()}"  update="@form" />
+                            <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
+                        </div>
+                    </h:form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </p:outputPanel><!-- /.modal -->
+
+
+
+
+
+        <!-- MODAL CONFIRMACION DE ELIMINAR-->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+    </ui:composition>
+</html>

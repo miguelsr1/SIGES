@@ -1,0 +1,177 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CONTROLES_ASISTENCIA_PERSONAL}">#{msg.hcontrolAsistencia}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{controlAsistenciaPersonalBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hcontrolAsistencia}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{controlAsistenciaPersonalBean.tituloPagina}"/>
+        </h3>
+
+        <p:outputPanel id="formularioSede">
+
+            <p:panel header="#{msg.filtro}" toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:autoComplete id="input_sede_autocomplete" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{controlAsistenciaPersonalBean.sedeSeleccionada}"
+                                            completeMethod="#{controlAsistenciaPersonalBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                            itemValue="#{sed}" 
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500" 
+                                            placeholder="#{msg.autoCompleteEmptyItem}" 
+                                            converter="#{sedesConverter}" 
+                                            rendered="#{controlAsistenciaPersonalBean.controlAsisId == null}"
+                                            multiple="false">
+                                    <p:ajax listener="#{controlAsistenciaPersonalBean.seleccionarSede}" 
+                                            event="itemSelect"  process="@this" update="@form"/>
+                            </p:autoComplete>
+                            <h:outputText value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcSede.sedCodigoNombre}" 
+                                          styleClass="form-control-plaintext" rendered="#{controlAsistenciaPersonalBean.controlAsisId != null}"/>
+                        </p:outputPanel>   
+                    </p:outputPanel>  
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                        <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha"
+                                        value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcFecha}" 
+                                        pattern="#{applicationBean.patternFecha}" 
+                                        locale="#{sessionBean.locale}" 
+                                        converter="#{localDateConverter}"
+                                        rendered="#{controlAsistenciaPersonalBean.controlAsisId == null}"
+                                        readonlyInput="true"
+                                        maxdate="#{applicationBean.today()}" >
+                                <p:ajax listener="#{controlAsistenciaPersonalBean.dateSelect}" event="dateSelect" update="form:tDetalle form:botonGuardar" />                                   
+                            </p:calendar>
+                            <h:outputText value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcFecha}" converter="#{localDateConverter}"
+                                          styleClass="form-control-plaintext" rendered="#{controlAsistenciaPersonalBean.controlAsisId != null}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel> 
+
+            <p:outputPanel id="tDetalle">
+                <h:panelGroup rendered="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcPk != null or (controlAsistenciaPersonalBean.entidadEnEdicion.cpcSede != null and controlAsistenciaPersonalBean.entidadEnEdicion.cpcFecha!=null)}">
+                    <p:outputPanel id="pnlHeaderTabla">
+                        <p:outputPanel rendered="#{controlAsistenciaPersonalBean.controlRealizado}" styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.controlAsistenciaRealizado}" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+                        <p:outputPanel rendered="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcAsistenciaPersonal.size() == 0}" styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.noHayPersonal}" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+                        <h3><h:outputText value="#{msg.cantidadPersonal}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcAsistenciaPersonal.size()}" /></h3>
+                        <h3><h:outputText value="#{msg.cantidadPersonalPresentes}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cantidadPersonalPresentes}" /></h3>
+
+                        <h3><h:outputText value="#{msg.cantidadPersonalAusentesJustificados}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcPersonalAusentesJustificados}" /></h3>
+                        <h3><h:outputText value="#{msg.cantidadPersonalAusentesSinJustificacion}"/><h:outputText styleClass="cantidad" value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcPersonalAusentesSinJustificar}" /></h3>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="container-fluid tipo-tabla"  rendered="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcAsistenciaPersonal.size() gt 0}">
+                        <p:outputPanel styleClass="row tipo-tr" > 
+                            <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.hnip}</p:outputPanel>
+                            <p:outputPanel styleClass="col-md-3 tipo-th" >#{msg.hcargo}</p:outputPanel>
+                            <p:outputPanel styleClass="col-md-7 tipo-th" >#{msg.nombrePersonal}</p:outputPanel>
+                            <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.falto}</p:outputPanel>
+                        </p:outputPanel>
+                        <p:repeat value="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcAsistenciaPersonal}" var="elem" varStatus="status">
+                            <p:outputPanel styleClass="tipo-tr">
+                                <p:outputPanel styleClass="row">
+                                    <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                        <h:outputText value="#{elem.apePersonal.psePersona.perNip}" />
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-3 tipo-td" >
+                                        <h:outputText value="#{elem.apeCargo.carNombre}" />
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-7 tipo-td" >
+                                        <h:outputText styleClass="strong" value="#{elem.apePersonal.psePersona.perNombreCompleto}" />
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                        <h:selectBooleanCheckbox value="#{elem.apeInasistencia}" disabled="#{controlAsistenciaPersonalBean.soloLectura}">
+                                            <p:ajax update="panelInasistencia" />
+                                        </h:selectBooleanCheckbox>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel id="panelInasistencia" styleClass="row motivo-inasistencia" style="#{elem.apeInasistencia ? 'display: flex' : 'display: none'};">
+                                    <p:outputPanel styleClass="col-md-6">
+                                        <p:outputPanel styleClass="row" id="fila_input_motivo">
+                                            <h:outputLabel value="#{msg.motivoInasistencia}" for="input_motivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:selectOneMenu id="input_motivo" value="#{controlAsistenciaPersonalBean.combosInasistencia[status.index].selected}" disabled="#{controlAsistenciaPersonalBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                                                    <f:selectItems value="#{controlAsistenciaPersonalBean.combosInasistencia[status.index].items}" />
+                                                    <p:ajax listener="#{controlAsistenciaPersonalBean.inasistenciaSelected(elem, status.index)}" event="change"/>
+                                                </h:selectOneMenu> 
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-6">
+                                        <p:outputPanel styleClass="row" id="fila_input_observacion">
+                                            <h:outputLabel value="#{msg.observacion}" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:inputText autocomplete="off" styleClass="form-control" id="input_observacion" value="#{elem.apeObservacion}" disabled="#{controlAsistenciaPersonalBean.soloLectura}" />
+                                            </p:outputPanel>                    
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:repeat>
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+
+            <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardar" value="#{msg.guardar}" action="#{controlAsistenciaPersonalBean.guardar()}" 
+                                     rendered="#{!controlAsistenciaPersonalBean.soloLectura and controlAsistenciaPersonalBean.entidadEnEdicion.cpcAsistenciaPersonal.size() gt 0}" 
+                                     disabled="#{controlAsistenciaPersonalBean.entidadEnEdicion.cpcSede == null}" 
+                                     update="formularioSede"
+                                     styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    <p:blockUI block="formularioSede" trigger="btnGuardar" />    
+                    <p:defaultCommand target="btnGuardar" scope="formularioSede"/>  
+                </p:outputPanel>                    
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

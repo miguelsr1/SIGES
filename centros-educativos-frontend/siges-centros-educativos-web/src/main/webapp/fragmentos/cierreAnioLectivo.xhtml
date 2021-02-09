@@ -1,0 +1,386 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CIERRE_ANIOS_LECTIVOS}.xhtml">#{msg.hcierreaniolectivo}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{cierreAnioLectivoBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hcierreaniolectivo}"/></h2>
+
+
+            <p:outputPanel styleClass="float-right">
+
+                <p:commandButton value="#{msg.hverConfirmacionFirmada}" ajax="false" 
+                                 rendered="#{cierreAnioLectivoBean.entidadEnEdicion.calPk != null and cierreAnioLectivoBean.entidadEnEdicion.calArchivoFirmado != null}"
+                                 onclick="this.form.target = '_blank';" 
+                                 styleClass="btn btn-secondary">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(cierreAnioLectivoBean.entidadEnEdicion.calArchivoFirmado)}" />
+                </p:commandButton>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{cierreAnioLectivoBean.tituloPagina}"/>
+        </h3>
+
+
+        <p:outputPanel id="itemDetail">
+
+            <p:outputPanel rendered="#{cierreAnioLectivoBean.mensajeCierre != null and cierreAnioLectivoBean.mensajeCierre.conValor != null}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li>
+                            <h:outputText styleClass="ui-messages-warn-summary" value="#{cierreAnioLectivoBean.mensajeCierre.conValor}" escape="false"/>
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel rendered="#{cierreAnioLectivoBean.entidadEnEdicion.calPk != null}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li>
+                            <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.haniocerrado}"/>
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel rendered="#{cierreAnioLectivoBean.entidadEnEdicion.calPk != null and cierreAnioLectivoBean.entidadEnEdicion.calFirmado}" styleClass="ui-messages">
+                <div class="ui-messages-warn ui-corner-all">
+                    <span class="ui-messages-warn-icon"></span>
+                    <h:outputText styleClass="ui-messages-warn-summary" value="El cierre de año está firmado" />
+                </div>
+            </p:outputPanel>
+
+
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete" style="margin-top: 30px;">
+                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:autoComplete id="input_sede_autocomplete" 
+                                    styleClass="form-control texto-medio"
+                                    value="#{cierreAnioLectivoBean.sedeSeleccionada}"
+                                    rendered="#{!cierreAnioLectivoBean.soloLectura}"
+                                    completeMethod="#{cierreAnioLectivoBean.completeSede}"
+                                    var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                    itemValue="#{sed}" 
+                                    widgetVar="b_inst_resp_autocomplete"
+                                    forceSelection="true"
+                                    maxResults="10"
+                                    queryDelay="500"
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{sedesConverter}"
+                                    multiple="false">
+                        <p:ajax event="itemSelect" listener="#{cierreAnioLectivoBean.seleccionarSede}"  process="@this" update="@form"/>
+                    </p:autoComplete>
+                    <h:outputText styleClass="form-control-plaintext" value="#{cierreAnioLectivoBean.entidadEnEdicion.calSede.sedCodigoNombre}" rendered="#{cierreAnioLectivoBean.soloLectura}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_anio_lectivo" value="#{cierreAnioLectivoBean.comboAnioLectivo.selected}" rendered="#{!cierreAnioLectivoBean.soloLectura}" disabled="#{cierreAnioLectivoBean.sedeSeleccionada == null}" styleClass="form-control texto-medio">
+                        <f:selectItems value="#{cierreAnioLectivoBean.comboAnioLectivo.items}"/>
+                        <p:ajax listener="#{cierreAnioLectivoBean.seleccionarAnioLectivo}" onstart="PF('blocker').show()" oncomplete="PF('blocker').hide()" process="@this" update="@form"/>
+                    </h:selectOneMenu>
+                    <p:blockUI block="@form" widgetVar="blocker" /> 
+                    <h:outputText styleClass="form-control-plaintext" value="#{cierreAnioLectivoBean.entidadEnEdicion.calAnioLectivo.aleAnio}" rendered="#{cierreAnioLectivoBean.soloLectura}"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel rendered="#{cierreAnioLectivoBean.comboAnioLectivo.selectedT != null or cierreAnioLectivoBean.entidadEnEdicion.calPk != null}" >
+
+
+                <ui:repeat value="#{cierreAnioLectivoBean.entidadEnEdicion.calRelPreguntaCierreAnio}" var="rel">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{rel.rpcPreguntaCierreAnio.pcaPregunta}:" styleClass="col-sm-4 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{rel.rpcPreguntaValidada}" disabled="#{cierreAnioLectivoBean.entidadEnEdicion.calPk != null}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <f:selectItem itemValue="#{null}" itemLabel="#{msg.noSeSabe}"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </ui:repeat>
+
+
+                <p:outputPanel id="pnlResultado" style="margin-top: 30px;">
+                    <p:dataTable id="basicDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"                         
+                                 rendered="#{cierreAnioLectivoBean.entidadEnEdicion.calResumenSecciones != null}"
+                                 value="#{cierreAnioLectivoBean.entidadEnEdicion.calResumenSecciones}"                          
+                                 emptyMessage="#{msg.noHayResultados}"   
+                                 reflow="true" >
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row" rendered="#{cierreAnioLectivoBean.entidadEnEdicion.calPk != null}">
+                                <p:outputPanel styleClass="col-md-6">
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-6">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                            <p:dataExporter type="csv" target="basicDT" fileName="cierre_sede_#{cierreAnioLectivoBean.entidadEnEdicion.calSede.sedCodigo}_#{cierreAnioLectivoBean.entidadEnEdicion.calAnioLectivo.aleAnio}" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hgrado}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hSeccion}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" style="display: none">
+                                    <f:facet name="header"><h:outputText value="Sec pk"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hopcion}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.asistencias}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hinasistencias}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="3">
+                                    <f:facet name="header"><h:outputText value="#{msg.hpromovidos}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="3">
+                                    <f:facet name="header"><h:outputText value="#{msg.hnopromovidos}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="3">
+                                    <f:facet name="header"><h:outputText value="#{msg.hpromocionesPendientes}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="3">
+                                    <f:facet name="header"><h:outputText value="#{msg.hsolicitudesTitulos}"/></f:facet>
+                                </p:column>
+                            </p:row>
+
+                            <p:row>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value=""/></f:facet>
+                                </p:column> 
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value=""/></f:facet>
+                                </p:column> 
+                                <p:column colspan="1" style="display:none">
+                                    <f:facet name="header"><h:outputText value=""/></f:facet>
+                                </p:column> 
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value=""/></f:facet>
+                                </p:column> 
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value=""/></f:facet>
+                                </p:column> 
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value=""/></f:facet>
+                                </p:column> 
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Masculino" value="M"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Femenino" value="F"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Total" value="T"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Masculino" value="M"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Femenino" value="F"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Total" value="T"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Masculino" value="M"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Femenino" value="F"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Total" value="T"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Masculino" value="M"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Femenino" value="F"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" styleClass="texto-right">
+                                    <f:facet name="header"><h:outputText title="Total" value="T"/></f:facet>
+                                </p:column>
+
+                            </p:row>
+
+                        </p:columnGroup>
+
+                        <p:column styleClass="texto-left" headerText="#{msg.hgrado}">
+                            <h:outputText value="#{elem.rcsSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                            <f:facet name="footer">
+                                <h:outputText value="Total" />
+                            </f:facet>
+                        </p:column>
+                        <p:column headerText="#{msg.hSeccion}">
+                            <o:graphicImage alt="#{msg.habierta} " 
+                                            name="/imagenes/unlocked-padlock-green.png" width="12" 
+                                            title="#{msg.habierta}"
+                                            rendered="#{elem.rcsSeccion.secEstado eq EnumSeccionEstado.ABIERTA}"/>
+                            <o:graphicImage alt="#{msg.hcerrada} " 
+                                            name="/imagenes/locked-padlock-red.png" width="12" 
+                                            title="#{msg.hcerrada}"
+                                            rendered="#{elem.rcsSeccion.secEstado eq EnumSeccionEstado.CERRADA}"/>
+
+                            <h:outputText style="margin-left:4px;" value="#{elem.rcsSeccion.nombreSeccion}" />
+                        </p:column>
+                        <p:column style="display:none;" exportable="false" headerText="Sec pk">
+                            <h:outputText style="display:none" value="#{elem.rcsSeccion.secPk}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hopcion}">
+                            <h:outputText value="#{elem.rcsSeccion.secServicioEducativo.sduOpcion.opcNombre}"  />
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.asistencias}">
+                            <h:outputText value="#{elem.rcsAsistencias}" />
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calAsistencias}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hinasistencias} (justificadas + no justificadas)">
+                            <h:outputText title="Justificadas: #{elem.rcsInasistenciasJust}"  value="#{elem.rcsInasistencias}" />
+                            <f:facet name="footer">
+                                <h:outputText title="Justificadas: #{cierreAnioLectivoBean.entidadEnEdicion.calInasistenciasJust}"  value="#{cierreAnioLectivoBean.entidadEnEdicion.calInasistencias}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column headerText="#{msg.hinasistenciasJustificadas}" style="display:none;">
+                            <h:outputText value="#{elem.rcsInasistenciasJust}" />
+                            <f:facet name="footer">
+                                <h:outputText  value="#{cierreAnioLectivoBean.entidadEnEdicion.calInasistenciasJust}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hpromovidos} masculino">
+                            <h:outputText value="#{elem.rcsPromovidosMasc}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calPromovidosMasc}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hpromovidos} femenino">
+                            <h:outputText value="#{elem.rcsPromovidosFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calPromovidosFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right columnaVerde" headerText="#{msg.hpromovidos} total">
+                            <h:outputText value="#{elem.rcsPromovidosMasc + elem.rcsPromovidosFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calPromovidosMasc + 
+                                                       cierreAnioLectivoBean.entidadEnEdicion.calPromovidosFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hnopromovidos} masculino">
+                            <h:outputText value="#{elem.rcsNoPromovidosMasc}" />
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calNoPromovidosMasc}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hnopromovidos} femenino">
+                            <h:outputText value="#{elem.rcsNoPromovidosFem}" />
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calNoPromovidosFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right columnaVerde" headerText="#{msg.hnopromovidos} total">
+                            <h:outputText value="#{elem.rcsNoPromovidosMasc + elem.rcsNoPromovidosFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calNoPromovidosMasc + 
+                                                       cierreAnioLectivoBean.entidadEnEdicion.calNoPromovidosFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hpromociones} pendientes masculino">
+                            <h:outputText value="#{elem.rcsPromocionesPendientesMasc}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calPromocionesPendientesMasc}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hpromociones} pendientes femenino">
+                            <h:outputText value="#{elem.rcsPromocionesPendientesFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calPromocionesPendientesFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right columnaVerde" headerText="#{msg.hpromociones} pendientes total">
+                            <h:outputText value="#{elem.rcsPromocionesPendientesMasc + elem.rcsPromocionesPendientesFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calPromocionesPendientesMasc + 
+                                                       cierreAnioLectivoBean.entidadEnEdicion.calPromocionesPendientesFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hsolicitudesTitulos} pendientes masculino">
+                            <h:outputText value="#{elem.rcsSolicitudesTitulosMasc}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calSolicitudesTitulosMasc}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right" headerText="#{msg.hsolicitudesTitulos} pendientes femenino">
+                            <h:outputText value="#{elem.rcsSolicitudesTitulosFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calSolicitudesTitulosFem}" />
+                            </f:facet>
+                        </p:column>
+                        <p:column styleClass="texto-right columnaVerde" headerText="#{msg.hsolicitudesTitulos} pendientes total">
+                            <h:outputText value="#{elem.rcsSolicitudesTitulosMasc + elem.rcsSolicitudesTitulosFem}"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{cierreAnioLectivoBean.entidadEnEdicion.calSolicitudesTitulosMasc + 
+                                                       cierreAnioLectivoBean.entidadEnEdicion.calSolicitudesTitulosFem}" />
+                            </f:facet>
+                        </p:column>
+
+                    </p:dataTable>
+                </p:outputPanel>
+
+
+                <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardar"  value="#{msg.cerrarAnioLectivo}" 
+                                         rendered="#{!cierreAnioLectivoBean.soloLectura and (cierreAnioLectivoBean.entidadEnEdicion.calPk == null or (!cierreAnioLectivoBean.entidadEnEdicion.calFirmado and cierreAnioLectivoBean.entidadEnEdicion.calFechaCierre == null))}"
+                                         action="#{cierreAnioLectivoBean.cerrarAnioLectivo()}"
+                                         update="@form"
+                                         styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-floppy-disk"/>                   
+                        <p:blockUI block="itemDetail" trigger="btnGuardar" />    
+                    </p:outputPanel>                    
+                </p:outputPanel>    
+
+            </p:outputPanel>
+        </p:outputPanel>
+        <h:panelGroup>
+            <div class="volverLink">
+                <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+            </div>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

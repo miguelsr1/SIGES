@@ -1,0 +1,169 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.verTechosProyecto')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.verTechosProyecto')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.verTechosProyecto')}" escape="false" /> 
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formCreatePlantilla"  prependId="false" >
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.planificacion')}:" />
+                        <div class="col-sm-9 ">                      
+                            <h:selectOneMenu  value="#{cargaTechosProgramaProyecto.idPlanificacion}"  styleClass="form-control textoMedio" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                <f:ajax render="tablaTechosProgramas"   listener="#{cargaTechosProgramaProyecto.loadProgramas()}"/>
+                                <f:selectItems value="#{utilsMB.getPlanificacionesEstrategicasVigetnes()}"  />
+                            </h:selectOneMenu>
+                        </div>
+                    </div>
+
+
+
+                    <p:outputPanel id="tablaTechosProgramas">
+                        <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Programa-Proyecto')}"/> </th>
+                                    <ui:repeat value="#{cargaTechosProgramaProyecto.aniosPlanificacion}" var="column" varStatus="status" >
+                                        <th class="numericos">
+                                            <h:outputText rendered="#{status.index !=0 and status.index!= cargaTechosProgramaProyecto.aniosPlanificacion.size()-1}" value="#{column}" />
+                                            <h:outputText rendered="#{status.index==0 }" value="#{cargaTechosProgramaProyecto.planificacion.desde}"  converter="dateConverter" />
+                                            <h:outputText rendered="#{status.index==cargaTechosProgramaProyecto.aniosPlanificacion.size()-1}"   value="#{cargaTechosProgramaProyecto.planificacion.hasta}"  converter="dateConverter"  />                                                      
+                                        </th>
+                                    </ui:repeat>
+                                    <th class="numericos"><h:outputText value="#{textMB.obtenerTexto('labels.Total')}"/> </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- se imprimen los programas -->
+                                <ui:repeat value="#{cargaTechosProgramaProyecto.programas}" var="programa">
+                                    <tr class="fila-programa">
+                                        <td>#{programa.nombre}</td>
+                                        <ui:repeat value="#{cargaTechosProgramaProyecto.aniosPlanificacion}" var="column" varStatus="status" >
+                                            <td class="numericos">
+                                                <h:outputText  value="#{programa.techosPresupuestarios[status.index].techo}"  >
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </td>
+                                        </ui:repeat>
+                                        <td class="numericos">
+                                            <h:outputText  value="#{cargaTechosProgramaProyecto.getTotalPrograma(programa)}"  >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </td>                                        
+                                    </tr>
+
+
+                                    <!-- se imprimen los subprogramas -->
+                                    <ui:repeat value="#{programa.programasPresupuestarios}" var="subprograma" varStatus="subprogramaStatus">
+                                        <tr >
+                                            <td><span class="#{ (subprogramaStatus.last) ? 'fila-ultimo-hijo' : 'fila-hijo' }"> </span>#{subprograma.nombre}</td>
+                                            <ui:repeat value="#{cargaTechosProgramaProyecto.aniosPlanificacion}" var="column" varStatus="status" >
+                                                <td class="numericos">
+                                                    <h:outputText  value="#{subprograma.techosPresupuestarios[status.index].techo}" >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </td>
+                                            </ui:repeat>
+                                            <td class="numericos">
+                                                <h:outputText  value="#{cargaTechosProgramaProyecto.getTotalPrograma(subprograma)}"  >
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </td>        
+                                        </tr>
+
+
+
+                                        <!-- se imprimen los proyectos-->
+                                        <ui:repeat value="#{subprograma.proyectos}" var="proyecto" varStatus="proyectoStatus">
+                                            <tr>
+                                                <td>
+                                                    <span class="#{ (subprogramaStatus.last) ? 'fila-espacio' : 'fila-linea' }"> </span>
+                                                    <span class="#{ (proyectoStatus.last) ? 'fila-ultimo-hijo' : 'fila-hijo' }"> </span>#{proyecto.nombre}</td>
+                                                <ui:repeat value="#{cargaTechosProgramaProyecto.aniosPlanificacion}" var="column" varStatus="status" >
+                                                    <td  class="numericos">
+                                                        <h:outputText  value="#{proyecto.techos[status.index].techo}"  >
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>
+                                                    </td>
+                                                </ui:repeat>
+                                                <td class="numericos">
+                                                    <h:outputText  id="totalProyecto" value="#{cargaTechosProgramaProyecto.getTotalProyecto(proyecto)}"  >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </td>     
+                                            </tr>
+
+
+
+
+
+                                            <!-- se imprimen las fuentes para cada proyecto-->
+                                            <ui:repeat value="#{proyecto.fuentesProyecto}" var="aporte" varStatus="aporteStatus">
+                                                <tr >
+                                                    <td>
+                                                        <span class="#{ (subprogramaStatus.last) ? 'fila-espacio' : 'fila-linea' }"> </span>
+                                                        <span class="#{ (proyectoStatus.last) ? 'fila-espacio' : 'fila-linea' }"> </span>
+                                                        <span class="#{ (aporteStatus.last) ? 'fila-ultimo-hijo' : 'fila-hijo' }"> </span> #{aporte.fuenteRecursos.codigo} </td>
+                                                    <ui:repeat value="#{cargaTechosProgramaProyecto.aniosPlanificacion}" var="column" varStatus="status" >
+                                                        <td  class="numericos">
+                                                            <h:outputText  value="#{aporte.techos[status.index].techo}"  >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </td>
+                                                    </ui:repeat>
+                                                    <td class="numericos">
+                                                        <h:outputText  id="totalFuente" value="#{cargaTechosProgramaProyecto.getTotalAporte(aporte)}"  >
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>
+                                                    </td>     
+                                                </tr>
+                                            </ui:repeat>
+
+
+
+                                        </ui:repeat>
+                                    </ui:repeat>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </p:outputPanel>
+
+
+
+
+                </p:outputPanel>
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{cargaTechosProgramaProyecto.guardar}"  update="bloqueNoModal"/>
+                        <h:outputLink styleClass="btn btn-link" value="consultaProgramaPresupuestario.xhtml" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:composition>
+</html>

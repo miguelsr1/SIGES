@@ -1,0 +1,74 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="aula" value="#{aula}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relAulaEspacioBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relAulaEspacioBean.setEntidadEnEdicion(aula)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relAulaEspacioBean.entidadEnEdicion}">
+
+        <p:fieldset id="espaciosComunes" legend="#{msg.espacioComplementario}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_espacios_comunes" >                       
+                <p:outputPanel styleClass="col-sm-12" >
+                    <p:dataTable id="listaEspaciosComunes"       
+                                 styleClass="table-scroll"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 disabledSelection="#{not (!relAulaEspacioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_AULA_ESPACIO))}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 rowSelectMode="checkbox"
+                                 rowIndexVar="rowIndex"
+                                 var="espacio" selection="#{relAulaEspacioBean.aulaEspacioSeleccionados}" 
+                                 value="#{relAulaEspacioBean.aulaEspacio}" rowKey="#{espacio.raeEspacioComun.ecoPk}" style="margin-bottom:0" >
+                        <p:ajax event="toggleSelect" listener="#{relAulaEspacioBean.toggleSelect}" update=":form:tabs:seleccionarEspacio:listaEspaciosComunes"/>
+                        <p:ajax event="rowSelectCheckbox" listener="#{relAulaEspacioBean.checkboxSelect}" update=":form:tabs:seleccionarEspacio:listaEspaciosComunes"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{relAulaEspacioBean.checkboxUnselect}" update=":form:tabs:seleccionarEspacio:listaEspaciosComunes" /> 
+                        <p:column id="eleccionEspacio"  selectionMode="multiple" style="width:16px;text-align:center" /> 
+
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" >
+                            <h:outputText styleClass="strong" value="#{espacio.raeEspacioComun.ecoNombre}" />
+                        </p:column>  
+                        <p:column styleClass="cortar-texto" headerText="#{msg.hdescripcion}" >
+                            <h:inputText styleClass="form-control texto-medio" maxlength="250"  value="#{espacio.raeDescripcion}" rendered="#{espacio.raeEspacioComun.ecoPermiteIngresarDescripcion}" disabled="#{relAulaEspacioBean.soloLectura or !relAulaEspacioBean.habilitarEntradaTexto[rowIndex]}"/>
+                        </p:column>   
+                        <p:column style="width: 75px;text-align:center" headerText="Bueno"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control"  value="#{espacio.raeBueno}" disabled="#{relAulaEspacioBean.soloLectura or !relAulaEspacioBean.habilitarEntradaTexto[rowIndex]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarEspacio:listaEspaciosComunes:total" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Regular"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.raeMalo}" disabled="#{relAulaEspacioBean.soloLectura or !relAulaEspacioBean.habilitarEntradaTexto[rowIndex]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarEspacio:listaEspaciosComunes:total" />
+                            </p:inputNumber>                                        
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Malo"  >
+                            <p:inputNumber autocomplete="off" maxValue="999" decimalPlaces="0" thousandSeparator="" styleClass="form-control" value="#{espacio.raeRegular}" disabled="#{relAulaEspacioBean.soloLectura or !relAulaEspacioBean.habilitarEntradaTexto[rowIndex]}" >
+                                <p:ajax event="keyup"  update=":form:tabs:seleccionarEspacio:listaEspaciosComunes:total" />
+                            </p:inputNumber>
+                        </p:column>
+                        <p:column style="width: 75px;text-align:center" headerText="Total" >
+                            <h:outputText  id="total" value="#{espacio.total}" />
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardarEspacio" value="#{msg.guardar}" action="#{relAulaEspacioBean.guardar()}" rendered="#{!relAulaEspacioBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_AULA_ESPACIO)}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardarEspacio" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

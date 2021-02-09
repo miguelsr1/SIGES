@@ -1,0 +1,243 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.verValoresDeIndicadores')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+        <h:form id="tableForm">
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+
+                <p:outputPanel id="bloqueNoModal" styleClass="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                        <div class="col-sm-8">                      
+                            <h:selectOneMenu  id="anioFiscal" value="#{metaDeIndicadoresVer.idAnioFiscal}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                <f:selectItems value="#{utilsMB.getAniosFiscales()}" />
+                                <f:ajax render="tablaValores"   listener="#{metaDeIndicadoresVer.filterTable()}"/>
+                            </h:selectOneMenu>
+                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ProgramaInstitucional')}:" />
+                        <div class="col-sm-8">
+                            <h:selectOneMenu id="programaSelectI" value="#{metaDeIndicadoresVer.idProgramaInstitucional}"  styleClass="form-control textoLargo" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                <f:selectItems value="#{utilsMB.getProgramasInstitucionales()}" />
+                                <f:ajax render="tablaValores"   listener="#{metaDeIndicadoresVer.filterTable()}"/>
+                            </h:selectOneMenu> 
+                        </div>
+                    </div>                    
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ProgramaPresupuestario')}:" />
+                        <div class="col-sm-8">
+                            <h:selectOneMenu id="programaSelectP" value="#{metaDeIndicadoresVer.idProgramaPresupuestario}"  styleClass="form-control textoLargo" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                <f:selectItems value="#{utilsMB.getProgramasPrespuestario()}" />
+                                <f:ajax render="tablaValores"   listener="#{metaDeIndicadoresVer.filterTable()}"/>
+                            </h:selectOneMenu> 
+                        </div>
+                    </div>
+
+                    <p:outputPanel id="tablaValores">
+
+                        <ui:fragment rendered="#{empty  metaDeIndicadoresVer.tiposDeIndicadores}"  >
+                            <div class="form-group">
+                                <div class ="col-xs-12">
+                                    <h:outputText  styleClass="no-hay-indicadores" value="#{textMB.obtenerTexto('labels.NoHayIndicadoresAVisualizar')}"/>
+                                </div>
+                            </div>
+                        </ui:fragment>
+
+                        <ui:fragment rendered="#{not empty  metaDeIndicadoresVer.tiposDeIndicadores}"  >
+                            <ui:repeat value="#{metaDeIndicadoresVer.tiposDeIndicadores}" var="indicador">
+                                <h2><h:outputText value="#{indicador.tipoIndicador.nombre}"/></h2>
+                               
+                                <!-- TABLA JSF -->
+                                <p:dataTable 
+                                    id="tablaDeIndicadores"
+                                    value="#{indicador.indicadores}" 
+                                    var="meta"
+                                    sortBy="#{meta.indicador.nombre}"
+                                    >
+
+                                    <p:column style="width:16px" exportable="false">
+                                        <p:rowToggler/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" >
+                                        <h:outputText value="#{meta.indicador.nombre} ( #{meta.indicador.unidadDeMedida.nombre} )" />
+                                    </p:column>   
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.UnidadMedida')}" >
+                                        <h:outputText value="#{meta.indicador.unidadDeMedida.codigo}" />
+                                    </p:column>   
+                                    <p:columns  value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"   
+                                                var="nombreSeg"  
+                                                columnIndexVar="colIndex"
+                                                styleClass="numericos">
+                                        <f:facet name="header">
+                                            <h:outputText  value="#{textMB.obtenerTexto(nombreSeg)}" />
+                                        </f:facet>
+                                        <h:outputText  value="#{meta.valores[colIndex].valor}" styleClass="">
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:columns>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass="numericos">
+                                        <h:outputText value="#{meta.totalValor}"  styleClass="bold">
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>   
+
+
+                                    <p:rowExpansion >
+                                        <p:dataTable 
+                                            id="tablaDesglose"
+                                            value="#{meta.desgloce}" 
+                                            var="indicadorUT"
+                                            styleClass="tabla-desglose"
+                                            sortBy="#{indicadorUT.proyecto.nombre}"
+                                            >
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Proyecto')}" >
+                                                <h:outputText value="#{indicadorUT.proyecto.nombre}" />
+                                            </p:column>  
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.UT')}" >
+                                                <h:outputText value="#{indicadorUT.ut.nombre}" />
+                                            </p:column>   
+
+                                            <!-- las columnas que se muestran -->
+                                            <p:columns  value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"  
+                                                        var="nombreSeg"  
+                                                        columnIndexVar="colIndex"
+                                                        exportable="false"
+                                                        styleClass="numericos">
+                                                <f:facet name="header">
+                                                    <h:outputText  value="#{textMB.obtenerTexto(nombreSeg)}" />
+                                                </f:facet>
+                                                <p:commandButton styleClass="btn btn-link"  
+                                                                 value="#{metaDeIndicadoresVer.getValorToString(indicadorUT.valores[colIndex])}" 
+                                                                 update="verInfoInsumoForm"
+                                                                 oncomplete="$('#verInfoInsumo').modal('show');" 
+                                                                 immediate="true">
+                                                    <f:setPropertyActionListener target="#{metaDeIndicadoresVer.valorVisualizando}" value="#{indicadorUT.valores[colIndex]}" />
+                                                </p:commandButton>
+                                            </p:columns>
+                                            <!-- las columnas que se exportan -->
+                                            <p:columns  value="#{utilsMB.getTitulosSeguimiento(indicador.tipoIndicador.tipoSeguimiento)}"  
+                                                        var="nombreSeg"  
+                                                        columnIndexVar="colIndex"
+                                                        exportable="true"
+                                                        styleClass="hidden">
+                                                <f:facet name="header">
+                                                    <h:outputText  value="#{textMB.obtenerTexto(nombreSeg)}" />
+                                                </f:facet>
+                                                <h:outputText  value="#{indicadorUT.valores[colIndex].valor}" styleClass="">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </p:columns>
+
+                                            <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass="numericos">
+                                                <h:outputText value="#{indicadorUT.totalValor}"    styleClass="bold">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </p:column>   
+                                        </p:dataTable>
+
+                                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                            <span class="glyphicon glyphicon-export"></span>
+                                            <p:dataExporter type="csv" target="tablaDesglose" fileName="valores-#{meta.indicador.nombre}" />
+                                        </h:commandLink>    
+                                    </p:rowExpansion>
+                                </p:dataTable>
+                                <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                    <span class="glyphicon glyphicon-export"></span>
+                                    <p:dataExporter type="csv" target=":#{component.parent.clientId}:tablaDeIndicadores" fileName="valores-#{indicador.tipoIndicador.nombre}" />
+                                </h:commandLink>                                
+                                <div class="clear"></div>
+
+
+                            </ui:repeat>
+                        </ui:fragment>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </div>
+        </h:form>
+
+
+
+
+
+
+
+        <!-- MODAL PARA AGREGAR COEJECUTORAS-->  
+        <h:panelGroup   layout="block">
+            <div class="modal fade"  id="verInfoInsumo" tabindex="-1" role="dialog" aria-labelledby="verInfoInsumo">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" >
+                        <h:form id="verInfoInsumoForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.verInfoIndicador')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.valor')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText  value="#{metaDeIndicadoresVer.valorVisualizando.valor}" styleClass="form-control-static" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.meta')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText  value="#{metaDeIndicadoresVer.valorVisualizando.meta}" styleClass="form-control-static" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel  styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.alcanceYLimitante')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText  value="#{metaDeIndicadoresVer.valorVisualizando.alcanceYLimitante}" styleClass="form-control-static" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel  styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.medioVerificacion')}:" />
+                                        <div class="col-sm-8">
+                                            <h:outputText  value="#{metaDeIndicadoresVer.valorVisualizando.medioVerificacion}" styleClass="form-control-static" />
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+    </ui:composition>
+</html>
+

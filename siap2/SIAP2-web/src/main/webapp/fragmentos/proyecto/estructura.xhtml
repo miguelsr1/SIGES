@@ -1,0 +1,299 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" >
+
+        <h:messages  showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+        <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+        <!-- tipo de estructura -->
+        <div>
+            <div class="form-group">
+                <h:outputText styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.TipoEstructura')}:" />
+                <div class="col-sm-9">        
+                    <div class="checkbox">
+                        <label>
+                            <h:selectBooleanCheckbox value="#{proyectoCE.objeto.tipoEstructuraComponente}" >
+                                <f:ajax render="estructuraComponentes"/> 
+                            </h:selectBooleanCheckbox> 
+                            #{textMB.obtenerTexto('labels.Componente')}
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <h:selectBooleanCheckbox value="#{proyectoCE.objeto.tipoEstructuraMacroactividad}" >
+                                <f:ajax render="estructuraMacroActividads"/> 
+                            </h:selectBooleanCheckbox> 
+                            #{textMB.obtenerTexto('labels.Mascroactividades')}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Filtro')}" />
+                    <div class="checkbox checkbox-inline">
+                        <label>
+                            <h:selectBooleanCheckbox value="#{proyectoCE.ocultarFuentes}" >
+                                <f:ajax render="estructuraComponentes estructuraMacroActividads"/> 
+                            </h:selectBooleanCheckbox> 
+                            #{textMB.obtenerTexto('labels.OcultarFuentes')}
+                        </label>
+                    </div>
+
+                    <div class="checkbox checkbox-inline" >
+                        <label>
+                            <h:selectBooleanCheckbox value="#{proyectoCE.ocultarProductos}" >
+                                <f:ajax render="estructuraComponentes estructuraMacroActividads"/> 
+                            </h:selectBooleanCheckbox> 
+                            #{textMB.obtenerTexto('labels.OcultarProductos')}
+                        </label>
+                    </div>
+                </div>
+            </div>  
+
+
+
+
+
+
+
+            <!-- EN CASO QUE LA ESTRUCTURA SEA POR COMPONENTES -->
+            <h:panelGroup id="estructuraComponentes" layout="block">
+                <ui:fragment rendered="#{proyectoCE.objeto.tipoEstructuraComponente}">
+                    <div class="form-group">
+                        <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Componentes')}" />
+
+                        </div>
+                        <div class="col-sm-6 clearfix">                        
+                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                             icon="glyphicon glyphicon-plus"
+                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                             update="contenidoModalComponente"
+                                             action="#{proyectoCE.reloadComponente()}"
+                                             oncomplete="$('#anadirComponente').modal('show');" 
+                                             immediate="true">
+                                <f:setPropertyActionListener target="#{proyectoCE.tmpComponente}" value="#{null}" />
+                            </p:commandButton>
+                        </div>
+                    </div>  
+                    <p:outputPanel id="tablaComponente" >
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Numero')}"/> </th>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Componente')}"/></th>
+                                    <ui:fragment rendered="#{proyectoCE.ocultarProductos eq false}" > 
+                                        <th><h:outputText value="#{textMB.obtenerTexto('labels.Producto')}"/></th>
+                                    </ui:fragment>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Importe')}"/></th>
+<!--                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Porcentaje')}"/></th>-->
+                                    <ui:fragment rendered="#{proyectoCE.ocultarFuentes eq false}" >  
+                                        <ui:repeat value="#{proyectoCE.getFuentesRecursosProyecto()}" var="fuenteRecursos"  >
+                                            <th class="numericos"> #{fuenteRecursos.codigo}   </th>
+                                        </ui:repeat>     
+                                    </ui:fragment>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Unidadtecnica')}"/></th>
+                                    <th class="columnaAcciones"><h:outputText value="#{textMB.obtenerTexto('labels.Editar')}"/></th>
+                                    <th class="columnaAcciones"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- imprime componentes-->
+                                <ui:repeat value="#{proyectoCE.ordenarProyectoEstructuraPorOrden(proyectoCE.objeto.proyectoComponentes)}" var="componente">
+                                    <ui:fragment rendered="#{componente.componentePadre eq null}">
+
+                                        <ui:include src="./itemTablaComponentes.xhtml">
+                                            <ui:param name="componente" value="#{componente}" />
+                                            <ui:param name="cssClass" value="fila-componente" />
+                                            <ui:param name="esComponente" value="#{true}" />
+                                        </ui:include>
+                                        <ui:repeat value="#{proyectoCE.ordenarProyectoEstructuraPorOrden(componente.componenteHijos)}" var="subcomponente">
+                                            <ui:include src="./itemTablaComponentes.xhtml">
+                                                <ui:param name="componente" value="#{subcomponente}" />
+                                                <ui:param name="cssClass" value="fila-subcomponente" />
+                                                <ui:param name="esComponente" value="#{false}" />
+                                            </ui:include>
+                                        </ui:repeat>
+
+                                    </ui:fragment>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </p:outputPanel>
+
+                </ui:fragment>
+            </h:panelGroup>
+
+
+            <!-- EN CASO QUE LA ESTRUCTURA SEA POR MACROACTIVIDAD -->
+            <h:panelGroup id="estructuraMacroActividads" layout="block">
+                <ui:fragment rendered="#{proyectoCE.objeto.tipoEstructuraMacroactividad}">
+                    <div class="form-group" style="margin-top: 20px;">
+                        <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.MacroActividades')}" />
+                        </div>
+                        <div class="col-sm-6 clearfix">                        
+                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                             icon="glyphicon glyphicon-plus"
+                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                             update="contenidoModalMacroActividad"
+                                             action="#{proyectoCE.reloadMacroActividad()}"
+                                             oncomplete="$('#anadirMacroActividad').modal('show');" 
+                                             immediate="true">
+                                <f:setPropertyActionListener target="#{proyectoCE.tmpMacroActividad}" value="#{null}" />
+                            </p:commandButton>
+                        </div>
+                    </div>
+
+
+
+
+                    <p:outputPanel id="tablaMacroActividad" >
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Numero')}"/> </th>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Macroactividad')}"/></th>
+                                    <ui:fragment rendered="#{proyectoCE.ocultarProductos eq false}" > 
+                                        <th><h:outputText value="#{textMB.obtenerTexto('labels.Producto')}"/></th>
+                                    </ui:fragment>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Importe')}"/></th>
+<!--                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.Porcentaje')}"/></th>-->
+                                    <ui:fragment rendered="#{proyectoCE.ocultarFuentes eq false}" >  
+                                        <ui:repeat value="#{proyectoCE.getFuentesRecursosProyecto()}" var="fuenteRecursos"  >
+                                            <th class="numericos"> #{fuenteRecursos.codigo}    </th>
+                                        </ui:repeat>    
+                                    </ui:fragment>
+                                    <th><h:outputText value="#{textMB.obtenerTexto('labels.UnidadTecnica')}"/></th>
+                                    <th class="columnaAcciones"><h:outputText value="#{textMB.obtenerTexto('labels.Editar')}"/></th>
+                                    <th class="columnaAcciones"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- imprime componentes-->
+                                <ui:repeat value="#{proyectoCE.ordenarProyectoEstructuraPorOrden(proyectoCE.objeto.proyectoMacroactividad)}" var="macroactividad">
+                                    <!-- imprime componentes-->
+                                    <tr>
+                                        <td> <h:outputText value="#{macroactividad.numero}" /></td>
+                                        <td> <h:outputText value="#{macroactividad.macroActividad.nombre}" /></td>
+                                        <ui:fragment rendered="#{proyectoCE.ocultarProductos eq false}" > 
+                                            <td> 
+                                                <p:commandButton icon="glyphicon glyphicon-plus" 
+                                                                 styleClass="btn btn-default"  
+                                                                 value="#{textMB.obtenerTexto('labels.AniadirProducto')}"  
+                                                                 action="#{proyectoCE.reloadProductoEstructura()}"
+                                                                 update="asociarProductoForm"
+                                                                 oncomplete="$('#asociarProducto').modal('show');" 
+                                                                 immediate="true"  >
+                                                    <f:setPropertyActionListener target="#{proyectoCE.itemEstructura}" value="#{macroactividad}" />
+                                                    <f:setPropertyActionListener target="#{proyectoCE.pdroductoEstructura}" value="#{null}" />
+                                                </p:commandButton>
+                                            </td>
+                                        </ui:fragment>
+                                        <td> 
+                                            <h:outputText value="#{macroactividad.importe}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </td>
+                                        <!--                                        <td>
+                                                                                    <h:outputText value="#{macroactividad.porcentaje}" >
+                                                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                                    </h:outputText>
+                                                                                </td>-->
+                                        <ui:fragment rendered="#{proyectoCE.ocultarFuentes eq false}" >  
+                                            <ui:repeat value="#{proyectoCE.getFuentesRecursosProyecto()}" var="fuente"  >
+                                                <td class="numericos"> 
+                                                    <h:outputText value="#{proyectoCE.getMontoProyEstructura(macroactividad, fuente)}" >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </td>
+                                            </ui:repeat> 
+                                        </ui:fragment>
+                                        <td><h:outputText value="#{macroactividad.unidadTecnica.nombre}" /></td>
+                                        <td class="columnaAcciones">
+                                            <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                             styleClass="btn btn-icono"  
+                                                             title="#{textMB.obtenerTexto('labels.EditarMacroActividad')}"  
+                                                             action="#{proyectoCE.reloadMacroActividad()}"
+                                                             update="contenidoModalMacroActividad"
+                                                             oncomplete="$('#anadirMacroActividad').modal('show');" 
+                                                             immediate="true">
+                                                <f:setPropertyActionListener target="#{proyectoCE.tmpMacroActividad}" value="#{macroactividad}" />
+                                            </p:commandButton>
+                                        </td>
+                                        <td class="columnaAcciones">
+                                            <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                             styleClass="btn btn-danger btn-icono" 
+                                                             title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                             onclick="if (!existeConfirmacion(this.id))
+                                                                         return false" 
+                                                             actionListener="#{proyectoCE.eliminarMacroActividad(macroactividad)}"
+                                                             update="tablaMacroActividad confirmModalCallBackBody"
+                                                             immediate="true">
+                                            </p:commandButton>
+                                        </td>
+                                    </tr>
+                                    <!-- imprime productos -->
+                                    <ui:fragment rendered="#{proyectoCE.ocultarProductos eq false}" > 
+                                        <ui:repeat value="#{macroactividad.productos}" var="producto">
+                                            <tr>
+                                                <td> #{macroactividad.numero}.#{producto.numero}</td>
+                                                <td></td>
+                                                <td>
+                                                    <h:outputText value="#{producto.producto.nombre}"/> 
+                                                    (<h:outputText value="#{textMB.obtenerTexto('labels.Meta:')}:" style="font-weight: bold"/> #{producto.cantidad} )
+                                                </td>
+                                                <td></td>
+                                                <!--                                                <td></td>-->
+                                                <ui:fragment rendered="#{proyectoCE.ocultarFuentes eq false}" >  
+                                                    <ui:repeat value="#{proyectoCE.getFuentesRecursosProyecto()}" var="fuente"  >
+                                                        <td></td>
+                                                    </ui:repeat> 
+                                                </ui:fragment>
+                                                <td><h:outputText value="#{producto.unidadTecnica.nombre}" /></td>
+                                                <td class="columnaAcciones">
+                                                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                                     styleClass="btn btn-icono"  
+                                                                     title="#{textMB.obtenerTexto('labels.AniadirProducto')}"  
+                                                                     action="#{proyectoCE.reloadProductoEstructura()}"
+                                                                     update="asociarProductoForm"
+                                                                     oncomplete="$('#asociarProducto').modal('show');" 
+                                                                     immediate="true"  >
+                                                        <f:setPropertyActionListener target="#{proyectoCE.itemEstructura}" value="#{macroactividad}" />
+                                                        <f:setPropertyActionListener target="#{proyectoCE.pdroductoEstructura}" value="#{producto}" />
+                                                    </p:commandButton>
+                                                </td>
+                                                <td class="columnaAcciones"> 
+                                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                     styleClass="btn btn-danger btn-icono" 
+                                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                                 return false" 
+                                                                     actionListener="#{proyectoCE.eliminarProductoEstructura(producto)}"
+                                                                     update="tablaMacroActividad confirmModalCallBackBody"
+                                                                     immediate="true" >
+                                                        <f:setPropertyActionListener target="#{proyectoCE.itemEstructura}" value="#{macroactividad}" />
+                                                    </p:commandButton>
+                                                </td>
+                                            </tr>
+                                        </ui:repeat>
+                                    </ui:fragment>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </p:outputPanel>
+                </ui:fragment>
+            </h:panelGroup>
+        </div>
+    </h:panelGroup>
+</ui:composition>

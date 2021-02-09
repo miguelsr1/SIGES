@@ -1,0 +1,106 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.reporteNotificacionPorIncumplimiento}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.reporteNotificacionPorIncumplimiento}"/></h2>
+            
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPORTE_NOTIFICACION_INCUMPLIMIENTO)}" />
+                </ui:include>
+            </p:outputPanel>
+
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>   
+        
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel  toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <div class="requeridos" style="text-align:left;"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <f:subview id="filtroActivosView">
+                        <ui:include src="componentes/filtroActivos.xhtml">
+                            <ui:param name="renderTipoUnidad" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}" />
+                            <ui:param name="renderUnidadAdministrativa" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}" />
+                            <ui:param name="renderUnidadActivoFijo" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}" />
+                            <ui:param name="renderMunicipio" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MUNICIPIO)}" />
+                            <ui:param name="elementosActualizar" value=":formReporte:generarReporte" />
+                            <ui:param name="tunidadObligatorio" value="#{true}" />
+                            <ui:param name="uafObligatorio" value="#{true}" />
+                            <ui:param name="uadObligatorio" value="#{true}" />
+                        </ui:include>
+                    </f:subview>
+                    
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_noNotificacion">
+                            <h:outputLabel value="#{msg.noNotificacion}" for="filtro_noNotificacion" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputNumber autocomplete="off" id="input_vida_util"  
+                                       value="#{notificacionIncumplimientoBean.notificacionId}"
+                                       styleClass="form-control texto-corto"
+                                       minValue="1" 
+                                       decimalPlaces="0" thousandSeparator="">
+                                    <p:ajax event="keyup" update=":formReporte:generarReporte" process="@this"/>
+                                </p:inputNumber>
+                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+        </h:panelGroup>
+        
+        
+    </h:form>
+
+    
+    
+    <h:form id="formReporte">
+        <div class="form-action-buttons">
+            <h:panelGroup id="botones">
+                <p:outputPanel styleClass="form-group row" id="fila_filtro_noNotificacion">
+                    <p:outputPanel styleClass="col-sm-11 texto-right">
+                        <p:outputPanel id="generarReporte" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_NOTIFICACION_INCUMPLIMIENTO)}">
+                            <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_NOTIFICACION_INCUMPLIMIENTO_R}" method="get" target="_blank">
+                                <input type="hidden" name="uaf" value="#{notificacionIncumplimientoBean.filtrosBienesBean.unidadAFSeleccionada.uafPk}" required="true"/>
+                                    <input type="hidden" name="uad" value="#{notificacionIncumplimientoBean.filtrosBienesBean.unidadSeleccionada.uadPk}" required="true"/>
+                                    <input type="hidden" name="sed" value="#{notificacionIncumplimientoBean.filtrosBienesBean.sedeSeleccionada.sedPk}" required="true"/>
+                                    <input type="hidden" name="not" value="#{notificacionIncumplimientoBean.notificacionId}"/>
+
+                                    <input type="submit" value="Generar Reporte"  class="btn btn-primary" onblur="true"/>
+
+                            </form>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-sm-1">
+                            <p:commandLink value="#{msg.limpiar}" action="#{notificacionIncumplimientoBean.limpiar()}" 
+                                    update=":form:pnlSearch" immediate="true" styleClass="btn btn-link">
+                             <p:resetInput target=":form:pnlSearch" />
+                         </p:commandLink>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                
+                
+            </h:panelGroup>
+        </div>
+        <div class="volverLink">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </div>
+    </h:form>
+</ui:composition>

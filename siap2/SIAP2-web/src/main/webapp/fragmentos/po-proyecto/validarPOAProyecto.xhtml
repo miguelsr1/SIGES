@@ -1,0 +1,268 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ValidarPOAParaProyecto')}" />
+                </h2>
+            </div>
+        </ui:fragment>  
+        <h:panelGroup id="todoElContenido" layout="block">
+            <h:form id="formMain"  prependId="false" >     
+                <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                    <p:focus context="bloqueNoModal" />
+                    <div class="grupoCampos">
+                        <h:panelGroup id="alertaEditando" layout="block"  rendered="#{validarPOAProyecto.poa!= null and validarPOAProyecto.poa.estado ne 'VALIDANDO_POA' }" >
+                            <div class="alert alert-warning" role="alert">
+                                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                <span class="sr-only"><h:outputText value="#{textMB.obtenerTexto('labels.Alerta')}:" /></span>                             
+                                <h:outputText value="#{textMB.obtenerTexto('labels.POAenEstadoQueNoPuedeSerValidado')}" />     
+                            </div>
+                        </h:panelGroup>
+                        <h:messages id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" warnClass="alert alert-warning"  styleClass="mensajes"/>		
+
+
+                        <div class="form-group">
+                            <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Proyecto')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText id="accCentral" styleClass="form-control-static" value="#{validarPOAProyecto.objeto.nombre}" />
+                            </div>
+                        </div> 
+
+                        <div class="form-group">
+                            <h:outputLabel for="anioFiscal" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText id="anioFiscal" styleClass="form-control-static" value="#{validarPOAProyecto.poa.anioFiscal.anio}" />
+                                <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <h:outputLabel for="unidadTecnica" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText id="unidadTecnica" styleClass="form-control-static" value="#{validarPOAProyecto.poa.unidadTecnica.nombre}" />
+                                <h:message for="unidadTecnica" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel for="pInstitucional" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProgramaInstitucional')}:" />
+                            <div class="col-sm-9">
+                                <p:treeTable id="pInstitucional"
+                                             value="#{validarPOAProyecto.getRootNodeProgramaInstitucional()}"
+                                             emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                             var="item">
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                        <h:outputText value="#{item.nombre}" />
+                                    </p:column>
+                                </p:treeTable>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel for="pPresupuestario" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProgramaPresupuestario')}:" />
+                            <div class="col-sm-9">
+                                <p:treeTable id="pPresupuestario"
+                                             value="#{validarPOAProyecto.getRootNodeProgramaPresupuestario()}"
+                                             emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                             var="item">
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                        <h:outputText value="#{item.nombre}" />
+                                    </p:column>
+                                </p:treeTable>
+                            </div>
+                        </div>
+                    </div>
+                    <!--////////////////////////// TABLA GRANDE DE LINEAS ////////////////////////////-->    
+                    <h:panelGroup class="grupoCampos" rendered="#{validarPOAProyecto.poa.estado eq 'VALIDANDO_POA' }" layout="block">   
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.Lineas')}" />
+                            </div>
+                            <div class="col-sm-6 clearfix">       
+                                <!--                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                                 icon="glyphicon glyphicon-plus"
+                                                                                 value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                                                 update="contenidoModalLinea"
+                                                                                 action="#{validarPOAProyecto.initLinea()}"
+                                                                                 oncomplete="$('#anadirLinea').modal('show');" 
+                                                                                 immediate="true">
+                                                                    <f:setPropertyActionListener target="#{validarPOAProyecto.tempLinea}" value="#{null}" />
+                                                                </p:commandButton>
+                                                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                                 icon="glyphicon glyphicon-eye-open"
+                                                                                 value="#{textMB.obtenerTexto('labels.VerMontos')}" 
+                                                                                 update="contenidoModalMontos"
+                                                                                 oncomplete="$('#verMontos').modal('show');" 
+                                                                                 immediate="true">
+                                                                    <f:setPropertyActionListener target="#{validarPOAProyecto.tempLinea}" value="#{null}" />
+                                                                </p:commandButton>-->
+                            </div>
+                        </div>    
+                        <h:panelGroup id="tablaLineas" layout="block">   
+                            <ui:include src="./POTablaProyecto.html">
+                                <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+                                <ui:param name="habilitarTDR" value="#{false}" />
+                            </ui:include>
+                        </h:panelGroup>
+                    </h:panelGroup>
+
+
+
+
+
+                    <!--////////////////////////// TABLA GRANDE DE  RIESGOS ////////////////////////////-->    
+                    <h:panelGroup id="riesgosTabla" class="grupoCampos" rendered="#{not empty  validarPOAProyecto.poa  and   validarPOAProyecto.poa.estado eq 'EDITANDO_UT'}" layout="block">                    
+                        <ui:include src="./../po-comun/POTablaRiesgos.xhtml">
+                            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+                            <ui:param name="poa" value="#{validarPOAProyecto.poa}" />
+                        </ui:include>
+                    </h:panelGroup>
+
+
+
+                    <div>
+                        <p:commandButton rendered="#{validarPOAProyecto.tienePermisoEdicion() and validarPOAProyecto.poa.estado eq 'VALIDANDO_POA' }"
+                                         styleClass="btn btn-primary"  value="#{textMB.obtenerTexto('labels.Validar')}" actionListener="#{validarPOAProyecto.generarLineaBase}"  update="bloqueNoModal"/>
+                        <p:commandButton rendered="#{validarPOAProyecto.tienePermisoEdicion() and validarPOAProyecto.poa.estado eq 'VALIDANDO_POA' }"
+                                         styleClass="btn btn-danger"  
+                                         value="#{textMB.obtenerTexto('labels.Rechazar')}" 
+                                         update="contenidoModalRechazarPOA"
+                                         oncomplete="$('#rechazarPOA').modal('show');" 
+                                         immediate="true">
+                            <f:setPropertyActionListener target="#{validarPOAProyecto.motivoRechazo}" value="#{null}" />
+                        </p:commandButton>
+                        <h:outputLink  styleClass="btn btn-link" value="consultaNotificaciones.xhtml">
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                        </h:outputLink>
+                    </div>
+
+                </h:panelGroup>
+            </h:form>
+        </h:panelGroup>
+
+
+
+
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR RIESGO ////////////////////////////-->          
+        <ui:include src="./../po-comun/POAmodalRiesgo.xhtml">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+        </ui:include>
+
+
+
+
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR LINEA ////////////////////////////-->  
+        <ui:include src="./POmodalAgregarLineaProyecto.xhtml">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+            <ui:param name="sePuedeCompartir" value="#{false}" />
+        </ui:include>
+
+
+
+
+
+
+
+
+
+        <!--//////////////////////////  MODAL AGREGAR INDICADORES  ////////////////////////////-->  
+<!--        <ui:include src="./POmodalAgregarIndicadorProyecto.xhtml">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+        </ui:include>-->
+
+
+
+
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR MACROACTIVIDAD////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalActividad.xhtml">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+        </ui:include>
+
+
+
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR INSUMOS ////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalInsumo.xhtml">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+        </ui:include>
+
+
+
+
+
+
+
+
+        <!--//////////////////////////  MODAL PARA VER MONTOS ////////////////////////////-->  
+        <ui:include src="./POmodalVerMontosProyecto.html">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+        </ui:include>
+
+
+
+
+
+        <!--//////////////////////////  MODAL PARA RECHAZAR  ////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalRechazo.xhtml">
+            <ui:param name="parameterBean" value="#{validarPOAProyecto}" />
+        </ui:include>
+
+
+
+
+
+
+
+
+
+        <!--//////////////////////////  MODAL CONFIRMACION DE ELIMINAR ////////////////////////////-->  
+        <h:form prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" onclick="confirmar();"  />
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+        <!-- js que setea la variable del modal-->
+        <h:outputScript library="js" name="confirmModal.js" />  
+        <!-- js para las imagenes dinamicas de holder-->
+
+
+
+
+
+    </ui:composition>
+</html>

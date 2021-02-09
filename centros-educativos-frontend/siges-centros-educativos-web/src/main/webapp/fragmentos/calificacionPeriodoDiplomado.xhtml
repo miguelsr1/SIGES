@@ -1,0 +1,195 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">                
+                <li class="breadcrumb-item active" aria-current="page">#{msg.calificacionPeriodoDiplomado}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.calificacionPeriodoDiplomado}"/></h2>
+
+            <p:outputPanel styleClass="float-right">            
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CALIFICACION_PERIODO_DIPLOMADO)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:panel  toggleable="false" styleClass="panel-filtro">
+            <p:outputPanel id="pnlBusqueda">
+                <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                    <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:autoComplete id="input_sede_autocomplete" 
+                                        styleClass="form-control texto-medio"
+                                        value="#{calificacionPeriodoDiplomadoBean.sedeSeleccionada}"
+                                        rendered="#{!calificacionPeriodoDiplomadoBean.cabezalSoloLectura}"
+                                        completeMethod="#{calificacionPeriodoDiplomadoBean.completeSede}"
+                                        var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                        itemValue="#{sed}" 
+                                        widgetVar="b_inst_resp_autocomplete"
+                                        forceSelection="true"
+                                        maxResults="10"
+                                        queryDelay="500"
+                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                        converter="#{sedesConverter}"
+                                        multiple="false">
+                            <p:ajax listener="#{calificacionPeriodoDiplomadoBean.seleccionarSede}" event="itemSelect"  process="@this" update="@form"/>
+                        </p:autoComplete>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                    <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <h:selectOneMenu id="input_anio_lectivo" value="#{calificacionPeriodoDiplomadoBean.comboAnioLectivo.selected}"  styleClass="form-control texto-medio" disabled="#{calificacionPeriodoDiplomadoBean.sedeSeleccionada==null}" >
+                            <f:selectItems value="#{calificacionPeriodoDiplomadoBean.comboAnioLectivo.items}"/>
+                            <p:ajax listener="#{calificacionPeriodoDiplomadoBean.seleccionarAnioLectivo}" process="@this" update="@form"/>
+                        </h:selectOneMenu>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_diplomado">
+                    <h:outputLabel value="#{msg.diplomado}" for="input_diplomado" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <h:selectOneMenu id="input_diplomado" value="#{calificacionPeriodoDiplomadoBean.comboDiplomado.selected}"  styleClass="form-control texto-medio" disabled="#{calificacionPeriodoDiplomadoBean.comboAnioLectivo.selectedT==null}" >
+                            <f:selectItems value="#{calificacionPeriodoDiplomadoBean.comboDiplomado.items}"/>
+                            <p:ajax listener="#{calificacionPeriodoDiplomadoBean.seleccionarDiplomado}" process="@this" update="@form"/>
+                        </h:selectOneMenu>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_modulo">
+                    <h:outputLabel value="#{msg.modulo}" for="input_modulo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <h:selectOneMenu id="input_modulo" value="#{calificacionPeriodoDiplomadoBean.comboModuloDiplomado.selected}"  styleClass="form-control texto-medio" disabled="#{calificacionPeriodoDiplomadoBean.comboDiplomado.selectedT==null}" >
+                            <f:selectItems value="#{calificacionPeriodoDiplomadoBean.comboModuloDiplomado.items}"/>
+                            <p:ajax listener="#{calificacionPeriodoDiplomadoBean.buscarCalificaciones()}" onstart="PF('blocker').show()" process="@this" update="@form"/>
+                            <p:blockUI block="@form" widgetVar="blocker" /> 
+                        </h:selectOneMenu>                    
+                    </p:outputPanel>                    
+                </p:outputPanel>           
+
+
+
+
+            </p:outputPanel>
+        </p:panel>  
+
+        <p:outputPanel rendered="#{calificacionPeriodoDiplomadoBean.existeEstudianteSinCalificacion}" styleClass="ui-messages">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" escape="false" value="Existen estudiantes sin calificación." />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+   
+
+        <h:panelGroup rendered="#{calificacionPeriodoDiplomadoBean.comboModuloDiplomado.selectedT != null and calificacionPeriodoDiplomadoBean.estudianteList.size() >0}">
+            <div class="form-action-buttons" >
+                <p:commandButton 
+                    id="btnGuardar" value="#{msg.hcalculoNotaInstitucional}" 
+                    action="#{calificacionPeriodoDiplomadoBean.calcularNotaIntitucional()}" 
+                    update="@form"  styleClass="btn btn-primary" icon="fa fa-fw fa-calculator" />
+                <p:blockUI block="@form" trigger="btnGuardar"/>
+            </div>
+        </h:panelGroup>
+
+        <p:outputPanel id="tDetalle">
+
+            <h:panelGroup rendered="#{calificacionPeriodoDiplomadoBean.comboModuloDiplomado.selectedT != null and calificacionPeriodoDiplomadoBean.estudianteList.size() >0}">
+                <p:dataTable id="workSpaceList" var="estudiante"
+                             value="#{calificacionPeriodoDiplomadoBean.estudianteList}"
+                             styleClass="datatable" 
+                             rowStyleClass="#{calificacionPeriodoDiplomadoBean.colorRow(estudiante)}"
+                             rowIndexVar="rowIndex" >
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column colspan="2">
+                                <f:facet name="header"><h:outputText value="#{msg.hestudiantes}"/></f:facet>
+                            </p:column>
+                            <p:column colspan="#{calificacionPeriodoDiplomadoBean.periodos.size()}" rendered="#{calificacionPeriodoDiplomadoBean.periodos.size() > 0}">
+                                <f:facet name="header"><h:outputText value="#{msg.hcpgPeriodosCalificacion}"/></f:facet>
+                            </p:column>
+                            <p:column colspan="1">
+                                <f:facet name="header"><h:outputText value="#{msg.hnotaInstitucional}"/></f:facet>
+                            </p:column>                              
+                        </p:row>
+
+
+
+                        <p:row>
+                            <p:column colspan="1">
+                                <f:facet name="header"><h:outputText value="#{msg.hnie}"/></f:facet>
+                            </p:column>
+                            <p:column colspan="1">
+                                <f:facet name="header"><h:outputText value="#{msg.hnombre}"/></f:facet>
+                            </p:column>
+
+
+                            <ui:repeat var="titulRango" value="#{calificacionPeriodoDiplomadoBean.periodos}" rendered="#{calificacionPeriodoDiplomadoBean.periodos.size() > 0}">
+                                <p:column>
+                                    <f:facet name="header">
+                                        <h:outputText value="#{titulRango}"/>
+                                    </f:facet>
+                                </p:column>
+                            </ui:repeat>
+
+                            <p:column colspan="1" >
+                                <f:facet name="header">
+                                    <h:outputText value=""/>
+                                </f:facet>
+                            </p:column>  
+                        </p:row>
+
+
+
+                    </p:columnGroup>
+
+                    <p:column headerText="Nie" >
+                        <h:outputText value="#{estudiante.estPersona.perNie}" />
+                    </p:column>
+                    <p:column headerText="Estudiante">
+                        <h:outputText value="#{estudiante.estPersona.perNombreCompleto}" />
+                    </p:column>
+
+                    <p:columns  value="#{calificacionPeriodoDiplomadoBean.periodos}" var="rango" 
+                                columnIndexVar="colIndex" styleClass="texto-right" rendered="#{calificacionPeriodoDiplomadoBean.periodos.size() > 0}">
+                        <f:facet name="header" >
+                            <h:outputText value="#{rango}" />
+                        </f:facet>
+                        <h:outputText value="#{calificacionPeriodoDiplomadoBean.buscarCalificacionPeriodoOrdinario(estudiante, rango)}"  />
+                    </p:columns>
+
+                    <p:column colspan="1" styleClass="texto-right">        
+                        <h:outputText value="#{calificacionPeriodoDiplomadoBean.buscarCalificacionNotaIntitucional(estudiante)}" />
+                    </p:column>                       
+
+
+                </p:dataTable>
+            </h:panelGroup>       
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

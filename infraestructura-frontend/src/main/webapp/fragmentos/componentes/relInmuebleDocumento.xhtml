@@ -1,0 +1,229 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{relInmuebleDocumentoBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{relInmuebleDocumentoBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty relInmuebleDocumentoBean.entidadEnEdicion}">
+            <p:outputPanel id='pnlDocumentos'>
+                <p:outputPanel styleClass="form-action-buttons margen-sup">
+                    <p:commandButton value="#{msg.agregarDocumento}" icon="glyphicon glyphicon-plus" 
+                                     action="#{relInmuebleDocumentoBean.agregar()}"
+                                     update="form:tabs:galeriaDocumentos:itemCargaDialogDocumentos"
+                                     oncomplete="PF('itemCargaDialogDocumentos').show()"  
+                                     id="btnAgregarDocumento" 
+                                     styleClass="btn btn-secondary" 
+                                     rendered="#{!relInmuebleDocumentoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_REL_INMUEBLE_DOCUMENTO)}">
+                    </p:commandButton>
+                </p:outputPanel>
+
+         
+
+                <h:panelGroup id="searchPanels">
+                    <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                        <p:outputPanel id="pnlSearch" styleClass="row">
+                            <p:outputPanel styleClass="col-md-12">
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre_filtro" value="#{relInmuebleDocumentoBean.filtro.nombreDocumento}" />    
+                                    </p:outputPanel>
+
+                                    <h:outputLabel value="#{msg.descripcion}" for="b_descripcion_filtro" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:inputText autocomplete="off" styleClass="form-control" id="b_descripcion_filtro" value="#{relInmuebleDocumentoBean.filtro.descripcionDocumento}" />    
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.tipoDocumento}" for="b_tipo_doc" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4  ">
+                                        <h:selectOneMenu   id="b_tipo_doc" value="#{relInmuebleDocumentoBean.comboTipoDocumentoBusqueda.selected}"
+                                                           styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{relInmuebleDocumentoBean.comboTipoDocumentoBusqueda.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row">
+                                    <p:outputPanel styleClass="col-sm-9 offset-sm-3 text-right">
+                                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary"
+                                                         icon="glyphicon glyphicon-search" action="#{relInmuebleDocumentoBean.buscar()}"
+                                                         update="form:tabs:galeriaDocumentos:pnlDocumentos"/>
+                                        <p:blockUI block="@form" trigger="btnBuscar"/>
+                                        <p:commandLink value="#{msg.limpiar}" action="#{relInmuebleDocumentoBean.limpiar()}"
+                                                       update="form:tabs:galeriaDocumentos:pnlDocumentos" styleClass="btn btn-link">
+
+                                        </p:commandLink>
+                                        <p:defaultCommand target="btnBuscar" scope="@form"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:panel>	
+                </h:panelGroup>
+
+                <p:outputPanel id="pnlResultado" rendered="#{relInmuebleDocumentoBean.totalResultados > 0}">
+                    <p:dataTable id="basicDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"                          
+                                 value="#{relInmuebleDocumentoBean.relInmuebleDocumentoLazyModel}"           
+                                 rendered="#{relInmuebleDocumentoBean.relInmuebleDocumentoLazyModel !=null}"  
+                                 emptyMessage="#{msg.noHayResultados}"		
+                                 paginator="true"
+                                 lazy="true"
+                                 paginatorPosition="bottom"
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                 sortField="ridPk"
+                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                 rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                 rows="#{relInmuebleDocumentoBean.paginado}"
+                                 reflow="true" >
+                        <f:facet name="{anterior}">
+                            <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                        </f:facet>
+                        <f:facet name="{siguiente}">
+                            <h:outputText styleClass="#{relInmuebleDocumentoBean.totalResultados lt (relInmuebleDocumentoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                        </f:facet>
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                <p:outputPanel styleClass="col-md-6">
+                                    <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{relInmuebleDocumentoBean.totalResultados} #{msg.elementos}" /></h3>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-6">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="basicDT" fileName="infTipoDocumento" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>>
+                        <p:column headerText="#{msg.hnombre}" sortBy="#{elem.ridNombre}">
+                            <h:outputText value="#{elem.ridNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hdescripcion}" sortBy="#{elem.ridDescripcion}">
+                            <h:outputText value="#{elem.ridDescripcion}" />
+                        </p:column>
+                        <p:column headerText="#{msg.htipoDocuento}" sortBy="#{elem.ridTipoDocumento}">
+                            <h:outputText value="#{elem.ridTipoDocumento.tidNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.ridUltModUsuario}">
+                            <h:outputText value="#{elem.ridUltModUsuario}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.ridUltModFecha}">
+                            <h:outputText value="#{elem.ridUltModFecha}" converter="#{localDateTimeConverter}" />
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false">
+                            <p:commandButton value="#{msg.descargar}" ajax="false" onclick="this.form.target = '_blank';" styleClass="btn btn-link"
+                                             rendered="#{elem.ridDocumento != null}">
+                                <p:fileDownload contentDisposition="inline" 
+                                                value="#{handleArchivoBean.descargarArchivo(elem.ridDocumento)}" />
+                            </p:commandButton>  
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false">
+                            <p:commandButton update="form:tabs:galeriaDocumentos:itemCargaDialogDocumentosPanel" oncomplete="PF('itemCargaDialogDocumentos').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{relInmuebleDocumentoBean.actualizar(elem)}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_REL_INMUEBLE_DOCUMENTO)}"/>
+                        </p:column>
+
+                        <p:column styleClass="columnaAcciones" exportable="false">
+                            <p:commandButton oncomplete="PF('confirmBorrarImagenDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{relInmuebleDocumentoBean.actualizar(elem)}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_REL_INMUEBLE_DOCUMENTO)}"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:dialog id="itemCargaDialogDocumentos" header="#{msg.agregarDocumento}" positionType="fixed" widgetVar="itemCargaDialogDocumentos" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                <p:outputPanel id="itemCargaDialogDocumentosPanel" styleClass="form-horizontal">
+                    <p:messages id="popupmsgDocumentosSede" showDetail="true" globalOnly="false" for="popupmsgDocumentosSede" closable="true"/>   
+                    <h:panelGroup rendered="#{not empty relInmuebleDocumentoBean.documentoEnEdicion}">      
+
+                        <p:outputPanel styleClass="form-group row" id="pnl_tipo_doc" >
+                            <h:outputLabel value="#{msg.tipoDocumento}" for="pnl_tipo_doc"  styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:selectOneMenu id="input_fuente_financiamiento_combo" value="#{relInmuebleDocumentoBean.comboTipoDocumento.selected}" styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{relInmuebleDocumentoBean.comboTipoDocumento.items}" />
+                                </h:selectOneMenu>     
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="#{msg.nombre}" for="pnl_nombre" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="pnl_nombre" value="#{relInmuebleDocumentoBean.documentoEnEdicion.ridNombre}" />    
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row"  >
+                            <h:outputLabel value="#{msg.descripcion}" for="pnl_desc" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="pnl_desc" value="#{relInmuebleDocumentoBean.documentoEnEdicion.ridDescripcion}"  />    
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row"  >
+                            <h:outputLabel for="file_upload" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                           
+                                <p:fileUpload fileUploadListener="#{relInmuebleDocumentoBean.handleFileUpload}"
+                                              id="file_upload"
+                                              mode="advanced" 
+                                              dragDropSupport="true"
+                                              label="Cargar"
+                                              rendered="#{!relInmuebleDocumentoBean.soloLectura}"
+                                              uploadLabel="#{msg.confirmar}"
+                                              invalidSizeMessage="#{msg.tamanioNoPermitido}"
+                                              invalidFileMessage="#{msg.formatoNoPermitido}"
+                                              update="@parent"
+                                              cancelLabel="#{msg.cancelar}"
+                                              auto="true"
+                                              sizeLimit="#{relInmuebleDocumentoBean.tamanioImportArchivo}"  
+                                              allowTypes="#{relInmuebleDocumentoBean.tipoImportArchivo}" />
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+
+                        <!-- Al guardar se pasa del temporal al local -->
+                        <p:outputPanel styleClass="control-group">
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.guardar}" id="btnGuardarDocumento" action="#{relInmuebleDocumentoBean.guardar()}"  
+                                                 update="form:tabs:galeriaDocumentos:pnlDocumentos :form:tabs:galeriaDocumentos:itemCargaDialogDocumentosPanel" 
+                                                 rendered="#{!relInmuebleDocumentoBean.soloLectura}"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                                <p:blockUI block="@form" trigger="btnGuardarDocumento" />
+                                <p:commandLink value="#{msg.cancelar}"  oncomplete="PF('itemCargaDialogDocumentos').hide();"  styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+                </p:outputPanel>
+            </p:dialog>
+
+            <p:confirmDialog id="confirmBorrarImagenDialog"
+                             message="#{msg.textoConfirmacionEliminacion}"
+                             header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmBorrarImagenDialog">
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="ConfirmImagenDelete" value="#{msg.hconfirmar}" 
+                                     update="form:tabs:galeriaDocumentos:pnlDocumentos"
+                                     oncomplete="PF('confirmBorrarImagenDialog').hide()" 
+                                     styleClass="btn btn-primary"
+                                     action="#{relInmuebleDocumentoBean.eliminar()}"  />
+                    <p:blockUI block="@form" trigger="ConfirmImagenDelete"/>
+                    <p:commandLink id="CancelarImagenDelete" 
+                                   value="#{msg.cancelar}" 
+                                   styleClass="btn btn-link"
+                                   onclick="PF('confirmBorrarImagenDialog').hide()"  />
+                </p:outputPanel>
+            </p:confirmDialog> 
+    </h:panelGroup>
+</ui:composition>

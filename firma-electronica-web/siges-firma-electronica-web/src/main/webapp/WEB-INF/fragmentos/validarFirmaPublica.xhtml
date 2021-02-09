@@ -1,0 +1,178 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      template="./../publico/template.xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <ui:composition>
+        
+        <p:blockUI block="formFirmaPublica" trigger="save1" />
+        
+        <h:form id="formFirmaPublica" prependId="false">
+            <div class="modal-header">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.validarFirma')}" /> 
+                </h2>
+            </div>
+            <div class="modal-body">
+                <h:panelGroup id="panelValidar" layout="block" styleClass="form-horizontal">
+                    <fieldset class="grupo-campos">
+                        <fieldset class="grupo-campos">
+                            <legend><h:outputText value="#{textMB.obtenerTexto('labels.adjuntarNuevoArchivoABandeja')}" /> </legend>
+                            <div class="row" style="margin-top:20px;">
+                                <div class="col-sm-12 form-horizontal">
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.documento')}:" />
+                                        <div class="col-sm-7">
+                                            <h:outputText id="nombreDeDocumento" value="#{validarFirmaPublicaMB.nombreOriginal}" 
+                                                          styleClass="form-control texto-largo" />
+                                        </div>                                                  
+                                        <div class="col-sm-2">
+                                            <p:fileUpload id="fudDocumento" mode="advanced" fileUploadListener="#{validarFirmaPublicaMB.cargarDocumento}" 
+                                                          auto="true" process="@this" label="#{textMB.obtenerTexto('labels.buscarArchivo')}" 
+                                                          cancelLabel="#{textMB.obtenerTexto('labels.cancelar')}" 
+                                                          uploadLabel="#{textMB.obtenerTexto('labels.subir')}"
+                                                          dragDropSupport="false" sizeLimit="10000000000" update="nombreDeDocumento"
+                                                          invalidSizeMessage="#{textMB.obtenerTexto('messages.archivoDemasiadoGrande')}" />
+                                        </div>                                                
+                                    </div> 
+                                </div>   
+                            </div>
+                        </fieldset>
+                    </fieldset>
+                    <div class="row" style="text-align: center">
+                        <div class="col-lg-2 col-lg-offset-4">
+                            <p:commandButton id="save1" styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" 
+                                             value="#{textMB.obtenerTexto('labels.subiryValidar')}" onclick="this.form.target = '_blank'"
+                                             action="#{validarFirmaPublicaMB.subirArchivo}" update="formValidarFirmas"
+                                             onsuccess="setTimeout('$(\'#formTitulo\\\\:messages\').hide()', 9000);"/>
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </div>
+        </h:form>
+
+        <!-- Informacion de firmas -->
+        <div class="modal fade confirm-modal-callback"  id="modalInfoFirmas" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="formValidarFirmas" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.infoFirmas')}" /></span>
+                        </div>
+                        <p:outputPanel id="pnlInfoFirmas" class="modal-body">
+                            <h:panelGroup layout="block" rendered="#{empty validarFirmaPublicaMB.infoFirmas}">
+                                <div class="ui-messages ui-widget" aria-live="polite">
+                                    <div class="ui-messages-info ui-corner-all">
+                                        <span class="ui-messages-info-icon"></span>
+                                        <ul>
+                                            <li>
+                                                <span class="ui-messages-info-detail">
+                                                    <h:outputText value="#{textMB.obtenerTexto('messages.elDocumentoNoContieneFirmas')}" />
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" rendered="#{not empty validarFirmaPublicaMB.infoFirmas and validarFirmaPublicaMB.firmaValida}">
+                                <div class="ui-messages ui-widget" aria-live="polite">
+                                    <div class="ui-messages-info ui-corner-all">
+                                        <span class="ui-messages-info-icon"></span>
+                                        <ul>
+                                            <li>
+                                                <span class="ui-messages-info-detail">
+                                                    <h:outputText value="#{textMB.obtenerTexto('messages.laFirmaDelDocumentoEsCorrecta')}" />
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" rendered="#{not empty validarFirmaPublicaMB.infoFirmas and not validarFirmaPublicaMB.firmaValida}">
+                                <div class="ui-messages ui-widget" aria-live="polite">
+                                    <div class="ui-messages-error ui-corner-all">
+                                        <span class="ui-messages-error-icon"></span>
+                                        <ul>
+                                            <li>
+                                                <span class="ui-messages-error-detail">
+                                                    <h:outputText value="#{textMB.obtenerTexto('messages.laFirmaDelDocumentoNoEsCorrecta')}" />
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>                                
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" id="pnlConFirmas" rendered="#{not empty validarFirmaPublicaMB.infoFirmas}">
+                                <p:dataTable id="tblInfoFirmas" var="info" value="#{validarFirmaPublicaMB.infoFirmas}" styleClass="table tabla-resultados" >
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.numero')}">
+                                        <h:outputText value="#{info.id}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.fecha')}">
+                                        <h:outputText value="#{info.fecha}" rendered="#{info.fecha!=null}" >
+                                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Montevideo" locale="es" />
+                                        </h:outputText>
+                                        <h:outputText value="***" rendered="#{info.fecha==null}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                        <h:outputText value="#{info.nombre}" title="#{info.dn}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.emisor')}">
+                                        <h:outputText value="#{info.emisor}" title="#{info.emisor}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.valida')}">
+                                        <h:outputLabel class="glyphicon glyphicon-ok btn btn-icono" rendered="#{info.valida}"/>
+                                        <h:outputLabel class="glyphicon glyphicon-remove btn btn-icono" rendered="#{not info.valida}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.mensaje')}">
+                                        <h:outputText value="#{info.mensaje}" />
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.certificado')}">
+                                        <p:commandButton icon="glyphicon glyphicon-download-alt" class="btn btn-icono" ajax="false"
+                                                         title="#{textMB.obtenerTexto('labels.descargar')}"
+                                                         rendered="#{info.cert!=null}">
+                                            <p:fileDownload value="#{validarFirmaPublicaMB.descargarCert(info.nombre, info.cert)}" />
+                                        </p:commandButton>
+                                    </p:column>
+                                </p:dataTable>                                
+                            </h:panelGroup>
+                        </p:outputPanel>
+                        <div class="modal-footer">
+                            <p:commandButton id="cerrarInfoFirmas" styleClass="btn btn-link" value="#{textMB.obtenerTexto('labels.cerrar')}" 
+                                             onclick="$('#modalInfoFirmas').modal('hide')" />
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade confirm-modal-callback data-backdrop"  id="modalDocumentoPublicoSubido" tabindex="-1" role="dialog" data-backdrop="static" >
+            <div class="modal-dialog" role="document" style="margin-top:200px; width:350px; height:50px;">
+                <div class="modal-content">
+                    <h:form id="formProgreso" prependId="false">
+                        <div class="modal-header">
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.headerModal.cargaArchivo')}"/></span>
+                        </div>
+                        <div class="modal-body">
+                            <p:panel>
+                                <div class="form-group" style="text-align:center;">
+                                    <h4>
+                                        <h:outputText id="archivoFirmadoExiste" value="#{textMB.obtenerTexto('labels.messages.archivoSubido')}"/>
+                                    </h4>
+                                </div>
+                            </p:panel>    
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton id="cancelarEspera" styleClass="btn btn-primary" style="float:right;"
+                                             icon="glyphicon glyphicon-saved"  value="#{textMB.obtenerTexto('labels.aceptar')}"
+                                             onclick="PF('modalDocumentoPublicoSubido').hide();"/>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div> 
+    </ui:composition>
+</html>

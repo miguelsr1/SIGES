@@ -1,0 +1,754 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.TRASLADOS}.xhtml">#{msg.gestionTraslados}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{trasladoBean.entidadEnEdicion.traPk != null}" value="#{msg.edicionTraslado}"/>
+                    <h:outputText rendered="#{trasladoBean.entidadEnEdicion.traPk == null}" value="#{msg.nuevoTraslado}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionTraslados}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.TRASLADOS)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+
+        <h:panelGroup id="itemDetail">
+            <div class="requeridos" style="text-align:left;"><h:outputText rendered="#{!trasladoBean.soloLectura}" value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup id="searchPanels">
+                <p:panel toggleable="true" toggleSpeed="500" closeSpeed="500">
+                    <p:outputPanel id="pnlSearch" styleClass="row">
+                        <p:fieldset  legend="#{msg.unidadPoseedoraBien}"  style="width: 100%;"  rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_PANEL_ORIGEN)}">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_tipounidadorigen">
+                                    <h:outputLabel value="#{msg.tipoUnidad}" for="filtro_tipoUnidad_origen" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <h:selectOneMenu id="filtro_tipoUnidad_origen"  styleClass="form-control dropdown texto-medio" rendered="#{!trasladoBean.soloLectura}"
+                                                         value="#{trasladoBean.comboTiposUnidadOrigen.selected}" >
+                                            <f:selectItems value="#{trasladoBean.comboTiposUnidadOrigen.items}" />
+                                            <p:ajax event="change" listener="#{trasladoBean.seleccionarTipoUnidadAF(0)}" process="@this" update="listaDisponibles filtro_activofijoorigen filtro_municipio_origen fila_filtro_unidadadministrativa_origen dato_correlativo_traslado"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{trasladoBean.tipoUnidadOrigenSeleccionada.text}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                         <p:blockUI block="@form" trigger="filtro_tipoUnidad_origen" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_activofijoorigen">
+                                    <h:outputLabel value="#{msg.unidadActivoFijo}" for="filtro_activofijoorigen" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <h:selectOneMenu id="filtro_activofijoorigen"  styleClass="form-control texto-medio" rendered="#{!trasladoBean.soloLectura}"
+                                                         value="#{trasladoBean.comboUnidadesActivoFijoOrigen.selected}" >
+                                            <f:selectItems value="#{trasladoBean.comboUnidadesActivoFijoOrigen.items}" />
+                                            <p:ajax event="change" listener="#{trasladoBean.seleccionarUnidadActivoFijo(0)}" process="@this" update="listaDisponibles filtro_municipio_origen fila_filtro_unidadadministrativa_origen dato_correlativo_traslado"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{trasladoBean.unidadAFOrigenSeleccionada.codigoNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                         <p:blockUI block="@form" trigger="filtro_activofijoorigen" />
+                                    </p:outputPanel>
+                                </p:outputPanel> 
+                                <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio_origen" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MUNICIPIO)}">
+                                    <h:outputLabel value="#{msg.municipio}" for="filtro_municipio_origen" styleClass="col-sm-3 col-form-label" />
+                                    <p:outputPanel styleClass="col-sm-9 ">
+                                        <h:selectOneMenu id="filtro_municipio_origen"  styleClass="form-control dropdown texto-medio" rendered="#{!trasladoBean.soloLectura}"
+                                                         value="#{trasladoBean.comboMunicipiosOrigen.selected}" >
+                                            <f:selectItems value="#{trasladoBean.comboMunicipiosOrigen.items}" />
+                                            <p:ajax event="change" listener="#{trasladoBean.seleccionarMunicipio(0)}" process="@this" update="listaDisponibles fila_filtro_unidadadministrativa_origen dato_correlativo_traslado"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{trasladoBean.sedeOrigenSeleccionada.sedDireccion.dirMunicipio.munNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                        <p:blockUI block="@form" trigger="filtro_municipio_origen" />
+                                    </p:outputPanel>
+                                </p:outputPanel> 
+                                <p:outputPanel styleClass="form-group row" id="fila_input_unidadadministrativaorigen">
+                                    <h:outputLabel value="#{msg.unidadAdministrativa}" for="filtro_unidadadministrativaorigen" styleClass="col-sm-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <h:panelGroup id="fila_filtro_unidadadministrativa_origen">
+                                            <p:selectOneMenu rendered="#{trasladoBean.esUnidadAdministrativaOrigen and !trasladoBean.soloLectura}" id="filtro_unidadadministrativa_origen"  
+                                                             value="#{trasladoBean.unidadOrigenSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                                effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                                 <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                                 <f:selectItems value="#{trasladoBean.unidadesAdministrativasOrigen}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                                 <p:ajax event="change" listener="#{trasladoBean.seleccionarUnidadAdministrativa(0)}" process="@this" update="listaDisponibles dato_correlativo_traslado"/>
+                                               <p:column>
+                                                   <h:outputText value="#{u.codigoNombre}" />
+                                               </p:column>
+                                           </p:selectOneMenu>
+                                            <p:selectOneMenu rendered="#{!trasladoBean.esUnidadAdministrativaOrigen and !trasladoBean.soloLectura}" id="filtro_sede_origen" 
+                                                             value="#{trasladoBean.sedeOrigenSeleccionada}" converter="#{sedeConverter}"
+                                                        effect="fade" var="s"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                                   <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                                   <f:selectItems value="#{trasladoBean.sedesOrigen}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                                   <p:ajax event="change" listener="#{trasladoBean.seleccionarUnidadAdministrativa(0)}" process="@this" update="listaDisponibles dato_correlativo_traslado"/>
+                                                   <p:column>
+                                                       <h:outputText value="#{s.sedCodigoNombre}" />
+                                                   </p:column>
+                                            </p:selectOneMenu>
+                                            <h:outputText value="#{trasladoBean.unidadOrigenSeleccionada.uadPk != null ? trasladoBean.unidadOrigenSeleccionada.codigoNombre : trasladoBean.sedeOrigenSeleccionada.sedCodigoNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/> 
+                                            <p:blockUI block="@form" trigger="filtro_unidadadministrativa_origen filtro_sede_origen" />
+                                        </h:panelGroup>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                        </p:fieldset>
+                    </p:outputPanel>
+                </p:panel>
+            </h:panelGroup>
+            
+            <p:fieldset style="width: 100%;" legend="#{msg.hmotivosRechazo}" rendered="#{not empty trasladoBean.entidadEnEdicion.sgAfMotivosRechazoTraslado}">
+                <p:outputPanel id="motivosRechazo">                
+                    <h:panelGroup rendered="#{not empty trasladoBean.entidadEnEdicion.sgAfMotivosRechazoTraslado}"  >                     
+                        <p:dataTable value="#{trasladoBean.entidadEnEdicion.sgAfMotivosRechazoTraslado}" var="motivorechazo" reflow="true">                                       
+                            <p:column headerText="#{msg.hmotivo}">                             
+                                <h:outputText value="#{motivorechazo.mrtMotivoRechazo}"/>                         
+                            </p:column>
+                            <p:column headerText="#{msg.hfecharechazo}">                            
+                                <h:outputText value="#{motivorechazo.mrtUltModFecha}" converter="#{localDateTimeConverter}"/>                         
+                            </p:column>
+                        </p:dataTable>                
+                    </h:panelGroup>            
+                </p:outputPanel>  
+            </p:fieldset>
+            
+            <p:fieldset style="width: 100%;" legend="#{msg.hbienesRechazadso}" rendered="#{not empty trasladoBean.listaDetalleRechazo}">
+                <p:outputPanel id="detalleBienesRechazo">                
+                    <h:panelGroup rendered="#{not empty trasladoBean.listaDetalleRechazo}"  >                     
+                        <p:dataTable value="#{trasladoBean.listaDetalleRechazo}" var="elem" reflow="true">                                       
+                            <p:column headerText="#{msg.hcodigoInventario}" style="width: 200px;">                             
+                                <h:outputText value="#{elem.tdeBienesDepreciablesFk.bdeCodigoInventario}"/>                         
+                            </p:column>
+                            <p:column headerText="#{msg.htipoBien}" style="width: 30%;">                             
+                                <h:outputText value="#{elem.tdeBienesDepreciablesFk.bdeTipoBien.tbiNombre}" />                         
+                            </p:column>
+                            <p:column headerText="#{msg.hobservacion}">                            
+                                <h:outputText value="#{elem.tdeObservacion}"/>                         
+                            </p:column>
+                        </p:dataTable>                
+                    </h:panelGroup>            
+                </p:outputPanel>  
+            </p:fieldset>
+
+            
+            <p:fieldset style="width: 100%;" legend="#{msg.bienesATrasladar}" >
+                <h:panelGroup id="panelBotonesBusqueda"  rendered="#{!trasladoBean.soloLectura}">
+                    <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;" >
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-12 texto-right">
+                                <p:commandButton id="btnBuscar" value="#{msg.agregarBienes}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                                 action="#{trasladoBean.buscar(false,true)}"  update="listaDisponibles"/>
+                                <p:commandLink value="#{msg.limpiar}"  action="#{trasladoBean.limpiar()}"
+                                               update="pnlSearch listaDisponibles" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch listaDisponibles" />
+                                </p:commandLink>
+                                <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                                <p:blockUI block="@form" trigger="btnBuscar" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{(trasladoBean.crearSolicitud or trasladoBean.enviarSolicitud) and !trasladoBean.soloLectura}">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:dataTable id="listaDisponibles"                         
+                               widgetVar="dataTableWidgetVar"                         
+                               var="elem"                        
+                               value="#{trasladoBean.bienesDepreciablesLazyModel}"                          
+                               emptyMessage="#{msg.noHayResultados}"        
+                               paginator="true"
+                               lazy="true"
+                               paginatorPosition="bottom"
+                               currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                               sortField="bdePk"
+                               paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                               rowsPerPageTemplate="1,5,10,25,50,100"
+                               rows="#{trasladoBean.paginado}"
+                               reflow="true"  
+                               selection="#{trasladoBean.bienesDestino}"
+                               rowSelectMode="checkbox"
+                               rowKey="#{elem.bdePk}"
+                               disabledSelection="#{!trasladoBean.bienPuedeAgregarse(elem)}"
+                              >  
+                              <f:facet name="{anterior}">
+                                  <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                              </f:facet>
+                              <f:facet name="{siguiente}">
+                                  <h:outputText styleClass="#{trasladoBean.totalResultados lt (trasladoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                              </f:facet>
+                              <f:facet name="header">   
+                                  <p:outputPanel styleClass="form-group row" style="height: 15%">
+                                      <p:outputPanel styleClass="col-md-9">
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel value="#{msg.codInventario}"  styleClass="col-sm-4 col-form-label"/>
+                                                    <p:outputPanel styleClass="col-sm-8 ">
+                                                        <h:inputText autocomplete="off"  styleClass="form-control"  maxlength="30" value="#{trasladoBean.filtroBienes.codigoInventario}"/>    
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel value="#{msg.tBien}"  styleClass="col-sm-4 col-form-label"/>
+                                                    <p:outputPanel styleClass="col-sm-8">
+                                                        <p:autoComplete id="input_tipobien_autocomplete" 
+                                                                        styleClass="form-control"
+                                                                        value="#{trasladoBean.tipoBienSeleccionado}"
+                                                                        rendered="#{!trasladoBean.soloLectura}"
+                                                                        completeMethod="#{trasladoBean.completeTipoBien}"
+                                                                        var="tipobien" itemLabel="#{tipobien.tbiCodigoNombreCategoria}" 
+                                                                        itemValue="#{tipobien}" 
+                                                                        widgetVar="tipo_bien_resp_autocomplete"
+                                                                        forceSelection="true"
+                                                                        maxResults="10"
+                                                                        queryDelay="500"
+                                                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                                                        converter="#{tipoBienConverter}"
+                                                                        multiple="false" 
+                                                                        >
+                                                            </p:autoComplete>   
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                      </p:outputPanel>
+                                      <p:outputPanel styleClass="col-md-3">
+                                            <p:outputPanel styleClass="form-group row">
+                                              <p:outputPanel styleClass="col-sm-12 texto-right">
+                                                  <p:commandButton id="btnBuscarBienes" value="#{msg.buscar}" update="listaDisponibles"
+                                                                   styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                                                   action="#{trasladoBean.buscar(false, false)}"  />
+                                                  <p:blockUI block="@form" trigger="btnBuscarBienes" />
+
+                                              </p:outputPanel>
+                                        </p:outputPanel>
+                                      </p:outputPanel>
+                                      
+                                      
+                                </p:outputPanel>
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                      <p:outputPanel styleClass="col-md-6">
+                                          <h3><h:outputText value="Disponibles:" /><h:outputText id="totalResultados" styleClass="cantidad" value="#{trasladoBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                      </p:outputPanel>
+                                </p:outputPanel>
+                              </f:facet>
+                              
+                               
+                              <p:ajax event="rowSelectCheckbox" listener="#{trasladoBean.rowSelectCheckbox}" update="listaDisponibles form:listaSeleccionados"/>
+                              <p:ajax event="toggleSelect" listener="#{trasladoBean.toggleSelected}" update="listaDisponibles form:listaSeleccionados"/>
+
+                              <p:column selectionMode="multiple" style="width:16px;text-align:center" exportable="false"/>
+                               
+                              <p:column styleClass="cortar-texto" headerText="#{msg.hcodigoInventario}">
+                                  <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                              </p:column>
+                              <p:column headerText="#{msg.htipoBien}">
+                                  <h:outputText value="#{elem.bdeTipoBien.tbiNombre}" />
+                              </p:column>
+                         </p:dataTable>
+                       </p:outputPanel>
+                       <p:outputPanel styleClass="col-md-6">
+                            <p:dataTable id="listaSeleccionados"                         
+                               widgetVar="dataTableWidgetVar1"                         
+                               var="elem"                        
+                               value="#{trasladoBean.bienesDestino}"                          
+                               emptyMessage="#{msg.noHayResultados}"        
+                               paginator="true"
+                               paginatorPosition="bottom"
+                               currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                               sortField="bdePk"
+                               paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                               rowsPerPageTemplate="1,5,10,25,50,100"
+                               rows="#{trasladoBean.paginado}"
+                               reflow="true"
+                               selection="#{trasladoBean.bienesDestino}"
+                               rowSelectMode="checkbox"
+                               rowKey="#{elem.bdePk}"
+                              >
+                              <f:facet name="{anterior}">
+                                  <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                              </f:facet>
+                              <f:facet name="{siguiente}">
+                                  <h:outputText styleClass="#{trasladoBean.totalBienesDestino lt (trasladoBean.paginadoDestino +1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                              </f:facet>
+                              <f:facet name="header">
+                                    <p:outputPanel styleClass="form-group row">
+                                      <p:outputPanel styleClass="col-md-12">
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel  styleClass="col-sm-12 col-form-label"/>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel  styleClass="col-sm-12 col-form-label"/>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel  styleClass="col-sm-12 col-form-label"/>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                      </p:outputPanel>
+                                  </p:outputPanel>
+                                  <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                      <p:outputPanel styleClass="col-md-6">
+                                          <h3><h:outputText value="Seleccionados:" /><h:outputText styleClass="cantidad" value="#{trasladoBean.totalBienesDestino}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                      </p:outputPanel>
+                                  </p:outputPanel>
+                                  
+                              </f:facet>
+
+                              <p:ajax event="rowSelect" listener="#{trasladoBean.rowSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/> 
+                              <p:ajax event="rowUnselect" listener="#{trasladoBean.rowUnSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/> 
+                              <p:ajax event="rowUnselectCheckbox" listener="#{trasladoBean.rowUnSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/>  
+                              <p:ajax event="rowSelectCheckbox" listener="#{trasladoBean.rowSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/>
+                              <p:ajax event="toggleSelect" listener="#{trasladoBean.toggleSelectedSeleccionado}" update="form:listaDisponibles listaSeleccionados"/>
+
+                               <p:column selectionMode="multiple" style="width:16px;text-align:center" exportable="false"/>
+                               
+                              <p:column styleClass="cortar-texto" headerText="#{msg.hcodigoInventario}" filterBy="#{elem.bdeCodigoInventario}" filterMatchMode="contains">
+                                  <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                              </p:column>
+                              <p:column headerText="#{msg.htipoBien}" filterBy="#{elem.bdeTipoBien.tbiNombre}" filterMatchMode="contains">
+                                  <h:outputText value="#{elem.bdeTipoBien.tbiNombre}" />
+                              </p:column>
+                         </p:dataTable>
+                       </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+            
+                <h:panelGroup rendered="#{trasladoBean.confirmarRecibido or trasladoBean.confirmarTraslado or trasladoBean.soloLectura}">
+                    <ui:include src="componentes/detalleBienes.xhtml">
+                        <ui:param name="bienes" value="#{trasladoBean.bienesDestino}" />
+                    </ui:include>
+                </h:panelGroup>
+            </p:fieldset>
+            <p:outputPanel id="panelBienesDestino">
+                <p:fieldset legend="#{msg.datosTraslado}">
+                        <h:panelGroup id="dato_correlativo_traslado">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_codigo_correlativo" >                        
+                                <h:outputLabel value="#{msg.correlativo}" for="input_codigo_correlativo"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">
+                                     <p:inputNumber autocomplete="off" id="input_correlativo"
+                                                    value="#{trasladoBean.entidadEnEdicion.traCorrelativo}"
+                                                   rendered="#{!trasladoBean.soloLectura}"
+                                                styleClass="form-control texto-corto" 
+                                                maxValue="9999999"
+                                                minValue="1"
+                                                leadingZero = "allow, keep"
+                                                decimalPlaces="0" thousandSeparator=""
+                                                >
+                                         <p:ajax event="keyup" listener="#{trasladoBean.completeCodigoCorrelativo()}" update="input_codigo_traslado"/>
+                                    </p:inputNumber>
+                                    <h:outputText value="#{trasladoBean.entidadEnEdicion.traCorrelativo}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_codigo_traslado" >                        
+                                <h:outputLabel value="#{msg.codigoTraslado}" for="input_codigo_traslado"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:outputText value="#{trasladoBean.entidadEnEdicion.traCodigoTraslado}" id="input_codigo_traslado" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </h:panelGroup>
+                        
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_traslado">
+                            <h:outputLabel value="#{msg.fechaTraslado}" for="input_fecha_traslado" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">   
+                                <p:calendar id="input_fecha_traslado"  maxdate="#{applicationBean.today()}" rendered="#{!trasladoBean.soloLectura}"
+                                            value="#{trasladoBean.entidadEnEdicion.traFechaTraslado}" 
+                                            pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}">
+                                    <p:ajax event="change"  listener="#{trasladoBean.obtenerFechaMaximaRetornoBienes()}" process="@this" update="fecha_retorno"/>
+                                </p:calendar>
+                                <h:outputText value="#{trasladoBean.entidadEnEdicion.traFechaTraslado}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipodescargo">
+                            <h:outputLabel value="#{msg.tipoTraslado}" for="input_tipo_traslado" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="input_tipo_traslado"  styleClass="form-control dropdown texto-medio" value="#{trasladoBean.comboTipoTraslado.selected}"
+                                                 rendered="#{!trasladoBean.soloLectura}">
+                                    <f:selectItems value="#{trasladoBean.comboTipoTraslado.items}" />
+                                    <p:ajax event="change" listener="#{trasladoBean.seleccionarTipoTraslado()}" process="@this" update="unidadDestino fecha_retorno"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="#{trasladoBean.entidadEnEdicion.traTipoTrasladoFk.etrNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                <p:blockUI block="@form" trigger="input_tipo_traslado" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                </p:fieldset>
+                
+                <p:fieldset id="unidadDestino" legend="#{msg.destino}">
+                    <h:panelGroup  rendered="#{trasladoBean.renderUnidadDestino}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipounidaddestino">
+                            <h:outputLabel value="#{msg.tipoUnidad}" for="input_tipounidaddestino" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_tipounidaddestino"  styleClass="form-control texto-medio" rendered="#{!trasladoBean.soloLectura}"
+                                                 value="#{trasladoBean.comboTiposUnidadDestino.selected}" >
+                                    <f:selectItems value="#{trasladoBean.comboTiposUnidadDestino.items}" />
+                                    <p:ajax event="change" listener="#{trasladoBean.seleccionarTipoUnidadAF(1)}" process="@this" update="filtro_municipio_destino input_activofijodestino fila_filtro_unidadadministrativa_destino"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="#{trasladoBean.tipoUnidadDestinoSeleccionada.text}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                <p:blockUI block="@form" trigger="input_tipounidaddestino" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_activofijodestino">
+                            <h:outputLabel value="#{msg.unidadActivoFijo}" for="input_activofijodestino" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_activofijodestino"  styleClass="form-control texto-medio"  rendered="#{!trasladoBean.soloLectura}"
+                                                 value="#{trasladoBean.comboUnidadesActivoFijoDestino.selected}" >
+                                    <f:selectItems value="#{trasladoBean.comboUnidadesActivoFijoDestino.items}" />
+                                    <p:ajax event="change" listener="#{trasladoBean.seleccionarUnidadActivoFijo(1)}" process="@this" update="filtro_municipio_destino fila_filtro_unidadadministrativa_destino"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="#{trasladoBean.unidadAFDestinoSeleccionada.codigoNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                <p:blockUI block="@form" trigger="input_activofijodestino" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_municipio_destino">
+                            <h:outputLabel value="#{msg.municipio}" for="filtro_municipio_destino" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="filtro_municipio_destino"  styleClass="form-control dropdown texto-medio" rendered="#{!trasladoBean.soloLectura}"
+                                                 value="#{trasladoBean.comboMunicipiosDestino.selected}"  >
+                                    <f:selectItems value="#{trasladoBean.comboMunicipiosDestino.items}" />
+                                    <p:ajax event="change" listener="#{trasladoBean.seleccionarMunicipio(1)}" process="@this" update="fila_filtro_unidadadministrativa_destino"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="#{trasladoBean.sedeDestinoSeleccionada.sedDireccion.dirMunicipio.munNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                <p:blockUI block="@form" trigger="filtro_municipio_destino" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_unidadadministrativadestino">
+                                <h:outputLabel value="#{msg.unidadAdministrativa}" for="filtro_unidadadministrativadestino" styleClass="col-sm-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:panelGroup id="fila_filtro_unidadadministrativa_destino">
+                                        <p:selectOneMenu rendered="#{trasladoBean.esUnidadAdministrativaDestino and !trasladoBean.soloLectura}" id="filtro_unidadadministrativa_destino"  
+                                                         value="#{trasladoBean.unidadDestinoSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                            effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                             <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                             <f:selectItems value="#{trasladoBean.unidadesAdministrativasDestino}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                           <p:column>
+                                               <h:outputText value="#{u.codigoNombre}" />
+                                           </p:column>
+                                       </p:selectOneMenu>
+                                        <p:selectOneMenu rendered="#{!trasladoBean.esUnidadAdministrativaDestino and !trasladoBean.soloLectura}" id="filtro_sede_destino" 
+                                                         value="#{trasladoBean.sedeDestinoSeleccionada}" converter="#{sedeConverter}"
+                                                    effect="fade" var="s"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                               <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                               <f:selectItems value="#{trasladoBean.sedesDestino}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                               <p:column>
+                                                   <h:outputText value="#{s.sedCodigoNombre}" />
+                                               </p:column>
+                                        </p:selectOneMenu>
+                                        <h:outputText value="#{trasladoBean.unidadDestinoSeleccionada.uadPk != null ? trasladoBean.unidadDestinoSeleccionada.codigoNombre : trasladoBean.sedeDestinoSeleccionada.sedCodigoNombre}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/> 
+                                        <p:blockUI block="@form" trigger="filtro_unidadadministrativa_destino filtro_sede_destino" />
+                                    </h:panelGroup>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                    </h:panelGroup>
+                    
+                    <h:panelGroup rendered="#{trasladoBean.renderSeccionDestino}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_destino" >                        
+                            <h:outputLabel value="#{msg.unidadDestino}" for="input_destino"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="input_destino" styleClass="form-control" rendered="#{!trasladoBean.soloLectura}" maxlength="100"
+                                                            value="#{trasladoBean.entidadEnEdicion.traUnidadDestino}"/> 
+                                <h:outputText value="#{trasladoBean.entidadEnEdicion.traUnidadDestino}" rendered="#{trasladoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <h:panelGroup id="fecha_retorno">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_retorno">
+                                <h:outputLabel value="#{msg.fechaRetorno}" for="input_fecha_retorno" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="input_fecha_retorno" rendered="#{trasladoBean.editarFecha}" mindate="#{trasladoBean.entidadEnEdicion.traFechaTraslado}"
+                                                value="#{trasladoBean.entidadEnEdicion.traFechaRetono}"
+                                                pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}" />
+
+                                    <h:outputText value="#{trasladoBean.entidadEnEdicion.traFechaRetono}" rendered="#{!trasladoBean.editarFecha}" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+                        
+                    </h:panelGroup>
+                </p:fieldset>
+            </p:outputPanel>
+            
+            
+            <div class="form-action-buttons">
+                <h:panelGroup id="panel_botones">
+                    
+                    <p:commandButton id="btnDetalleTraslado" value="#{msg.detalleBienes}" rendered="#{trasladoBean.entidadEnEdicion != null and trasladoBean.entidadEnEdicion.traPk != null and (trasladoBean.crearSolicitud or trasladoBean.enviarSolicitud) and (not empty trasladoBean.bienesDestino)}"
+                                     oncomplete="PF('detalleTrasladoDialog').show()"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-list-alt"/>
+
+                    
+                    
+                    <p:link id="btnImprimir" value="#{msg.generarPDF}" href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_TRASLADOS}?uaf=#{trasladoBean.unidadAFOrigenSeleccionada.uafPk}&amp;traId=#{trasladoBean.entidadEnEdicion.traPk}"
+                                                                                                target="_blank"  
+                                                                                                rendered="#{trasladoBean.entidadEnEdicion != null and trasladoBean.entidadEnEdicion.traPk != null and sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_TRASLADOS)}" 
+                                                                                                styleClass="btn btn-secondary"/>
+
+                    <p:commandButton id="btnGuardarSolicitud" value="#{msg.guardar}" update="@form" rendered="#{trasladoBean.crearSolicitud and 
+                                                                       (sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SOLICITUD_TRASLADO_BIENES) or sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_TRASLADO_BIENES))}" partialSubmit="true"
+                                 action="#{trasladoBean.guardar(true, false, false, false, false)}" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    
+                    <p:commandButton id="btnGuardarCambios" value="#{msg.guardar}" update="@form" rendered="#{trasladoBean.guardarCambios and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_TRASLADO_BIENES)}" partialSubmit="true"
+                                 action="#{trasladoBean.guardar(true, false, false, true, false)}" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    
+                    <p:commandButton id="btnEnviar" value="#{msg.enviarAAprobacion}" rendered="#{trasladoBean.enviarSolicitud and (sessionBean.operaciones.contains(ConstantesOperaciones.ENVIAR_TRASLADO_BIENES))}" partialSubmit="true"
+                                     oncomplete="PF('itemDialog').show()"  action="#{trasladoBean.nuevoEnvioAprobacion()}" styleClass="btn btn-secondary" icon="glyphicon glyphicon-send"/>
+
+                    <p:commandButton id="btnRechazar" value="#{msg.rechazarSolicitud}" rendered="#{(trasladoBean.confirmarTraslado or trasladoBean.confirmarRecibido) and sessionBean.operaciones.contains(ConstantesOperaciones.RECHAZAR_TRASLADO_BIENES)}"
+                                     action="#{trasladoBean.crearNuevoMotivoRechazo()}" update=":form:motivoDetailDialog" oncomplete="PF('motivoRechazoDialog').show()"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-minus"/>
+                    
+                   <p:commandButton id="btnConfirmarRecibido" value="#{msg.hconfirmarrecibido}" rendered="#{trasladoBean.confirmarTraslado and sessionBean.operaciones.contains(ConstantesOperaciones.AUTORIZAR_TRASLADO_BIENES)}"
+                                   update=":form:itemTrasladoDetailDialog" oncomplete="PF('itemTrasladoDialog').show()"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-ok"/>
+
+                   <p:commandButton id="btnConfirmarRetornado" value="#{msg.hconfirmarrecibido}" rendered="#{trasladoBean.confirmarRecibido and sessionBean.operaciones.contains(ConstantesOperaciones.AUTORIZAR_TRASLADO_BIENES)}"
+                                     oncomplete="PF('itemTrasladoDialog').show()"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-ok"/>
+                    
+                                       
+                  
+                    <p:link outcome="#{ConstantesPaginas.TRASLADO}" title="#{msg.agregarTraslados}"
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SOLICITUD_TRASLADO_BIENES)}"
+                        styleClass="btn btn-secondary">
+                        <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                        <h:outputText styleClass="" value="#{msg.nuevaSolicitud}"/>
+                    </p:link>
+                   
+                   <p:blockUI block="@form" trigger="btnGuardarSolicitud btnGuardarCambios btnEnviar btnRechazar btnConfirmarRecibido btnConfirmarRetornado" />
+                </h:panelGroup>
+             </div>
+        </h:panelGroup>
+        
+   
+        <div class="volverLink">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </div>
+        
+        <p:dialog header="#{msg.datosTraslado}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('itemDialog').initPosition()">             
+            <p:outputPanel id="itemDetailDialog">                                                             
+                <h:panelGroup rendered="#{not empty trasladoBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioTraslado">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_autoriza" >                        
+                            <h:outputLabel value="#{msg.nombreAutoriza}" for="input_nombre_autoriza"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="input_nombre_autoriza" styleClass="form-control" value="#{trasladoBean.entidadEnEdicion.traNombreAutoriza}" maxlength="100"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_cargo_autoriza">
+                            <h:outputLabel value="#{msg.cargoAutoriza}" for="input_cargo_autoriza" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">   
+                                <h:inputText autocomplete="off" id="input_cargo_autoriza" styleClass="form-control" value="#{trasladoBean.entidadEnEdicion.traCargoAutoriza}" maxlength="100"/>    
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_recibe">
+                            <h:outputLabel value="#{msg.nombreRecibe}" for="input_fecha_descargo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">   
+                                <h:inputText autocomplete="off" id="input_fecha_descargo" styleClass="form-control" value="#{trasladoBean.entidadEnEdicion.traNombreRecibe}" maxlength="100"/>    
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_cargo_recibe">
+                            <h:outputLabel value="#{msg.cargoRecibe}" for="input_cargo_recibe" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">   
+                                <h:inputText autocomplete="off" id="input_cargo_recibe" styleClass="form-control" value="#{trasladoBean.entidadEnEdicion.traCargoRecibe}" maxlength="100"/>    
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_observacion">                        
+                            <h:outputLabel value="#{msg.observacion}" for="input_observacion" 
+                                           styleClass="col-sm-3 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputTextarea id="input_observacion" styleClass="form-control texto-medio" 
+                                                 value="#{trasladoBean.entidadEnEdicion.traObservacion}"
+                                                 counter="display" maxlength="150" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false" />
+                                <h:outputText id="display" />
+                                <h:message for="input_observacion" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel  styleClass="control-group">
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarDialog"  value="#{msg.guardar}" action="#{trasladoBean.guardar(false, true, false, false, false)}" 
+                                                 update="form:itemDetailDialog form:itemDetail"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarDialog" />  
+                        <p:defaultCommand target="btnGuardarDialog" scope="itemDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+        <p:dialog header="#{msg.datosTraslado}" widgetVar="itemTrasladoDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('itemTrasladoDialog').initPosition()">             
+            <h:panelGroup id="itemTrasladoDetailDialog">                                                             
+                <h:panelGroup rendered="#{not empty trasladoBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioTraslado2">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_observacion_fallo">                        
+                            <h:outputLabel value="#{msg.observacion}" for="input_observacion_fallo" 
+                                           styleClass="col-sm-3 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputTextarea id="input_observacion_fallo" styleClass="form-control texto-medio" 
+                                                 value="#{trasladoBean.entidadEnEdicion.traObservacion}"
+                                                 counter="displayObservacion" maxlength="150" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false" />
+                                <h:outputText id="displayObservacion" />
+                                <h:message for="input_observacion_fallo" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <h:panelGroup id="asignadoA" rendered="#{trasladoBean.confirmarTraslado}">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_asignadoa" >
+                                <h:outputLabel value="#{msg.asignadoA}" for="input_asignadoa" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9"  >
+                                   
+                                    <p:outputPanel styleClass="col-sm-9" rendered="#{trasladoBean.editarEmpleado}">
+                                        <p:autoComplete id="filtro_empleado" 
+                                                        styleClass="form-control"
+                                                        value="#{trasladoBean.entidadEnEdicion.traEmpleadoBienes}"
+                                                        completeMethod="#{trasladoBean.completeEmpleado}"
+                                                        var="emp" itemLabel="#{emp.empPersonaFk.perNombreCompleto}" 
+                                                        itemValue="#{emp}" 
+                                                        widgetVar="filtro_empleado"
+                                                        forceSelection="true"
+                                                        maxResults="10"
+                                                        queryDelay="500"
+                                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                                        converter="#{empleadoConverter}"
+                                                        multiple="false" 
+                                                        >
+                                             <p:ajax event="itemSelect"  process="@this"/>
+                                        </p:autoComplete>
+                                        <p:blockUI block="@form" trigger="filtro_empleado" />
+                                    </p:outputPanel>
+                                    <h:inputText rendered="#{!trasladoBean.editarEmpleado}" autocomplete="off" styleClass="form-control" id="input_asignadoa_texto" 
+                                                 value="#{trasladoBean.entidadEnEdicion.traAsignadoABienes}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+                        
+                        <p:outputPanel  styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarTrasladoDialog"  value="#{msg.guardar}" action="#{trasladoBean.guardar(false, false, true, false, false)}" 
+                                                 update="form:itemTrasladoDetailDialog form:itemDetail"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemTrasladoDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarTrasladoDialog" />  
+                        <p:defaultCommand target="btnGuardarTrasladoDialog" scope="itemTrasladoDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </h:panelGroup>        
+        </p:dialog>
+        
+        <p:dialog header="#{msg.rechazarSolicitud}" widgetVar="motivoRechazoDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('motivoRechazoDialog').initPosition()">             
+            <p:outputPanel id="motivoDetailDialog">                                                             
+                <h:panelGroup rendered="#{not empty trasladoBean.entidadEnEdicion and not empty trasladoBean.motivoRechazoTraslado}"  >                    
+                    <p:messages id="popupmsg3" showDetail="true" globalOnly="false" for="popupmsg3" closable="true"/>                
+                    <p:outputPanel id="formularioRechazo"> 
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_motivo_rechazo">                        
+                            <h:outputLabel value="#{msg.motivoRechazo}" for="input_motivo_rechazo" 
+                                           styleClass="col-sm-3 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputTextarea id="input_motivo_rechazo" styleClass="form-control texto-medio"
+                                                 value="#{trasladoBean.motivoRechazoTraslado.mrtMotivoRechazo}"
+                                                 counter="conteoLetras" maxlength="500" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false"/>
+                                <h:outputText id="conteoLetras" />
+                                <h:message for="input_motivo_rechazo" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        
+                        <p:fieldset id="bienesRechazar" legend="#{msg.bienesRechazar}">
+                            <p:outputPanel id="tablaAsistencias">
+                                <p:outputPanel styleClass="container-fluid tipo-tabla"  rendered="#{trasladoBean.entidadEnEdicion.sgAfTrasladosDetalle.size() gt 0}">
+                                    <p:outputPanel styleClass="row tipo-tr" > 
+                                        <p:outputPanel styleClass="col-md-2 tipo-th" >#{msg.hcodigoInventario}</p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-3 tipo-th" >#{msg.htipoBien}</p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-2 tipo-th" >#{msg.hrechazar}</p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-5 tipo-th" >#{msg.hobservacion}</p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:repeat value="#{trasladoBean.entidadEnEdicion.sgAfTrasladosDetalle}" var="elem" varStatus="status">
+                                        <p:outputPanel styleClass="tipo-tr">
+                                            <p:outputPanel styleClass="row">
+                                                <p:outputPanel styleClass="col-md-2 tipo-td" >
+                                                    <h:outputText value="#{elem.tdeBienesDepreciablesFk.bdeCodigoInventario}" />
+                                                </p:outputPanel>
+                                                <p:outputPanel styleClass="col-md-3 tipo-td" >
+                                                    <h:outputText styleClass="strong" value="#{elem.tdeBienesDepreciablesFk.bdeTipoBien.tbiNombre}" />
+                                                </p:outputPanel>
+                                                <p:outputPanel styleClass="col-md-2 tipo-td" >
+                                                    <h:selectBooleanCheckbox id="checkRechazo" value="#{elem.tdeRechazado}" disabled="#{trasladoBean.motivoRechazoTraslado.mrtMotivoRechazo.trim().length() == 0}">
+                                                        <p:ajax update="panelRechazo" />
+                                                    </h:selectBooleanCheckbox>
+                                                </p:outputPanel>
+                                                <p:outputPanel styleClass="col-md-5 tipo-td" >
+                                                    <p:outputPanel id="panelRechazo" styleClass="row form-group">                      
+                                                        <h:outputLabel for="input_observacion" styleClass="col-form-label"/>                        
+                                                        <p:outputPanel styleClass="col-sm-12">
+                                                            <p:inputTextarea id="input_observacion" styleClass="form-control texto-medio" disabled="#{!elem.tdeRechazado}"
+                                                                             value="#{elem.tdeObservacion}"
+                                                                             counter="displayObservacion" maxlength="150" counterTemplate="{0} caracteres restantes." 
+                                                                             autoResize="false" />
+                                                            <h:outputText id="displayObservacion" />
+                                                            <h:message for="input_observacion" styleClass="msj-danger"/>
+                                                        </p:outputPanel>                    
+                                                    </p:outputPanel>
+                                                    
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:repeat>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:fieldset>
+                        
+                        <p:outputPanel  styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarMotivoDialog"  value="#{msg.guardar}" action="#{trasladoBean.guardar(false, false, false,false, true)}" 
+                                                 update="form:motivoDetailDialog form:itemDetail"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('motivoRechazoDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarMotivoDialog" />  
+                        <p:defaultCommand target="btnGuardarMotivoDialog" scope="motivoDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+        <p:dialog header="#{msg.detalleBienes}" widgetVar="detalleTrasladoDialog"  modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('detalleTrasladoDialog').initPosition()">
+            <ui:include src="componentes/detalleBienes.xhtml">
+                <ui:param name="bienes" value="#{trasladoBean.bienesDestino}" />
+            </ui:include>
+        </p:dialog>
+    </h:form>
+</ui:composition>

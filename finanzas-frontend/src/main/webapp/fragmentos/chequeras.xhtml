@@ -1,0 +1,301 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.administracion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.menuChequeras}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.menuChequeras}"/></h2>          
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevaChequera}" icon="glyphicon glyphicon-plus" 
+                                 action="#{chequeraBean.agregar()}" 
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CHEQUERA)}"                                 
+                                 update=":form:dialog" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarPago" styleClass="btn btn-secondary" />
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+            <h3><h:outputText value="#{msg.busqueda}"/></h3>  
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.sede}" for="filtro_sede_autocomplete_b" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="filtro_sede_autocomplete_b"
+                                                styleClass="form-control texto-medio"
+                                                value="#{chequeraBean.sedeSeleccionadaFiltro}"
+                                                completeMethod="#{chequeraBean.completeSedeFiltro}"
+                                                var="sedB" itemLabel="#{sedB.sedCodigoNombre}"
+                                                itemValue="#{sedB}"
+                                                widgetVar="filtro_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax listener="#{chequeraBean.setearSedeFiltro()}" event="itemSelect" process="@this" update="fila_output_cuenta" />
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo">
+                            <h:outputLabel value="#{msg.hcheNumeroSerie}" for="input_codigo_b" styleClass="col-sm-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputText autocomplete="off" 
+                                             id="input_codigo_b" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{chequeraBean.filtro.cheSerie}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-md-6">
+                        <p:outputPanel styleClass="form-group row" id="fila_output_cuenta">
+                            <h:outputLabel value="#{msg.cuentaBancaria}" for="output_cuenta" styleClass="col-md-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="output_cuenta" value="#{chequeraBean.comboCuentasBancariasFiltro.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{chequeraBean.comboCuentasBancariasFiltro.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_titular">
+                            <h:outputLabel value="#{msg.titular}" for="input_titular" styleClass="col-sm-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputText autocomplete="off" 
+                                             id="input_titular" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{chequeraBean.filtro.titular}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                                <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{chequeraBean.buscar()}" update="pnlResultado"/>
+                                <p:commandLink value="#{msg.limpiar}" action="#{chequeraBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch pnlResultado" />
+                                </p:commandLink>
+                                <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+            <p:outputPanel id="pnlResultado">
+                <p:dataTable id="basicDT" widgetVar="widResultado" var="elem" 
+                             value="#{chequeraBean.chqueraLazyModel}" 
+                             emptyMessage="#{msg.noHayResultados}" 
+                             paginator="true" lazy="true" 
+                             paginatorPosition="bottom" 
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="chePk" 
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}" 
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}" 
+                             rows="#{chequeraBean.paginado}" reflow="true">
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}" />
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{chequeraBean.totalResultados lt (chequeraBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;" />
+                    </f:facet>
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{chequeraBean.totalResultados} #{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                        <p:dataExporter type="csv" target="basicDT" fileName="Chequeras" pageOnly="false" />
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.cheCuenta}">
+                        <h:outputText value="#{elem.cheCuentaBancariaFk.cbcNumeroCuenta}" />
+                    </p:column>
+                    <p:column headerText="#{msg.htitular}">
+                        <h:outputText value="#{elem.cheCuentaBancariaFk.cbcTitular}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hbanco}">
+                        <h:outputText value="#{elem.cheCuentaBancariaFk.cbcBancoFk.bncNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.cheSede}">
+                        <h:outputText value="#{elem.cheCuentaBancariaFk.cbcSedeFk.sedCodigoNombre}" />
+                    </p:column>                    
+                    <p:column headerText="#{msg.cheNumeroSerie}">
+                        <h:outputText value="#{elem.cheSerie}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.cheNumeroInicial}">
+                        <h:outputText value="#{elem.cheNumeroInicial}" />
+                    </p:column>
+                    <p:column headerText="#{msg.cheNumeroFinal}">
+                        <h:outputText value="#{elem.cheNumeroFinal}"  />
+                    </p:column>                    
+                    <p:column headerText="#{msg.cheFecha}">
+                        <h:outputText value="#{elem.cheFechaChequera}" converter="#{localDateConverter}"/>
+                    </p:column>                    
+                    <p:column headerText="#{msg.husuarioMod}" >
+                        <h:outputText value="#{elem.cheUltUsuario}" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false">
+                        <p:commandButton update="@form" 
+                                         oncomplete="PF('itemDialog').show()" 
+                                         icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono" 
+                                         title="#{msg.editar}" 
+                                         action="#{chequeraBean.actualizar(elem)}"/>
+                    </p:column>                                     
+                    <p:column styleClass="columnaAcciones" exportable="false">
+                        <p:commandButton oncomplete="PF('confirmDialog').show()" 
+                                         icon="glyphicon glyphicon-trash " 
+                                         styleClass="btn btn-icono rojo" 
+                                         rendered="#{chequeraBean.inicializarBorrar(elem)}"                                         
+                                         title="#{msg.eliminar}" 
+                                         action="#{chequeraBean.actualizar(elem)}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>            
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:dialog header="#{chequeraBean.titulo}" id="dialog" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty chequeraBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formChequera">                     
+                        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete_b" >
+                            <h:outputLabel value="#{msg.sede}" for="input_sede_autocomplete_b" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <p:autoComplete id="input_sede_autocomplete_b" 
+                                                styleClass="form-control texto-medio" 
+                                                value="#{chequeraBean.sedeSeleccionada}" 
+                                                completeMethod="#{chequeraBean.completeSede}" 
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                                itemValue="#{sed}" 
+                                                widgetVar="b_inst_resp_autocomplete" 
+                                                forceSelection="true" 
+                                                maxResults="10" 
+                                                queryDelay="500" 
+                                                multiple="false" 
+                                                converter="#{sedesConverter}" 
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                    <p:ajax listener="#{chequeraBean.setearSede()}" event="itemSelect" process="@this" update="fila_cuenta_bancaria" />
+                                </p:autoComplete>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_cuenta_bancaria" >
+                            <h:outputLabel value="#{msg.hcheCuenta}" for="cuenta_bancaria" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="cuenta_bancaria" value="#{chequeraBean.comboCuentasBancarias.selected}" styleClass="form-control texto-medio"  >
+                                    <f:selectItems value="#{chequeraBean.comboCuentasBancarias.items}"/>
+                                    <p:ajax listener="#{chequeraBean.datosCuenta()}" event="change" process="@this" update="fila_output_banco fila_output_titular itemDetail" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_output_banco" rendered="#{chequeraBean.verDatosCuenta}">
+                            <h:outputLabel value="#{msg.banco}" for="output_banco" styleClass="col-sm-4 col-md-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                                 
+                                <p:inputText styleClass="form-control-plaintext texto-medio" 
+                                             id="output_banco"                                              
+                                             value="#{chequeraBean.banco}" 
+                                             disabled="true" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_output_titular" rendered="#{chequeraBean.verDatosCuenta}">
+                            <h:outputLabel value="#{msg.titular}" for="output_titular" styleClass="col-sm-4 col-md-3 col-form-label" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">                                 
+                                <p:inputText styleClass="form-control-plaintext texto-medio" 
+                                             id="output_titular"                                                 
+                                             value="#{chequeraBean.titular}" 
+                                             disabled="true" />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_serie">
+                            <h:outputLabel value="#{msg.hcheNumeroSerie}" for="input_serie" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText maxlength="50"
+                                             autocomplete="off" 
+                                             id="input_serie" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{chequeraBean.entidadEnEdicion.cheSerie}" 
+                                             />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_numeroInicial">
+                            <h:outputLabel value="#{msg.hcheNumeroInicial}" for="input_numeroInicial" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText maxlength="50"
+                                             autocomplete="off" 
+                                             id="input_numeroInicial" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{chequeraBean.entidadEnEdicion.cheNumeroInicial}" 
+                                             />
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_numeroFinal">
+                            <h:outputLabel value="#{msg.hcheNumeroFinal}" for="input_numeroFinal" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:inputText maxlength="50"
+                                             autocomplete="off" 
+                                             id="input_numeroFinal" 
+                                             styleClass="form-control texto-medio" 
+                                             value="#{chequeraBean.entidadEnEdicion.cheNumeroFinal}" 
+                                             />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha" >
+                            <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <p:calendar autocomplete="off" 
+                                            styleClass="form-control texto-medio" 
+                                            id="input_fecha" 
+                                            value="#{chequeraBean.entidadEnEdicion.cheFechaChequera}" 
+                                            pattern="#{applicationBean.patternFecha}" 
+                                            locale="#{sessionBean.locale}" 
+                                            converter="#{localDateConverter}" 
+                                            readonlyInput="true" 
+                                            maxdate="#{applicationBean.today()}">
+                                </p:calendar>
+                                <p:blockUI block="@form" widgetVar="blockerFecha" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar" value="#{msg.guardar}" action="#{chequeraBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>  
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>     
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.confirmacionEliminacionChequera}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{chequeraBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+    </h:form>
+</ui:composition>

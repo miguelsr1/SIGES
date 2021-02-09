@@ -1,0 +1,287 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                                  
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.ADMINISTRACION}.xhtml">Administración</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionProcesoNocturno}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionProcesoNocturno}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoProcesoNocturno}" icon="glyphicon glyphicon-plus" 
+                                 action="#{procesoNocturnoBean.agregar()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarProcesoNocturno" styleClass="btn btn-secondary" />
+                <p:commandButton title="#{msg.ayuda}" icon="glyphicon glyphicon-question-sign" 
+                                 id="btnAyuda" styleClass="btn btn-icono btn-ayuda"  oncomplete="PF('sidebar').show()" />
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{sessionBean.getAyuda(ConstantesAyuda.PROCESO_NOCTURNO)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">             
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{procesoNocturnoBean.filtro.nombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">                    
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{procesoNocturnoBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{procesoNocturnoBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{procesoNocturnoBean.procesoNocturnoLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="prnPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{procesoNocturnoBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{procesoNocturnoBean.totalResultados lt (procesoNocturnoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{procesoNocturnoBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="procesoNocturno" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.prnNombre}">
+                    <h:outputText value="#{elem.prnNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hservicio}">
+                    <h:outputText value="#{elem.prnServicio}" />
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.prnUltModUsuario}">
+                    <h:outputText value="#{elem.prnUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.prnUltModFecha}">
+                    <h:outputText value="#{elem.prnUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{procesoNocturnoBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:itemDetailEjecucion" oncomplete="PF('itemDialogEjecucion').show()" icon="glyphicon glyphicon-th-list" styleClass="btn btn-icono" title="#{msg.ejecuciones}" action="#{procesoNocturnoBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_PROCESOS_NOCTURNOS)}">
+                    <p:commandButton oncomplete="PF('confirmDialogEjecucion').show()" update=":form:confirmDialogEjecucion" icon="glyphicon glyphicon-play-circle " styleClass="btn btn-icono" title="#{msg.ejecutar}" action="#{procesoNocturnoBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{procesoNocturnoBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{procesoNocturnoBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:confirmDialog id="confirmDialogEjecucion"
+                         message="#{msg.textoConfirmacionEjecucion}"
+                         header="#{msg.confirmacionEjecucion}" severity="alert" widgetVar="confirmDialogEjecucion">
+            <h:panelGroup rendered="#{not empty procesoNocturnoBean.entidadProcesar}"  >
+                <p:outputPanel styleClass="borones" >
+                    <p:commandButton id="confirmEjecución" value="#{msg.hconfirmar}" update="pnlResultado"
+                                     oncomplete="PF('confirmDialogEjecucion').hide()"
+                                     styleClass="btn btn-primary"
+                                     action="#{procesoNocturnoBean.procesar()}"  />
+                    <p:blockUI block="@form" trigger="confirmEjecución"/>
+                    <p:commandLink id="cancelarEjecucion" value="#{msg.cancelar}"
+                                   onclick="PF('confirmDialogEjecucion').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </h:panelGroup>    
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.procesoNocturno}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty procesoNocturnoBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioProcesoNocturno">                                               
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{procesoNocturnoBean.entidadEnEdicion.prnNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_filtro_escala_calificacion">
+                            <h:outputLabel value="#{msg.servicio}" for="input_filtro_escala_calificacion" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_filtro_escala_calificacion" value="#{procesoNocturnoBean.comboServicioRest.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{procesoNocturnoBean.comboServicioRest.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_url">
+                            <h:outputLabel value="#{msg.url}" for="input_url" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_url" styleClass="form-control" value="#{procesoNocturnoBean.entidadEnEdicion.prnUrl}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{procesoNocturnoBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.ejecuciones}" widgetVar="itemDialogEjecucion" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailEjecucion">                                                             
+                <h:panelGroup rendered="#{not empty procesoNocturnoBean.entidadEnEdicion}"  >                                 
+                    <p:outputPanel id="formularioProcesoNocturnoEjecucion">                                               
+                        <p:dataTable id="basicDTEjecuciones"                                   
+                                     var="elem"                          
+                                     value="#{procesoNocturnoBean.entidadEnEdicion.ejecucionesProcesoNocturno}"                          
+                                     emptyMessage="#{msg.noHayResultados}"		
+                                     paginator="true"                
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="eprPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="#{procesoNocturnoBean.paginado}"
+                                     reflow="true" >
+                            <f:facet name="{anterior}">
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}">
+                                <h:outputText styleClass="#{procesoNocturnoBean.cantidadElementos lt (procesoNocturnoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+
+                            <f:facet name="header">                                
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                    <p:outputPanel styleClass="col-md-6">
+                                        
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-6">
+                                        <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                            <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                                <p:dataExporter type="csv" target="basicDT" fileName="procesoNocturno" pageOnly="false"/>
+                                            </h:commandLink>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hcomienzo}">
+                                <h:outputText value="#{elem.eprComienzoEjecucion}" converter="#{localDateTimeConverter}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hFin}">
+                                <h:outputText value="#{elem.eprFinEjecucion}" converter="#{localDateTimeConverter}"/>
+                            </p:column>
+                            <p:column headerText="#{msg.hejecucionCorrecta}" >
+                                <h:outputText value="#{elem.eprEjecucionCorrecta}" converter="#{booleanConverter}"/>
+                            </p:column>
+                        </p:dataTable>
+
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+
+        <p:dialog header="#{msg.historialProcesoNocturno}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="historialDetail" styleClass="form-horizontal">                
+                <h:panelGroup rendered="#{not empty procesoNocturnoBean.historialProcesoNocturno}"  >                     
+                    <p:dataTable value="#{procesoNocturnoBean.historialProcesoNocturno}" var="hist" reflow="true">                         
+                        <p:column headerText="#{msg.hid}">                            
+                            <h:outputText value="#{hist.prnPk}"/>                         
+                        </p:column>                        
+                        <p:column headerText="#{msg.hcodigo}">                            
+                            <h:outputText value="#{hist.prnCodigo}"/>                         
+                        </p:column>                        
+                        <p:column headerText="#{msg.hnombre}">                            
+                            <h:outputText value="#{hist.prnNombre}"/>                         
+                        </p:column>  
+                        <p:column headerText="#{msg.hhabilitado}">                            
+                            <h:outputText value="#{hist.prnHabilitado}" converter="#{booleanConverter}"/>                                         
+                        </p:column>  
+                        <p:column headerText="#{msg.husuarioMod}">                             
+                            <h:outputText value="#{hist.prnUltModUsuario}"/>                         
+                        </p:column>                         
+                        <p:column headerText="#{msg.hfecha}">                             
+                            <h:outputText value="#{hist.prnUltModFecha}" converter="#{localDateTimeConverter}"/>
+                        </p:column>                                             
+                        <p:column headerText="#{msg.hversion}">                            
+                            <h:outputText value="#{hist.prnVersion}"/>                         
+                        </p:column>                    
+                    </p:dataTable>                
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>    
+    </h:form>
+</ui:composition>

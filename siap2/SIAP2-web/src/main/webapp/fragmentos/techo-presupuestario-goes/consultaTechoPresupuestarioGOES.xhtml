@@ -1,0 +1,139 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consultaTechoPresupuestarioGOES')}" /> 
+                </h2>
+                <h:outputLink  styleClass="btn btn-default pull-right" value="crearEditarTechoPresupuestarioGOES.xhtml" rendered="#{permisosMB.permisos['CREAR_EDITAR_TECHO_PRESUPUESTARIO_GOES']}">
+                    <span class="glyphicon glyphicon-plus"></span> <h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                </h:outputLink>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.AnioFiscal')}:" for="nombre" />
+                                <div class="col-sm-9">
+                                    <h:inputText  value="#{techoPresupuestarioGOESConsulta.anioFiscal}" styleClass="form-control textoMedio" id="nombre"/>
+                                </div>
+                            </div>
+                        </div>    
+
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{techoPresupuestarioGOESConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{techoPresupuestarioGOESConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText id="numeroElementos" value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', techoPresupuestarioGOESConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{techoPresupuestarioGOESConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="techoPresupuestarioGOES" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.anioFiscal')}"  sortBy="#{dummy.anioFiscal}">
+                        <h:outputText value="#{item.propertyMap['anioFiscal']}" />
+                    </p:column>
+
+                    <p:column  exportable="false" headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_TECHO_PRESUPUESTARIO_GOES'] }" >
+                        <h:outputLink  value="verTechoPresupuestarioGOES.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Ver')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')} #{item.propertyMap['nombre']}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column  exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CREAR_EDITAR_TECHO_PRESUPUESTARIO_GOES'] }"  >
+                        <h:outputLink  value="crearEditarTechoPresupuestarioGOES.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')} #{item.propertyMap['nombre']}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column  exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CREAR_EDITAR_TECHO_PRESUPUESTARIO_GOES'] }" >
+                        <a data-toggle="modal" data-id="#{item.propertyMap['id']}" title="Eliminar este item" class="btn btn-danger btn-icono open-ConfirmModal" href="#confirmModal">
+                            <span class="glyphicon glyphicon-remove"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')} #{item.propertyMap['nombre']}" styleClass="textoOculto"/>
+                        </a>                        
+                    </p:column>
+                </p:dataTable>       
+            </div>
+            <!-- Modal de eliminar -->
+            <div class="modal fade confirm-modal"  id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="modalBody">
+                                <div>
+                                    <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                                <h:inputHidden id="hiddenId"  value="#{techoPresupuestarioGOESConsulta.idToEliminar}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" actionListener="#{techoPresupuestarioGOESConsulta.eliminar()}"   update="tableForm:dataTable tableForm:numeroElementos tableForm:modalBody"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- js que setea la variable del modal-->
+            <h:outputScript library="js" name="setInputConfirmModal.js" />  
+        </h:form>
+    </ui:composition>
+</html>
+

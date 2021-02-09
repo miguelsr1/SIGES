@@ -1,0 +1,257 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+    <c:set var="sedeEducativa" value="#{sedeEducativa}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{servicioEducativoBean.setSoloLectura(soloLectura)}"/>
+    </f:metadata>       
+
+    <p:outputPanel id="itemDetailServiciosEducativos">
+
+
+        <p:outputPanel id="pnlResultadoServiciosEducativos" >
+            <fieldset >
+            <legend><h:outputText value="Servicios educativos"/></legend>
+            <p:outputPanel styleClass="float-right">
+
+                <p:commandButton value="#{msg.copiarServicios}" icon="glyphicon glyphicon-transfer" 
+                                 id="btnCopiarServicios" styleClass="btn btn-secondary"  
+                                 oncomplete="PF('confirmDialog').show()"
+                                 update=":form:tabs:confirmDialog"
+                                 action="#{servicioEducativoBean.buscarServicioSedePadre}"
+                                 style="margin-right: 1.5em;"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.COPIAR_SERVICIOS_SEDE_PADRE) 
+                                             and !servicioEducativoBean.soloLectura
+                                             and servicioEducativoBean.sedePadre.sedSedeAdscritaDe!=null}"/>
+
+                <p:link href="#{applicationBean.simpleNuevoServicioEducativoUrl}" title="#{msg.nuevoServicioEducativo}" 
+                        styleClass="btn btn-secondary" style="margin-bottom:2px;"
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CREAR_SERVICIO_EDUCATIVO) and !servicioEducativoBean.soloLectura and servicioEducativoBean.sedePadre.sedHabilitado}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoServicioEducativo}"/>
+                </p:link>  
+            </p:outputPanel>
+            <p:outputPanel id="pnlResultado" >
+                <p:dataTable id="basicDT"          
+                             widgetVar="widResultadoServicioEducativo"                         
+                             var="elem"                          
+                             value="#{servicioEducativoBean.servicioEducativoLazyModel}"
+                             emptyMessage="#{msg.noHayResultados}"		
+                             paginator="true"
+                             lazy="true"
+                             paginatorPosition="bottom"
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="sduPk"
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                             rows="#{servicioEducativoBean.paginado}"
+                             reflow="true" >
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{servicioEducativoBean.totalResultados lt (servicioEducativoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                    </f:facet>
+
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{servicioEducativoBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                        <p:dataExporter type="csv" target="basicDT" fileName="Servicios" pageOnly="false"/>
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.hniveles}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" >
+                        <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidadEducativa}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}">
+                        <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidadAtencion}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}">
+                        <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hsubModalidadAtencion}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}">
+                        <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"  />
+                    </p:column>
+                    <p:column headerText="#{msg.hNombreGrado}" sortBy="#{elem.sduGrado.graNombre}" >
+                        <h:outputText value="#{elem.sduGrado.graNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.opcion}" sortBy="#{elem.sduOpcion.opcNombre}" >
+                        <h:outputText value="#{elem.sduOpcion.opcNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hprogramaEducativo}" sortBy="#{elem.sduProgramaEducativo.pedNombre}" >
+                        <h:outputText value="#{elem.sduProgramaEducativo.pedNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hestado}" sortBy="#{elem.sduEstado}" >
+                        <h:outputText value="#{elem.sduEstado}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaSolicitado}" >
+                        <h:outputText value="#{elem.sduFechaSolicitada}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hfechaHabilitado}" >
+                        <h:outputText value="#{elem.sduFechaHabilitado}" converter="#{localDateConverter}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hnumeroTramite}" >
+                        <h:outputText value="#{elem.sduNumeroTramite}"  />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false" >
+                        <p:commandButton update="@form" oncomplete="PF('historialDialogServicio').show()" 
+                                         icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                         action="#{servicioEducativoBean.historial(elem.sduPk)}"/>
+                    </p:column>               
+                    <p:column styleClass="columnaAcciones" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_SERVICIO_EDUCATIVO) and !servicioEducativoBean.soloLectura}"  exportable="false">
+                        <p:commandButton oncomplete="PF('confirmDialogEliminar').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{servicioEducativoBean.entidadEliminar(elem)}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+            </fieldset >
+        </p:outputPanel>
+        
+        <h:panelGroup rendered="#{servicioEducativoBean.relSedeDiplomadoLazyModel!=null and (servicioEducativoBean.totalResultadosDiplomado gt 0)}">
+        
+        <fieldset >
+            <legend><h:outputText value="Diplomados"/></legend>
+            
+            <p:outputPanel id="pnlResultadoDiplomados" >
+                <p:dataTable id="basicDTDiplomados"          
+                             widgetVar="widResultadoDiplomados"                         
+                             var="elem"                          
+                             value="#{servicioEducativoBean.relSedeDiplomadoLazyModel}"
+                             emptyMessage="#{msg.noHayResultados}"		
+                             paginator="true"
+                             lazy="true"
+                             paginatorPosition="bottom"
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="rsdPk"
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                             rows="#{servicioEducativoBean.paginadoDiplomado}"
+                             reflow="true" >
+                    <f:facet name="{anterior}">
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                    </f:facet>
+                    <f:facet name="{siguiente}">
+                        <h:outputText styleClass="#{servicioEducativoBean.totalResultadosDiplomado lt (servicioEducativoBean.paginadoDiplomado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                    </f:facet>
+
+                    <f:facet name="header">
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{servicioEducativoBean.totalResultadosDiplomado}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                              
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="Código" sortBy="#{elem.rsdDiplomadoFk.dipCodigo}" >
+                        <h:outputText value="#{elem.rsdDiplomadoFk.dipCodigo}" />
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{elem.sduGrado.rsdDiplomadoFk.dipNombre}">
+                        <h:outputText value="#{elem.rsdDiplomadoFk.dipNombre}" />
+                    </p:column>      
+                    <p:column headerText="#{msg.hhabilitado}">
+                        <h:outputText value="#{elem.rsdHabilitado}" converter="#{booleanConverter}"/>
+                    </p:column>
+                    <p:column headerText="Número de támite">
+                        <h:outputText value="#{elem.rsdNumeroTramite}"/>
+                    </p:column>
+                   
+                </p:dataTable>
+            </p:outputPanel>
+            
+            
+        </fieldset>
+        </h:panelGroup>
+        
+        
+    </p:outputPanel>
+    
+    <p:confirmDialog id="confirmDialogEliminar"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogEliminar">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialogEliminar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{servicioEducativoBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogEliminar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+    <p:dialog id="confirmDialog"    header="#{msg.selecciarServiciosSedeSuperior}" modal="true" showEffect="fade" widgetVar="confirmDialog">
+        <p:outputPanel styleClass="panelBotonesDer" >
+            <h:panelGroup  rendered="#{servicioEducativoBean.listServicioEducativoSedePadre!=null}" >                    
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                <p:outputPanel id="formularioCargo">                   
+                    <p:dataTable id="listaServicio"    
+                                 styleClass="table-scroll"
+                                 emptyMessage="#{msg.noHayResultados}"                                      
+                                 rowSelectMode="checkbox"
+                                 var="elem" selection="#{servicioEducativoBean.listServicioEducativoSedePadreSelected}" 
+                                 value="#{servicioEducativoBean.listServicioEducativoSedePadre}" rowKey="#{elem.sduPk}" style="margin-bottom:0" >                         
+
+                        <p:column headerText="#{msg.hniveles}" filterBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" filterMatchMode="contains" >
+                            <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hmodalidadEducativa}" filterBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" filterMatchMode="contains">
+                            <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hmodalidadAtencion}" filterBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" filterMatchMode="contains">
+                            <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsubModalidadAtencion}" filterBy="#{elem.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}" filterMatchMode="contains">
+                            <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"  />
+                        </p:column>
+                        <p:column headerText="#{msg.hNombreGrado}" sortBy="#{elem.sduGrado.graNombre}" >
+                            <h:outputText value="#{elem.sduGrado.graNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.opcion}" sortBy="#{elem.sduOpcion.opcNombre}" >
+                            <h:outputText value="#{elem.sduOpcion.opcNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hprogramaEducativo}" sortBy="#{elem.sduProgramaEducativo.pedNombre}" >
+                            <h:outputText value="#{elem.sduProgramaEducativo.pedNombre}" />
+                        </p:column>
+                        <p:column id="seleccionarS" selectionMode="multiple" style="width:16px;text-align:center" />  
+                    </p:dataTable>
+
+                    <p:outputPanel styleClass="control-group" >
+                        <div class="form-action-buttons">
+                            <p:commandButton id="btnGuardarServicio"  value="#{msg.guardar}" rendered="#{servicioEducativoBean.listServicioEducativoSedePadre!=null and servicioEducativoBean.listServicioEducativoSedePadre.size() gt 0}" 
+                                             action="#{servicioEducativoBean.guardarCopiaServicioSedePadre()}" 
+                                             update=":form:tabs:pnlResultado :form:tabs:confirmDialog" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:blockUI block="@form" trigger="btnGuardarServicio" /> 
+                        </div> 
+                   </p:outputPanel>  
+                </p:outputPanel>         
+            </h:panelGroup>   
+        </p:outputPanel>
+    </p:dialog>
+
+
+    <p:dialog header="#{msg.historialServicioEducativo}" widgetVar="historialDialogServicio" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+        <f:subview id="historialServicio">   
+            <ui:include src="historial.xhtml">
+                <ui:param name="historial" value="#{servicioEducativoBean.historialServicioEducativo}" /> 
+            </ui:include>    
+        </f:subview> 
+    </p:dialog>    
+
+</ui:composition>

@@ -1,0 +1,104 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui">    
+
+
+    <c:set var="sistemaIntegrado" value="#{sistemaIntegrado}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{proyectosFinanciamientoBean.setSoloLectura(soloLectura)}"/>
+    </f:metadata>        
+    <p:outputPanel>
+
+        <p:outputPanel id="pnlResultado">
+            <p:outputPanel styleClass="float-right mb-2" id="input_acuerdos">
+                <p:commandButton value="#{msg.agregarProyecto}" icon="glyphicon glyphicon-plus" 
+                                 id="btnAgregarProyecto" styleClass="btn btn-secondary"  
+                                 oncomplete="PF('seleccionarProyectosDialog').show()"
+                                 update="seleccionarProyectosDialog"
+                                 action="#{proyectosFinanciamientoBean.buscarProyectosFinanciamiento()}"
+                                 rendered="#{true}"/>
+                <!--  <h:message for="input_acuerdos" styleClass="msj-danger"/>-->
+            </p:outputPanel>
+
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{proyectosFinanciamientoBean.proyectosFinanciamientoSistemaIntegrado}" 
+                         rowKey="#{elem.rpsPk}" 
+                         emptyMessage="#{msg.noHayResultados}"		
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         reflow="true" >
+                <p:column headerText="#{msg.hcodigo}">
+                    <h:outputText value="#{elem.rpsProyectoFinanciamiento.pfsCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}">
+                    <h:outputText value="#{elem.rpsProyectoFinanciamiento.pfsNombre}" />
+                </p:column>
+
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{true}">
+                    <p:commandButton  icon="glyphicon glyphicon-trash " 
+                                      action="#{proyectosFinanciamientoBean.actualizarDelete(elem)}"
+                                      oncomplete="PF('confirmDialog').show()"
+                                      styleClass="btn btn-icono rojo" title="#{msg.eliminar}" />
+
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <p:dialog id="seleccionarProyectosDialog" header="#{msg.agregarProyecto}" modal="true" showEffect="fade" widgetVar="seleccionarProyectosDialog">
+            <p:outputPanel styleClass="panelBotonesDer" id="seleccionarProyectosPanel" >
+
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>   
+
+                <p:dataTable id="listaProyectos"    
+                             emptyMessage="#{msg.noHayResultados}"                                      
+                             rowSelectMode="checkbox"
+                             var="elem" selection="#{proyectosFinanciamientoBean.proyectosFinanciamientoSelected}" 
+                             value="#{proyectosFinanciamientoBean.proyectosFinanciamiento}" rowKey="#{elem.pfsPk}" style="max-height: calc(100vh - 300px); overflow: auto; margin-bottom: 10px;"> 
+                    <p:column headerText="#{msg.hcodigo}">
+                        <h:outputText value="#{elem.pfsNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hnombre}">
+                        <h:outputText value="#{elem.pfsNombre}" />
+                    </p:column> 
+                    <p:column id="seleccionarS" selectionMode="multiple" style="width:16px;text-align:center" /> 
+                </p:dataTable>
+
+                <p:outputPanel styleClass="control-group" >
+                    <div class="form-action-buttons">
+                        <p:commandButton id="btnGuardarProyectos"  value="#{msg.guardar}"
+                                         action="#{proyectosFinanciamientoBean.guardarProyectos()}" 
+                                         update="pnlResultado seleccionarProyectosPanel" 
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                        <p:blockUI block="@form" trigger="btnGuardarProyectos" /> 
+                    </div> 
+                </p:outputPanel>         
+            </p:outputPanel>
+        </p:dialog>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}" 
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{proyectosFinanciamientoBean.eliminarProyectoAsociado()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+    </p:outputPanel>
+</ui:composition>
+
+
+
+

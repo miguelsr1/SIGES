@@ -1,0 +1,280 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto(proyectoConsulta.getLabelNombreProyecto())}" /> 
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.consultaProyecto')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <div class="btn-group pull-right">
+                    <h:outputLink styleClass="btn btn-default" value="crearEditarProyecto.xhtml"    rendered="#{permisosMB.permisos['CREAR_EDITAR_PROYECTO']  }">
+                        <f:param name="restriccionXTipoProyecto" value="#{proyectoConsulta.restriccionXTipoProyecto}"/>
+                        <span class="glyphicon glyphicon-plus"></span><h:outputText value="#{textMB.obtenerTexto('labels.Crear')}" />
+                    </h:outputLink>
+                </div>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.consultaProyecto')}" escape="false" /> 
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro" >
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.codigoSIIP')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{proyectoConsulta.codigoSIP}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div> 
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nombre')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{proyectoConsulta.nombre}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>    
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TipoProyecto')}:" />
+                                <div class="col-sm-8">                      
+                                    <h:selectOneMenu  value="#{proyectoConsulta.tipoProyecto}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{proyectoConsulta.tipoProyectosDisponibles}" var="enum"  itemValue="#{enum}" itemLabel="#{textMB.obtenerTexto(enum.label)}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>        
+
+                            <div class="form-group">
+                                <h:outputLabel for="componente-unidadTecnica" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="componente-unidadTecnica" value="#{proyectoConsulta.unidadTecnicaId}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getUnidadesTecnicas()}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel for="fuente-financiamiento" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FuenteFinanciamiento')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="fuente-financiamiento" value="#{proyectoConsulta.tmpIdFuenteFinanciamiento}"  styleClass="form-control textoMedio"  >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getFuentesFinanciamiento()}" />
+                                        <f:ajax render="fuente-recurso"  />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel for="fuente-recurso" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FuenteRecurso')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="fuente-recurso" value="#{proyectoConsulta.tmpIdFuenteRecurso}"  styleClass="form-control textoMedio"   >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getFuentesRecurso(proyectoConsulta.tmpIdFuenteFinanciamiento)}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel for="ProgramaAsociado" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ProgramaAsociado')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="ProgramaAsociado" value="#{proyectoConsulta.programaAsociado}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.'.concat(proyectoConsulta.FILTRO_CON_PROGRAMAS_ASOCIADO))}" itemValue="#{proyectoConsulta.FILTRO_CON_PROGRAMAS_ASOCIADO}"/>
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.'.concat(proyectoConsulta.FILTRO_SIN_PROGRAMA_ASOCIADO))}" itemValue="#{proyectoConsulta.FILTRO_SIN_PROGRAMA_ASOCIADO}"/>
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h:outputLabel for="pInstitucional" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ProgramaInstitucional')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="pInstitucional" value="#{proyectoConsulta.idProgramaInstitucional}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getProgramasInstitucionales()}" />
+                                    </h:selectOneMenu> 
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ProgramaPresupuestario')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="pPresupuestario" value="#{proyectoConsulta.idProgramaPresupuestario}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                        <f:ajax render="psPresupuestario"   />
+                                        <f:selectItems value="#{utilsMB.getProgramasPrespuestario()}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="pPresupuestario" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel for="psPresupuestario" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.SubProgramaPresupuestario')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="psPresupuestario" value="#{proyectoConsulta.idSubProgramaPresupuestario}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getSubProgramasPrespuestario(proyectoConsulta.idProgramaPresupuestario)}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="psPresupuestario" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                             <div class="form-group">
+                                <h:outputLabel for="fEstado" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="fEstado" value="#{proyectoConsulta.estadoProyecto}"  styleClass="form-control textoMedio" >
+                                        <f:selectItem itemLabel="#{labels.Todos}" itemValue="0"/>
+                                        <f:selectItem itemLabel="#{labels.Abierto}" itemValue="1" />
+                                        <f:selectItem itemLabel="#{labels.Cerrado}" itemValue="2" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="fEstado" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{proyectoConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{proyectoConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', proyectoConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{proyectoConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Proyectos" />
+                        </h:commandLink> 
+                    </f:facet>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" >
+                        <h:outputText value="#{item.propertyMap['id']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" sortBy="#{dummy.nombre}">
+                        <h:outputText value="#{item.propertyMap['nombre']}" />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.codigoSIIP')}" sortBy="#{dummy.codigoSIIP}">
+                        <h:outputText value="#{item.propertyMap['codigoSIIP']}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.TipoProyecto')}"  sortBy="#{dummy.tipoProyecto}">
+                        <h:outputText value="#{item.propertyMap['tipoProyecto.label']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ProgramaInstitucional')}" sortBy="#{dummy.programaInstitucional.id}">
+                        <h:outputText value="#{item.propertyMap['programaInstitucional.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ProgramaPresupuestario')}" >
+                        <h:outputText value="#{item.propertyMap['programaPresupuestario.programaPresupuestario.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.SubProgramaPresupuestario')}" sortBy="#{dummy.programaPresupuestario.id}">
+                        <h:outputText value="#{item.propertyMap['programaPresupuestario.nombre']}" />
+                    </p:column>
+                    
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}" sortBy="#{dummy.estado}">
+                         <h:outputText value="#{item.propertyMap['estado']}" converter="estadoProyectoConverter">    
+                         </h:outputText>
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_PROYECTO'] }" >
+                        <h:outputLink  value="verProyecto.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Ver')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <f:param name="restriccionXTipoProyecto" value="#{proyectoConsulta.restriccionXTipoProyecto}" />
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column exportable="false"  headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_PROYECTO'] }">
+                        <h:outputLink                          
+                                      value="crearEditarProyecto.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <f:param name="restriccionXTipoProyecto" value="#{proyectoConsulta.restriccionXTipoProyecto}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+                    <p:column exportable="false"  headerText="#{textMB.obtenerTexto('labels.GenerarPOAAnio1')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['GENERAR_POA_PROYECTO']  }">
+                        <p:commandButton rendered="#{item.propertyMap['estado'] eq 'BLOQUEADO'}"
+                                         icon="glyphicon glyphicon-sort-by-attributes-alt" 
+                                         styleClass="btn btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.GenerarPOA')}" 
+                                         actionListener="#{proyectoConsulta.generarPOAS(item.propertyMap['id'])}"
+                                         update="tableForm confirmModalCallBackBody :formfiltro:mensajes">
+                        </p:commandButton>                       
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerPOA')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_CONSOLIDADO_PORA_POR_PROYECTO'] }" >
+                        <h:outputLink  value="verConsolidadoPOAporProyecto.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.VerPOA')}">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <f:param name="restriccionXTipoProyecto" value="#{proyectoConsulta.restriccionXTipoProyecto}" />
+                            <span class="glyphicon glyphicon-list-alt"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+
+
+                    <p:column exportable="false"  headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['CREAR_EDITAR_PROYECTO']}">
+                        <p:commandButton rendered="#{item.propertyMap['estado'] eq 'EN_FORMULACION'}"
+                                         icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         onclick="if (!existeConfirmacion(this.id))
+                                                     return false" 
+                                         action="#{proyectoConsulta.eliminar(item.propertyMap['id'])}"
+                                         update="tableForm confirmModalCallBackBody"
+                                         immediate="true">
+                        </p:commandButton>                       
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+        <!-- Modal de eliminar -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+
+    </ui:composition>
+</html>
+

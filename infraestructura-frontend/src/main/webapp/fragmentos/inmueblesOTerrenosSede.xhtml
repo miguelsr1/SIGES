@@ -1,0 +1,400 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                                  
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <h:form id="form">   
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumInmueblePertenece"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionInmueblesOTerreno}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionInmueblesOTerreno}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.INMUEBLE_SEDE}" title="#{msg.nuevoInmuebleOTerreno}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_INMUEBLE_O_TERRENO)}"
+                        styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoInmuebleOTerreno}"/>
+                </p:link>
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.INMUEBLES)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                        <h:outputLabel value="#{msg.departamento}" for="input_departamento" styleClass="col-sm-3 col-form-label"/>                                                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:selectOneMenu id="input_departamento" value="#{inmueblesSedesBean.comboDepartamento.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{inmueblesSedesBean.comboDepartamento.items}"/>
+                                <p:ajax listener="#{inmueblesSedesBean.seleccionarDepartamento}" event="change"  process="@this" update="fila_input_municipio"/>
+                            </h:selectOneMenu>
+                            <h:message for="input_departamento" styleClass="msj-danger"/>
+                        </p:outputPanel>                                                                                   
+                    </p:outputPanel>    
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.unidadResponsable}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="4" id="b_pertenecea" value="#{inmueblesSedesBean.filtro.perteneceA}">
+                                <f:selectItems value="#{inmueblesSedesBean.enumeradoPertenece}" />
+                                <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                <p:ajax update="form:fila_input_sede_autocomplete form:fila_input_unidad_administrativa" listener="#{inmueblesSedesBean.seleccionarPerteneceA}" event="change" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel  id="fila_input_sede_autocomplete">
+                        <p:outputPanel styleClass="form-group row" rendered="#{inmueblesSedesBean.filtro.perteneceA eq EnumInmueblePertenece.SEDE}">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{inmueblesSedesBean.sedeSeleccionada}"
+                                            completeMethod="#{inmueblesSedesBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                            itemValue="#{sed}" 
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            placeholder="#{msg.autoCompleteEmptyItem}"
+                                            converter="#{sedesConverter}"
+                                            multiple="false">
+                                <p:ajax listener="#{inmueblesSedesBean.seleccionarSede}" event="itemSelect"  process="@this" update=":form:fila_input_sede_autocomplete"/>
+                            </p:autoComplete>
+                        </p:outputPanel>    
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel  id="fila_input_unidad_administrativa">
+                        <p:outputPanel styleClass="form-group row" rendered="#{inmueblesSedesBean.filtro.perteneceA eq EnumInmueblePertenece.UNIDAD_ADM}">
+                        <h:outputLabel value="#{msg.unidadAdministrativa}" for="input_unidad_administrativa" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_unidad_administrativa" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{inmueblesSedesBean.unidadAdministrativaSeleccionada}"
+                                            completeMethod="#{inmueblesSedesBean.completeUnidadAdministrativa}"
+                                            var="uni" itemLabel="#{uni.uadCodigoNombre}" 
+                                            itemValue="#{uni}" 
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            placeholder="#{msg.autoCompleteEmptyItem}"
+                                            converter="#{unidadAdministrativaConverter}"
+                                            multiple="false">
+                                <p:ajax listener="#{inmueblesSedesBean.seleccionarUnidadAdministrativa}" event="itemSelect"  process="@this" update=":form:fila_input_unidad_administrativa"/>
+                             </p:autoComplete>                           
+                        </p:outputPanel>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estado">
+                        <h:outputLabel value="#{msg.estado}" for="input_estado" styleClass="col-sm-3 col-form-label"/>                                                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:selectOneMenu id="input_estado" value="#{inmueblesSedesBean.comboEstadoInmueble.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{inmueblesSedesBean.comboEstadoInmueble.items}"/>
+                            </h:selectOneMenu>
+                            <h:message for="input_estado" styleClass="msj-danger"/>
+                        </p:outputPanel>                                                                                   
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.codigoInmueble}"  styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:inputNumber autocomplete="off" id="input_detalle"  decimalPlaces="0" thousandSeparator="" 
+                                           styleClass="form-control texto-medio" value="#{inmueblesSedesBean.filtro.inmueblePk}"/>
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_municipio">
+                        <h:outputLabel value="#{msg.municipio}" for="input_municipio" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:selectOneMenu id="input_municipio" value="#{inmueblesSedesBean.comboMunicipio.selected}" 
+                                             disabled="#{inmueblesSedesBean.comboDepartamento.selectedT == null}"
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{inmueblesSedesBean.comboMunicipio.items}"/>
+                            </h:selectOneMenu>
+                            <h:message for="input_municipio" styleClass="msj-danger"/>
+                        </p:outputPanel>                                                                                   
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.hpropietarioMINED}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{inmueblesSedesBean.filtro.propietario}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.tieneActivoFijo}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="b_activo_fijo" value="#{inmueblesSedesBean.filtro.activoFijo}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3 text-right">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{inmueblesSedesBean.buscar()}" update="pnlResultado"/>
+                            <p:blockUI block="@form" trigger="btnBuscar"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{inmueblesSedesBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{inmueblesSedesBean.inmueblesLazyModel}"   
+                         rendered="#{inmueblesSedesBean.inmueblesLazyModel != null}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="#{inmueblesSedesBean.totalResultados gt inmueblesSedesBean.paginado}"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="tisPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{inmueblesSedesBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}"  >
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}"  >
+                    <h:outputText styleClass="#{inmueblesSedesBean.totalResultados lt (inmueblesSedesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header" >
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{inmueblesSedesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="inmuebles" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column >
+                    <h:outputText value="#{elem.tisPerteneceSede}"  converter="#{perteneceInmuebleConverter}" rendered="#{elem.tisPerteneceSede != null}"/>
+                    <h:outputText value="Otros"  rendered="#{elem.tisPerteneceSede eq null}"/>
+                </p:column>
+                <p:column headerText="#{msg.hcodigo}" >
+                    <h:outputText value="#{elem.tisSedeFk.sedCodigo}" id="sedCodigoText" rendered="#{elem.tisPerteneceSede != null and elem.tisPerteneceSede==true }"/>
+                    <p:tooltip id="toolTipContent" for="sedCodigoText" position="bottom" styleClass="panelTooltip" rendered="#{elem.tisPerteneceSede != null and elem.tisPerteneceSede==true }">
+                   
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.tisSedeFk.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.tisSedeFk.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.tisSedeFk.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                    
+                    <h:outputText value="#{elem.tisAfUnidadAdministrativa.uadCodigo}" id="sedUnidadAmin" rendered="#{elem.tisPerteneceSede != null and elem.tisPerteneceSede==false }"/>
+                    <p:tooltip id="toolTipContentUnidad" for="sedUnidadAmin" position="bottom" styleClass="panelTooltip" rendered="#{elem.tisPerteneceSede != null and elem.tisPerteneceSede==false }">
+                  
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.tisAfUnidadAdministrativa.uadTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.direccion}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.tisAfUnidadAdministrativa.uadDireccion}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" >
+                    <h:outputText value="#{elem.tisSedeFk.sedNombre}"  rendered="#{elem.tisPerteneceSede != null and elem.tisPerteneceSede==true }"/>
+                    <h:outputText  value="#{elem.tisAfUnidadAdministrativa.uadNombre}" rendered="#{elem.tisPerteneceSede != null and elem.tisPerteneceSede==false }"/>
+                </p:column>
+                <p:column id="nroCorr"  sortBy="#{elem.tisNumeroCorrelativo}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.corr}"/>
+                        <p:tooltip position="bottom" value="#{msg.hnumeroCorrelativo}" for="nroCorr" />
+                    </f:facet>  
+                    <h:outputText value="#{elem.tisNumeroCorrelativo}"/>
+                </p:column>
+                <p:column id="inmu">
+                    <f:facet name="header">
+                        <h:outputText value="Cód. Inm."/>
+                        <p:tooltip position="bottom" value="#{msg.hcodigoInmueble}" for="inmu" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.tisPk}" id="inmuebleDir"/>
+                    <p:tooltip id="toolTipContentInmueble" for="inmuebleDir" position="bottom" styleClass="panelTooltip" >
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.zona}" styleClass="col-sm-5 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.tisDireccion.dirZona.zonNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="Departamento:" styleClass="col-sm-5 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.tisDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-5 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.tisDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.direccion}" styleClass="col-sm-5 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-7">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.tisDireccion.dirDireccion}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>
+                
+                
+                
+                <p:column id="propMined"   sortBy="#{elem.tisPropietario}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hpropMin}"/>
+                        <p:tooltip position="bottom" value="#{msg.hpropietarioMinedUCYT}" for="propMined" />
+                    </f:facet>    
+                    <h:outputText value="#{elem.tisPropietario}" converter="#{booleanConverter}"/>               
+                </p:column>
+                <p:column id="acFijo"   sortBy="#{elem.tisActivoFijo}">
+                    <f:facet name="header">
+                        <h:outputText value="AC"/>
+                        <p:tooltip position="bottom" value="#{msg.tieneActivoFijo}" for="acFijo" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.tisActivoFijo}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.harea}" sortBy="#{elem.tisAreaTotal}">
+                    <h:outputText value="#{elem.tisAreaTotal}" style="float: right;" converter="#{decimalConverter}"></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.tisEstadoInmueble.einNombre}">
+                    <h:outputText value="#{elem.tisEstadoInmueble.einNombre}" />
+                </p:column>
+                <p:column id="valAdqu"   sortBy="#{elem.tisValorAdquisicion}">
+                    <f:facet name="header">
+                        <h:outputText value="Val. adq."/>
+                        <p:tooltip position="bottom" value="#{msg.hvalorAdquisicion}" for="valAdqu" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.tisValorAdquisicion}" style="float: right;" converter="#{decimalConverter}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:link outcome="#{ConstantesPaginas.INMUEBLE_SEDE}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.tisPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_INMUEBLE_O_TERRENO)}">
+                    <p:link outcome="#{ConstantesPaginas.INMUEBLE_SEDE}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.tisPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{inmueblesSedesBean.historial(elem.tisPk)}"/>
+                </p:column>
+
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_INMUEBLE_O_TERRENO)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{inmueblesSedesBean.actualizar(elem)}"/>
+
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{inmueblesSedesBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.historialInmuebleOTerreno}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{inmueblesSedesBean.historialInmueble}" /> 
+            </ui:include>               
+        </p:dialog>   
+
+
+
+    </h:form>
+</ui:composition>

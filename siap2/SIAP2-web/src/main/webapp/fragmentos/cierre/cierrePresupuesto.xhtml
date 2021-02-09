@@ -1,0 +1,151 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CierrePresupuesto')}" /> 
+                </h2>
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTexto('labels.CierrePresupuestosAnio')}"/> 
+
+            </div>
+        </h:form>
+
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.cerrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.anioFiscal')}:" for="anioFiscal" />
+                                <div class="col-sm-8">
+                                    <h:selectOneMenu id="anioFiscal" value="#{procesosCierre.comboAniosFiscales.selected}"
+                                                     styleClass="form-control textoMedio">
+                                        <f:selectItems value="#{procesosCierre.comboAniosFiscales.items}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <p:commandButton value="#{textMB.obtenerTexto('labels.Filtrar')}"
+                                                     styleClass="btn btn-primary"
+                                                     icon="glyphicon glyphicon-search" 
+                                                     update="tableForm"
+                                                     action="#{procesosCierre.filtrar()}" />
+
+                                    <p:commandButton value="#{textMB.obtenerTexto('labels.CierrePresupuesto')}"
+                                                     styleClass="btn btn-primary"
+                                                     update="formEliminar formfiltro"
+                                                     actionListener="#{procesosCierre.verificarAnioFiscalSeleccionado()}"/>
+
+                                    <p:commandButton styleClass="btn btn-link" 
+                                                     update="tableForm formfiltro" 
+                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                     actionListener="#{procesosCierre.cleanObjects()}" />
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', procesosCierre.poasPendientesCerrarlazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{procesosCierre.poasPendientesCerrarlazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}" >
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="poasPendientesCierre" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" >
+                        <h:outputText value="#{item.getNombre()}" />
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.VerPOA')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['VER_CONSOLIDADO_PORA_ACCION_CENTRAL_ASIG_NP'] }" >
+                        <h:outputLink  value="verConsolidadoPOAporACoANP.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Ver')}">
+                            <f:param name="id" value="#{item.id}" />
+                            <f:param name="tipo" value="#{item.tipo}" />
+                            <span class="glyphicon glyphicon-list-alt"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+
+
+                </p:dataTable>       
+            </div>
+        </h:form>
+
+
+        <!-- MODAL CONFIRMACION DE CAMBIO DE ESTADO-->
+        <h:form id="formEliminar" prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.CierrePresupuesto')}"/>
+                            </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.CierreAnio')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                             value="#{textMB.obtenerTexto('labels.Confirmar')}"
+                                             actionListener="#{procesosCierre.cierrePresupuesto()}"
+                                             update="tableForm formfiltro"
+                                             onsuccess="$('#confirmModalCallBack').modal('hide');"/>
+                            
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+    </ui:composition>
+</html>
+

@@ -1,0 +1,1880 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"            
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <script>
+        window.document.addEventListener('markerClickEvent', handleEvent, false);
+        function handleEvent(e) {
+            updateAddressCoordinates([{name: 'latitude', value: e.detail.latitude}, {name: 'longitude', value: e.detail.longitude}]);
+        }
+    </script>
+
+    <h:form id="form">
+        <p:remoteCommand name="updateAddressCoordinates" action="#{sedeBean.updateAddressCoordinates}" update="@(.latitud_update_class, .longitud_update_class)"/>
+
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoSede"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.SEDES}.xhtml">#{msg.gestionSede}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{sedeBean.tituloPagina}</li>
+            </ol>
+        </nav>          
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSede}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SEDE)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{sedeBean.tituloPagina}"/>
+        </h3>
+
+        <p:outputPanel id="mensajeCierre">
+            <p:outputPanel styleClass="ui-messages" rendered="#{sedeBean.entidadEnEdicion.sedFechaCierre != null}">
+                <div class="ui-messages-warn ui-corner-all" style="display:block;">
+
+                    <span style="display:none;" class="ui-messages-warn-icon"></span>
+
+                    <p:outputPanel styleClass="row" style="width:400px">                        
+                        <h:outputLabel value="#{msg.estado}" styleClass="col-sm-4 col-form-label"/>     
+                        <p:outputPanel styleClass="col-sm-8">          
+                            <h:outputText value="Cerrada" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>   
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="row" style="width:400px">                        
+                        <h:outputLabel value="#{msg.fechaCierre}" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">          
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedFechaCierre}" converter="#{localDateConverter}" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="row" style="width:400px">                        
+                        <h:outputLabel value="#{msg.motivo}" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">          
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedMotivoCierre.mcsNombre}" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="row" style="width:400px" rendered="#{sedeBean.entidadEnEdicion.sedNumeroActaCierre != null}">                        
+                        <h:outputLabel value="#{msg.numeroActa}" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">          
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedNumeroActaCierre}" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="row" style="width:400px" rendered="#{sedeBean.entidadEnEdicion.sedNumeroActaCierre != null}">                        
+                        <h:outputLabel value="#{msg.numeroTramite}" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">          
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedNumeroTramiteRevocatoria}" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="row" style="width:400px" rendered="#{sedeBean.entidadEnEdicion.sedObservacionCierre != null}">                        
+                        <h:outputLabel value="#{msg.observacion}" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">          
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedObservacionCierre}" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:commandButton value="#{msg.habrir}" icon="glyphicon glyphicon-refresh" 
+                                     styleClass="btn btn-primary"  
+                                     update="@form"
+                                     action="#{sedeBean.activar()}"
+                                     style="float:right;"
+                                     id="btnAbrirSede"
+                                     rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTIVAR_SEDE)}"/>
+                    <p:blockUI block="@form" trigger="btnAbrirSede" />
+
+
+                    <div style="clear:both"></div>
+
+
+                </div>
+            </p:outputPanel>
+        </p:outputPanel>    
+
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+            <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+            <p:tabView id="tabs" onTabChange="PF('tabsBlocker').show()">
+                <p:ajax event="tabChange" listener="#{sedeBean.changeTab}" update="@form" process="@form" />
+                <p:tab title="#{msg.generales}" id="sedeTab">              
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo_sede">
+                        <h:outputLabel value="#{msg.tipoSede}" for="input_tipo_sede" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_tipo_sede" value="#{sedeBean.comboTiposSede.selected}" styleClass="form-control texto-medio"
+                                             disabled="#{sedeBean.entidadEnEdicion != null}" rendered="#{sedeBean.entidadEnEdicion == null}">
+                                <f:selectItems value="#{sedeBean.comboTiposSede.items}"/>
+                                <p:ajax listener="#{sedeBean.agregar()}" event="change" process="@this" update="@form"/>
+                            </h:selectOneMenu>
+                            <h:outputText styleClass="form-control-plaintext" id="output_tipo_sede" value="#{sedeBean.entidadEnEdicion.sedTipo.text}" rendered="#{sedeBean.entidadEnEdicion != null}"/> 
+                        </p:outputPanel>
+                    </p:outputPanel>  
+
+                    <h:panelGroup id="containerFormularioSede">
+
+                        <p:outputPanel id="formularioSede" rendered="#{sedeBean.entidadEnEdicion != null}">
+
+                            <p:outputPanel styleClass="form-group row" id="fila_output_codigo" rendered="#{sedeBean.sedesViewValidator.renderCodigoSede}">
+                                <h:outputLabel value="#{msg.codigo}" for="input_codigo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:inputText autocomplete="off" id="input_codigo" 
+                                                 value="#{sedeBean.entidadEnEdicion.sedCodigo}" styleClass="form-control" 
+                                                 disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura or sedeBean.entidadEnEdicion.sedTipo eq TipoSede.CIR_ALF}" 
+                                                 maxlength="15"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nombre">                        
+                                <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_nombre" value="#{sedeBean.entidadEnEdicion.sedNombre}" styleClass="form-control" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}"  maxlength="500"/>
+                                    <h:message for="input_nombre" styleClass="msj-danger"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>  
+                            <p:outputPanel styleClass="form-group row" id="fila_input_clasificacion" 
+                                           rendered="#{sedeBean.entidadEnEdicion.sedTipo ne TipoSede.CIR_ALF}">
+                                <h:outputLabel value="#{msg.denominacion}" for="input_clasificacion" styleClass="col-sm-3 col-form-label"/>                                                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:selectOneMenu id="input_clasificacion"  value="#{sedeBean.comboClasificacion.selected}" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedeBean.comboClasificacion.items}"/>
+                                    </h:selectOneMenu>                                    
+                                    <h:message for="input_clasificacion" styleClass="msj-danger"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>   
+                            <p:outputPanel styleClass="form-group row" id="fila_input_implementadora" 
+                                           rendered="#{sedeBean.entidadEnEdicion.sedTipo eq TipoSede.CIR_ALF}">
+                                <h:outputLabel value="#{msg.administrador}" for="input_implementadora" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="input_implementadora"  value="#{sedeBean.comboImplementadora.selected}" 
+                                                     disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and 
+                                                                 !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" 
+                                                     styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedeBean.comboImplementadora.items}"/>
+                                    </h:selectOneMenu>                                    
+                                    <h:message for="input_implementadora" styleClass="msj-danger"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_calendario">
+                                <h:outputLabel value="#{msg.htipoCalendario}" for="combo_tipo_calendario" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_tipo_calendario" value="#{sedeBean.tipoCalendarioCombo.selected}" styleClass="form-control dropdown texto-medio" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" >
+                                        <f:selectItems value="#{sedeBean.tipoCalendarioCombo.items}" />           
+                                    </h:selectOneMenu>  
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_jornadas">
+                                <h:outputLabel value="#{msg.jornadas}" for="input_jornadas" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">   
+                                    <p:selectManyCheckbox id="input_jornadas" value="#{sedeBean.entidadEnEdicion.sedJornadasLaborales}" converter="omnifaces.SelectItemsConverter" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" >
+                                        <f:selectItems value="#{sedeBean.jornadasLaborales}"  var="jor" itemLabel="#{jor.jlaNombre}" itemValue="#{jor}" />
+                                    </p:selectManyCheckbox>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel> 
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_email">
+                                <h:outputLabel value="#{msg.email}" for="input_email" styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_email" value="#{sedeBean.entidadEnEdicion.sedCorreoElectronico}" styleClass="form-control" disabled="#{sedeBean.soloLectura}" maxlength="255"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>  
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_email2" >
+                                <h:outputLabel value="#{msg.email2}" for="input_email2" styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_email2" value="#{sedeBean.entidadEnEdicion.sedCorreoElectronico2}" 
+                                                 styleClass="form-control" disabled="#{sedeBean.soloLectura}" maxlength="255"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>  
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_anioInicioActividades">
+                                <h:outputLabel value="#{msg.anioInicioActividades}" for="input_anioInicioActividades" styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <p:inputMask  autocomplete="off" id="input_anioInicioActividades" value="#{sedeBean.entidadEnEdicion.sedAnioInicioAct}" styleClass="form-control texto-corto" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" mask="9999" />                                  
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_propietario">
+                                <h:outputLabel value="#{msg.propietario}" for="input_propietario" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_propietario" value="#{sedeBean.entidadEnEdicion.sedPropietario}" 
+                                                 styleClass="form-control " disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" maxlength="500"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_sitioweb">
+                                <h:outputLabel value="#{msg.sitioWeb}" for="input_sitioweb" styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_sitioweb"  styleClass="form-control" value="#{sedeBean.entidadEnEdicion.sedSitioWeb}"  disabled="#{sedeBean.soloLectura}" maxlength="150"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel> 
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_direccion_notificacion">
+                                <h:outputLabel value="#{msg.direccionNotificacion}" for="input_direccion_notificacion" 
+                                               styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_direccion_notificacion"  
+                                                 styleClass="form-control " 
+                                                 value="#{sedeBean.entidadEnEdicion.sedDireccionNotificacion}"  
+                                                 disabled="#{sedeBean.soloLectura}" maxlength="150"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel> 
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_legalizado" rendered="#{sedeBean.sedesViewValidator.renderLegalizado}">   
+                                <h:outputText value="#{msg.legalizada}" styleClass="col-sm-3 col-form-label"/>
+                                <div class="col-sm-8">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_legalizado" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.cedLegalizado}" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" />
+                                        <h:outputLabel for="input_legalizado" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel> 
+
+                            <p:outputPanel styleClass="form-group row">   
+                                <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>
+                                <div class="col-sm-8">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_habilitado"  styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.sedHabilitado}" 
+                                                                 disabled="#{true}" />
+                                        <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row">   
+                                <h:outputText value="#{msg.estado}" styleClass="col-sm-3 col-form-label"/>
+                                <div class="col-sm-8">
+                                    <h:outputText value="#{sedeBean.entidadEnEdicion.sedActivo}" styleClass="form-control-plaintext" converter="#{booleanToEstadoAbiertoCerradoConverter}" />
+                                </div>  
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row">   
+                                <h:outputText value="#{msg.accesoInternet}" styleClass="col-sm-3 col-form-label"/>
+                                <div class="col-sm-8">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_acceso_internet"  styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.sedInternet}" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" >
+                                            <p:ajax event="change" process="@this" update="fila_input_velocidad_int fila_input_proveedor_int"/>
+                                        </h:selectBooleanCheckbox>
+                                        <h:outputLabel for="input_acceso_internet" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+
+                            <p:outputPanel id="fila_input_velocidad_int">
+                                <p:outputPanel styleClass="form-group row"  rendered="#{sedeBean.entidadEnEdicion.sedInternet == true}">
+                                    <h:outputLabel value="#{msg.velocidadInternet}" for="input_velocidad_int" 
+                                                   styleClass="col-sm-3 col-form-label"/>                        
+                                    <p:outputPanel styleClass="col-sm-9">                            
+
+                                        <h:selectOneMenu id="input_velocidad_int"  value="#{sedeBean.comboVelocidadInternet.selected}" 
+                                                         disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" 
+                                                         styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedeBean.comboVelocidadInternet.items}"/>
+                                            <p:ajax listener="#{sedeBean.seleccionarVelocidadInternet}" />
+                                        </h:selectOneMenu>                                    
+                                        <h:message for="input_velocidad_int" styleClass="msj-danger"/> 
+
+                                    </p:outputPanel>                                                                                   
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel id="fila_input_proveedor_int">
+                                <p:outputPanel styleClass="form-group row"  rendered="#{sedeBean.entidadEnEdicion.sedInternet == true}">
+                                    <h:outputLabel value="#{msg.proveedorInternet}" for="input_proveedor_int" 
+                                                   styleClass="col-sm-3 col-form-label"/>                        
+                                    <p:outputPanel styleClass="col-sm-9">                            
+                                        <h:inputText autocomplete="off" id="input_proveedor_int"  
+                                                     styleClass="form-control" 
+                                                     value="#{sedeBean.entidadEnEdicion.sedProveedorInternet}"  
+                                                     disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" maxlength="150"/>
+                                    </p:outputPanel>                                                                                   
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_sede_adscrita" 
+                                           rendered="#{sedeBean.sedesViewValidator.renderSedeAdscrita}">   
+                                <h:outputText value="#{msg.sedeAdscrita}" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:autoComplete id="input_sede_autocomplete" 
+                                                    styleClass="form-control texto-medio"
+                                                    value="#{sedeBean.entidadEnEdicion.sedSedeAdscritaDe}"
+                                                    rendered="#{not sedeBean.soloLectura}"
+                                                    completeMethod="#{sedeBean.completeSede}"
+                                                    var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                                    itemValue="#{sed}" 
+                                                    widgetVar="b_inst_resp_autocomplete"
+                                                    forceSelection="true"
+                                                    maxResults="10"
+                                                    queryDelay="500"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                                    converter="#{sedesConverter}"
+                                                    multiple="false">
+                                        <p:ajax event="itemSelect"  process="@this" update="@this"/>
+                                    </p:autoComplete>
+                                    <h:outputText value="#{sedeBean.entidadEnEdicion.sedSedeAdscritaDe.sedNombre}" rendered="#{sedeBean.soloLectura}" />
+                                </p:outputPanel>   
+                            </p:outputPanel> 
+
+
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_subvencionado" rendered="#{sedeBean.sedesViewValidator.renderSuvencionado}">   
+                                <h:outputText value="#{msg.subvencionado}" styleClass="col-sm-3 col-form-label"/>
+                                <div class="col-sm-8" disabled="#{sedeBean.soloLectura}">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_subvencionado" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.priSubvencionada}" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" />
+                                        <h:outputLabel for="input_subvencionado" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fin_de_lucro" rendered="#{sedeBean.sedesViewValidator.renderFinesDeLucro}">   
+                                <h:outputText value="#{msg.finDeLucro}" styleClass="col-sm-3 col-form-label"/>
+                                <div class="col-sm-8" disabled="#{sedeBean.soloLectura}">
+                                    <p:outputPanel styleClass="form-check">
+                                        <h:selectBooleanCheckbox id="input_fin_de_lucro" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.cedFinesDeLucro}" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" />
+                                        <h:outputLabel for="input_fin_de_lucro" styleClass="form-check-label">
+                                            <h:outputText value="#{msg.si}"/>
+                                        </h:outputLabel>
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_tipo_org" rendered="#{sedeBean.sedesViewValidator.renderTipoOrganizacionAdministrativa}">
+                                <h:outputLabel value="#{msg.tipoOrganismoAdministrativo}" for="input_tipo_org" styleClass="col-sm-3 col-form-label"/>                                                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:selectOneMenu id="input_tipo_org"  value="#{sedeBean.tipoOrganismoAdministrativoCombo.selected}" disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedeBean.tipoOrganismoAdministrativoCombo.items}"/>
+                                        <p:ajax listener="#{sedeBean.seleccionarTipoOrganismoAdministrativo}" />
+                                    </h:selectOneMenu>                                    
+                                    <h:message for="input_tipo_org" styleClass="msj-danger"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>  
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nota">
+                                <h:outputLabel value="#{msg.nota}" for="input_nota" styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputTextarea  id="input_nota"  styleClass="form-control" value="#{sedeBean.entidadEnEdicion.sedNota}"  disabled="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" />
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel> 
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.hDireccion}"/></legend>
+                                <ui:include src="componentes/direccion.xhtml">
+                                    <ui:param name="direccion" value="#{sedeBean.entidadEnEdicion.sedDireccion}" /> 
+                                    <ui:param name="soloLecturaDireccion" value="#{(sedeBean.entidadEnEdicion.sedPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)) or sedeBean.soloLectura}" /> 
+                                </ui:include>
+                            </fieldset>                          
+
+
+
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.telefonos}"/></legend>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_telefono">
+                                    <h:outputLabel value="#{msg.telefono}" for="input_telefono" styleClass="col-sm-3 col-form-label"/>                        
+                                    <p:outputPanel styleClass="col-sm-9">                            
+                                        <h:inputText autocomplete="off" id="input_telefono" value="#{sedeBean.entidadEnEdicion.sedTelefono}" styleClass="form-control " disabled="#{sedeBean.soloLectura}" maxlength="14"/>                                    
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_celular" >
+                                    <h:outputLabel value="#{msg.celular}" for="input_celular" styleClass="col-sm-3 col-form-label"/>                        
+                                    <p:outputPanel styleClass="col-sm-9">                            
+                                        <h:inputText autocomplete="off" id="input_celular" value="#{sedeBean.entidadEnEdicion.sedTelefonoMovil}" styleClass="form-control " disabled="#{sedeBean.soloLectura}" maxlength="14"/>
+                                    </p:outputPanel>                                                                                   
+                                </p:outputPanel>   
+                            </fieldset>
+                            <p:fieldset legend="#{msg.otrosDatos}" rendered="#{not empty sedeBean.entidadEnEdicion.sedRelServicioInfra}">
+                                <ui:repeat value="#{sedeBean.entidadEnEdicion.sedRelServicioInfra}" var="rel">
+                                    <p:outputPanel styleClass="form-group row">
+                                        <h:outputText value="#{rel.rssServicioInfra.sinNombre}:" styleClass="col-sm-3 col-form-label"/>                
+                                        <p:outputPanel styleClass="col-sm-9">
+                                            <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{rel.rssTieneServicio}" disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}">
+                                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                                <f:selectItem itemValue="#{null}" itemLabel="#{msg.noSeSabe}"/>
+                                            </p:selectOneRadio>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </ui:repeat>
+                            </p:fieldset>
+                            <p:fieldset rendered="false" legend="#{msg.galeriaImagenes}">
+                                <p:fileUpload id="imaload"    
+                                              mode="advanced"  multiple="true" process="@form" 
+                                              update="@form" 
+                                              allowTypes="/(\.|\/)(gif|jpe?g|png)$/"/> 
+                            </p:fieldset>
+
+
+                            <div class="form-action-buttons">
+                                <p:commandButton value="Cerrar sede" 
+                                                     rendered="#{!sedeBean.soloLectura and (sedeBean.entidadEnEdicion.sedActivo eq true)
+                                                                 and sessionBean.operaciones.contains(ConstantesOperaciones.CERRAR_SEDE)}"
+                                                     action="#{sedeBean.prepararCierreSede()}" 
+                                                     update=":form:tabs:cerrarDialog" oncomplete="PF('cerrarDialog').show()"  
+                                                     styleClass="btn btn-secondary" />
+                                <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{sedeBean.guardar()}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!sedeBean.soloLectura}"/>
+                                
+                                <p:blockUI block="formularioSede" trigger="btnGuardar" />
+                                <p:defaultCommand target="btnGuardar" scope="containerFormularioSede"/>     
+                            </div>
+
+
+
+                        </p:outputPanel>
+                    </h:panelGroup>
+                 
+                    <p:dialog id="cerrarDialog" header="Cerrar sede" 
+                              widgetVar="cerrarDialog" modal="true" showEffect="fade" 
+                              hideEffect="fade" resizable="false" >
+                        <p:outputPanel id="cerrarDialogDetalle"> 
+                            <h:panelGroup rendered="#{not empty sedeBean.entidadEnEdicion}"  > 
+                                <p:messages id="popupmsgCerrarDialog" showDetail="true" globalOnly="false" for="popupmsgCerrarDialog" closable="true"/>   
+
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.fechaCierre}" for="fecha_cierre" styleClass="col-sm-4 col-form-label obligatorio"/>																																		
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <p:calendar autocomplete="off" styleClass="fomr-control" id="fecha_cierre"
+                                                    value="#{sedeBean.entidadEnEdicion.sedFechaCierre}" 
+                                                    pattern="#{applicationBean.patternFecha}" 
+                                                    locale="#{sessionBean.locale}" 
+                                                    converter="#{localDateConverter}">    
+                                        </p:calendar>																			  																															
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.motivoCierre}" for="motivo_cierre" styleClass="col-sm-4 col-form-label obligatorio"/>																																		
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="filtro_variable" value="#{sedeBean.motivoCierreCombo.selected}" styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedeBean.motivoCierreCombo.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.observacion}" for="input_observacion_cierre" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <p:inputTextarea  id="input_observacion_cierre"    counter="displayObs" maxlength="255" counterTemplate="{0} caracteres restantes."   styleClass="form-control" value="#{sedeBean.entidadEnEdicion.sedObservacionCierre}" />
+                                        <h:outputText id="displayObs" />    
+                                    </p:outputPanel>    
+                                </p:outputPanel>
+                                
+
+                                <p:outputPanel styleClass="control-group" >
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnCerrarSede"  value="#{msg.guardar}" action="#{sedeBean.cerrarSede()}"
+                                                         update="cerrarDialogDetalle form:mensajeCierre form:tabs:containerFormularioSede" styleClass="btn btn-primary" 
+                                                         icon="glyphicon glyphicon-floppy-disk" />
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('cerrarDialog').hide();"   styleClass="btn btn-link"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="@form" trigger="btnCerrarSede" />                             
+
+                            </h:panelGroup>   
+                        </p:outputPanel>   
+                    </p:dialog>
+                </p:tab>       
+
+                
+                <p:tab id="serviciosEducativos" title="#{msg.hServicios}" disabled="#{sedeBean.entidadEnEdicion == null or sedeBean.entidadEnEdicion.sedPk == null or sedeBean.sedeRev != null}">
+                    <c:if test="#{sedeBean.tabActiveId == 'serviciosEducativos'}">
+                        <ui:include src="componentes/servicioEducativoComponente.xhtml">
+                            <ui:param name="sedeEducativa" value="#{sedeBean.entidadEnEdicion}" /> 
+                            <ui:param name="soloLectura" value="#{sedeBean.soloLectura}" /> 
+                        </ui:include>
+                    </c:if>
+                </p:tab>
+                <p:tab id="secciones" title="#{msg.hSecciones}" disabled="#{sedeBean.entidadEnEdicion == null or sedeBean.entidadEnEdicion.sedPk == null or sedeBean.sedeRev != null}">
+                    <c:if test="#{sedeBean.tabActiveId == 'secciones'}">
+                        <ui:include src="componentes/seccionesComponente.xhtml">
+                            <ui:param name="sedeEducativa" value="#{sedeBean.entidadEnEdicion}" /> 
+                            <ui:param name="soloLectura" value="#{sedeBean.soloLectura}" /> 
+                        </ui:include>
+                    </c:if>
+                </p:tab>
+                <p:tab id="otrosDatos" title="#{msg.otrosDatos}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_OTROS_DATOS_SEDE)}" disabled="#{sedeBean.entidadEnEdicion == null or sedeBean.entidadEnEdicion.sedPk == null or sedeBean.sedeRev != null}">
+
+                    <p:outputPanel rendered="#{sedeBean.tabActiveId == 'otrosDatos'}">
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.preligion}" styleClass="col-sm-3 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_religiosa" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.sedReligiosa}" disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" >
+                                        <p:ajax event="change" process="@this" update="fila_input_religion"/>
+                                    </h:selectBooleanCheckbox>
+                                    <h:outputLabel for="input_religiosa" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="fila_input_religion">
+                            <p:outputPanel styleClass="form-group row" rendered="#{sedeBean.entidadEnEdicion.sedReligiosa==true}">
+                                <h:outputLabel value="#{msg.religion}" for="input_religion" 
+                                               styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">                            
+                                    <h:inputText autocomplete="off" id="input_religion"  
+                                                 styleClass="form-control texto-largo" 
+                                                 value="#{sedeBean.entidadEnEdicion.sedReligion}"  
+                                                 disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" maxlength="150"/>
+                                </p:outputPanel>                                                                                   
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.comitePedagogico}" styleClass="col-sm-3 col-form-label"/>
+                            <div class="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_comite_pedagogico" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.sedComitePedagogico}" disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" />
+                                    <h:outputLabel for="input_comite_pedagogico" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.comitePadresMadres}" styleClass="col-sm-3 col-form-label"/>
+                            <div class="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_comite_padres_madres" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.sedComitePadresMadres}" disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" />
+                                    <h:outputLabel for="input_comite_padres_madres" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.comitEstudiantil}" styleClass="col-sm-3 col-form-label"/>
+                            <div class="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_comite_estudiantil" styleClass="form-check-input" value="#{sedeBean.entidadEnEdicion.sedComiteEstudiantil}" disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" />
+                                    <h:outputLabel for="input_comite_estudiantil" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <div class="form-action-buttons">
+                            <p:commandButton  id="btnGuardarOtrosDatos" value="#{msg.guardar}" action="#{sedeBean.guardar()}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE)}"/>
+                            <p:blockUI block="formularioSede" trigger="btnGuardar" />
+                            <p:defaultCommand target="btnGuardar" scope="containerFormularioSede"/>     
+                        </div>
+
+                        <p:outputPanel rendered="#{sedeBean.entidadEnEdicion.sedTipo==TipoSede.CED_PRI}" >
+
+                            <fieldset >
+                                <legend><h:outputText value="#{msg.detalleMatricula}"/></legend>
+                                <p:outputPanel styleClass="form-action-buttons margen-sup">
+                                    <p:commandButton value="#{msg.agregar}" icon="glyphicon glyphicon-plus" 
+                                                     action="#{sedeBean.agregarDetalleMatricula()}" 
+                                                     update=":form:tabs:detalleMatriculaDialog" 
+                                                     oncomplete="PF('detalleMatriculaDialog').show()"  
+                                                     id="btnAgregarDetalleMatricula" 
+                                                     styleClass="btn btn-secondary" 
+                                                     rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_DETALLE_MATRICULA)}"/>
+                                </p:outputPanel>
+
+                                <p:outputPanel id="pnlDetalleMatricula">
+                                    <p:dataTable id="tablaDetalleMatricula"                         
+                                                 widgetVar="widDetalleMatricula"                         
+                                                 var="deta"                          
+                                                 value="#{sedeBean.listDetalleMatricula}"
+                                                 emptyMessage="#{msg.noHayResultados}"		
+                                                 sortField="demPk"
+                                                 reflow="true" >
+
+                                        <p:column headerText="#{msg.hanio}">
+                                            <h:outputText value="#{deta.demAnioLectivo.aleAnio}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hnivel}">
+                                            <h:outputText value="#{deta.demNivel.nivNombre}"  />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hcostoMatricula}">
+                                            <h:outputText value="#{deta.demCostoMatricula}"  />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hcantidadMensualidades}">
+                                            <h:outputText value="#{deta.demCantidadMensualidad}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hcostoMensualidad}">
+                                            <h:outputText value="#{deta.demCostoMensualidad}" />
+                                        </p:column>
+                                        <p:column styleClass="columnaAcciones"  exportable="false" 
+                                                  rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_DETALLE_MATRICULA)}">
+                                            <p:commandButton update=":form:tabs:detalleMatriculaDialog"  
+                                                             oncomplete="PF('detalleMatriculaDialog').show()"  
+                                                             icon="glyphicon glyphicon-pencil" 
+                                                             styleClass="btn btn-icono" 
+                                                             title="#{msg.editar}" 
+                                                             action="#{sedeBean.editarDetalleMatricula(deta)}"/>
+                                        </p:column> 
+                                        <p:column styleClass="columnaAcciones"  exportable="false" 
+                                                  rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_DETALLE_MATRICULA)}">
+                                            <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:pnlDetalleMatricula"  
+                                                             icon="glyphicon glyphicon-trash" 
+                                                             styleClass="btn btn-icono rojo" 
+                                                             title="#{msg.eliminar}" 
+                                                             action="#{sedeBean.eliminarDetalleMatricula(deta)}"/>
+                                        </p:column>                                         
+                                    </p:dataTable>   
+                                </p:outputPanel>
+                            </fieldset>
+                        </p:outputPanel>
+
+
+                        <fieldset>
+                            <legend><h:outputText value="#{msg.organismoCE}"/></legend>
+                            <p:outputPanel styleClass="form-action-buttons">
+                                <p:commandButton value="#{msg.agregarOrganismoCoordinacion}" icon="glyphicon glyphicon-plus" 
+                                                 action="#{sedeBean.agregarOrganismo()}" 
+                                                 update=":form:tabs:OrganismoCEDetalle" 
+                                                 oncomplete="PF('OrganismoCEDialog').show()"  
+                                                 id="btnAgregarOrganismoCE" 
+                                                 styleClass="btn btn-secondary" 
+                                                 rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ORGANISMO_CE_SEDE)}"/>
+                            </p:outputPanel>
+
+                            <p:outputPanel id="pnlOrganismoCE">
+                                <p:dataTable id="tablaOrganismoCE"                         
+                                             widgetVar="widOrganismoCE"                         
+                                             var="org"                          
+                                             value="#{sedeBean.listaOrganismos}"
+                                             emptyMessage="#{msg.noHayResultados}"		
+                                             sortField="ocsPk"
+                                             reflow="true" >
+
+                                    <p:column headerText="#{msg.organismo}">
+                                        <h:outputText value="#{org.ocsOrgCoordinacionEscolar.oceNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hconsejoConsultivoEducacion}">
+                                        <h:outputText value="#{org.ocsConsejoConsultivo}" converter="#{booleanConverter}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hfuncionandoCentro}">
+                                        <h:outputText value="#{org.ocsFuncionando}" converter="#{booleanConverterNull}" />
+                                    </p:column>
+
+                                    <p:column styleClass="columnaAcciones"  exportable="false" 
+                                              rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ORGANISMO_CE_SEDE)}">
+                                        <p:commandButton oncomplete="PF('confirmDialogOrganismoCE').show()"
+                                                         icon="glyphicon glyphicon-trash" 
+                                                         styleClass="btn btn-icono rojo" 
+                                                         title="#{msg.eliminar}" 
+                                                         action="#{sedeBean.actualizarOrganismo(org)}"
+                                                         />
+                                    </p:column>                                         
+                                </p:dataTable>   
+                            </p:outputPanel>
+                        </fieldset>
+
+
+
+
+                        <fieldset>
+                            <legend><h:outputText value="#{msg.factoresRiesgoAmbiental}"/></legend>
+                            <p:outputPanel styleClass="form-action-buttons">
+                                <p:commandButton value="#{msg.agregarFactorRiesgoAmbiental}" icon="glyphicon glyphicon-plus" 
+                                                 action="#{sedeBean.agregarFactorRiesgoAmbiental()}" 
+                                                 update=":form:tabs:FactorRiesgoDetalle :form:tabs:FactorRiesgoTitulo" oncomplete="PF('FactorRiesgoDialog').show()"  
+                                                 id="btnAgregarFactorRiesgoAmbiental" 
+                                                 styleClass="btn btn-secondary" 
+                                                 rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_FACTOR_RIESGO_SEDE)}">
+                                </p:commandButton>
+                            </p:outputPanel>
+
+                            <p:outputPanel id="pnlFactorRiesgoAmbiental">
+                                <p:dataTable id="tablaFactorRiesgoAmbiental"                         
+                                             widgetVar="widFactorRiesgoAmbiental"                         
+                                             var="elem"                          
+                                             value="#{sedeBean.listFactorRiesgoAmbiente}" 
+                                             emptyMessage="#{msg.noHayResultados}"	
+                                             lazy="true"
+                                             sortField="friPk"
+                                             reflow="true" >                            
+
+
+                                    <p:column headerText="#{msg.htipoRiesgo}">
+                                        <h:outputText value="#{elem.friTipoRiesgo.triNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hgradoAfectacion}">
+                                        <h:outputText value="#{elem.friGradoRiesgo.greNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hperiodo}">
+                                        <h:outputText value="#{elem.friPeriodo}" />
+                                    </p:column>
+
+                                    <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_FACTOR_RIESGO_SEDE)}">
+
+                                        <p:commandButton oncomplete="PF('confirmDialogFactorRiesgo').show()"
+                                                         icon="glyphicon glyphicon-trash" 
+                                                         styleClass="btn btn-icono rojo" 
+                                                         title="#{msg.eliminar}" 
+                                                         action="#{sedeBean.actualizarFactorRiesgoAmbiental(elem)}"
+                                                         />
+                                    </p:column>                                         
+                                </p:dataTable>   
+                            </p:outputPanel>
+                        </fieldset>
+
+
+
+                        <fieldset>
+                            <legend><h:outputText value="#{msg.factoresRiesgoSocial}"/></legend>
+                            <p:outputPanel styleClass="form-action-buttons">
+                                <p:commandButton value="#{msg.agregarFactorRiesgoSocial}" icon="glyphicon glyphicon-plus" 
+                                                 action="#{sedeBean.agregarFactorRiesgoSocial()}" 
+                                                 update=":form:tabs:FactorRiesgoDetalle :form:tabs:FactorRiesgoTitulo" oncomplete="PF('FactorRiesgoDialog').show()"  
+                                                 id="btnAgregarFactorRiesgoSocial" 
+                                                 styleClass="btn btn-secondary" 
+                                                 rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_FACTOR_RIESGO_SEDE)}"/>
+                            </p:outputPanel>
+
+                            <p:outputPanel id="pnlFactorRiesgoSocial">
+                                <p:dataTable id="tablaFactorRiesgoSocial"                         
+                                             widgetVar="widFactorRiesgoSocial"                         
+                                             var="elem"                          
+                                             value="#{sedeBean.listFactorRiesgoSocial}"
+                                             emptyMessage="#{msg.noHayResultados}"
+                                             sortField="friPk"
+                                             reflow="true" >
+
+
+
+                                    <p:column headerText="#{msg.htipoRiesgo}">
+                                        <h:outputText value="#{elem.friTipoRiesgo.triNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hgradoAfectacion}">
+                                        <h:outputText value="#{elem.friGradoRiesgo.greNombre}" />
+                                    </p:column>
+
+                                    <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_FACTOR_RIESGO_SEDE)}">
+
+                                        <p:commandButton oncomplete="PF('confirmDialogFactorRiesgoSoc').show()"
+                                                         icon="glyphicon glyphicon-trash" 
+                                                         styleClass="btn btn-icono rojo" 
+                                                         title="#{msg.eliminar}" 
+                                                         action="#{sedeBean.actualizarRiesgoSocial(elem)}"
+                                                         />
+                                    </p:column>                                         
+                                </p:dataTable>   
+                            </p:outputPanel>
+                        </fieldset>
+
+
+                        <fieldset>
+                            <legend><h:outputText value="#{msg.datosPorAnio}"/></legend>
+                            <p:outputPanel styleClass="col-sm-6" id="fila_filtro_anio_otros">
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.anio}" for="filtro_anio_otros" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-10">
+                                        <h:selectOneMenu id="filtro_anio_otros" value="#{sedeBean.comboAnioLectivoOtros.selected}" 
+                                                         styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedeBean.comboAnioLectivoOtros.items}"/>
+                                            <p:ajax update="pnlCasoViolacion pnlAccionPrevenirEmbarazo pnlAsistencia pnlFactorRiesgoAmbiental pnlFactorRiesgoSocial" 
+                                                    event="change" process="@this" listener="#{sedeBean.buscarListas()}"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.casosViolacion}"/></legend>
+                                <p:outputPanel styleClass="form-action-buttons">
+                                    <p:commandButton value="#{msg.agregarCasoViolacion}" icon="glyphicon glyphicon-plus" 
+                                                     action="#{sedeBean.agregarCasoViolacion()}" 
+                                                     update=":form:tabs:CasoViolacionDetalle" oncomplete="PF('CasoViolacionDialog').show()"  
+                                                     id="btnAgregarCasoViolacion" 
+                                                     styleClass="btn btn-secondary" 
+                                                     rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CASO_VIOLACION)}"/>
+                                </p:outputPanel>
+
+                                <p:outputPanel id="pnlCasoViolacion">
+                                    <p:dataTable id="tablaCasosViolacion"                         
+                                                 widgetVar="widCasosViolacion"                         
+                                                 var="CasosViolacion"                          
+                                                 value="#{sedeBean.listCasoViolacion}"
+                                                 emptyMessage="#{msg.noHayResultados}"	
+                                                 sortField="cviPk"
+                                                 reflow="true" >                                 
+
+
+                                        <p:column headerText="#{msg.hanio}">
+                                            <h:outputText value="#{CasosViolacion.cviAnio.aleAnio}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hcasosViolacion}">
+                                            <h:outputText value="#{CasosViolacion.cviViolaciones}" converter="#{booleanConverter}" />
+                                        </p:column>
+
+                                        <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_CASO_VIOLACION)}}">
+                                            <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:pnlCasoViolacion"  
+                                                             icon="glyphicon glyphicon-trash" 
+                                                             styleClass="btn btn-icono rojo" 
+                                                             title="#{msg.eliminar}" 
+                                                             action="#{sedeBean.eliminarCasoViolacion(CasosViolacion)}"/>
+                                        </p:column>                                         
+                                    </p:dataTable>   
+                                </p:outputPanel>
+                            </fieldset>
+
+
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.accionesPrevenirEmbarazo}"/></legend>
+                                <p:outputPanel styleClass="form-action-buttons">
+                                    <p:commandButton value="#{msg.agregarAccion}" icon="glyphicon glyphicon-plus" 
+                                                     action="#{sedeBean.agregarAccionPrevenirEmbarazo()}" 
+                                                     update=":form:tabs:AccionPrevenirEmbarazoDetalle" oncomplete="PF('AccionPrevenirEmbarazoDialog').show()"  
+                                                     id="btnAgregarAccionPrevenirEmbarazo" 
+                                                     styleClass="btn btn-secondary" 
+                                                     rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACCION_PREVENIR_EMBARAZO)}"/>
+                                </p:outputPanel>
+
+                                <p:outputPanel id="pnlAccionPrevenirEmbarazo">
+                                    <p:dataTable id="tablaAccionPrevenirEmbarazo" var="elem" 
+                                                 emptyMessage="#{msg.noHayResultados}"
+                                                 value="#{sedeBean.listaAccionPrevenirEmbarazo}">
+
+                                        <p:column headerText="#{msg.hanio}">
+                                            <h:outputText value="#{elem.apeAnio.aleAnio}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hinstitucionConOrganizacion}">
+                                            <h:outputText value="#{elem.apeInstitucion}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.htipoAccion}">
+                                            <h:outputText value="#{elem.apeTipoAccion.tacNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hdescripcion}">
+                                            <h:outputText value="#{elem.apeDescripcion}" />
+                                        </p:column>
+
+                                        <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ACCION_PREVENIR_EMBARAZO)}">
+                                            <p:commandButton oncomplete="PF('confirmDialogPrevenirEmbarazo').show()"
+                                                             icon="glyphicon glyphicon-trash" 
+                                                             styleClass="btn btn-icono rojo" 
+                                                             title="#{msg.eliminar}" 
+                                                             action="#{sedeBean.actualizarAccionPrevenirEmbarazo(elem)}"
+                                                             />
+                                        </p:column>                                         
+                                    </p:dataTable>   
+                                </p:outputPanel>
+                            </fieldset>
+
+
+
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.apoyoSedeEducativa}"/></legend>
+                                <p:outputPanel styleClass="form-action-buttons">
+                                    <p:commandButton value="Agregar apoyo a la sede educativa" icon="glyphicon glyphicon-plus" 
+                                                     action="#{sedeBean.agregarAsistencia()}" 
+                                                     update=":form:tabs:AsistenciaDetalle" oncomplete="PF('AsistenciaDialog').show()"  
+                                                     id="btnAgregarAsistencia" 
+                                                     styleClass="btn btn-secondary" 
+                                                     rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ASISTENCIA_SEDE)}"/>
+                                </p:outputPanel>
+
+                                <p:outputPanel id="pnlAsistencia">
+                                    <p:dataTable id="tablaAsistencia"                         
+                                                 widgetVar="widAsistencia"                         
+                                                 var="elem"                          
+                                                 value="#{sedeBean.listAsistenciaSede}"
+                                                 emptyMessage="#{msg.noHayResultados}"	
+                                                 sortField="asePk"
+                                                 reflow="true" >                                     
+
+                                        <p:column headerText="#{msg.hanio}">
+                                            <h:outputText value="#{elem.aseAnio.aleAnio}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.htipoApoyo}">
+                                            <h:outputText value="#{elem.aseTipoApoyo.tapNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hcooperante}">
+                                            <h:outputText value="#{elem.aseTipoProveedor.tprNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hnombreCooperante}">
+                                            <h:outputText value="#{elem.aseNombreProveedor}" />
+                                        </p:column>
+
+                                        <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ASISTENCIA_SEDE)}">
+                                            <p:commandButton oncomplete="PF('confirmDialogApoyoSede').show()"
+                                                             icon="glyphicon glyphicon-trash" 
+                                                             styleClass="btn btn-icono rojo" 
+                                                             title="#{msg.eliminar}" 
+                                                             action="#{sedeBean.actualizarAsistenciaSede(elem)}"
+                                                             />
+                                        </p:column>                                         
+                                    </p:dataTable>   
+                                </p:outputPanel>
+                            </fieldset>
+
+
+                        </fieldset>
+
+                        <p:confirmDialog id="confirmDialogOrganismoCE"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogOrganismoCE">
+                            <p:outputPanel styleClass="float-right" >
+                                <p:commandButton id="confirmDeleteOrganismoCE" value="#{msg.hconfirmar}" update="pnlOrganismoCE"  
+                                                 oncomplete="PF('confirmDialogOrganismoCE').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{sedeBean.eliminarOrganismo()}"  />
+                                <p:blockUI block="@form" trigger="confirmDeleteOrganismoCE"/>
+                                <p:commandLink id="cancelarDeleteOrganismoCE" value="#{msg.cancelar}"
+                                               onclick="PF('confirmDialogOrganismoCE').hide()" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:confirmDialog>
+
+                        <p:confirmDialog id="confirmDialogFactorRiesgo"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogFactorRiesgo">
+                            <p:outputPanel styleClass="float-right" >
+                                <p:commandButton id="confirmDeleteFactorRiesgo" value="#{msg.hconfirmar}" update="pnlFactorRiesgoAmbiental"
+                                                 oncomplete="PF('confirmDialogFactorRiesgo').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{sedeBean.eliminarFactorRiesgoAmbiental()}"  />
+                                <p:blockUI block="@form" trigger="confirmDeleteFactorRiesgo"/>
+                                <p:commandLink id="cancelarDeleteFactorRiesgo" value="#{msg.cancelar}"
+                                               onclick="PF('confirmDialogFactorRiesgo').hide()" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:confirmDialog>
+
+
+                        <p:confirmDialog id="confirmDialogFactorRiesgoSoc"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogFactorRiesgoSoc">
+                            <p:outputPanel styleClass="float-right" >
+                                <p:commandButton id="confirmDeleteFactorRiesgoSoc" value="#{msg.hconfirmar}" update="pnlFactorRiesgoSocial"
+                                                 oncomplete="PF('confirmDialogFactorRiesgoSoc').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{sedeBean.eliminarFactorRiesgoSocial()}"  />
+                                <p:blockUI block="@form" trigger="confirmDeleteFactorRiesgoSoc"/>
+                                <p:commandLink id="cancelarDeleteFactorRiesgoSoc" value="#{msg.cancelar}"
+                                               onclick="PF('confirmDialogFactorRiesgoSoc').hide()" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:confirmDialog>
+
+                        <p:confirmDialog id="confirmDialogPrevenirEmbarazo"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogPrevenirEmbarazo">
+                            <p:outputPanel styleClass="float-right" >
+                                <p:commandButton id="confirmDeletePrevenirEmbarazo" value="#{msg.hconfirmar}" update="pnlAccionPrevenirEmbarazo"
+                                                 oncomplete="PF('confirmDialogPrevenirEmbarazo').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{sedeBean.eliminarAccionPrevenirEmbarazo()}"  />
+                                <p:blockUI block="@form" trigger="confirmDeletePrevenirEmbarazo"/>
+                                <p:commandLink id="cancelarDeletePrevenirEmbarazo" value="#{msg.cancelar}"
+                                               onclick="PF('confirmDialogPrevenirEmbarazo').hide()" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:confirmDialog>
+
+
+                        <p:confirmDialog id="confirmDialogApoyoSede"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogApoyoSede">
+                            <p:outputPanel styleClass="float-right" >
+                                <p:commandButton id="confirmDeleteApoyoSede" value="#{msg.hconfirmar}" update="pnlAsistencia"
+                                                 oncomplete="PF('confirmDialogApoyoSede').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{sedeBean.eliminarAsistencia()}"  />
+                                <p:blockUI block="@form" trigger="confirmDeleteApoyoSede"/>
+                                <p:commandLink id="cancelarDeleteApoyoSede" value="#{msg.cancelar}"
+                                               onclick="PF('confirmDialogApoyoSede').hide()" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:confirmDialog>
+
+                        <p:dialog id="detalleMatriculaDialog" header="#{msg.detalleMatricula}" 
+                                  widgetVar="detalleMatriculaDialog" modal="true" showEffect="fade" 
+                                  hideEffect="fade" resizable="false" >
+                            <p:outputPanel id="detalleMatriculaDetalle"> 
+                                <h:panelGroup rendered="#{not empty sedeBean.detalleMatriculaEnEdicion}"  > 
+                                    <p:messages id="popupmsgDetalleMatricula" showDetail="true" globalOnly="false" for="popupmsgDetalleMatricula" closable="true"/>   
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_detalle_matricula_anio">
+                                        <h:outputLabel value="#{msg.anioLectivo}" for="input_detalle_matricula_anio" styleClass="col-sm-4 col-form-label obligatorio"/>																																		
+                                        <p:outputPanel styleClass="col-sm-8 ">
+                                            <h:selectOneMenu id="input_detalle_matricula_anio" value="#{sedeBean.comboAnioLectivoDetalleMatricula.selected}" 
+                                                             styleClass="form-control dropdown texto-medio" >
+                                                <f:selectItems value="#{sedeBean.comboAnioLectivoDetalleMatricula.items}" />
+                                            </h:selectOneMenu>																						  																															
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_detalle_matricula_nivel">
+                                        <h:outputLabel value="#{msg.nivel}" for="input_detalle_matricula_nivel" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                        <p:outputPanel styleClass="col-sm-8 ">
+                                            <h:selectOneMenu id="input_detalle_matricula_nivel" value="#{sedeBean.comboNivelDetalleMatricula.selected}" 
+                                                             styleClass="form-control dropdown texto-medio" >
+                                                <f:selectItems value="#{sedeBean.comboNivelDetalleMatricula.items}" />
+                                            </h:selectOneMenu>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_costo_matricula">
+                                        <h:outputLabel value="#{msg.costoMatricula}" for="input_costo_matricula" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">                            
+                                            <p:inputNumber autocomplete="off" id="input_costo_matricula" decimalPlaces="0" value="#{sedeBean.detalleMatriculaEnEdicion.demCostoMatricula}" styleClass="form-control texto-extra-corto"/>
+                                            <h:message for="input_costo_matricula" styleClass="msj-danger"/>
+                                        </p:outputPanel> 
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_cantidad_mensualidad">
+                                        <h:outputLabel value="#{msg.cantidadMensualidad}" for="input_cantidad_mensualidad" styleClass="col-sm-4 col-form-label"/>																																	 
+                                        <p:outputPanel styleClass="col-sm-8">                            
+                                            <p:inputNumber autocomplete="off" id="input_cantidad_mensualidad" decimalPlaces="0" value="#{sedeBean.detalleMatriculaEnEdicion.demCantidadMensualidad}" styleClass="form-control texto-extra-corto"/>
+                                            <h:message for="input_costo_matricula" styleClass="msj-danger"/>																								 
+                                        </p:outputPanel> 
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_costo_mensualidad">
+                                        <h:outputLabel value="#{msg.costoMensualidad}" for="input_costo_mensualidad" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8">                            
+                                            <p:inputNumber autocomplete="off" id="input_costo_mensualidad" decimalPlaces="0" value="#{sedeBean.detalleMatriculaEnEdicion.demCostoMensualidad}" styleClass="form-control texto-extra-corto"/>
+                                            <h:message for="input_costo_mensualidad" styleClass="msj-danger"/>
+                                        </p:outputPanel> 
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="control-group" >
+                                        <p:outputPanel styleClass="float-right">
+                                            <p:commandButton id="btnGuardarDetalleMatricula"  value="#{msg.guardar}" action="#{sedeBean.guardarDetalleMatricula()}"
+                                                             update="detalleMatriculaDetalle pnlDetalleMatricula" styleClass="btn btn-primary" 
+                                                             icon="glyphicon glyphicon-floppy-disk" 
+                                                             rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_DETALLE_MATRICULA)}"/>
+                                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('detalleMatriculaDialog').hide();"  styleClass="btn btn-link"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:blockUI block="detalleMatriculaDetalle" trigger="btnGuardarDetalleMatricula" />                             
+
+                                </h:panelGroup>   
+                            </p:outputPanel>   
+                        </p:dialog>
+
+
+                        <p:dialog id="OrganismoCEDialog" header="#{msg.agregarOrganismoCE}" 
+                                  widgetVar="OrganismoCEDialog" modal="true" showEffect="fade" 
+                                  hideEffect="fade" resizable="false" >
+                            <p:outputPanel id="OrganismoCEDetalle"> 
+                                <p:messages id="popupmsgOrganismoCE" showDetail="true" globalOnly="false" for="popupmsgOrganismoCE" closable="true"/>   
+
+                                <p:outputPanel styleClass="form-group row" id="fila_organismo_input_organismo">
+                                    <h:outputLabel value="#{msg.porganismo}" for="input_organismo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="input_organismo" value="#{sedeBean.comboOrganismo.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboOrganismo.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_organismo_input_consejo_consultativo">
+                                    <h:outputLabel value="#{msg.consejoConsultivoEducacion}" styleClass="col-sm-4  col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <p:outputPanel styleClass="form-check">
+                                            <h:selectBooleanCheckbox id="input_consejo_consultativo" styleClass="form-check-input" 
+                                                                     value="#{sedeBean.organismoCE.ocsConsejoConsultivo}" 
+                                                                     disabled="#{sedeBean.soloLectura}" >
+                                                <p:ajax event="change" update="panel_group_funcionando_centro" process="@this"/>
+                                            </h:selectBooleanCheckbox>
+                                            <h:outputLabel for="input_consejo_consultativo" styleClass="form-check-label">
+                                                <h:outputText value="#{msg.si}"/>
+                                            </h:outputLabel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <h:panelGroup  id="panel_group_funcionando_centro">
+                                    <p:outputPanel styleClass="form-group row" id="fila_organismo_input_funcionando" 
+                                                   rendered="#{sedeBean.organismoCE.ocsConsejoConsultivo}">
+                                        <h:outputLabel value="#{msg.funcionandoCentro}" styleClass="col-sm-4 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8 ">
+                                            <p:outputPanel styleClass="form-check">
+                                                <h:selectBooleanCheckbox id="input_funcionando" styleClass="form-check-input" 
+                                                                         value="#{sedeBean.organismoCE.ocsFuncionando}" 
+                                                                         disabled="#{sedeBean.soloLectura}" />
+                                                <h:outputLabel for="input_funcionando" styleClass="form-check-label">
+                                                    <h:outputText value="#{msg.si}"/>
+                                                </h:outputLabel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </h:panelGroup>
+
+                                <p:outputPanel styleClass="control-group" >
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnGuardarOrganismoCE"  value="#{msg.guardar}" action="#{sedeBean.agregarOrganismoCESede()}"
+                                                         update="OrganismoCEDetalle pnlOrganismoCE" styleClass="btn btn-primary" 
+                                                         icon="glyphicon glyphicon-floppy-disk" 
+                                                         rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ORGANISMO_CE_SEDE)}"/>
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('OrganismoCEDialog').hide();"  styleClass="btn btn-link"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="OrganismoCEDetalle" trigger="btnGuardarOrganismoCE" />     
+                                <p:defaultCommand target="btnGuardarOrganismoCE" scope="OrganismoCEDetalle"/>                           
+                            </p:outputPanel>
+                        </p:dialog>
+
+
+                        <p:dialog id="CasoViolacionDialog" header="#{msg.agregarCasoViolacion}" 
+                                  widgetVar="CasoViolacionDialog" modal="true" showEffect="fade" 
+                                  hideEffect="fade" resizable="false" >
+                            <p:outputPanel id="CasoViolacionDetalle"> 
+                                <p:messages id="popupmsgCasoViolacion" showDetail="true" globalOnly="false" for="popupmsgCasoViolacion" closable="true"/>   
+
+                                <p:outputPanel styleClass="form-group row" id="fila_caso_violacion_input_anio">
+                                    <h:outputLabel value="#{msg.anio}" for="caso_violacion_input_anio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="caso_violacion_input_anio" value="#{sedeBean.comboAnioLectivoInsert.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboAnioLectivoInsert.items}" />
+                                            <p:ajax process="@this" listener="#{sedeBean.seleccionarAnioLectivoInsert()}"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_caso_violacion_input_cantidad_casos">
+                                    <h:outputLabel value="#{msg.pcasosViolacion}" styleClass="col-sm-4  col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <p:outputPanel styleClass="form-check">
+                                            <h:selectBooleanCheckbox id="caso_violacion_input_cantidad_casos" styleClass="form-check-input" 
+                                                                     value="#{sedeBean.casoViolacion.cviViolaciones}" 
+                                                                     disabled="#{sedeBean.soloLectura}" />
+                                            <h:outputLabel for="caso_violacion_input_cantidad_casos" styleClass="form-check-label">
+                                                <h:outputText value="#{msg.si}"/>
+                                            </h:outputLabel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="control-group" >
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnGuardarCasoViolacion"  value="#{msg.guardar}" action="#{sedeBean.agregarCasoViolacionSede()}"
+                                                         update="CasoViolacionDetalle pnlCasoViolacion" styleClass="btn btn-primary" 
+                                                         icon="glyphicon glyphicon-floppy-disk" 
+                                                         rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CASO_VIOLACION)}"/>
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('CasoViolacionDialog').hide();"  styleClass="btn btn-link"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="CasoViolacionDetalle" trigger="btnGuardarCasoViolacion" />     
+                                <p:defaultCommand target="btnGuardarCasoViolacion" scope="CasoViolacionDetalle"/>                           
+                            </p:outputPanel>
+                        </p:dialog>
+
+
+                        <p:dialog id="AccionPrevenirEmbarazoDialog" header="#{msg.agregarAccionPrevenirEmbarazo}" 
+                                  widgetVar="AccionPrevenirEmbarazoDialog" modal="true" showEffect="fade" 
+                                  hideEffect="fade" resizable="false" >
+                            <p:outputPanel id="AccionPrevenirEmbarazoDetalle"> 
+                                <p:messages id="popupmsgAccionPrevenirEmbarazo" showDetail="true" globalOnly="false" for="popupmsgAccionPrevenirEmbarazo" closable="true"/>   
+
+                                <p:outputPanel styleClass="form-group row" id="fila_accion_prevenir_embarazo_input_anio">
+                                    <h:outputLabel value="#{msg.anio}" for="accion_prevenir_embarazo_input_anio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="accion_prevenir_embarazo_input_anio" value="#{sedeBean.comboAnioLectivoInsert.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboAnioLectivoInsert.items}" />
+                                            <p:ajax process="@this" listener="#{sedeBean.seleccionarAnioLectivoInsert()}"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_accion_prevenir_embarazo_input_institucion">
+                                    <h:outputLabel value="#{msg.institucionConOrganizacion}" for="accion_prevenir_embarazo_input_institucion" styleClass="col-sm-4  col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:inputText autocomplete="off" styleClass="form-control texto-corto" 
+                                                     id="accion_prevenir_embarazo_input_institucion" 
+                                                     value="#{sedeBean.accionPrevenirEmbarazo.apeInstitucion}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_accion_prevenir_embarazo_input_tipo_accion">
+                                    <h:outputLabel value="#{msg.tipoAccion}" for="accion_prevenir_embarazo_input_tipo_accion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="accion_prevenir_embarazo_input_tipo_accion" value="#{sedeBean.comboTipoAccion.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboTipoAccion.items}" />
+                                            <p:ajax event="change" update="panel_group_descripcion" process="@this" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <h:panelGroup  id="panel_group_descripcion">
+                                    <p:outputPanel styleClass="form-group row" id="fila_accion_prevenir_embarazo_input_descripcion" 
+                                                   rendered="#{sedeBean.comboTipoAccion.selectedT!=null?sedeBean.comboTipoAccion.selectedT.getTacNecesitaDescripcion():false}">
+                                        <h:outputLabel value="#{msg.descripcion}" for="accion_prevenir_embarazo_input_descripcion" 
+                                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                                        <p:outputPanel styleClass="col-sm-8 ">
+                                            <p:inputTextarea id="accion_prevenir_embarazo_input_descripcion"  
+                                                             styleClass="form-control texto-medio" 
+                                                             value="#{sedeBean.accionPrevenirEmbarazo.apeDescripcion}" 
+                                                             counter="displayObsAPE" maxlength="255" counterTemplate="{0} caracteres restantes." autoResize="false"/>
+                                            <h:outputText id="displayObsAPE" />
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </h:panelGroup>
+
+                                <p:outputPanel styleClass="control-group" >
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnGuardarAccionPrevenirEmbarazo"  value="#{msg.guardar}" action="#{sedeBean.agregarAccionPrevenirEmbarazoSede()}"
+                                                         update="AccionPrevenirEmbarazoDetalle pnlAccionPrevenirEmbarazo" styleClass="btn btn-primary" 
+                                                         icon="glyphicon glyphicon-floppy-disk" 
+                                                         rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACCION_PREVENIR_EMBARAZO)}"/>
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('AccionPrevenirEmbarazoDialog').hide();"  styleClass="btn btn-link"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="AccionPrevenirEmbarazoDetalle" trigger="btnGuardarAccionPrevenirEmbarazo" />     
+                                <p:defaultCommand target="btnGuardarAccionPrevenirEmbarazo" scope="AccionPrevenirEmbarazoDetalle"/>                           
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <p:dialog id="AsistenciaDialog" header="Apoyos a la sede educativa" 
+                                  widgetVar="AsistenciaDialog" modal="true" showEffect="fade" 
+                                  hideEffect="fade" resizable="false" >
+                            <p:outputPanel id="AsistenciaDetalle"> 
+                                <p:messages id="popupmsgAsistencia" showDetail="true" globalOnly="false" for="popupmsgAsistencia" closable="true"/>   
+
+                                <p:outputPanel styleClass="form-group row" id="fila_asistencia_input_anio">
+                                    <h:outputLabel value="#{msg.anio}" for="asistencia_input_anio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="asistencia_input_anio" value="#{sedeBean.comboAnioLectivoInsert.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboAnioLectivoInsert.items}" />
+                                            <p:ajax process="@this" listener="#{sedeBean.seleccionarAnioLectivoInsert()}"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_asistencia_input_tipo_apoyo">
+                                    <h:outputLabel value="#{msg.tipoApoyo}" for="asistencia_input_tipo_apoyo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="asistencia_input_tipo_apoyo" value="#{sedeBean.comboTipoApoyo.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboTipoApoyo.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_asistencia_input_tipo_proveedor">
+                                    <h:outputLabel value="#{msg.cooperante}" for="asistencia_input_tipo_proveedor" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="asistencia_input_tipo_proveedor" value="#{sedeBean.comboTipoProveedor.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboTipoProveedor.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="form-group row" id="fila_asistencia_input_proveedor">
+                                    <h:outputLabel value="#{msg.nombreCooperante}" for="asistencia_input_proveedor" styleClass="col-sm-4  col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:inputText autocomplete="off" styleClass="form-control texto-corto" 
+                                                     id="asistencia_input_proveedor" 
+                                                     value="#{sedeBean.asistenciaSede.aseNombreProveedor}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <p:outputPanel styleClass="control-group" >
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnGuardarAsistencia"  value="#{msg.guardar}" action="#{sedeBean.agregarAsistenciaSede()}"
+                                                         update="AsistenciaDetalle pnlAsistencia" styleClass="btn btn-primary" 
+                                                         icon="glyphicon glyphicon-floppy-disk" 
+                                                         rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ASISTENCIA_SEDE)}"/>
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('AsistenciaDialog').hide();"  styleClass="btn btn-link"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="AsistenciaDetalle" trigger="btnGuardarAsistencia" />     
+                                <p:defaultCommand target="btnGuardarAsistencia" scope="AsistenciaDetalle"/>                           
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <p:dialog id="FactorRiesgoDialog"
+                                  widgetVar="FactorRiesgoDialog" modal="true" showEffect="fade" 
+                                  hideEffect="fade" resizable="false" >
+                            <f:facet name="header">
+                                <h:outputText id="FactorRiesgoTitulo" value="#{sedeBean.tituloRiesgo}"/>
+                            </f:facet>
+                            <p:outputPanel id="FactorRiesgoDetalle"> 
+                                <p:messages id="popupmsgFactorRiesgo" showDetail="true" globalOnly="false" for="popupmsgFactorRiesgo" closable="true"/>   
+
+                                <p:outputPanel styleClass="form-group row" id="fila_factor_riesgo_input_tipo_riesgo">
+                                    <h:outputLabel value="#{msg.tipoRiesgo}" for="factor_riesgo_input_tipo_riesgo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="factor_riesgo_input_tipo_riesgo" value="#{sedeBean.comboTipoRiesgo.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboTipoRiesgo.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+
+
+                                <p:outputPanel styleClass="form-group row" id="fila_factor_riesgo_input_grado">
+                                    <h:outputLabel value="#{msg.gradoAfectacion}" for="factor_riesgo_input_grado" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 ">
+                                        <h:selectOneMenu id="factor_riesgo_input_grado" value="#{sedeBean.comboGradoRiesgo.selected}" 
+                                                         styleClass="form-control dropdown texto-medio" >
+                                            <f:selectItems value="#{sedeBean.comboGradoRiesgo.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <h:panelGroup rendered="#{sedeBean.tipoRiesgo}">
+                                    <p:outputPanel styleClass="form-group row" id="fila_factor_riesgo_input_fecha_inicio">
+                                        <h:outputLabel value="#{msg.fechaInicio}" for="factor_riesgo_input_fecha_inicio" styleClass="col-sm-4  col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8 ">
+                                            <p:calendar id="factor_riesgo_input_fecha_inicio" styleClass="form-control" 
+                                                        value="#{sedeBean.factorRiesgoSede.friFechaInicio}" 
+                                                        pattern="#{applicationBean.patternFecha}" 
+                                                        converter="#{localDateConverter}"
+                                                        maxdate="#{applicationBean.today()}" 
+                                                        mask="true"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+
+                                    <p:outputPanel styleClass="form-group row" id="fila_factor_riesgo_input_fecha_fin">
+                                        <h:outputLabel value="#{msg.fechaFin}" for="factor_riesgo_input_fecha_fin" styleClass="col-sm-4  col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-8 ">
+                                            <p:calendar id="factor_riesgo_input_fecha_fin" styleClass="form-control" 
+                                                        value="#{sedeBean.factorRiesgoSede.friFechaFin}" 
+                                                        pattern="#{applicationBean.patternFecha}" 
+                                                        converter="#{localDateConverter}"
+                                                        maxdate="#{applicationBean.today()}" 
+                                                        mask="true"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+
+                                </h:panelGroup>
+
+                                <p:outputPanel styleClass="control-group" >
+                                    <p:outputPanel styleClass="float-right">
+                                        <p:commandButton id="btnGuardarFactorRiesgo"  value="#{msg.guardar}" action="#{sedeBean.agregarFactorRiesgoSede()}"
+                                                         update="FactorRiesgoDetalle" styleClass="btn btn-primary" 
+                                                         icon="glyphicon glyphicon-floppy-disk" 
+                                                         rendered="#{!sedeBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_FACTOR_RIESGO_SEDE)}"/>
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('FactorRiesgoDialog').hide();"  styleClass="btn btn-link"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="FactorRiesgoDetalle" trigger="btnGuardarFactorRiesgo" />     
+                                <p:defaultCommand target="btnGuardarFactorRiesgo" scope="FactorRiesgoDetalle"/>                           
+                            </p:outputPanel>
+                        </p:dialog>
+
+                    </p:outputPanel>
+
+                </p:tab>
+
+                <p:tab id="traslados" title="#{msg.gestionSolicitudesTraslado}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_TRASLADOS_SEDE)}"
+                       disabled="#{sedeBean.entidadEnEdicion == null or sedeBean.entidadEnEdicion.sedPk == null or sedeBean.sedeRev != null}">
+
+
+                    <p:outputPanel styleClass="texto-right">
+                        <p:link outcome="#{ConstantesPaginas.SOLICITUD_TRASLADO}" title="#{msg.nuevoSolicitudTraslado}"
+                                rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.SOLICITAR_TRASLADO) and !sedeBean.soloLectura }"
+                                styleClass="btn btn-secondary">
+                            <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                            <h:outputText styleClass="" value="#{msg.nuevoSolicitudTraslado}"/>
+                        </p:link>
+                    </p:outputPanel>
+
+                    <h4><h:outputText value="#{msg.solicitudesTraslado}"/></h4>
+                    <p:outputPanel styleClass="form-group row" id="fila_solicitudes_traslado">
+                        <p:outputPanel styleClass="col-sm-6">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.estado}" for="input_estados_autocomplete" 
+                                               styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">      
+                                    <p:autoComplete id="input_estados_autocomplete" 
+                                                    styleClass="form-control texto-medio" 
+                                                    value="#{sedeBean.estados}"  
+                                                    disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}" 
+                                                    completeMethod="#{sedeBean.completeEstadoSolicitud}" 
+                                                    var="dis" itemLabel="#{dis.text}"  
+                                                    itemValue="#{dis}" 
+                                                    onclick="PF('b_estados_autocomplete').search(PF('b_estados_autocomplete').input.val())" 
+                                                    widgetVar="b_estados_autocomplete" 
+                                                    forceSelection="true" 
+                                                    queryDelay="500" 
+                                                    converter="#{estadoTrasladoConverter}"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}" 
+                                                    multiple="true" unique="true" >
+                                        <p:ajax event="itemSelect"  process="@this" update="fila_resumen_solicitudes_traslado"  listener="#{sedeBean.solicitudesTraslado}" />
+                                        <p:ajax event="itemUnselect"  process="@this" update="fila_resumen_solicitudes_traslado"  listener="#{sedeBean.solicitudesTraslado}" />
+                                    </p:autoComplete>
+
+
+                                </p:outputPanel>   
+                            </p:outputPanel>                
+                        </p:outputPanel>    
+
+                        <p:outputPanel styleClass="col-sm-6">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.anio}" for="input_anio" 
+                                               styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">        
+                                    <h:selectOneMenu  id="input_anio" 
+                                                      value="#{sedeBean.comboAnioLectivoSolicitudes.selected}"
+                                                      styleClass="form-control texto-medio"  
+                                                      disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}">
+                                        <f:selectItems value="#{sedeBean.comboAnioLectivoSolicitudes.items}" />
+                                        <p:ajax listener="#{sedeBean.solicitudesTraslado}"  process="@this" update="fila_resumen_solicitudes_traslado"/>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>   
+                            </p:outputPanel>                
+                        </p:outputPanel>   
+                    </p:outputPanel>
+                    <p:outputPanel id="fila_resumen_solicitudes_traslado" styleClass="margen-inf" >
+                        <p:dataTable id="basicDTSolicitudes"                         
+                                     widgetVar="widResultado"                         
+                                     var="elem"                          
+                                     value="#{sedeBean.solicitudTrasladoLazyModel}"                          
+                                     emptyMessage="#{msg.noHayResultados}"      
+                                     paginator="true"
+                                     lazy="true"
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="sotPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="#{sedeBean.paginado}"
+                                     reflow="true" >
+                            <f:facet name="{anterior}">
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}">
+                                <h:outputText styleClass="#{sedeBean.totalSolicitudes lt (sedeBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+
+                            <f:facet name="header">
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                    <p:outputPanel styleClass="col-md-6">
+                                        <p:outputPanel styleClass="row">
+                                            <p:outputPanel styleClass="col-sm-6">
+                                                <strong><h:outputText value="#{msg.cantidadSolicitudes}" /></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.totalSolicitudes}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-3">
+                                                <strong><h:outputText value="#{msg.hombres}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.ninosSolicitudes}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-3">
+                                                <strong><h:outputText value="#{msg.mujeres}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.ninasSolicitudes}" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-6">
+                                        <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                            <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                <p:dataExporter type="csv" target="basicDTSolicitudes" fileName="SolicitudTraslado" pageOnly="false"/>
+                                            </h:commandLink>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hnie}" sortBy="#{elem.sotEstudiante.estPersona.perNie}">
+                                <h:outputText value="#{elem.sotEstudiante.estPersona.perNie}" />
+                            </p:column>
+                            <p:column headerText="#{msg.nombreEstudiante}" sortBy="#{elem.sotEstudiante.estPersona.perNombreCompleto}">
+                                <h:outputText value="#{elem.sotEstudiante.estPersona.perNombreCompleto}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaSolicitud}" sortBy="#{elem.sotFechaSolicitud}">
+                                <h:outputText value="#{elem.sotFechaSolicitud}" converter="#{localDateConverter}"/>
+                            </p:column>
+                            <p:column headerText="#{msg.hmotivo}" sortBy="#{elem.sotMotivoTraslado.motNombre}">
+                                <h:outputText value="#{elem.sotMotivoTraslado.motNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hSedeEducativa}" sortBy="#{elem.sotSedeSolicitante.sedDirNombre}">
+                                <h:outputText value="#{elem.sotSedeSolicitante.sedDirNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hestado}" sortBy="#{elem.sotEstado}">
+                                <h:outputText value="#{elem.sotEstado}" />
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false">                    
+                                <p:link outcome="#{ConstantesPaginas.SOLICITUD_TRASLADO}" title="#{msg.verDetalle}"
+                                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_TRASLADO)}"
+                                        styleClass="btn btn-icono">
+                                    <h:outputText styleClass="glyphicon glyphicon-list"/>
+                                    <f:param name="idSolTr" value="#{elem.sotPk}"/>
+                                </p:link>
+                            </p:column> 
+                        </p:dataTable>
+                    </p:outputPanel>
+
+
+
+                    <h4><h:outputText value="#{msg.estudiantesRetiradosTraslado}"/></h4>
+                    <p:outputPanel styleClass="form-group row" id="fila_retirados_traslado">
+                        <p:outputPanel styleClass="col-sm-6">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.anio}" for="input_anio_traslado" 
+                                               styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">        
+                                    <h:selectOneMenu  id="input_anio_traslado" 
+                                                      value="#{sedeBean.comboAnioLectivoRetirados.selected}"
+                                                      styleClass="form-control texto-medio"  
+                                                      disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}">
+                                        <f:selectItems value="#{sedeBean.comboAnioLectivoRetirados.items}" />
+                                        <p:ajax listener="#{sedeBean.retiradosTraslado}"  process="@this" update="fila_resumen_retirados_traslado"/>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>   
+                            </p:outputPanel>                
+                        </p:outputPanel>   
+                    </p:outputPanel>
+                    <p:outputPanel  id="fila_resumen_retirados_traslado" styleClass="margen-inf">
+                        <p:dataTable id="basicDTRetirados"                         
+                                     widgetVar="widResultado"                         
+                                     var="elem"                          
+                                     value="#{sedeBean.solicitudRetiradosLazyModel}"                          
+                                     emptyMessage="#{msg.noHayResultados}"      
+                                     paginator="true"
+                                     lazy="true"
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="sotPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="#{sedeBean.paginado}"
+                                     reflow="true" >
+                            <f:facet name="{anterior}">
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}">
+                                <h:outputText styleClass="#{sedeBean.totalRetirados lt (sedeBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+
+                            <f:facet name="header">
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                    <p:outputPanel styleClass="col-md-10">
+                                        <p:outputPanel styleClass="row">
+                                            <p:outputPanel styleClass="col-sm-4">
+                                                <strong><h:outputText value="#{msg.cantidadSolicitudes}" /></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.totalRetirados}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-4">
+                                                <strong><h:outputText value="#{msg.cantidadEstudiantesRetirados}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.totalRetiradosSinRepetir}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-2">
+                                                <strong><h:outputText value="#{msg.hombres}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.ninosRetirados}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-2">
+                                                <strong><h:outputText value="#{msg.mujeres}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.ninasRetirados}" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-2">
+                                        <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                            <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                <p:dataExporter type="csv" target="basicDTRetirados" fileName="SolicitudTraslado" pageOnly="false"/>
+                                            </h:commandLink>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hnie}" sortBy="#{elem.sotEstudiante.estPersona.perNie}">
+                                <h:outputText value="#{elem.sotEstudiante.estPersona.perNie}" />
+                            </p:column>
+                            <p:column headerText="#{msg.nombreEstudiante}" sortBy="#{elem.sotEstudiante.estPersona.perNombreCompleto}">
+                                <h:outputText value="#{elem.sotEstudiante.estPersona.perNombreCompleto}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaSolicitud}" sortBy="#{elem.sotFechaSolicitud}">
+                                <h:outputText value="#{elem.sotFechaSolicitud}" converter="#{localDateConverter}"/>
+                            </p:column>
+                            <p:column headerText="#{msg.hmotivo}" sortBy="#{elem.sotMotivoTraslado.motNombre}">
+                                <h:outputText value="#{elem.sotMotivoTraslado.motNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.sedeDestino}" sortBy="#{elem.sotSedeSolicitante.sedDirNombre}">
+                                <h:outputText value="#{elem.sotSedeSolicitante.sedDirNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hestado}" sortBy="#{elem.sotEstado}">
+                                <h:outputText value="#{elem.sotEstado}" />
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false">                    
+                                <p:link outcome="#{ConstantesPaginas.SOLICITUD_TRASLADO}" title="#{msg.verDetalle}"
+                                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_TRASLADO)}"
+                                        styleClass="btn btn-icono">
+                                    <h:outputText styleClass="glyphicon glyphicon-list"/>
+                                    <f:param name="idSolTr" value="#{elem.sotPk}"/>
+                                </p:link>
+                            </p:column> 
+                        </p:dataTable>
+                    </p:outputPanel>
+
+
+                    <h4><h:outputText value="#{msg.estudiantesMatriculadosTraslado}"/></h4>
+                    <p:outputPanel styleClass="form-group row" id="fila_matricula_traslado">
+                        <p:outputPanel styleClass="col-sm-6">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.anio}" for="input_anio_matricula" 
+                                               styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-9">        
+                                    <h:selectOneMenu  id="input_anio_matricula" 
+                                                      value="#{sedeBean.comboAnioLectivoMatriculados.selected}"
+                                                      styleClass="form-control texto-medio"  
+                                                      disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_DATOS_SENSIBLES_SEDE) or sedeBean.soloLectura}">
+                                        <f:selectItems value="#{sedeBean.comboAnioLectivoMatriculados.items}" />
+                                        <p:ajax listener="#{sedeBean.matriculadosTraslado}"  process="@this" update="fila_resumen_matricula_traslado"/>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>   
+                            </p:outputPanel>                
+                        </p:outputPanel>   
+                    </p:outputPanel>
+                    <p:outputPanel id="fila_resumen_matricula_traslado">
+                        <p:dataTable id="basicDTMatriculados"                         
+                                     widgetVar="widResultado"                         
+                                     var="elem"                          
+                                     value="#{sedeBean.solicitudMatriculadosLazyModel}"                          
+                                     emptyMessage="#{msg.noHayResultados}"      
+                                     paginator="true"
+                                     lazy="true"
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="sotPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="#{sedeBean.paginado}"
+                                     reflow="true" >
+                            <f:facet name="{anterior}">
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}">
+                                <h:outputText styleClass="#{sedeBean.totalMatriculados lt (sedeBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+
+                            <f:facet name="header">
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                    <p:outputPanel styleClass="col-md-10">
+                                        <p:outputPanel styleClass="row">
+                                            <p:outputPanel styleClass="col-sm-4">
+                                                <strong><h:outputText value="#{msg.cantidadSolicitudes}" /></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.totalMatriculados} " />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-4">
+                                                <strong><h:outputText value="#{msg.cantidadEstudiantesMatriculados}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.totalMatriculadosSinRepetir}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-2">
+                                                <strong><h:outputText value="#{msg.hombres}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.ninosMatriculados}" />
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="col-sm-2">
+                                                <strong><h:outputText value="#{msg.mujeres}"/></strong>
+                                                <h:outputText styleClass="cantidad" value="#{sedeBean.ninasMatriculados}" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="col-md-2">
+                                        <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                            <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                <p:dataExporter type="csv" target="basicDTMatriculados" fileName="SolicitudTraslado" pageOnly="false"/>
+                                            </h:commandLink>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hnie}" sortBy="#{elem.sotEstudiante.estPersona.perNie}">
+                                <h:outputText value="#{elem.sotEstudiante.estPersona.perNie}" />
+                            </p:column>
+                            <p:column headerText="#{msg.nombreEstudiante}" sortBy="#{elem.sotEstudiante.estPersona.perNombreCompleto}">
+                                <h:outputText value="#{elem.sotEstudiante.estPersona.perNombreCompleto}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hfechaSolicitud}" sortBy="#{elem.sotFechaSolicitud}">
+                                <h:outputText value="#{elem.sotFechaSolicitud}" converter="#{localDateConverter}"/>
+                            </p:column>
+                            <p:column headerText="#{msg.hmotivo}" sortBy="#{elem.sotMotivoTraslado.motNombre}">
+                                <h:outputText value="#{elem.sotMotivoTraslado.motNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.sedeOrigen}" sortBy="#{elem.sotSedeOrigen.sedDirNombre}">
+                                <h:outputText value="#{elem.sotSedeOrigen.sedDirNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hestado}" sortBy="#{elem.sotEstado}">
+                                <h:outputText value="#{elem.sotEstado}" />
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false">                    
+                                <p:link outcome="#{ConstantesPaginas.SOLICITUD_TRASLADO}" title="#{msg.verDetalle}"
+                                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_TRASLADO)}"
+                                        styleClass="btn btn-icono">
+                                    <h:outputText styleClass="glyphicon glyphicon-list"/>
+                                    <f:param name="idSolTr" value="#{elem.sotPk}"/>
+                                </p:link>
+                            </p:column> 
+                        </p:dataTable>
+                    </p:outputPanel>
+                </p:tab>
+
+                <p:tab id="beneficios" title="#{msg.beneficios}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_BENEFICIOS_SEDE)}"
+                       disabled="#{sedeBean.entidadEnEdicion == null or sedeBean.entidadEnEdicion.sedPk == null or sedeBean.sedeRev != null}">
+
+                    <p:outputPanel styleClass="row float-right">
+                        <p:link outcome="#{ConstantesPaginas.PROYECTO_INSTITUCIONAL}" title="#{msg.agregarProyectoInstitucional}"
+                                rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PROYECTO_INSTITUCIONAL_SEDE) and !sedeBean.soloLectura }"
+                                styleClass="btn btn-secondary">
+                            <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                            <h:outputText styleClass="" value="#{msg.agregarProyectoInstitucional}"/>
+                            <f:param name="idSed" value="#{sedeBean.entidadEnEdicion.sedPk}"/>
+                        </p:link>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="col-sm-5">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.anio}" for="beneficios_s_anio" 
+                                           styleClass="col-sm-2 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-10">        
+                                <h:selectOneMenu  id="beneficios_s_anio" 
+                                                  value="#{sedeBean.comboAnioLectivoProyectos.selected}"
+                                                  styleClass="form-control texto-corto"  >
+                                    <f:selectItems value="#{sedeBean.comboAnioLectivoProyectos.items}" />
+                                    <p:ajax listener="#{sedeBean.buscarProyectos()}"  process="@this" 
+                                            update="beneficios_fila_lista"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>   
+                        </p:outputPanel>                
+                    </p:outputPanel>
+
+                    <p:outputPanel id="beneficios_fila_lista" >
+                        <p:dataTable id="basicDTBeneficios" 
+                                     widgetVar="widBeneficios"                         
+                                     var="elem"                          
+                                     value="#{sedeBean.proyectoInstitucionalLazyModel}"                          
+                                     emptyMessage="#{msg.noHayResultados}"      
+                                     paginator="true"
+                                     lazy="true"
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="proPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="#{sedeBean.paginado}"
+                                     reflow="true" >
+                            <f:facet name="{anterior}">
+                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                            </f:facet>
+                            <f:facet name="{siguiente}">
+                                <h:outputText styleClass="#{sedeBean.totalProyectos lt (sedeBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                            </f:facet>
+
+                            <f:facet name="header">
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                    <p:outputPanel styleClass="col-md-12">
+                                        <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                            <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                <p:dataExporter type="csv" target="basicDTBeneficios" fileName="ProyectosInstitucionales" pageOnly="false"/>
+                                            </h:commandLink>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column headerText="#{msg.hproyecto}" sortBy="#{elem.proProyectoInstitucional.pinNombre}">
+                                <h:outputText value="#{elem.proProyectoInstitucional.pinNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hanio}" >
+                                <h:outputText value="#{elem.proProyectoInstitucional.pinAnio}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hasociacion}" sortBy="#{elem.proAsociacion.asoNombre}">
+                                <h:outputText value="#{elem.proAsociacion.asoNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hprogramaInstitucional}" sortBy="#{elem.proProyectoInstitucional.pinProgramaInstitucional.pinNombre}">
+                                <h:outputText value="#{elem.proProyectoInstitucional.pinProgramaInstitucional.pinNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.htipoBeneficio}" sortBy="#{elem.proBeneficio.bnfTipoBeneficio}">
+                                <h:outputText value="#{elem.proBeneficio.bnfTipoBeneficio.text}" />
+                            </p:column>
+
+
+
+                            <p:column styleClass="columnaAcciones" exportable="false" 
+                                      rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PROYECTO_INSTITUCIONAL_SEDE) and !sedeBean.soloLectura }">
+                                <p:link outcome="#{ConstantesPaginas.PROYECTO_INSTITUCIONAL}" title="#{msg.editar}" styleClass="btn btn-icono">
+                                    <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                                    <f:param name="idProIns" value="#{elem.proPk}"/>
+                                </p:link>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false">
+                                <p:commandButton update=":form:tabs:historialDetail" oncomplete="PF('historialPISDialog').show()" 
+                                                 icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                                 action="#{sedeBean.historialPIS(elem.proPk)}"/>
+                            </p:column>
+
+                            <p:column styleClass="columnaAcciones" exportable="false" 
+                                      rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_PROYECTO_INSTITUCIONAL_SEDE) and !sedeBean.soloLectura }">
+                                <p:commandButton oncomplete="PF('confirmPISDialog').show()" icon="glyphicon glyphicon-trash " 
+                                                 styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                                 action="#{sedeBean.actualizarPIS(elem)}"/>
+
+                            </p:column>
+
+
+                        </p:dataTable>
+                        <p:confirmDialog id="confirmPISDialog"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmPISDialog">
+                            <p:outputPanel styleClass="float-right" id="panelDeletePIS" >
+                                <p:commandButton id="confirmPISDelete" value="#{msg.hconfirmar}" update="basicDTBeneficios"
+                                                 oncomplete="PF('confirmPISDialog').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{sedeBean.eliminarPIS()}"  />
+                                <p:commandLink id="cancelarPISDelete" value="#{msg.cancelar}"
+                                               onclick="PF('confirmPISDialog').hide()" styleClass="btn btn-link" />
+                                <p:blockUI block="panelDeletePIS" trigger="confirmPISDelete"/>
+                            </p:outputPanel>
+                        </p:confirmDialog>
+                        <p:dialog header="#{msg.historialProyectosInstitucionales}" widgetVar="historialPISDialog" modal="true" 
+                                  showEffect="fade" hideEffect="fade" resizable="false">             
+                            <ui:include src="componentes/historial.xhtml">
+                                <ui:param name="historial" value="#{sedeBean.historialProyectoInstitucional}" /> 
+                            </ui:include>               
+                        </p:dialog>
+                    </p:outputPanel>
+                </p:tab>
+                <p:tab id="inmuebles" title="#{msg.hInmuebles}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_INMUEBLE_O_TERRENO)}" disabled="#{sedeBean.entidadEnEdicion == null or sedeBean.entidadEnEdicion.sedPk == null or sedeBean.sedeRev != null}">
+                    <c:if test="#{sedeBean.tabActiveId == 'inmuebles'}">
+                        <ui:include src="componentes/inmueblesComponente.xhtml">
+                            <ui:param name="sedeEducativa" value="#{sedeBean.entidadEnEdicion}" /> 
+                        </ui:include>
+                    </c:if>
+                </p:tab>
+                <p:tab id="acuerdos" title="#{msg.hacuerdos}" 
+                       rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.BUSCAR_ACUERDO_SEDE)}"
+                       disabled="#{sedeBean.entidadEnEdicion == null or 
+                                   sedeBean.entidadEnEdicion.sedPk == null or 
+                                   sedeBean.sedeRev != null}">
+                    <c:if test="#{sedeBean.tabActiveId == 'acuerdos'}">
+                        <ui:include src="componentes/acuerdoSedeComponente.xhtml">
+                            <ui:param name="sedeEducativa" value="#{sedeBean.entidadEnEdicion}" /> 
+                            <ui:param name="soloLectura" value="#{sedeBean.soloLectura}" /> 
+                        </ui:include>
+                    </c:if>
+                </p:tab>
+            </p:tabView>
+            <div class="volverLink">
+                <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+            </div>
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

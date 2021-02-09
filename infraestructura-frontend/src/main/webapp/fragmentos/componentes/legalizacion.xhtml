@@ -1,0 +1,290 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+
+    <c:set var="inmueble" value="#{inmueble}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{legalizacionBean.setSoloLectura(soloLectura)}"/>
+        <f:event type="preRenderView" listener="#{legalizacionBean.setEntidadEnEdicion(inmueble)}"/>
+    </f:metadata>  
+
+    <h:panelGroup rendered="#{not empty inmuebleBean.entidadEnEdicion}">
+
+        <p:fieldset id="legalizacion" legend="#{msg.hestado}">
+            <p:outputPanel styleClass="form-group row" id="combo_estado">
+                <h:outputLabel value="#{msg.estado}"  styleClass="col-sm-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                    <h:selectOneMenu id="input_estado" rendered="#{not inmuebleBean.soloLectura}" value="#{legalizacionBean.comboEstadoInmueble.selected}" styleClass="form-control dropdown texto-medio" >
+                        <f:selectItems value="#{legalizacionBean.comboEstadoInmueble.items}" />
+                        <p:ajax listener="#{legalizacionBean.comboEstadoSelected()}" event="change" update="form:tabs:seleccionarEstado:grupoHabilitado" />
+                    </h:selectOneMenu>  
+                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                  value="#{legalizacionBean.entidadEnEdicion.tisEstadoInmueble.einNombre}"/>
+                </p:outputPanel>  
+            </p:outputPanel> 
+        </p:fieldset>
+
+        <p:outputPanel id="datosProceso">
+            <p:fieldset  legend="#{msg.datosProceso}" >
+                <p:fieldset  legend="#{msg.datosEscritura}">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_numero_escritura" >                        
+                        <h:outputLabel value="#{msg.numeroEscritura}" for="input_numero_escritura"  styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-2">                            
+                            <h:inputText autocomplete="off" id="input_numero_escritura" maxlength="255"
+                                         rendered="#{!legalizacionBean.soloLectura}"
+                                         styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNumeroEscritura}"/>
+                            <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNumeroEscritura}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_libro_protocolo" >                        
+                        <h:outputLabel value="#{msg.libroProtocolo}" for="input_libro_protocolo"  styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-2">                            
+                            <h:inputText autocomplete="off" id="input_libro_protocolo" maxlength="255"
+                                         rendered="#{!legalizacionBean.soloLectura}"
+                                         styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleLibroProtocolo}"/>
+                            <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleLibroProtocolo}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_contrato">
+                        <h:outputLabel value="#{msg.fechaContrato}" for="input_fecha_contrato" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_fecha_contrato" styleClass="form-control" 
+                                        rendered="#{not legalizacionBean.soloLectura}"
+                                        value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleFechaContrato}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_fecha_contrato" styleClass="msj-danger"/> 
+                            <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleFechaContrato}" converter="#{localDateConverter}"/>
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_notario" >                        
+                        <h:outputLabel value="#{msg.nombreNotario}" for="input_notario"  styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:inputTextarea id="input_notario" maxlength="255"
+                                         rendered="#{!legalizacionBean.soloLectura}"
+                                         styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNotario}"  autoResize="false"/>
+                            <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNotario}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_otorgante" >                        
+                        <h:outputLabel value="#{msg.nombreOtorgante}" for="input_otorgante"  styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:inputTextarea  id="input_otorgante" maxlength="255"
+                                         rendered="#{!legalizacionBean.soloLectura}"
+                                         styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleOtorgante}" autoResize="false"/>
+                            <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleOtorgante}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="combo_naturaleza_contrato">
+                        <h:outputLabel value="#{msg.naturalezaContrato}"  styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:selectOneMenu id="input_naturaleza_contrato" rendered="#{not legalizacionBean.soloLectura}" value="#{legalizacionBean.comboNaturalezaContrato.selected}" styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{legalizacionBean.comboNaturalezaContrato.items}" />
+                            </h:selectOneMenu>  
+                            <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNaturalezaContrato.nacNombre}"/>
+                        </p:outputPanel>  
+                    </p:outputPanel> 
+                </p:fieldset>
+
+                <p:outputPanel id="grupoHabilitado">
+                    <p:outputPanel  rendered="#{legalizacionBean.entidadEnEdicion.tisEstadoInmueble.einHabilitaDatosInscripcion}">
+                        <p:fieldset id="antecedentes" legend="#{msg.hantecedentes}">
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_matricula" >                        
+                                <h:outputLabel value="#{msg.matricula}" for="input_matricula"  styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-2">                            
+                                    <h:inputText autocomplete="off" id="input_matricula" maxlength="10"
+                                                 rendered="#{!legalizacionBean.soloLectura}"
+                                                 styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleMatriculaAntecedente}"/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleMatriculaAntecedente}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_asiento" >                        
+                                <h:outputLabel value="#{msg.asiento}" for="input_asiento"  styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-2">                            
+                                    <h:inputText autocomplete="off" id="input_asiento" maxlength="10"
+                                                 rendered="#{!legalizacionBean.soloLectura}"
+                                                 styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleAsientoAntecedente}"/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleAsientoAntecedente}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel  styleClass="form-group row" id="fila_numero_antecedente">
+                                <h:outputLabel value="#{msg.numero}" for="input_numero_antecedente" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-2">
+                                    <p:inputNumber autocomplete="off" id="input_numero_antecedente" rendered="#{!legalizacionBean.soloLectura}"
+                                                   value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNumeroAntecedente}"
+                                                   styleClass="form-control texto-medio"
+                                                   inputStyle="text-align: left"
+                                                   maxValue="9999"
+                                                   minValue="0"
+                                                   decimalPlaces="0" thousandSeparator=""/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNumeroAntecedente}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_libro" >                        
+                                <h:outputLabel value="#{msg.libro}" for="input_libro"  styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-2">                            
+                                    <h:inputText autocomplete="off" id="input_libro" maxlength="10"
+                                                 rendered="#{!legalizacionBean.soloLectura}"
+                                                 styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleLibroAntecedente}"/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleLibroAntecedente}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                        </p:fieldset>
+
+                        <p:fieldset id="incripcionLibroTradicional" legend="#{msg.hincripcionLibroTradicional}">
+
+                            <p:outputPanel  styleClass="form-group row" id="fila_numero_inscripcion_libro">
+                                <h:outputLabel value="#{msg.numero}" for="input_numero_inscripcion_libro" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-2">
+                                    <p:inputNumber autocomplete="off" id="input_numero_inscripcion_libro" rendered="#{!legalizacionBean.soloLectura}"
+                                                   value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNumeroInscripcionLibro}"
+                                                   styleClass="form-control texto-medio"
+                                                   inputStyle="text-align: left"
+                                                   maxValue="9999"
+                                                   minValue="0"
+                                                   decimalPlaces="0" thousandSeparator=""/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleNumeroInscripcionLibro}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_libro_inscripcion" >                        
+                                <h:outputLabel value="#{msg.libro}" for="input_libro_inscripcion"  styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-2">                            
+                                    <h:inputText autocomplete="off" id="input_libro_inscripcion" maxlength="10"
+                                                 rendered="#{!legalizacionBean.soloLectura}"
+                                                 styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleLibroInscripcionLibro}"/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleLibroInscripcionLibro}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_presentacion">
+                                <h:outputLabel value="#{msg.fecha}" for="input_fecha_presentacion" 
+                                               styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="input_fecha_presentacion" styleClass="form-control" 
+                                                rendered="#{not legalizacionBean.soloLectura}"
+                                                value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleFechaInscripcionLibro}" 
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}" 
+                                                converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                                    <h:message for="input_fecha_presentacion" styleClass="msj-danger"/> 
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleFechaInscripcionLibro}" converter="#{localDateConverter}"/>
+                                </p:outputPanel>  
+                            </p:outputPanel>
+                        </p:fieldset>
+
+                        <p:fieldset id="incripcionSistemaMatricula" legend="#{msg.hincripcionSistemaMatricula}">
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_sistema_matricula" >                        
+                                <h:outputLabel value="#{msg.matricula}" for="input_sistema_matricula"  styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-2">                            
+                                    <h:inputText autocomplete="off" id="input_sistema_matricula" maxlength="10"
+                                                 rendered="#{!legalizacionBean.soloLectura}"
+                                                 styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleMatriculaInscripcionMatricula}"/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleMatriculaInscripcionMatricula}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_asiento_insc_matricula" >                        
+                                <h:outputLabel value="#{msg.asiento}" for="input_asiento_insc_matricula"  styleClass="col-sm-3 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-2">                            
+                                    <h:inputText autocomplete="off" id="input_asiento_insc_matricula" maxlength="10"
+                                                 rendered="#{!legalizacionBean.soloLectura}"
+                                                 styleClass="form-control texto-medio" value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleAsientoInscripcionMatricula}"/>
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleAsientoInscripcionMatricula}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_sistema_mat">
+                                <h:outputLabel value="#{msg.fecha}" for="input_fecha_sistema_mat" 
+                                               styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar id="input_fecha_sistema_mat" styleClass="form-control" 
+                                                rendered="#{not legalizacionBean.soloLectura}"
+                                                value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleFechaInscripcionMatricula}" 
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}" 
+                                                converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                                    <h:message for="input_fecha_presentacion" styleClass="msj-danger"/> 
+                                    <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                  value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleFechaInscripcionMatricula}" converter="#{localDateConverter}"/>
+                                </p:outputPanel>  
+                            </p:outputPanel>
+
+                        </p:fieldset>
+
+                        <p:fieldset id="observaciones" legend="#{msg.hobservaciones}">
+                            <h:panelGroup  id="panel_group_observacion_presentacion">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_observacion_presentacion">                        
+                                    <h:outputLabel value="#{msg.observacion}" for="input_observacion_presentacion" 
+                                                   styleClass="col-sm-3 col-form-label"/>                        
+                                    <p:outputPanel styleClass="col-sm-9">
+                                        <p:inputTextarea id="input_observacion_presentacion" styleClass="form-control" rendered="#{!legalizacionBean.soloLectura}"
+                                                         value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleObservaciones}"
+                                                         counter="display_obs_pre" maxlength="4000" counterTemplate="{0} caracteres restantes." 
+                                                         autoResize="false" />
+                                        <h:outputText rendered="#{legalizacionBean.soloLectura}" styleClass="form-control-plaintext"
+                                                      value="#{legalizacionBean.procesoLegalizacionEnEdicion.pleObservaciones}"/>
+                                        <h:outputText id="display_obs_pre" />
+                                    </p:outputPanel>                        
+                                    <h:message for="input_observacion_presentacion" styleClass="msj-danger"/>                    
+                                </p:outputPanel> 
+                            </h:panelGroup>
+
+                        </p:fieldset>
+
+
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+
+
+            </p:fieldset>
+        </p:outputPanel>
+
+        <div class="form-action-buttons">
+            <p:commandButton  id="btnGuardarEstado" value="#{msg.guardar}" action="#{legalizacionBean.guardar()}" rendered="#{!legalizacionBean.soloLectura}" update="@form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+            <p:blockUI block="@form" trigger="btnGuardarEstado" /> 
+        </div>
+
+
+    </h:panelGroup>
+</ui:composition>

@@ -1,0 +1,368 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionSinImprimirTitulo}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSinImprimirTitulo}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoSinImprimirTitulo}" icon="glyphicon glyphicon-plus" 
+                                 action="#{sinImprimirTituloBean.agregar()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarReposicionTitulo" styleClass="btn btn-secondary" />
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPOSICION_TITULO)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.nombreSolicitante}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo" value="#{sinImprimirTituloBean.filtro.estudiante}" />                 
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.estado}" for="filtro_estado" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_estado" value="#{sinImprimirTituloBean.comboEstado.selected}" 
+                                             styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{sinImprimirTituloBean.comboEstado.items}" />
+
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel> 
+
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sede}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{sinImprimirTituloBean.filtro.sede}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{sinImprimirTituloBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{sinImprimirTituloBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:blockUI block="@form" trigger="btnBuscar"/>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{sinImprimirTituloBean.reposicionTituloLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         rowStyleClass="#{sinImprimirTituloBean.colorRow(elem)}"
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="retPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{sinImprimirTituloBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{sinImprimirTituloBean.totalResultados lt (sinImprimirTituloBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{sinImprimirTituloBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="reposicionTitulo" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hduiSolicitante}">
+                    <h:outputText value="#{elem.retDuiSolicitante}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombreSolicitante}">
+                    <h:outputText value="#{elem.retNombreEstudiantePartida}" />
+                </p:column>
+                <p:column headerText="#{msg.hsede}">
+                    <h:outputText value="#{elem.retSedeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hanio}" >
+                    <h:outputText value="#{elem.retAnio}" />
+                </p:column>
+                <p:column headerText="#{msg.hnumeroResolucion}">
+                    <h:outputText value="#{elem.retSolicitudImpresion.simNumeroResolucion}"/>
+                </p:column>
+                <p:column headerText="#{msg.hnumeroRegistro}">
+                    <h:outputText value="#{elem.retSolicitudImpresion.simNumeroRegistro}"/>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" >
+                    <h:outputText value="#{elem.retSolicitudImpresion.simEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.retUltModUsuario}">
+                    <h:outputText value="#{elem.retUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.retUltModFecha}">
+                    <h:outputText value="#{elem.retUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.editar}" action="#{sinImprimirTituloBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{sinImprimirTituloBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="Agregar título sin imprimir" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty sinImprimirTituloBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioReposicionTitulo">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                            <h:outputLabel value="#{msg.nombreSolicitante}" for="input_codigo"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" rendered="#{sinImprimirTituloBean.esEditable}" id="input_codigo" styleClass="form-control" value="#{sinImprimirTituloBean.entidadEnEdicion.retNombreEstudiantePartida}"/>                        
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retNombreEstudiantePartida}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>   
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_dui" >                        
+                            <h:outputLabel value="#{msg.duiSolicitante}" for="input_dui"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <p:inputText autocomplete="off" rendered="#{sinImprimirTituloBean.esEditable}" id="input_dui" styleClass="form-control" value="#{sinImprimirTituloBean.entidadEnEdicion.retDuiSolicitante}">
+                                    <p:keyFilter regEx="/[\d]/" preventPaste="false"/>  
+                                </p:inputText>
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retDuiSolicitante}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>   
+
+                        <p:outputPanel styleClass="form-group row" id="existeSiges" rendered="#{sinImprimirTituloBean.esEditable}" >   
+                            <h:outputText value="#{msg.sedeExisteSiges}" styleClass="col-sm-4 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:selectOneRadio layout="responsive" columns="2" id="b_existeSiges" value="#{sinImprimirTituloBean.sedeSiges}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <p:ajax update="sedeSiges" listener="#{sinImprimirTituloBean.sedeSigesSeleccionada()}"  />
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="sedeSiges">
+                            <p:outputPanel rendered="#{sinImprimirTituloBean.sedeSiges}" styleClass="form-group row" id="fila_input_sede_autocomplete_b">
+                                <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_b" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:autoComplete id="input_sede_autocomplete_b"
+                                                    styleClass="form-control texto-medio"
+                                                    disabled="#{not sinImprimirTituloBean.esEditable}"
+                                                    value="#{sinImprimirTituloBean.entidadEnEdicion.retSede}"
+                                                    completeMethod="#{sinImprimirTituloBean.completeSede}"
+                                                    var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                                    itemValue="#{sed}"
+                                                    widgetVar="b_inst_resp_autocomplete"
+                                                    forceSelection="true"
+                                                    maxResults="10"
+                                                    queryDelay="500"
+                                                    multiple="false"
+                                                    converter="#{sedesConverter}"
+                                                    placeholder="#{msg.autoCompleteEmptyItem}">
+                                    </p:autoComplete>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel rendered="#{!sinImprimirTituloBean.sedeSiges}" styleClass="form-group row" id="fila_input_sede_codigo" >                        
+                                <h:outputLabel value="#{msg.sedeEducativa}" for="fila_input_sede_codigo"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-8">                            
+                                    <h:inputText autocomplete="off" id="input_sede_nombre" styleClass="form-control" rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retSedeNombre}"/>                        
+                                    <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retSedeNombre}"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>  
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_anio">
+                            <h:outputLabel value="#{msg.anio}" for="input_anio"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8 ">
+                                <p:inputMask id="input_anio" styleClass="form-control texto-corto" rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retAnio}" 
+                                             mask="9999"/>
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retAnio}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_bachillerato" >                        
+                            <h:outputLabel value="#{msg.opcionBachillerato}" for="input_bachillerato"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" rendered="#{sinImprimirTituloBean.esEditable}" id="input_bachillerato" styleClass="form-control" value="#{sinImprimirTituloBean.entidadEnEdicion.retOpcionBachillerato}"/>                        
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retOpcionBachillerato}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_es_2008" >                        
+                            <h:outputLabel value="#{msg.esAnterior2008}" for="b_habilitado"  styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <p:selectOneRadio layout="responsive" columns="2" id="b_habilitado" rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retEsAnterior2008}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <p:ajax update="form:tituloAnterior" listener="#{sinImprimirTituloBean.seleccionarEsAnterior2008()}" event="change" />
+                                </p:selectOneRadio>
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retEsAnterior2008}" converter="#{booleanConverter}"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                   
+                        <p:outputPanel id="tituloAnterior">
+                            <p:outputPanel styleClass="form-group row" id="fila_titulo_anterior" rendered="#{sinImprimirTituloBean.entidadEnEdicion.retEsAnterior2008 eq true}">
+                                <h:outputLabel value="#{msg.tituloAnterior2008}" for="combo_titulo_anterior" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_titulo_anterior" rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.tituloAnteriorCombo.selected}" disabled="#{sinImprimirTituloBean.entidadEnEdicion.retPk !=null}" styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sinImprimirTituloBean.tituloAnteriorCombo.items}" />  
+                                    </h:selectOneMenu>  
+                                    <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retTituloAnterior2008.tanNombre}"/> 
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="form-group row" rendered="#{sinImprimirTituloBean.entidadEnEdicion.retEsAnterior2008 eq false}" >                        
+                                <h:outputLabel value="Nombre del título:" for="input_nombre_titulo"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-8">                            
+                                    <h:inputText  id="input_nombre_titulo" styleClass="form-control" rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retNombreTituloPosterior2008}"/>        
+                                    <h:outputText  styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retNombreTituloPosterior2008}"/> 
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                            
+                        </p:outputPanel>    
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_inicio">
+                            <h:outputLabel value="#{msg.fechaLegalizacion}" for="input_calFechaInicio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar  id="input_calFechaInicio" styleClass="form-control"  rendered="#{sinImprimirTituloBean.esEditable}"
+                                             value="#{sinImprimirTituloBean.entidadEnEdicion.retFechaLegalizacionTitulo}" 
+                                             pattern="#{applicationBean.patternFecha}"
+                                             converter="#{localDateConverter}" maxdate="#{applicationBean.today()}" converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                                <h:message for="input_calFechaInicio" styleClass="msj-danger"/> 
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" converter="#{localDateConverter}" value="#{sinImprimirTituloBean.entidadEnEdicion.retFechaLegalizacionTitulo}"/> 
+                            </p:outputPanel>     
+
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_numero_resolucion">                        
+                            <h:outputLabel value="#{msg.numeroResolucion}" for="input_numero_resolucion" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8"> 
+                                <p:inputText autocomplete="off"  styleClass="form-control"  rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simNumeroResolucion}">                        
+                                 
+                                </p:inputText>
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simNumeroResolucion}"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_cantidad_dias_lectivos">                        
+                            <h:outputLabel value="#{msg.numeroRegistro}" for="input_cantidad_dias_lectivos" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">             
+                                <p:inputText autocomplete="off"  styleClass="form-control" rendered="#{sinImprimirTituloBean.esEditable}"  value="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simNumeroRegistro}">                        
+                            
+                                </p:inputText>
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simNumeroRegistro}"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_definicion_titulo">
+                            <h:outputLabel value="Título" for="combo_def_titulo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="combo_def_titulo" rendered="#{sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.definicionTituloCombo.selected}" disabled="#{sinImprimirTituloBean.entidadEnEdicion.retPk !=null}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{sinImprimirTituloBean.definicionTituloCombo.items}" />  
+                                </h:selectOneMenu>  
+                                <h:outputText styleClass="form-control-plaintext" rendered="#{not sinImprimirTituloBean.esEditable}" value="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simDefinicionTitulo.dtiNombre}"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                       
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Resolución:" for="file_upload_archivo"  styleClass="col-sm-4 col-form-label obligatorio"/>  
+                            <p:outputPanel id="panelFile" styleClass=" col-sm-8">
+                                <p:fileUpload fileUploadListener="#{sinImprimirTituloBean.subirResolucion}"
+                                              rendered="#{sinImprimirTituloBean.esEditable}"
+                                              id="file_upload_archivo"
+                                              mode="advanced" 
+                                              dragDropSupport="true"
+                                              label="Cargar archivo"                                              
+                                              uploadLabel="#{msg.confirmar}"
+                                              invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                              invalidFileMessage="#{msg.formatoNoPermitidoPDFoZIP} "
+                                              update="panelFile"            
+                                              cancelLabel="#{msg.cancelar}" 
+                                              auto="true"
+                                              sizeLimit="#{sinImprimirTituloBean.tamanioImportArchivo}" allowTypes="#{sinImprimirTituloBean.tipoImportArchivo}"/>
+                                <h:outputText styleClass="form-control-plaintext" 
+                                              value="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simResolucionFk.achNombre}"
+                                              rendered="#{sinImprimirTituloBean.entidadEnEdicion.retSolicitudImpresion.simResolucionFk!=null}"/>
+                                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>              
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" rendered="#{sinImprimirTituloBean.esEditable}" action="#{sinImprimirTituloBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+
+    </h:form>
+</ui:composition>

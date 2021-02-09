@@ -1,0 +1,852 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">   
+
+    <c:set var="estudiante" value="#{estudiante}" scope="request"/>
+    <c:set var="soloLecturaDatosSalud" value="#{soloLecturaDatosSalud}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{datosSaludEstudianteBean.setSoloLectura(soloLecturaDatosSalud)}"/>
+    </f:metadata>       
+
+    <p:outputPanel id="pnlDatosSaludEstudiante">
+        <fieldset>
+            <legend>#{msg.fichaSaludh}</legend>
+
+            <p:outputPanel styleClass="ui-messages" rendered="#{not empty datosSaludEstudianteBean.msjConfiguracionFichaSalud}">                                
+                <div class="ui-messages-info messages-info-azul ui-corner-all">                                   
+                    <ul>
+                        <li class="control-inline">
+                            <h:outputText escape="false" styleClass="ui-messages-info-summary" value="#{datosSaludEstudianteBean.msjConfiguracionFichaSalud}" style="padding-right: 15px"/>
+
+                        </li>
+                    </ul>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_discpacidad_autocomplete" >
+                <h:outputLabel value="#{msg.padreMadrePareceENT}" for="input_discapacidad_autocomplete" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:autoComplete id="input_discapacidad_autocomplete" 
+                                    styleClass="form-control texto-medio"
+                                    value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEnfermedadNoTransmitible}"
+                                    completeMethod="#{datosSaludEstudianteBean.completeENT}"
+                                    var="dis" itemLabel="#{dis.entNombre}" 
+                                    rendered="#{!datosSaludEstudianteBean.soloLectura and ( sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_FICHAS_SALUD))}"
+                                    itemValue="#{dis}" 
+                                    onclick="PF('b_disc_autocomplete').search(PF('b_disc_autocomplete').input.val())"
+                                    widgetVar="b_disc_autocomplete"
+                                    forceSelection="true"
+                                    queryDelay="500"
+                                    placeholder="#{msg.autoCompleteEmptyItem}"
+                                    converter="#{enfermedadNoTransmisibleConverter}"
+                                    multiple="true" unique="true" >
+                        <p:ajax event="itemSelect"  process="@this" update="input_discapacidad_autocomplete"/>
+                    </p:autoComplete>
+                    <h:outputText value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.ENTAsString}" styleClass="form-control-plaintext" rendered="#{datosSaludEstudianteBean.soloLectura  or (not sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_FICHAS_SALUD))}" />
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <fieldset>
+                <legend>#{msg.situacionesSignificativasSaludh}</legend>
+
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputText value="#{msg.alergicoMedicamento}" styleClass="col-sm-3 col-form-label"/>                
+                    <p:outputPanel styleClass="col-sm-2">
+                        <p:selectOneRadio layout="responsive" columns="3" id="b_alergico_alimento" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEsAlergicoMedicamento}"
+                                          disabled="#{datosSaludEstudianteBean.soloLectura}">
+                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                            <p:ajax event="change" process="@this" listener="#{datosSaludEstudianteBean.seleccionarAlergicoMedicamento()}" update="medicamentoAlergico"/>
+                        </p:selectOneRadio>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-sm-6" id="medicamentoAlergico">
+                        <p:inputText autocomplete="off"  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaAlergicoMedicamentos}" 
+                                     disabled="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEsAlergicoMedicamento eq false}"
+                                     rendered="#{!datosSaludEstudianteBean.soloLectura}"
+                                     styleClass="form-control texto-medio" />
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaAlergicoMedicamentos}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />
+
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputText value="#{msg.alergicoALimento}" styleClass="col-sm-3 col-form-label"/>                
+                    <p:outputPanel styleClass="col-sm-2">
+                        <p:selectOneRadio layout="responsive" columns="3" id="b_alergico_medicacion" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEsAlergicoAlimento}"
+                                          disabled="#{datosSaludEstudianteBean.soloLectura}">
+                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                            <p:ajax event="change" process="@this" listener="#{datosSaludEstudianteBean.seleccionarAlergicoAlimento()}" update="alimentosAlergico"/>
+                        </p:selectOneRadio>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="col-sm-6" id="alimentosAlergico">
+                        <p:inputText autocomplete="off"  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaAlergicoAlimentos}" 
+                                     disabled="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEsAlergicoAlimento eq false}"
+                                     rendered="#{!datosSaludEstudianteBean.soloLectura}"
+                                     styleClass="form-control texto-medio" />
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaAlergicoMedicamentos}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />    
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+                <p:outputPanel styleClass="form-group row" id="fila_medicamento_prescripto">
+                    <h:outputLabel value="#{msg.medicamentoPrescrito}" for="dato_fila_medicamento_prescripto" styleClass="col-sm-5 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-7">
+                        <h:inputText  id="dato_fila_medicamento_prescripto" maxlength="250" styleClass="form-control texto-medio" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaMedicamentoPrescriptor}" rendered="#{!datosSaludEstudianteBean.soloLectura}"/>
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaMedicamentoPrescriptor}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />    
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_enfermedades_o_alergias">
+                    <h:outputLabel value="#{msg.enfermedadesAlergias}" for="dato_fila_enfermedades_o_alergias" styleClass="col-sm-5 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-7">
+                        <h:inputText  id="dato_fila_enfermedades_o_alergias" maxlength="250" styleClass="form-control texto-medio" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEnfermedadesPadece}" rendered="#{!datosSaludEstudianteBean.soloLectura}"/>
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaEnfermedadesPadece}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />    
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_medicamento_prescrito">
+                    <h:outputLabel value="#{msg.medicamentoPrescritoCaracterPermanente}" for="dato_fila_medicamento_prescrito" styleClass="col-sm-5 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-7">
+                        <h:inputText  id="dato_fila_medicamento_prescrito" maxlength="250" styleClass="form-control texto-medio" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaMedicamentoPrescriptor}" rendered="#{!datosSaludEstudianteBean.soloLectura}"/>
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaMedicamentoPrescriptor}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />    
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_situaciones_desencadenantes">
+                    <h:outputLabel value="#{msg.situacionesDesencadenantesAfecta}" for="dato_fila_situaciones_desencadenantes" styleClass="col-sm-5 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-7">
+                        <h:inputText  id="dato_fila_situaciones_desencadenantes" maxlength="250" styleClass="form-control texto-medio" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaSituacionesDesencadenantes}" rendered="#{!datosSaludEstudianteBean.soloLectura}"/>
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaSituacionesDesencadenantes}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />    
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_manifestaciones_fisicas">
+                    <h:outputLabel value="#{msg.manifestacionesFiscasPsicologicasObservadas}" for="dato_fila_manifestaciones_fisicas" styleClass="col-sm-5 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-7">
+                        <h:inputText  id="dato_fila_manifestaciones_fisicas" maxlength="250" styleClass="form-control texto-medio" value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaManifestacionesFisicasPsicologicas}" rendered="#{!datosSaludEstudianteBean.soloLectura}"/>
+                        <h:outputText  value="#{datosSaludEstudianteBean.fichaSaludEnEdicion.fsaManifestacionesFisicasPsicologicas}" 
+                                       rendered="#{datosSaludEstudianteBean.soloLectura}"
+                                       styleClass="form-control-plaintext" />    
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarFichaEstudiante"  value="#{msg.guardar}" action="#{datosSaludEstudianteBean.guardarFichaSalud()}"
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura}"
+                                         update="pnlDatosSaludEstudiante" styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-floppy-disk" />
+                        <p:blockUI block="@form" trigger="btnGuardarFichaEstudiante" />  
+                    </p:outputPanel>
+                </p:outputPanel>
+
+            </fieldset>
+
+
+            <p:outputPanel id="tablasDeFicha" >
+
+                <fieldset>
+                    <legend>#{msg.medidasAntropometricash}</legend>
+
+
+
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="Agregar medida" icon="glyphicon glyphicon-plus" 
+                                         action="#{datosSaludEstudianteBean.agregarMedidasExamenFisico()}" 
+                                         update="itemDatoMedidasExamen" oncomplete="PF('itemDialogMedidasExamen').show()"  
+                                         id="btnAgregarMedidasExamen" 
+                                         styleClass="btn btn-secondary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_MEDIDAS_EXAMEN_FISICO)}"/>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="pnlDatosMedidasExamen">  
+                        <p:dataTable id="tablaDatosMedidasExamen"                                
+                                     var="elem"                          
+                                     value="#{datosSaludEstudianteBean.medidasExFiscoList}"
+                                     emptyMessage="#{msg.noHayResultados}"	
+                                     sortField="mefPk" >     
+
+                            <p:column headerText="Edad(años)">
+                                <h:outputText value="#{elem.mefEdad}" />
+                            </p:column>
+                            <p:column headerText="#{msg.pesoh}">
+                                <h:outputText value="#{elem.mefPeso}" />
+                            </p:column>
+                            <p:column headerText="#{msg.tallah}">
+                                <h:outputText value="#{elem.mefTalla}" />
+                            </p:column>
+                            <p:column headerText="#{msg.imch}">
+                                <h:outputText value="#{elem.mefImc}" />
+                            </p:column>
+                            <p:column headerText="CBD">
+                                <h:outputText value="#{elem.mefCbd}" />
+                            </p:column>   
+                            <p:column styleClass="columnaAcciones" exportable="false">
+                                <p:commandButton update="form:tabs:itemDatoMedidasExamen" oncomplete="PF('itemDialogMedidasExamen').show()" icon="#{(!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_MEDIDAS_EXAMEN_FISICO))?'glyphicon glyphicon-pencil':'glyphicon glyphicon-eye-open'}" styleClass="btn btn-icono" title="#{msg.editar}" action="#{datosSaludEstudianteBean.actualizarMedidasExamenFisico(elem)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_MEDIDAS_EXAMEN_FISICO)}">
+                                <p:commandButton 
+                                    icon="glyphicon glyphicon-trash"
+                                    oncomplete="PF('confirmDialogMedidasExamen').show()"
+                                    styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                    action="#{datosSaludEstudianteBean.actualizarMedidasExamenFisico(elem)}"/>
+                            </p:column>
+                        </p:dataTable> 
+                    </p:outputPanel>
+
+                </fieldset>    
+
+
+                <p:outputPanel styleClass="col-sm-6" id="fila_filtro_anio_otros">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.datosPorAnio}" for="filtro_anio_datos_salud" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <h:selectOneMenu id="filtro_anio_datos_salud" value="#{datosSaludEstudianteBean.comboAnioLectivos.selected}" 
+                                             styleClass="form-control dropdown texto-corto">
+                                <f:selectItems value="#{datosSaludEstudianteBean.comboAnioLectivos.items}"/>
+                                <p:ajax update="tablasDeFicha"
+                                        event="change" process="@this" listener="#{datosSaludEstudianteBean.buscarPorAnioLectivo()}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:fieldset id="datos" legend="#{msg.referenciasApoyos}"> 
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="Agregar referencia o apoyo" icon="glyphicon glyphicon-plus" 
+                                         action="#{datosSaludEstudianteBean.agregarDatoSaludEstudiante()}" 
+                                         update="itemDatoSaludDetalle" oncomplete="PF('itemDialogDatosSaludEstudiante').show()"  
+                                         id="btnAgregarDatoSalud" 
+                                         styleClass="btn btn-secondary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_DATO_SALUD)}"/>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="pnlDatosSalud">  
+                        <p:dataTable id="tablaDatosSalud"                         
+                                     widgetVar="widDatosSaludEstudiante"                         
+                                     var="elem"                          
+                                     value="#{datosSaludEstudianteBean.datosSalud}"
+                                     emptyMessage="#{msg.noHayResultados}"
+
+                                     sortField="dsePk"
+                                     >                               
+
+                            <p:column headerText="Año">
+                                <h:outputText value="#{elem.dseAnioLectivo.aleAnio}" />
+                            </p:column>
+                            <p:column headerText="Tipo de apoyo">
+                                <h:outputText value="#{elem.dseTipoApoyo.tapNombre}" />
+                            </p:column>
+                            <p:column headerText="Descripción">
+                                <h:outputText value="#{elem.dseDescripcion}" />
+                            </p:column>   
+                            <p:column styleClass="columnaAcciones" exportable="false" >
+                                <p:commandButton update="form:tabs:itemDatoSaludDetalle" styleClass="btn btn-icono" oncomplete="PF('itemDialogDatosSaludEstudiante').show()"  icon="#{(!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_DATO_SALUD))?'glyphicon glyphicon-pencil':'glyphicon glyphicon-eye-open'}" title="#{msg.editar}" action="#{datosSaludEstudianteBean.editarDatoSaludEstudiante(elem)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_DATO_SALUD)}">
+                                <p:commandButton 
+                                    icon="glyphicon glyphicon-trash"
+                                    oncomplete="PF('confirmDialogDatoSaludEstudiante').show()"
+                                    styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                    action="#{datosSaludEstudianteBean.editarDatoSaludEstudiante(elem)}"/>
+                            </p:column>
+                        </p:dataTable> 
+                    </p:outputPanel>
+                </p:fieldset>
+
+
+                <p:fieldset  legend="#{msg.habitosAlimentacionh}"> 
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="Agregar hábito de alimentación" icon="glyphicon glyphicon-plus" 
+                                         action="#{datosSaludEstudianteBean.agregarHabitosAlimentacionPersonal()}" 
+                                         update="form:tabs:itemDatoHabitoAlimentacion" oncomplete="PF('itemDialogHabitosAlimentacion').show()"  
+                                         id="btnAgregarHabitosAlimentacion" 
+                                         styleClass="btn btn-secondary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_HABITOS_ALIMENTACION)}"/>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="pnlHabitosAlimentacion">  
+                        <p:dataTable id="tablaHabitosAlimentacion"                                
+                                     var="alim"                          
+                                     value="#{datosSaludEstudianteBean.habitoAlimentacionPersonalList}"
+                                     emptyMessage="#{msg.noHayResultados}"	
+                                     sortField="halPk"
+                                     >     
+
+                            <p:column headerText="#{msg.hanio}">
+                                <h:outputText value="#{alim.halAnioLectivoFk.aleAnio}" />
+                            </p:column>
+                            <p:column headerText="#{msg.tiemposComidaDiah}">
+                                <ui:repeat value="#{alim.halTiempoComidaDia}" var="relacion">
+                                    <ul>
+                                        <li><h:outputText value="#{relacion.tcdNombre} " /></li>
+                                    </ul>
+                                </ui:repeat>
+                            </p:column>
+                            <p:column headerText="#{msg.comeFrutasVerdurash}">
+                                <h:outputText value="#{alim.halConsumeFrutasVerduras}" converter="#{booleanConverter}" />
+                            </p:column>           
+                            <p:column headerText="#{msg.consumeAguah}">
+                                <h:outputText value="#{alim.halConsumeAgua}" converter="#{booleanConverter}"/>
+                            </p:column>  
+                            <p:column styleClass="columnaAcciones" exportable="false" >
+                                <p:commandButton update="form:tabs:itemDatoHabitoAlimentacion" styleClass="btn btn-icono" oncomplete="PF('itemDialogHabitosAlimentacion').show()" icon="#{(!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_HABITOS_ALIMENTACION))?'glyphicon glyphicon-pencil':'glyphicon glyphicon-eye-open'}" title="#{msg.editar}" action="#{datosSaludEstudianteBean.actualizarHabitosAlimentacionPersonal(alim)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_HABITOS_ALIMENTACION)}">
+                                <p:commandButton 
+                                    icon="glyphicon glyphicon-trash"
+                                    oncomplete="PF('confirmDialogHabitosAlimentacion').show()"
+                                    styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                    action="#{datosSaludEstudianteBean.actualizarHabitosAlimentacionPersonal(alim)}"/>
+                            </p:column>
+                        </p:dataTable> 
+                    </p:outputPanel>
+                </p:fieldset>
+
+                <p:fieldset  legend="#{msg.habitosPersonales}"> 
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="Agregar hábito personal" icon="glyphicon glyphicon-plus" 
+                                         action="#{datosSaludEstudianteBean.agregarHabitosPersonal()}" 
+                                         update="form:tabs:itemDatoHabitosPersonales" oncomplete="PF('itemDialogHabitosPersonales').show()"  
+                                         id="btnAgregarHabitosPersonales" 
+                                         styleClass="btn btn-secondary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_HABITOS_PERSONALES)}"/>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="pnlHabitosPersonales">  
+                        <p:dataTable id="tablaHabitosPersonales"                                
+                                     var="elem"                          
+                                     value="#{datosSaludEstudianteBean.habitosPersonalesList}"
+                                     emptyMessage="#{msg.noHayResultados}"	
+                                     sortField="hapPk"
+                                     >     
+
+                            <p:column headerText="#{msg.hanio}">
+                                <h:outputText value="#{elem.hapAnioLectivoFk.aleAnio}" />
+                            </p:column>
+                            <p:column id="coltfp" >
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tiempoFrentePanh}"/>
+                                    <p:tooltip position="bottom" value="Tiempo frente a pantalla" for="coltfp" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTiempoFrentePantalla}" />
+                            </p:column>
+                            <p:column id="coltcp" >
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tiempoCompartePadresh}"/>
+                                    <p:tooltip position="bottom" value="Tiempo que comparten madre/padre e hijo/a" for="coltcp" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTiempoCompartidoConPadres}" />
+                            </p:column>
+                            <p:column id="colTiempoT">
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tiempoTareash}"/>
+                                    <p:tooltip position="bottom" value="Tiempo dedicado a realizar tareas de la escuela en casa" for="colTiempoT" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTiempoTareasEscuela}" />
+                            </p:column> 
+                            <p:column id="colTiempEje">
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tiempoEjercicioh}"/>
+                                    <p:tooltip position="bottom" value="Tiempo de ejercicio o actividad física al día" for="colTiempEje" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTiempoActividadFisica}" />
+                            </p:column>    
+                            <p:column  id="coltipoEjer" >
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tipoActividadFis}"/>
+                                    <p:tooltip position="bottom" value="Tipo de actividad física" for="coltipoEjer" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTipoActividadFisica}" />
+                            </p:column>  
+                            <p:column id="tiempoRecHoras">
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tiempoRec}"/>
+                                    <p:tooltip position="bottom" value="Tiempo de recreación en horas (disfrute)" for="tiempoRecHoras" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTiempoRecreacion}" />
+                            </p:column> 
+                            <p:column id="tiempoDormir">
+                                <f:facet name="header">
+                                    <h:outputText value="#{msg.tiempoDormir}"/>
+                                    <p:tooltip position="bottom" value="Tiempo de dormir en un día(hrs)" for="tiempoDormir" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapTiempoDormir}"/>
+                            </p:column>    
+                            <p:column id="obsDato" >
+                                <f:facet name="header">
+                                    <h:outputText value="Obs."/>
+                                    <p:tooltip position="bottom" value="Observación" for="obsDato" />
+                                </f:facet> 
+                                <h:outputText value="#{elem.hapObservaciones}"/>
+                            </p:column>    
+                            <p:column styleClass="columnaAcciones" exportable="false" >
+                                <p:commandButton update="form:tabs:itemDatoHabitosPersonales" styleClass="btn btn-icono" oncomplete="PF('itemDialogHabitosPersonales').show()" icon="#{(!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_HABITOS_PERSONALES))?'glyphicon glyphicon-pencil':'glyphicon glyphicon-eye-open'}"  title="#{msg.editar}" action="#{datosSaludEstudianteBean.actualizarHabitosPersonal(elem)}"/>
+                            </p:column>
+                            <p:column styleClass="columnaAcciones" exportable="false" rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_HABITOS_PERSONALES)}">
+                                <p:commandButton 
+                                    icon="glyphicon glyphicon-trash"
+                                    oncomplete="PF('confirmDialogHabitosPersonales').show()"
+                                    styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                    action="#{datosSaludEstudianteBean.actualizarHabitosPersonal(elem)}"/>
+                            </p:column>
+                        </p:dataTable> 
+                    </p:outputPanel>
+                </p:fieldset>
+            </p:outputPanel>
+        </fieldset>
+
+
+
+    </p:outputPanel>
+
+    <p:confirmDialog id="confirmDialogDatoSaludEstudiante"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogDatoSaludEstudiante">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDeleteDatoSaludEstudiante" value="#{msg.hconfirmar}" update="@form"
+                             oncomplete="PF('confirmDialogDatoSaludEstudiante').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{datosSaludEstudianteBean.eliminarDatoSaludEstudiante()}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteDatoSaludEstudiante"/>
+            <p:commandLink id="cancelarDeleteDatoSaludEstudiante" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogDatoSaludEstudiante').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:confirmDialog id="confirmDialogMedidas"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogMedidasExamen">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDeleteMedidas" value="#{msg.hconfirmar}" update="pnlDatosSaludEstudiante"
+                             oncomplete="PF('confirmDialogMedidasExamen').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{datosSaludEstudianteBean.eliminarMedidasExamenFisico()}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteMedidas"/>
+            <p:commandLink id="cancelarDeleteMedidas" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogMedidasExamen').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:confirmDialog id="confirmDialogHabitosAlimetacion"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogHabitosAlimentacion">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDeleteHabitosAlimentacion" value="#{msg.hconfirmar}" update="pnlDatosSaludEstudiante"
+                             oncomplete="PF('confirmDialogHabitosAlimentacion').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{datosSaludEstudianteBean.eliminarHabitosAlimentacionPersonal()}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteHabitosAlimentacion"/>
+            <p:commandLink id="cancelarDeleteHabitosAlimentacion" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogHabitosAlimentacion').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:confirmDialog id="confirmDialogPersonal"
+                     message="#{msg.textoConfirmacionEliminacion}"
+                     header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogHabitosPersonales">
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmDeleteHabitosPersonal" value="#{msg.hconfirmar}" update="pnlDatosSaludEstudiante"
+                             oncomplete="PF('confirmDialogHabitosPersonales').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{datosSaludEstudianteBean.eliminarHabitosPersonal()}"  />
+            <p:blockUI block="@form" trigger="confirmDeleteHabitosPersonal"/>
+            <p:commandLink id="cancelarDeleteHabitosPersonal" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogHabitosPersonales').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+    <p:dialog id="itemDialogDatosSaludEstudiante" header="Referencia o apoyo"  widgetVar="itemDialogDatosSaludEstudiante" modal="true" showEffect="fade" hideEffect="fade" resizable="false">   
+        <p:outputPanel id="itemDatoSaludDetalle"> 
+            <p:messages id="popupmsgDatoSalud" showDetail="true" globalOnly="false" for="popupmsgDatoSalud" closable="true"/>   
+
+            <p:outputPanel styleClass="form-group row" id="fila_dato_salud_input_anio">
+                <h:outputLabel value="#{msg.anio}" for="accion_anio_dato_salud" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8 ">
+                    <h:selectOneMenu id="accion_anio_dato_salud" value="#{datosSaludEstudianteBean.comboAnioLectivosInsert.selected}" 
+                                     styleClass="form-control dropdown texto-medio" >
+                        <f:selectItems value="#{datosSaludEstudianteBean.comboAnioLectivosInsert.items}" />
+                        <p:ajax process="@this" listener="#{datosSaludEstudianteBean.seleccionarAnioLectivoInsert()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_datos_salud_input_tipo_apoyo">
+                <h:outputLabel value="#{msg.tipoApoyo}" for="dato_salud_input_tipo_apoyo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8 ">
+                    <h:selectOneMenu id="dato_salud_input_tipo_apoyo" value="#{datosSaludEstudianteBean.comboTipoApoyo.selected}" 
+                                     styleClass="form-control dropdown texto-medio" >
+                        <f:selectItems value="#{datosSaludEstudianteBean.comboTipoApoyo.items}" />
+                        <p:ajax process="@this" listener="#{datosSaludEstudianteBean.seleccionarTipoApoyo()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_dato_salud_input_descripcion">
+                <h:outputLabel value="#{msg.descripcion}" for="dato_salud_input_descripcion" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <p:inputTextarea  id="desc_reg" styleClass="form-control" value="#{datosSaludEstudianteBean.datoSaludEstudiante.dseDescripcion}"
+                                        counter="dato_salud_input_descripcion"
+                                        maxlength="255"
+                                          autoResize="false" 
+                                          counterTemplate="{0} caracteres restantes." 
+                                           />
+                        <h:outputText id="dato_salud_input_descripcion" />
+                </p:outputPanel> 
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarDatoSalud"  value="#{msg.guardar}" action="#{datosSaludEstudianteBean.guardarDatoSaludEstudiante()}"
+                                     update="form:tabs:itemDatoSaludDetalle pnlDatosSalud" styleClass="btn btn-primary" 
+                                     icon="glyphicon glyphicon-floppy-disk" 
+                                     rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_DATO_SALUD)}"/>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogDatosSaludEstudiante').hide();"  styleClass="btn btn-link"/>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:blockUI block="itemDatoSaludDetalle" trigger="btnGuardarDatoSalud" />     
+            <p:defaultCommand target="btnGuardarDatoSalud" scope="itemDatoSaludDetalle"/>   
+        </p:outputPanel>
+    </p:dialog>
+
+    <p:dialog id="itemDialogMedidaExamenFisico" header="#{msg.medidasAntropometricash}"  widgetVar="itemDialogMedidasExamen" modal="true" showEffect="fade" hideEffect="fade" resizable="false">   
+        <p:outputPanel id="itemDatoMedidasExamen"> 
+            <p:outputPanel rendered="#{not empty datosSaludEstudianteBean.medidasExFiscoEnEdicion }">
+                <p:messages id="popupmsgMedidasExamen" showDetail="true" globalOnly="false" for="popupmsgMedidasExamen" closable="true"/>   
+
+                <p:outputPanel styleClass="form-group row">
+                    <h:outputLabel value="Edad(años):" for="inputfila_medida_examen_input_edad" styleClass="col-sm-4 col-form-label "/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="110"
+                                       thousandSeparator="" 
+                                       decimalSeparator="" 
+                                       decimalPlaces="0" 
+                                       value="#{datosSaludEstudianteBean.medidasExFiscoEnEdicion.mefEdad}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.peso}" for="inputfila_medida_examen_peso" styleClass="col-sm-4 col-form-label "/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputNumber id="inputfila_medida_examen_peso"
+                                       emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="999.99"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="2" 
+                                       value="#{datosSaludEstudianteBean.medidasExFiscoEnEdicion.mefPeso}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.talla}" for="inputfila_medida_examen_talla" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputNumber id="inputfila_medida_examen_talla"
+                                       emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="999.99"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="2" 
+                                       value="#{datosSaludEstudianteBean.medidasExFiscoEnEdicion.mefTalla}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.imc}" for="inputfila_medida_examen_imc" styleClass="col-sm-4 col-form-label "/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="999.99"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="2" 
+                                       value="#{datosSaludEstudianteBean.medidasExFiscoEnEdicion.mefImc}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.cbd}" for="inputfila_medida_examen_cbd" styleClass="col-sm-4 col-form-label "/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputNumber id="inputfila_medida_examen_cbd"
+                                       emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="999.99"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="2" 
+                                       value="#{datosSaludEstudianteBean.medidasExFiscoEnEdicion.mefCbd}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarMedidaExamen"  value="#{msg.guardar}" action="#{datosSaludEstudianteBean.guardarMedidasExamenFisico()}"
+                                         update="form:tabs:itemDatoMedidasExamen pnlDatosSaludEstudiante" styleClass="btn btn-primary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_MEDIDAS_EXAMEN_FISICO)}"
+                                         icon="glyphicon glyphicon-floppy-disk" />
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogMedidasExamen').hide();"  styleClass="btn btn-link"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:blockUI block="@form" trigger="btnGuardarMedidaExamen" />     
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:dialog>
+
+
+    <p:dialog id="itemDialogHabitoAlimentacion" header="Hábitos de alimentación"  widgetVar="itemDialogHabitosAlimentacion" modal="true" showEffect="fade" hideEffect="fade" resizable="false">   
+        <p:outputPanel id="itemDatoHabitoAlimentacion" > 
+            <p:outputPanel rendered="#{not empty datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion }">
+                <p:messages id="popupmsgHabitoAlimentacion" showDetail="true" globalOnly="false" for="popupmsgHabitoAlimentacion" closable="true"/>   
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.anio}" for="accion_anio_habito_alim" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <h:selectOneMenu id="accion_anio_habito_alim" value="#{datosSaludEstudianteBean.comboAnioLectivosInsert.selected}" 
+                                         styleClass="form-control dropdown texto-medio" >
+                            <f:selectItems value="#{datosSaludEstudianteBean.comboAnioLectivosInsert.items}" />
+                            <p:ajax process="@this" listener="#{datosSaludEstudianteBean.seleccionarAnioHabitoAlimentacion}" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_tiempos_comida" >
+                    <h:outputLabel value="#{msg.tiemposComidaDia}" for="input_tiempos_comida_autocomplete" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:autoComplete id="input_tiempos_comida_autocomplete" 
+                                        styleClass="form-control texto-medio"
+                                        value="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halTiempoComidaDia}"
+                                        completeMethod="#{datosSaludEstudianteBean.completeTiempoComida}"
+                                        var="elem" itemLabel="#{elem.tcdNombre}" 
+                                        itemValue="#{elem}" 
+                                        onclick="PF('b_tiempo_autocomplete').search(PF('b_tiempo_autocomplete').input.val())"
+                                        widgetVar="b_tiempo_autocomplete"
+                                        forceSelection="true"
+                                        queryDelay="500"
+                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                        converter="#{tiemposComidaDiaConverter}"
+                                        multiple="true" unique="true" >
+                            <p:ajax event="itemSelect"  process="@this" update="input_tiempos_comida_autocomplete"/>
+                        </p:autoComplete>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.comeFrutasVerduras}" styleClass="col-sm-4 col-form-label"/>                
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:selectOneRadio layout="responsive" columns="3" value="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halConsumeFrutasVerduras}">
+                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                            <p:ajax event="change" process="@this" listener="#{datosSaludEstudianteBean.seleccionConsumeFrutas()}" update="fila_dato_salud_input_veces_dia"/>
+                        </p:selectOneRadio>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_dato_salud_input_veces_dia">
+                    <h:outputLabel value="#{msg.cuantasVecesDia}" for="dato_salud_input_veces_dia" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputText autocomplete="off" id="dato_salud_input_veces_dia"  value="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halFrecuenciaConsumoFrutas}" 
+                                     disabled="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halConsumeFrutasVerduras eq false}"
+                                     maxlength="3"
+                                     styleClass="form-control texto-medio" >
+                            <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/> 
+                        </p:inputText>
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.consumeAgua}" styleClass="col-sm-4 col-form-label"/>                
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:selectOneRadio layout="responsive" columns="3" value="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halConsumeAgua}">
+                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                            <p:ajax event="change" process="@this" listener="#{datosSaludEstudianteBean.seleccionTomaAgua()}" update="fila_dato_salud_input_vasos_dia"/>
+                        </p:selectOneRadio>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_dato_salud_input_vasos_dia">
+                    <h:outputLabel value="#{msg.cuantosVasosDia}" for="dato_salud_input_vasos_dia" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputText autocomplete="off" id="dato_salud_input_vasos_dia"  value="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halCantidadVasos}" 
+                                     disabled="#{datosSaludEstudianteBean.habitoAlimentacionPersonalEnEdicion.halConsumeAgua eq false}"
+                                     maxlength="2"
+                                     styleClass="form-control texto-medio" >
+                            <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/> 
+                        </p:inputText>
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarHabitoAlimentacion"  value="#{msg.guardar}" action="#{datosSaludEstudianteBean.guardarHabitosAlimentacionPersonal()}"
+                                         update="form:tabs:itemDatoHabitoAlimentacion pnlDatosSaludEstudiante" styleClass="btn btn-primary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_HABITOS_ALIMENTACION)}"
+                                         icon="glyphicon glyphicon-floppy-disk" />
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogHabitosAlimentacion').hide();"  styleClass="btn btn-link"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:blockUI block="@form" trigger="btnGuardarHabitoAlimentacion" />  
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:dialog>
+
+
+
+
+
+
+
+    <p:dialog id="itemDialogHabitosPersonales" header="Hábitos Personales"  widgetVar="itemDialogHabitosPersonales" modal="true" showEffect="fade" hideEffect="fade" resizable="false">   
+        <p:outputPanel id="itemDatoHabitosPersonales"> 
+            <p:outputPanel rendered="#{not empty datosSaludEstudianteBean.habitoPersonalEnEdicion }">
+                <p:messages id="popupmsgHabitoPersonal" showDetail="true" globalOnly="false" for="popupmsgHabitoPersonal" closable="true"/>   
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.anio}" for="accion_anio_habito_personal" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8 ">
+                        <h:selectOneMenu id="accion_anio_habito_personal" value="#{datosSaludEstudianteBean.comboAnioLectivosInsert.selected}" 
+                                         styleClass="form-control dropdown texto-corto" >
+                            <f:selectItems value="#{datosSaludEstudianteBean.comboAnioLectivosInsert.items}" />
+                            <p:ajax process="@this" />
+                        </h:selectOneMenu>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tiempoFrentePan}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="24"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="1" 
+                                       value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTiempoFrentePantalla}"/>                       
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tiempoCompartePadres}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="24"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="1" 
+                                       value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTiempoCompartidoConPadres}"/>    
+
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tiempoTareas}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="24"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="1" 
+                                       value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTiempoTareasEscuela}"/>                
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tiempoRecreacion}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="24"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="1" 
+                                       value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTiempoRecreacion}"/>                        
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tiempoEjercicio}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="24"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="1" 
+                                       value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTiempoActividadFisica}"/>     
+
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tipoActividadFi}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputText autocomplete="off" id="dato_salud_input_tipo_ejercicio"  value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTipoActividadFisica}" 
+                                     maxlength="250"
+                                     styleClass="form-control texto-corto" >
+                        </p:inputText>
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.tiempoDormi}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputNumber emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: left"  
+                                       minValue="0" 
+                                       maxValue="24"
+                                       thousandSeparator="" 
+                                       decimalSeparator="." 
+                                       decimalPlaces="1" 
+                                       value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapTiempoDormir}"/>  
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" >
+                    <h:outputLabel value="#{msg.obsCome}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <p:inputTextarea  id="dato_salud_input_obs"  value="#{datosSaludEstudianteBean.habitoPersonalEnEdicion.hapObservaciones}" 
+                                          maxlength="250"
+                                          counter="display_obs_acuerdo"
+                                          autoResize="false" 
+                                          counterTemplate="{0} caracteres restantes." 
+                                          styleClass="form-control texto-medio" />
+                        <h:outputText id="display_obs_acuerdo" />
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardarHabitoPersonal"  value="#{msg.guardar}" action="#{datosSaludEstudianteBean.guardarHabitoPersonal()}"
+                                         update="form:tabs:itemDatoHabitosPersonales pnlDatosSaludEstudiante" styleClass="btn btn-primary" 
+                                         rendered="#{!datosSaludEstudianteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_HABITOS_PERSONALES)}"
+                                         icon="glyphicon glyphicon-floppy-disk" />
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogHabitosPersonales').hide();"  styleClass="btn btn-link"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:blockUI block="@form" trigger="btnGuardarHabitoPersonal" />  
+            </p:outputPanel>
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>

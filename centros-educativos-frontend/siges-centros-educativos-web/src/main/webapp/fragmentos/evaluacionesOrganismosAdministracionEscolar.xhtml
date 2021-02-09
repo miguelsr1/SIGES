@@ -1,0 +1,253 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                                  
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoOrganismoAdministrativo" />
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>       
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.evaluacionOrganismoAdministracionEscolar}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.evaluacionOrganismoAdministracionEscolar}"/></h2>
+
+            <p:outputPanel styleClass="float-right">                    
+
+   
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.ORGANISMO_ADMINISTRACION_ESCOLAR)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete"
+                                            styleClass="form-control texto-medio"
+                                            value="#{evaluacionesOrganismosAdministracionEscolarBean.sedeSeleccionada}"
+                                            completeMethod="#{evaluacionesOrganismosAdministracionEscolarBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}">                            
+                                <p:ajax process="@this" event="change" immediate="true" listener="#{evaluacionesOrganismosAdministracionEscolarBean.deseleccionarSede}" />
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo">
+                        <h:outputLabel value="#{msg.tiposede}" for="b_tipo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9  ">
+                            <h:selectOneMenu   id="b_tipo" value="#{evaluacionesOrganismosAdministracionEscolarBean.comboTiposSede.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{evaluacionesOrganismosAdministracionEscolarBean.comboTiposSede.items}" />                                  
+                            </h:selectOneMenu>
+                        </p:outputPanel>                        
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estado">
+                        <h:outputLabel value="#{msg.estado}" for="b_tipo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9  ">
+                            <h:selectOneMenu   id="b_estado" value="#{evaluacionesOrganismosAdministracionEscolarBean.comboEstado.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{evaluacionesOrganismosAdministracionEscolarBean.comboEstado.items}" />                                  
+                            </h:selectOneMenu>
+                        </p:outputPanel>                        
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.tipoOrganismoAdministrativo}" for="b_tipoOAE" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu   id="b_tipoOAE" value="#{evaluacionesOrganismosAdministracionEscolarBean.comboTipoOAE.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{evaluacionesOrganismosAdministracionEscolarBean.comboTipoOAE.items}" />                                  
+                            </h:selectOneMenu>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                        <h:outputLabel value="#{msg.departamento}" for="b_departamento" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu   id="b_departamento" value="#{evaluacionesOrganismosAdministracionEscolarBean.comboDepartamentos.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{evaluacionesOrganismosAdministracionEscolarBean.comboDepartamentos.items}" />
+                                <p:ajax listener="#{evaluacionesOrganismosAdministracionEscolarBean.seleccionarDepartamento}" event="change" 
+                                        process="@this" update="fila_input_municipio"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_municipio">    
+                        <h:outputLabel value="#{msg.municipio}" for="b_municipio" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu   id="b_municipio" value="#{evaluacionesOrganismosAdministracionEscolarBean.comboMunicipios.selected}" 
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{evaluacionesOrganismosAdministracionEscolarBean.comboMunicipios.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>      
+                    
+                 
+                    <p:outputPanel styleClass="form-group row" id="rango_filtro_fecha_desde">
+                        <h:outputLabel value="#{msg.fechaVencimientoMiembros}" styleClass="col-sm-12"/>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.desde}" for="input_calFechaInicio" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_calFechaInicio" styleClass="form-control" 
+                                        value="#{evaluacionesOrganismosAdministracionEscolarBean.filtro.oaeFechaVencimientoDesde}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_calFechaInicio" styleClass="msj-danger"/> 
+                        </p:outputPanel>     
+                    </p:outputPanel>
+       
+
+           
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.hasta}" for="input_calFechaFin" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_calFechaFin" 
+                                        styleClass="form-control" 
+                                        value="#{evaluacionesOrganismosAdministracionEscolarBean.filtro.oaeFechaVencimientoHasta}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}"  converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />
+                            <h:message for="input_calFechaFin" styleClass="msj-danger"/> 
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+             
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{evaluacionesOrganismosAdministracionEscolarBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{evaluacionesOrganismosAdministracionEscolarBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{evaluacionesOrganismosAdministracionEscolarBean.organismoAdministracionEscolarLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"      
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="oaePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{evaluacionesOrganismosAdministracionEscolarBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{evaluacionesOrganismosAdministracionEscolarBean.totalResultados lt (evaluacionesOrganismosAdministracionEscolarBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{evaluacionesOrganismosAdministracionEscolarBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="organismoAdministracionEscolar" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet> 
+                <p:column headerText="#{msg.hsede}" >
+                    <h:outputText value="#{elem.oaeSede.sedCodigoNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.tipoOrganismoEscolar}" >
+                    <h:outputText value="#{elem.oaeSede.cedTipoOrganismoAdministrativo.toaNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaVencimiento}" >
+                    <h:outputText value="#{elem.oaeFechaVencimiento}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hestado}" >
+                    <h:outputText value="#{elem.oaeEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.oaeUltModUsuario}">
+                    <h:outputText value="#{elem.oaeUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.oaeUltModFecha}">
+                    <h:outputText value="#{elem.oaeUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.EVALUACION_ORGANISMO_ADMINISTRACION_ESCOLAR}" 
+                            title="#{msg.evaluarOAE}"  styleClass="btn btn-icono" >
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.oaePk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>                    
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.EVALUAR_ORGANISMO_ADMINISTRACION_ESCOLAR)}">
+                    <p:link rendered="#{elem.oaeEstado eq EnumEstadoOrganismoAdministrativo.ENVIADO}"
+                        outcome="#{ConstantesPaginas.EVALUACION_ORGANISMO_ADMINISTRACION_ESCOLAR}" 
+                            title="#{msg.evaluarOAE}"  styleClass="btn btn-icono" >
+                        <h:outputText styleClass="glyphicon glyphicon-check"/>
+                        <f:param name="id" value="#{elem.oaePk}"/>
+                    </p:link>                    
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" action="#{evaluacionesOrganismosAdministracionEscolarBean.historial(elem.oaePk)}"/>
+                </p:column>     
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+
+
+
+
+
+        <p:dialog header="#{msg.historialOrganismoAdministracionEscolar}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{evaluacionesOrganismosAdministracionEscolarBean.historialOrganismoAdministracionEscolar}" /> 
+            </ui:include>   
+        </p:dialog>   
+    </h:form>
+</ui:composition>

@@ -1,0 +1,363 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+    <f:metadata>       
+        <f:event type="preRenderView" listener="#{identificacionComponenteBean.setRenderOpcionTieneIdentificacion(renderOpcionTieneIdentificacion)}"/>
+        <f:event type="preRenderView" listener="#{identificacionComponenteBean.setRenderIdentPersonalSede(renderIdentPersonalSede)}"/>
+        <f:event type="preRenderView" listener="#{identificacionComponenteBean.setSoloLectura(soloLecturaIdentificaciones)}"/>
+        <f:event type="preRenderView" listener="#{identificacionComponenteBean.actualizar(persona)}"/>       
+    </f:metadata>       
+
+
+    <p:outputPanel id="itemDetail" >
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_identificacion" rendered="#{identificacionComponenteBean.renderOpcionTieneIdentificacion}">
+            <h:outputText value="#{msg.tiendeIdentificacion}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado"
+                                  value="#{identificacionComponenteBean.personaEdicion.perTieneIdentificacion}"
+                                  disabled="#{identificacionComponenteBean.soloLectura}">
+                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                    <p:ajax event="change" process="@form" update="@form" 
+                            listener="#{identificacionComponenteBean.tieneIdentificacionSelected}"/>
+                </p:selectOneRadio>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <p:fieldset legend="#{msg.hidentificaciones}" rendered="#{identificacionComponenteBean.personaEdicion.perTieneIdentificacion}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_nie" >
+                <h:outputText value="#{msg.nie}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3" id="b_nie"
+                                      disabled="#{identificacionComponenteBean.soloLectura or (identificacionComponenteBean.personaEdicion.perPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_NIE_PERSONA))}"
+                                      value="#{identificacionComponenteBean.tieneNIE}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneNIESelected}" update="fila_input_persona_tiene_nie campoNIE"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" id="campoNIE" rendered="#{identificacionComponenteBean.tieneNIE}">
+                    <p:outputPanel styleClass="row" >
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <p:inputNumber rendered="#{!identificacionComponenteBean.soloLectura and (identificacionComponenteBean.personaEdicion.perPk == null or sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_NIE_PERSONA))}" autocomplete="off" decimalPlaces="0" thousandSeparator="" 
+                                           value="#{identificacionComponenteBean.personaEdicion.perNie}" styleClass="form-control texto-corto" />
+                            <h:outputText rendered="#{identificacionComponenteBean.soloLectura or (identificacionComponenteBean.personaEdicion.perPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_MODIFICAR_NIE_PERSONA))}" styleClass="form-control-plaintext"
+                                          value="#{identificacionComponenteBean.personaEdicion.perNie}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_nip" 
+                           rendered="#{identificacionComponenteBean.renderNIP}">
+                <h:outputText value="#{msg.nip}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3" id="b_nip"
+                                      disabled="#{identificacionComponenteBean.soloLectura}"
+                                      value="#{identificacionComponenteBean.tieneNIP}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneNIPSelected}" update="fila_input_persona_tiene_nip campoCUN"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" id="campoNIP" rendered="#{identificacionComponenteBean.tieneNIP}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10" >
+                            <p:inputText autocomplete="off" rendered="#{!identificacionComponenteBean.soloLectura}"
+                                         value="#{identificacionComponenteBean.personaEdicion.perNip}" 
+                                         styleClass="form-control texto-corto">
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/>  
+                            </p:inputText>
+                            <h:outputText rendered="#{identificacionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{identificacionComponenteBean.personaEdicion.perNip}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_cun">
+                <h:outputText value="#{msg.cun}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3" id="b_cun"
+                                      disabled="#{!identificacionComponenteBean.puedeEditarCUN}"
+                                      value="#{identificacionComponenteBean.tieneCUN}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneCUNSelected}" update="fila_input_persona_tiene_cun campoCUN"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" id="campoCUN" rendered="#{identificacionComponenteBean.tieneCUN}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10" >
+                            <p:inputNumber autocomplete="off" rendered="#{identificacionComponenteBean.puedeEditarCUN}" decimalPlaces="0" thousandSeparator=""
+                                           value="#{identificacionComponenteBean.personaEdicion.perCun}" styleClass="form-control texto-corto" style="display:inline-block">
+                            </p:inputNumber>
+                            <h:outputText rendered="#{!identificacionComponenteBean.puedeEditarCUN}" styleClass="form-control-plaintext" style="width:auto; display:inline-block"
+                                          value="#{identificacionComponenteBean.personaEdicion.perCun}"/>
+                            <p:commandButton title="#{msg.hpersonaValidadaRNPNCUN}" styleClass="btn btn-icono" icon="glyphicon glyphicon-ok-sign" style="color:green" rendered="#{identificacionComponenteBean.personaEdicion.perCunValidadoRNPN}"/>
+                            <p:commandButton icon="glyphicon glyphicon-info-sign" styleClass="btn btn-icono"  style="color:orangered"  title="#{msg.validacionRNPNPendiente}" rendered="#{identificacionComponenteBean.personaEdicion.perCunPendienteValidacionRNPN}"/>
+                            <p:commandButton  icon="glyphicon glyphicon-refresh"
+                                              styleClass="btn btn-secondary" 
+                                              update="@form" 
+                                              id="btnValidarRNPNCUN"
+                                              style="margin-left:5px;"
+                                              value="#{msg.hconsultarRNPN}"
+                                              title="#{msg.hconsultarRNPNdesc}"
+                                              action="#{identificacionComponenteBean.validarCUN()}"
+                                              rendered="#{identificacionComponenteBean.puedeValidarCUN}"/>
+                            <p:blockUI block="@form" trigger="btnValidarRNPNCUN" />
+                            
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_dui">
+                <h:outputText value="#{msg.dui}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3" id="b_dui"
+                                      disabled="#{!identificacionComponenteBean.puedeEditarDUI}"
+                                      value="#{identificacionComponenteBean.tieneDUI}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneDUISelected}" update="fila_input_persona_tiene_dui campoDUI"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" id="campoDUI" rendered="#{identificacionComponenteBean.tieneDUI}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <p:inputText autocomplete="off" rendered="#{identificacionComponenteBean.puedeEditarDUI}"
+                                         value="#{identificacionComponenteBean.personaEdicion.perDui}" 
+                                         style="display:inline-block"
+                                         styleClass="form-control texto-corto">
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/> 
+                            </p:inputText>
+                            <h:outputText rendered="#{!identificacionComponenteBean.puedeEditarDUI}" styleClass="form-control-plaintext" style="width:auto; display:inline-block"
+                                          value="#{identificacionComponenteBean.personaEdicion.perDui}"/>
+                            <p:commandButton title="#{msg.hpersonaValidadaRNPNDUI}" styleClass="btn btn-icono" icon="glyphicon glyphicon-ok-sign" style="color:green" rendered="#{identificacionComponenteBean.personaEdicion.perDuiValidadoRNPN}"/>
+                            <p:commandButton icon="glyphicon glyphicon-info-sign" styleClass="btn btn-icono"  style="color:orangered" title="#{msg.validacionRNPNPendiente}" rendered="#{identificacionComponenteBean.personaEdicion.perDuiPendienteValidacionRNPN}"/>
+                            <p:commandButton  icon="glyphicon glyphicon-refresh"
+                                              styleClass="btn btn-secondary" 
+                                              update="@form" 
+                                              id="btnValidarRNPNDUI"
+                                              style="margin-left:5px;"
+                                              action="#{identificacionComponenteBean.validarDUI()}"
+                                              value="#{msg.hconsultarRNPN}"
+                                              title="#{msg.hconsultarRNPNdesc}"
+                                              rendered="#{identificacionComponenteBean.puedeValidarDUI}"/>
+                            <p:blockUI block="@form" trigger="btnValidarRNPNDUI" />
+                            
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_nit" rendered="#{identificacionComponenteBean.renderIdentPersonalSede}">
+                <h:outputText value="#{msg.nit}" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>  
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3"
+                                      disabled="#{identificacionComponenteBean.soloLectura}"
+                                      value="#{identificacionComponenteBean.tieneNIT}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneNITSelected}" update="fila_input_persona_tiene_nit"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" id="campoNIT" rendered="#{identificacionComponenteBean.tieneNIT}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <p:inputText autocomplete="off" rendered="#{!identificacionComponenteBean.soloLectura}"  
+                                         value="#{identificacionComponenteBean.personaEdicion.perNit}" styleClass="form-control texto-corto" >
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/>  
+                            </p:inputText>
+                            <h:outputText rendered="#{identificacionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{identificacionComponenteBean.personaEdicion.perNit}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_nup" rendered="#{identificacionComponenteBean.renderIdentPersonalSede}">
+                <h:outputText value="#{msg.nup}" styleClass="col-sm-4 col-md-3 col-form-label "/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3"
+                                      disabled="#{identificacionComponenteBean.soloLectura}"
+                                      value="#{identificacionComponenteBean.tieneNUP}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneNUPSelected}" update="fila_input_persona_tiene_nup"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" rendered="#{identificacionComponenteBean.tieneNUP}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <p:inputText autocomplete="off" rendered="#{!identificacionComponenteBean.soloLectura}" 
+                                         value="#{identificacionComponenteBean.personaEdicion.perNup}" styleClass="form-control texto-corto">
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/>  
+                            </p:inputText>
+                            <h:outputText rendered="#{identificacionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{identificacionComponenteBean.personaEdicion.perNup}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_isss" rendered="#{identificacionComponenteBean.renderIdentPersonalSede}">
+                <h:outputText value="#{msg.isss}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3"
+                                      disabled="#{identificacionComponenteBean.soloLectura}"
+                                      value="#{identificacionComponenteBean.tieneISSS}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneISSSSelected}" update="fila_input_persona_tiene_isss"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" rendered="#{identificacionComponenteBean.tieneISSS}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <p:inputText autocomplete="off" rendered="#{!identificacionComponenteBean.soloLectura}" 
+                                         value="#{identificacionComponenteBean.personaEdicion.perIsss}" styleClass="form-control texto-corto" >
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/>  
+                            </p:inputText>
+                            <h:outputText rendered="#{identificacionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{identificacionComponenteBean.personaEdicion.perIsss}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_inpep" rendered="#{identificacionComponenteBean.renderIdentPersonalSede}">
+                <h:outputText value="#{msg.inpep}" styleClass="col-sm-4 col-md-3 col-form-label "/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3"
+                                      disabled="#{identificacionComponenteBean.soloLectura}"
+                                      value="#{identificacionComponenteBean.tieneINPEP}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" listener="#{identificacionComponenteBean.tieneINPEPSelected}" update="fila_input_persona_tiene_inpep"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-sm-6 col-md-7" rendered="#{identificacionComponenteBean.tieneINPEP}">
+                    <p:outputPanel styleClass="row">
+                        <h:outputLabel value="#{msg.nro}" styleClass="col-sm-2 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-10">
+                            <p:inputText autocomplete="off" rendered="#{!identificacionComponenteBean.soloLectura}"  
+                                         value="#{identificacionComponenteBean.personaEdicion.perInpep}" styleClass="form-control texto-corto">
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/>  
+                            </p:inputText>
+                            <h:outputText rendered="#{identificacionComponenteBean.soloLectura}" styleClass="form-control-plaintext"
+                                          value="#{identificacionComponenteBean.personaEdicion.perInpep}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_otra_identificacion">
+                <h:outputText value="#{msg.otraIdentificacion}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-2">
+                    <p:selectOneRadio layout="responsive" columns="3" id="b_otra_identificacion"
+                                      disabled="#{identificacionComponenteBean.soloLectura}"
+                                      value="#{identificacionComponenteBean.tieneOtra}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" update="itemDetail" process="@form" listener="#{identificacionComponenteBean.tieneOtraIdenSelected}"/>
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>
+        <p:fieldset rendered="#{identificacionComponenteBean.personaEdicion.perTieneIdentificacion and identificacionComponenteBean.tieneOtra}" legend="#{msg.otrasIdentificaciones}">
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_otrasIdentificaciones">                        
+                <p:outputPanel styleClass="col-sm-12" id="identificacionesTb">
+                    <p:outputPanel styleClass="form-action-buttons margen-sup">
+                        <p:commandButton value="#{msg.agregarIdentificacion}" icon="glyphicon glyphicon-plus" 
+                                         action="#{identificacionComponenteBean.agregarIdentifiacion()}" 
+                                         update="identificacionDetalle" oncomplete="PF('identificacionDialog').show()"  
+                                         id="btnAgregarIdentificacion" styleClass="btn btn-secondary" rendered="#{!identificacionComponenteBean.soloLectura}"/>
+                    </p:outputPanel>  
+                    <p:outputPanel id="pnlIdentificaciones" >
+                        <p:dataTable id="tablaIdentificaciones" var="identificacion"
+                                     emptyMessage="#{msg.noHayResultados}"
+                                     value="#{identificacionComponenteBean.personaEdicion.perIdentificaciones}">
+
+                            <p:column headerText="#{msg.htipoIdentificacion}">
+                                <h:outputText value="#{identificacion.ideTipoDocumento.tinNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hnumeroDocumento}">
+                                <h:outputText value="#{identificacion.ideNumeroDocumento}" />
+                            </p:column>
+                            <p:column headerText="#{msg.hPaisEmisor}">
+                                <h:outputText value="#{identificacion.idePaisEmisor.paiNombre}" />
+                            </p:column>                                    
+                            <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!identificacionComponenteBean.soloLectura}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:identificacionDetalle"  
+                                                 oncomplete="PF('identificacionDialog').show()" 
+                                                 icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono" 
+                                                 title="#{msg.editar}" action="#{identificacionComponenteBean.editarIdentificacion(identificacion)}"/>
+                            </p:column>                                    
+                            <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{!identificacionComponenteBean.soloLectura}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:pnlIdentificaciones"  
+                                                 icon="glyphicon glyphicon-trash" 
+                                                 styleClass="btn btn-icono rojo" 
+                                                 title="#{msg.eliminar}" action="#{identificacionComponenteBean.eliminarIdentificacion(identificacion)}"/>
+                            </p:column>                                     
+                        </p:dataTable>
+                    </p:outputPanel>
+
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+        </p:fieldset>
+
+    </p:outputPanel>
+
+    <p:dialog id="identificacionDialog" header="#{msg.agregarIdentificacion}" widgetVar="identificacionDialog" modal="true" 
+              showEffect="fade" hideEffect="fade" resizable="false" closable="true">
+        <p:outputPanel id="identificacionDetalle" style="text-align:center;">
+            <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>     
+            <p:outputPanel styleClass="form-group row" id="fila_input_pais">                        
+                <h:outputLabel value="#{msg.paisEmisor}*" for="input_pais" styleClass="col-sm-4 col-md-2 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">
+                    <h:selectOneMenu id="input_pais" value="#{identificacionComponenteBean.comboPais.selected}" styleClass="form-control dropdown texto-medio" disabled="#{identificacionComponenteBean.soloLectura}" >
+                        <f:selectItems value="#{identificacionComponenteBean.comboPais.items}" />
+                        <p:ajax listener="#{identificacionComponenteBean.seleccionarPais}" />
+                    </h:selectOneMenu>                                    
+                    <h:message for="input_pais" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                                
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_tipoidentificacion">                        
+                <h:outputLabel value="#{msg.tipoIdentificacion}*" for="input_tipoidentificacion" styleClass="col-sm-4 col-md-2 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">
+                    <h:selectOneMenu id="input_tipoidentificacion" value="#{identificacionComponenteBean.comboTiposIdentificacion.selected}" 
+                                     styleClass="form-control dropdown texto-medio"  disabled="#{identificacionComponenteBean.soloLectura}">
+                        <f:selectItems value="#{identificacionComponenteBean.comboTiposIdentificacion.items}" />
+                        <p:ajax listener="#{identificacionComponenteBean.seleccionarTipoIdentificacion}" />
+                    </h:selectOneMenu>                                    
+                    <h:message for="input_tipoidentificacion" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                 
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_identificacion">                        
+                <h:outputLabel value="#{msg.numero}" for="input_identificacion" styleClass="col-sm-4 col-md-2 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">                            
+                    <h:inputText autocomplete="off" id="input_identificacion" maxlength="50" value="#{identificacionComponenteBean.identificacionEnEdicion.ideNumeroDocumento}" 
+                                 styleClass="form-control texto-medio" disabled="#{identificacionComponenteBean.soloLectura}"/>
+                    <h:message for="input_identificacion" styleClass="msj-danger"/>
+                </p:outputPanel>                  
+            </p:outputPanel> 
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarIdenti"  value="#{msg.aceptar}" action="#{identificacionComponenteBean.agregarIdentificacionAPersona()}"
+                                     update="identificacionDetalle pnlIdentificaciones" styleClass="btn btn-primary"
+                                     disabled="#{identificacionComponenteBean.soloLectura}"/>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('identificacionDialog').hide();" styleClass="btn btn-link"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="identificacionDetalle" trigger="btnGuardarIdenti" />  
+            <p:defaultCommand target="btnGuardarIdenti" scope="identificacionDetalle"/>                   
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>

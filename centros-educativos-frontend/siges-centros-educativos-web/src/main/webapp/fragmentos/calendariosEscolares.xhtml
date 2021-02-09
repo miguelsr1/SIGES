@@ -1,0 +1,216 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CALENDARIOS}.xhtml">#{msg.gestionCalendario}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionCalendarioEscolar}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionCalendarioEscolar}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoPeriodoCalendario}" icon="glyphicon glyphicon-plus" 
+                                 action="#{calendarioEscolarBean.agregar()}" 
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CALENDARIOS_ESCOLARES)}"
+                                 update=":form:itemDetail :form:popUpPeriodo" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarCalendarioEscolar" styleClass="btn btn-secondary" />
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CALENDARIOS_ESCOLARES)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="Calendario: #{calendarioEscolarBean.calendarioEnEdicion.calNombre}"  />
+        </h3> 
+
+
+
+        <p:outputPanel id="pnlResultado" >
+            <ui:repeat value="#{calendarioEscolarBean.tipoCalEscList}" var="sublist">
+                <p:panel header="#{sublist.text}" toggleable="true"  collapsed="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                    <ui:repeat value="#{calendarioEscolarBean.listNivel}" var="nivel">
+                        <p:panel header="Nivel #{nivel.nivNombre}">
+                            <p:dataTable id="basicDT"                         
+                                         widgetVar="widResultado"                         
+                                         var="elem"                          
+                                         value="#{calendarioEscolarBean.buscarTipo(sublist, nivel)}"                          
+                                         emptyMessage="#{msg.noHayResultados}" 	                                         
+                                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                         sortField="cesPk"                                         
+                                         reflow="true" >                          
+
+                                <p:column headerText="#{msg.nombre}" >
+                                    <h:outputText value="#{elem.cesNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hhabilitado}">
+                                    <h:outputText value="#{elem.cesHabilitado}" converter="#{booleanConverter}"/>
+                                </p:column>
+                                <p:column headerText="#{msg.hmodalidadAtencion}" sortBy="#{elem.cesModalidadAtencion.matNombre}">
+                                    <h:outputText value="#{elem.cesModalidadAtencion.matNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hsubModalidadAtencion}" sortBy="#{elem.cesSubModalidadAtencion.smoNombre}">
+                                    <h:outputText value="#{elem.cesSubModalidadAtencion.smoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hfechaDesde}" sortBy="#{elem.cesFechaDesde}">
+                                    <h:outputText value="#{elem.cesFechaDesde}" converter="#{localDateConverter}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hfechaHasta}" sortBy="#{elem.cesFechaHasta}">
+                                    <h:outputText value="#{elem.cesFechaHasta}" converter="#{localDateConverter}" />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CALENDARIOS_ESCOLARES)}">
+                                    <p:commandButton update=":form:itemDetail :form:popUpPeriodo" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{calendarioEscolarBean.actualizar(elem)}"/>
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false">
+                                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" action="#{calendarioEscolarBean.historial(elem.cesPk)}"/>
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_CALENDARIOS_ESCOLARES)}">
+                                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{calendarioEscolarBean.actualizar(elem)}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                    </ui:repeat>
+                </p:panel>  
+            </ui:repeat >	
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{calendarioEscolarBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog id="popUpPeriodo" header="#{( calendarioEscolarBean.entidadEnEdicion.cesPk != null) ? msg.edicionPeriodoCalendario: msg.nuevoPeriodoCalendario }" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty calendarioEscolarBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioCalendarioEscolar">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_act_cal">
+                            <h:outputLabel value="#{msg.htipo}" for="combo_tipo_act_cal" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="combo_tipo_act_cal" value="#{calendarioEscolarBean.tipoCalEscCombo.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{calendarioEscolarBean.tipoCalEscCombo.items}" />           
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_nivel">
+                            <h:outputLabel value="#{msg.hniveles}" for="combo_tipo_nivel" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="combo_tipo_nivel" value="#{calendarioEscolarBean.nivelCombo.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{calendarioEscolarBean.nivelCombo.items}" />  
+                                    <p:ajax update="fila_combo_mod_at fila_combo_sub_mod_at"  listener="#{calendarioEscolarBean.cargarComboModAt()}" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_mod_at">
+                            <h:outputLabel value="#{msg.hmodalidadAtencion}" for="combo_mod_at" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="combo_mod_at" value="#{calendarioEscolarBean.modalidadAtencionCombo.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{calendarioEscolarBean.modalidadAtencionCombo.items}" />    
+                                    <p:ajax update="fila_combo_sub_mod_at"  listener="#{calendarioEscolarBean.cargarSubModalidad()}" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>      
+                        
+                        <p:outputPanel  id="fila_combo_sub_mod_at">
+                            <p:outputPanel styleClass="form-group row" rendered="#{calendarioEscolarBean.subModalidadAtencionCombo!=null}">
+                                <h:outputLabel value="#{msg.hsubModalidadAtencion}" for="combo_sub_mod_at" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu id="combo_sub_mod_at" value="#{calendarioEscolarBean.subModalidadAtencionCombo.selected}" styleClass="form-control texto-medio">
+                                        <f:selectItems value="#{calendarioEscolarBean.subModalidadAtencionCombo.items}" />           
+                                    </h:selectOneMenu>  
+                                </p:outputPanel>          
+                            </p:outputPanel> 
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row " id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_opcNombre" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_opcNombre" styleClass="form-control" value="#{calendarioEscolarBean.entidadEnEdicion.cesNombre}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_desde">
+                            <h:outputLabel value="#{msg.desde}" for="input_fecha_desde" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha_desde" styleClass="form-control" 
+                                            value="#{calendarioEscolarBean.entidadEnEdicion.cesFechaDesde}" 
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}" mask="true" converterMessage="#{msg.fechaInvalida}"/>
+                                <h:message for="input_fecha_desde" styleClass="msj-danger"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_hasta">
+                            <h:outputLabel value="#{msg.hasta}" for="input_fecha_hasta" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="input_fecha_hasta" styleClass="form-control" 
+                                            value="#{calendarioEscolarBean.entidadEnEdicion.cesFechaHasta}" 
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}" mask="true" converterMessage="#{msg.fechaInvalida}"/>
+                                <h:message for="input_fecha_hasta" styleClass="msj-danger"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{calendarioEscolarBean.entidadEnEdicion.cesHabilitado}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{calendarioEscolarBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />      
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>     
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.historialPeriodoCalendario}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{calendarioEscolarBean.historialCalendarioEscolar}" /> 
+            </ui:include>
+        </p:dialog>    
+    </h:form>
+</ui:composition>

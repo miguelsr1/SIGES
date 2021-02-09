@@ -1,0 +1,502 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">         
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado"/>
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        #{seccionBean.forceInit()}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionSeccion}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSeccion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.GESTION_SECCION)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.departamento}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="b_departamento" value="#{seccionBean.comboDepartamento.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{seccionBean.comboDepartamento.items}"/>
+                                    <p:ajax listener="#{seccionBean.seleccionarDepartamento}" event="change"  process="@this" update="fila_input_municipio"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row" id="fila_input_municipio">
+                            <h:outputText value="#{msg.municipio}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="b_municipio" value="#{seccionBean.comboMunicipio.selected}" styleClass="form-control texto-medio" disabled="#{seccionBean.comboDepartamento.selectedT==null}">
+                                    <f:selectItems value="#{seccionBean.comboMunicipio.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <f:subview id="viewFiltroSeccion">
+                    <ui:include src="componentes/filtrosSeccion.xhtml">
+                    </ui:include>
+                </f:subview>
+
+
+                <p:outputPanel styleClass="col-md-12" style="text-align: right;">        
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{seccionBean.buscar()}" update="pnlResultado"/>
+                            
+                            <p:commandLink value="#{filtrosSeccionBean.txtFiltroAvanzado}" 
+                                           action="#{filtrosSeccionBean.verPanelAvanzado()}" 
+                                           update="pnlSearch @this" styleClass="btn btn-link">
+                            </p:commandLink>
+                            
+                            <p:blockUI block="@form" trigger="btnBuscar" />  
+                            <p:commandLink value="#{msg.limpiar}" action="#{seccionBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />    
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"
+                         widgetVar="widResultado"
+                         var="elem"
+                         rendered="#{seccionBean.servicioEducativoLazyModel != null}"
+                         value="#{seccionBean.servicioEducativoLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="sduPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{seccionBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{seccionBean.totalResultados lt (seccionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3>
+                                <h:outputText value="#{msg.resultadoBusqueda}" />
+                                <h:outputText styleClass="cantidad" value="#{seccionBean.totalResultados}"><f:convertNumber locale="#{sessionBean.localeNumber}" /></h:outputText>
+                                <h:outputText styleClass="cantidad" value=" servicios." />
+                                
+                                <h:outputText styleClass="cantidad" value="#{seccionBean.totalSecciones}"><f:convertNumber locale="#{sessionBean.localeNumber}" /></h:outputText>
+                                <h:outputText styleClass="cantidad" value=" secciones." />
+                            </h3>
+                        </p:outputPanel>                      
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{msg.codSede}" sortBy="#{elem.sduSede.sedCodigo}">
+                    <h:outputText value="#{elem.sduSede.sedCodigo}" id="textSede"/>
+                    <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext" 
+                                              value="#{elem.sduSede.sedNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.sduSede.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>
+
+                <p:column headerText="#{msg.hniveles}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}">
+                    <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.modalidad}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}">
+                    <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.opcion}" sortBy="#{elem.sduOpcion.opcNombre}"  styleClass="ocultarResolucion">
+                    <h:outputText value="#{elem.sduOpcion.opcNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hprogramaEducativo}" sortBy="#{elem.sduProgramaEducativo.pedNombre}"  styleClass="ocultarResolucion">
+                    <h:outputText value="#{elem.sduProgramaEducativo.pedNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hmodalidadAtencion}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}">
+                    <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hsubModalidadAtencion}" sortBy="#{elem.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"   styleClass="ocultarResolucion">
+                    <h:outputText value="#{elem.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.hgrado}" sortBy="#{elem.sduGrado.graNombre}">
+                    <h:outputText value="#{elem.sduGrado.graNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}" visible="false" exportable="true">
+                    <h:outputText value="#{elem.listaSecciones(seccionBean.filtroServicioEducativo.secAnioLectivoFk)}" escape="false" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}" exportable="false">
+                    <div style="text-align: right">
+                        <p:commandButton value="#{msg.nuevoSeccion}" icon="glyphicon glyphicon-plus" 
+                                         action="#{seccionBean.agregar(elem)}" 
+                                         update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                         styleClass="btn btn-secondary" 
+                                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SECCION)}"/>
+                    </div>
+                    <p:repeat value="#{elem.sduSeccion}"   var="elemSec">
+                        <p:outputPanel rendered="#{(seccionBean.filtroServicioEducativo.secAnioLectivoFk != null and elemSec.secAnioLectivo.alePk == seccionBean.filtroServicioEducativo.secAnioLectivoFk ) or seccionBean.filtroServicioEducativo.secAnioLectivoFk == null}" >
+                            <table class="tabla-sin-bordes" role="presentation">
+                                <tr style="border: none;">
+                                    <td class="columnaAcciones">
+                                        <h:outputText value="#{elemSec.secAnioLectivo.aleAnio}" />
+                                    </td>
+                                    <td>
+                                        <h:outputText value="#{elemSec.secNombre}" />
+                                    </td>
+                                    <td>
+                                        <h:outputText value="#{elemSec.secJornadaLaboral.jlaNombre}" />
+                                    </td>
+                                    <td class="columnaAcciones">
+                                        <div class="dropdown">
+                                            <button type="button" title="Opciones" class="btn btn-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <span class="glyphicon glyphicon-menu-hamburger"></span>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right">
+                                                <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" 
+                                                                 icon="glyphicon glyphicon-pencil" styleClass="dropdown-item btn btn-link" 
+                                                                 value="#{msg.editar}" action="#{seccionBean.actualizar(elem, elemSec)}" 
+                                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SECCION)}"/>
+                                                <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA}" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CONTROL_ASISTENCIA_CABEZAL)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-list-alt"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.hcontrolAsistencia}"/>
+                                                    <f:param name="seccionId" value="#{elemSec.secPk}"/>
+                                                </p:link>
+                                                <p:link outcome="#{ConstantesPaginas.CREAR_REPORTE_CONTROL_ASISTENCIA}" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_ASISTENCIAS_ESTUDIANTE)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.reporteAsistencias}"/>
+                                                    <f:param name="seccionId" value="#{elemSec.secPk}"/>
+                                                </p:link>    
+                                                <p:link outcome="#{ConstantesPaginas.HORARIO_ESCOLAR}" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_HORARIOS_ESCOLARES)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-calendar"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.horarioEscolar}"/>
+                                                    <f:param name="seccionId" value="#{elemSec.secPk}"/>
+                                                </p:link>
+                                                <p:link outcome="#{ConstantesPaginas.CALIFICACION}" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CALIFICACIONES)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-th-list"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.hcalificar}"/>
+                                                    <f:param name="seccionId" value="#{elemSec.secPk}"/>
+                                                </p:link>
+                                                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CARNET_ESTUDIANTES}?seccionId=#{elemSec.secPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CARNET_ESTUDIANTE)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.hcarnets}"/>
+                                                </p:link>
+                                                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_PROMOCIONES_ESTUDIANTES}?seccionId=#{elemSec.secPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.reportePromociones}"/>
+                                                </p:link>
+                                                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CALIFICACIONES_ESTUDIANTES}?seccionId=#{elemSec.secPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACION_ESTUDIANTE)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.reporteCalificaciones}"/>
+                                                </p:link>
+                                                <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_MATRICULAS}?seccionId=#{elemSec.secPk}" target="_blank" styleClass="dropdown-item btn btn-link" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_MATRICULA_SECCION)}">
+                                                    <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                                    <h:outputText style="margin-left:6px;" value="#{msg.reporteMatriculas}"/>
+                                                </p:link>
+                                                <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                                                 icon="glyphicon glyphicon-time" styleClass="dropdown-item btn btn-link" 
+                                                                 value="#{msg.historial}" action="#{seccionBean.historial(elemSec.secPk)}"/>
+                                                <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                                                 styleClass="dropdown-item btn btn-link rojo" value="#{msg.eliminar}" 
+                                                                 action="#{seccionBean.actualizar(elem, elemSec)}" 
+                                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_SECCION)}"/>
+
+                                            </div>
+                                        </div>
+                                    </td>                                  
+                                </tr>
+                            </table>
+                        </p:outputPanel>
+                    </p:repeat>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{seccionBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.hSeccion}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetail">
+                <h:panelGroup rendered="#{not empty seccionBean.entidadEnEdicion}"  >
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>
+                    <p:outputPanel id="formularioSeccion">
+
+                        <h:panelGroup>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_id_seccion" 
+                                           rendered="#{seccionBean.entidadEnEdicion.secPk!=null}">
+                                <h:outputLabel value="#{msg.idSeccion}" for="input_id_seccion" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText id="input_id_seccion" 
+                                                 value="#{seccionBean.entidadEnEdicion.secPk}" 
+                                                 disabled="true" styleClass="form-control"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_sede_educativa" >
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_educativa" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText id="input_sede_educativa" 
+                                             value="#{seccionBean.servicioEducativoSeleccionado.sduSede.sedCodigoNombre}" disabled="true" styleClass="form-control"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_servicio_educativo" >
+                            <h:outputLabel value="#{msg.servicioEducativo}" for="input_servicio_educativo" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputTextarea id="input_servicio_educativo" 
+                                                 value="#{seccionBean.servicioEducativoSeleccionado.sduNombre}" 
+                                                 rows="3"
+                                                 disabled="true" styleClass="form-control"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_plan_estudio">
+                            <h:outputLabel value="#{msg.planEstudio}" for="input_plan_estudio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_plan_estudio" value="#{seccionBean.comboPlanEstudio.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{seccionBean.comboPlanEstudio.items}"/>
+                                    <p:ajax listener="#{seccionBean.seleccionarPlanEstudio()}" update="anual" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                            <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_anio_lectivo" value="#{seccionBean.comboAnioLectivoInsert.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{seccionBean.comboAnioLectivoInsert.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_jornada">
+                            <h:outputLabel value="#{msg.jornadaLaboral}" for="input_jornada" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_jornada" value="#{seccionBean.comboJornadaLaboral.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{seccionBean.comboJornadaLaboral.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel rendered="#{seccionBean.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombreSeccionLibre}">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_codigo">
+                                <h:outputLabel value="#{msg.codigo}" for="input_codigo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText id="input_codigo" styleClass="form-control" value="#{seccionBean.entidadEnEdicion.secCodigo}" autocomplete="off" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                                <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText id="input_nombre" styleClass="form-control" value="#{seccionBean.entidadEnEdicion.secNombre}" autocomplete="off" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel> 
+
+                        <p:outputPanel rendered="#{not seccionBean.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombreSeccionLibre}">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_codigo_nombre">
+                                <h:outputLabel value="#{msg.codigoNombre}" for="input_codigo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:selectOneMenu value="#{seccionBean.letraSeleccionada}"  styleClass="form-control">
+                                        <f:selectItems value="#{seccionBean.letras}"/>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_estado" >
+                            <h:outputLabel value="#{msg.estado}" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu value="#{seccionBean.comboEstado.selected}" rendered="#{seccionBean.entidadEnEdicion.secPk == null or sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CAMBIAR_ESTADO_SECCION)}" styleClass="form-control">
+                                    <f:selectItems value="#{seccionBean.comboEstado.items}"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="#{seccionBean.entidadEnEdicion.secEstado.text}" rendered="#{seccionBean.entidadEnEdicion.secPk != null and !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CAMBIAR_ESTADO_SECCION)}" styleClass="form-control-plaintext" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.accesoInternet}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_accesoInternet" styleClass="form-check-input" value="#{seccionBean.entidadEnEdicion.secAccesoInternet}"  />
+                                    <h:outputLabel for="input_accesoInternet" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">   
+                            <h:outputText value="#{msg.accesoComputadora}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_accesoComputadora" styleClass="form-check-input" value="#{seccionBean.entidadEnEdicion.secAccesoComputadora}"  />
+                                    <h:outputLabel for="input_accesoComputadora" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" rendered="#{seccionBean.renderSeccionIntegrada}">   
+                            <h:outputText value="#{msg.admiteModalidadIntegrada}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_sec_integrada" styleClass="form-check-input" value="#{seccionBean.entidadEnEdicion.secIntegrada}"  />
+                                    <h:outputLabel for="input_sec_integrada" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" rendered="#{seccionBean.renderDatosSeccionModalidadFlexible}">   
+                            <h:outputText value="#{msg.implementadora}" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu value="#{seccionBean.comboAsociaciones.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{seccionBean.comboAsociaciones.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" rendered="#{seccionBean.renderDatosSeccionModalidadFlexible}">
+                            <h:outputLabel value="#{msg.regimen}" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu value="#{seccionBean.comboRegimenSeccion.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{seccionBean.comboRegimenSeccion.items}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel id="anual">
+                            <p:outputPanel rendered="#{seccionBean.aplicaAnual}">
+                                <p:outputPanel styleClass="form-group row" rendered="#{false}">   
+                                    <h:outputText value="#{msg.esAnual}" styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:selectOneRadio layout="responsive" columns="2" id="b_habilitado" value="#{seccionBean.esAnual}"
+                                                          disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_PERIODO_ANUAL_COHORTE)}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <p:ajax update="periodo" />
+                                        </p:selectOneRadio>     
+                                    </p:outputPanel>
+
+                                </p:outputPanel>
+
+                                <p:outputPanel id="periodo">
+                                    <p:outputPanel styleClass="form-group row" rendered="#{not seccionBean.esAnual}" >
+                                        <h:outputLabel value="#{msg.periodoCohorte}" for="input_codigo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                        <p:outputPanel styleClass="col-sm-8">
+                                            <h:selectOneMenu value="#{seccionBean.periodoSeleccionado}"  styleClass="form-control"
+                                                             disabled="#{(seccionBean.entidadEnEdicion.secEstado eq EnumSeccionEstado.CERRADA)  or !sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_PERIODO_ANUAL_COHORTE)}">
+                                                <f:selectItems value="#{seccionBean.periodos}"/>
+                                            </h:selectOneMenu>
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                            </p:outputPanel>  
+                        </p:outputPanel>    
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{seccionBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />   
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>    
+                    </p:outputPanel>                 
+                </h:panelGroup>        
+            </p:outputPanel>        
+        </p:dialog>       
+
+        <p:dialog header="#{msg.historialSeccion}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{seccionBean.historialSeccion}" /> 
+            </ui:include>        
+        </p:dialog>    
+    </h:form>
+</ui:composition>

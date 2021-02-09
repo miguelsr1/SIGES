@@ -1,0 +1,280 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" >
+        <h:form prependId="false">
+            <p:dataTable
+                id="tablaDePagos"
+                var="item" 
+                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                value="#{contratoCE.objeto.pagos}"
+                paginator="true" rows="25"
+                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} "
+                rowsPerPageTemplate="5,10,25,50"
+                styleClass="table">
+
+                <f:facet name="{Exporters}">
+                    <h:commandLink styleClass="pull-right btn btn-icono">
+                        <span class="glyphicon glyphicon-export"></span>
+                        <p:dataExporter type="csv" target="tablaDePagos" fileName="pagos" />
+                    </h:commandLink> 
+                </f:facet>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NroActa')}"  >
+                    <h:outputText value="#{item.contratoOC.id}" /> - <h:outputText value="#{item.posicion}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.fechaGeneracion')}"  >
+                    <h:outputText value="#{item.fechaGeneracion}" converter="timeStampConverter" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.LugarRecepcion')}"  >
+                    <h:outputText value="#{item.lugarRecepcion}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Observaciones')}"  >
+                    <h:outputText value="#{item.observaciones}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.importeNeto')}"  styleClass="numericos">
+                    <h:outputText value="#{item.importeNeto}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Anticipo')}"  styleClass="numericos">
+                    <h:outputText value="#{item.anticipo}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Devolucion')}"  styleClass="numericos">
+                    <h:outputText value="#{item.devolucion}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.totalApagar')}"  styleClass="numericos">
+                    <h:outputText value="#{item.totalApagar}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones">
+                    <p:commandButton icon="glyphicon glyphicon-eye-open" 
+                                     styleClass="btn btn-icono"  
+                                     title="#{textMB.obtenerTexto('labels.Ver')}"
+                                     action="#{contratoCE.reloadPago()}"
+                                     update="verPagoForm"
+                                     onclick="$('#verPago').modal('show');" 
+                                     immediate="true">
+                        <f:setPropertyActionListener target="#{contratoCE.tempPago}" value="#{item}" />
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </h:panelGroup>
+
+    <!-- MODAL PARA AGREGAR -->  
+    <h:panelGroup id="blockProrroga"  layout="block">
+        <div class="modal fade"  id="verPago" tabindex="-1" role="dialog" aria-labelledby="verPago">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content" id="verPagoContenidoModal">
+                    <h:form id="verPagoForm" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.verPago')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <div class="form-group">
+                                    <h:outputLabel for="fechaEmision" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.fechaEmision')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{contratoCE.tempPago.fechaEmision}" styleClass="form-control-static" converter="dateConverter"/>
+                                        <h:message for="fechaEmision" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="fechaInicio" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.fechaInicio')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{contratoCE.tempPago.fechaInicio}" styleClass="form-control-static" converter="dateConverter"/>
+                                        <h:message for="fechaInicio" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="fechaFin" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.fechaFin')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{contratoCE.tempPago.fechaFin}" styleClass="form-control-static" converter="dateConverter"/>
+                                        <h:message for="fechaFin" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="observaciones" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.observaciones')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{contratoCE.tempPago.observaciones}"  styleClass="form-control-static"/> 
+                                        <h:message for="observaciones" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                                <fieldset class="fieldset fieldsetSmall margenSup">
+                                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.EstadoAprobado')}" /></legend>
+                                    <div class="form-group">
+                                        <h:outputLabel for="fechaGeneracion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.fechaGeneracion')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText id="fechaGeneracion" value="#{contratoCE.tempPago.fechaGeneracion}" styleClass="form-control-static" converter="timeStampConverter"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="lugarRecepcion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.lugarRecepcion')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText  value="#{contratoCE.tempPago.lugarRecepcion}" styleClass="form-control-static"/>
+                                            <h:message for="lugarRecepcion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="importeNeto" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.importeNeto')}:" />
+                                        <div class="col-sm-9">
+                                            <p class="form-control-static textoMedio numericos">
+                                                <h:outputText  value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />                                            
+                                                <h:outputText  value="#{contratoCE.tempPago.importeNeto}">
+                                                    <f:convertNumber minFractionDigits="2"  />
+                                                </h:outputText>
+                                            </p>                                        		
+                                            <h:message for="importeNeto" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="anticipo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.anticipo')}:" />
+                                        <div class="col-sm-9">
+                                            <p class="form-control-static textoMedio numericos">
+                                                <h:outputText value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:outputText  value="#{contratoCE.tempPago.anticipo}" >
+                                                    <f:convertNumber minFractionDigits="2"  />
+                                                </h:outputText>
+                                            </p>			
+                                            <h:message for="anticipo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="devolucion" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.devolucion')}:" />
+                                        <div class="col-sm-9">
+                                            <p class="form-control-static textoMedio numericos">
+                                                <h:outputText value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:outputText  value="#{contratoCE.tempPago.devolucion}" >
+                                                    <f:convertNumber minFractionDigits="2"  />
+                                                </h:outputText>
+                                            </p>
+                                            <h:message for="devolucion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="separador"></div>
+                                    <div class="form-group">
+                                        <h:outputLabel for="totalApagar" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.totalApagar')}:" />
+                                        <div class="col-sm-9">
+                                            <p class="form-control-static textoMedio numericos">
+                                                <h:outputText value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                <h:outputText  value="#{contratoCE.tempPago.totalApagar}" >
+                                                    <f:convertNumber minFractionDigits="2"  />
+                                                </h:outputText>
+                                            </p>
+                                            <h:message for="totalApagar" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <p:treeTable 
+                                        id="tablaDePagosDeItems"
+                                        var="item" 
+                                        value="#{contratoCE.getRootNodePagos()}" >                                
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}"  >
+                                            <h:outputText value="#{item.objeto.item.id}" rendered="#{item.tipo eq 'ITEM'}"/>
+                                            <h:outputText value="#{item.objeto.insumo.id}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                            <h:outputText value="#{item.objeto.item.nombre}" rendered="#{item.tipo eq 'ITEM'}"/>
+                                            <h:outputText value="#{item.objeto.insumo.insumo.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UT')}">
+                                            <h:outputText value="#{item.objeto.insumo.unidadTecnica.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.cantSolicitada')}" styleClass="numericos" >
+                                            <h:outputText value="#{item.objeto.cantidad}"  rendered="#{item.tipo eq 'ITEM'}" />
+                                            <h:outputText value="#{item.objeto.insumo.cantidad}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoUnitario')}" styleClass="numericos" >
+                                            <h:outputText value="#{item.objeto.insumo.montoUnit}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotal')}" styleClass="numericos" >
+                                            <h:outputText value="#{item.objeto.montoTotal}" rendered="#{item.tipo eq 'ITEM'}" >
+                                                <f:convertNumber minFractionDigits="2"  />
+                                            </h:outputText>
+                                            <h:outputText value="#{item.objeto.insumo.montoTotal}" rendered="#{item.tipo eq 'INSUMO'}">
+                                                <f:convertNumber minFractionDigits="2"  />
+                                            </h:outputText>
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.CantidadRecibida')}" styleClass="numericos" >                                            
+                                            <h:outputText id="cantidad-recibida"  value="#{item.objeto.cantRecivida}"   rendered="#{item.tipo eq 'INSUMO'}" >
+                                            </h:outputText> 
+                                            <h:message for="cantidad-recibida" styleClass="help-inline msj-danger" />
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Importe')}" styleClass="numericos" >
+                                            <h:outputText id="monto-recibido" value="#{item.objeto.importe}"  rendered="#{item.tipo eq 'INSUMO'}"  >
+                                                <f:convertNumber minFractionDigits="2"  />
+                                            </h:outputText>
+                                            <h:message for="monto-recibido" styleClass="help-inline msj-danger" />
+                                        </p:column>
+                                    </p:treeTable>
+
+                                    <!--                                    <p:dataTable
+                                                                            id="tablaDePagosDeItems"
+                                                                            var="item" 
+                                                                            emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                                                            value="#{contratoCE.tempPago.pagosInsumo}"
+                                                                            paginator="true" rows="25"
+                                                                            paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} "
+                                                                            rowsPerPageTemplate="5,10,25,50"
+                                                                            styleClass="table tabla-resultados">
+                                    
+                                                                            <p:column headerText="#{textMB.obtenerTexto('labels.IdInsumo')}"  >
+                                                                                <h:outputText value="#{item.insumo.id}" />
+                                                                            </p:column>
+                                                                            <p:column headerText="#{textMB.obtenerTexto('labels.Insumo')}"  >
+                                                                                <h:outputText value="#{item.insumo.insumo.nombre}" />
+                                                                            </p:column>
+                                                                            <p:column headerText="#{textMB.obtenerTexto('labels.CantidadSolicitada')}"  >
+                                                                                <h:outputText value="#{item.insumo.cantidad}" />
+                                                                            </p:column>
+                                                                            <p:column headerText="#{textMB.obtenerTexto('labels.MontoEstimado')}"  >
+                                                                                <h:outputText value="#{item.insumo.montoTotal}" />
+                                                                            </p:column>
+                                                                            <p:column headerText="#{textMB.obtenerTexto('labels.CantidadRecibida')}"  >
+                                                                                <h:inputText value="#{item.cantRecivida}" styleClass="textoCorto"  />
+                                                                            </p:column>
+                                                                            <p:column headerText="#{textMB.obtenerTexto('labels.Importe')}"  >
+                                                                                <h:inputText value="#{item.importe}" styleClass="textoCorto" />
+                                                                            </p:column>
+                                                                            
+                                                                        </p:dataTable>                                    -->
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </div>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+</ui:composition>

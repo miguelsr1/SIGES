@@ -1,0 +1,194 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionDescargos}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionDescargos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.DESCARGO}" title="#{msg.agregarDescargo}"
+                        styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarDescargo}"/>
+                </p:link>
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.DESCARGOS)}" />
+                </ui:include>
+            </p:outputPanel>
+
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        
+        
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <f:subview id="filtroActivosView">
+                        <ui:include src="componentes/filtroActivos.xhtml">
+                            <ui:param name="renderUnidadAdministrativa" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}" />
+                            <ui:param name="renderTipoUnidad" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}" />
+                            <ui:param name="renderUnidadActivoFijo" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}" />
+                            <ui:param name="renderMunicipio" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MUNICIPIO)}" />
+                            <ui:param name="renderFechaSolicitud" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_FECHA_SOLICITUD)}" />
+                            <ui:param name="renderFechaDescargo" value="true" />
+                            <ui:param name="renderValorAdquisicionDesde" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_VALOR_ADQUISICION)}" />
+                            <ui:param name="renderValorAdquisicionHasta" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_VALOR_ADQUISICION)}" />
+                            <ui:param name="renderActivo" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_ACTIVOS) or sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_PRECIO)}" />
+                            <ui:param name="renderNumeroSolicitud" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_NUMERO_SOLICITUD)}" />
+                            <ui:param name="renderEstadoSolicitud" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_ESTADO_SOLICITUD)}" /> 
+                            <ui:param name="renderCodInventario" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_CODIGO_INVENTARIO)}" /> 
+                        </ui:include>
+                    </f:subview>
+                    
+                </p:outputPanel>
+            </p:panel>
+            
+            <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+                <p:outputPanel styleClass="form-group row">
+                    <p:outputPanel styleClass="col-sm-12 texto-right">
+                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" action="#{descargosBean.buscar()}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                         update="pnlResultado"/>
+                        <p:commandLink value="#{msg.limpiar}" action="#{descargosBean.limpiar()}"
+                                       update="pnlSearch  pnlResultado" immediate="true" styleClass="btn btn-link">
+                            <p:resetInput target="pnlSearch  pnlResultado" />
+                        </p:commandLink>
+                        <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                        <p:blockUI block="@form" trigger="btnBuscar" />
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </h:panelGroup>
+        
+        
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"
+                         rendered="#{descargosBean.descargosLazyModel != null}"
+                         value="#{descargosBean.descargosLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="desPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{cargosBean.paginado}"
+                         reflow="true" >
+                
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{descargosBean.totalResultados lt (descargosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{descargosBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <p:commandButton id="toggler" value="#{msg.hcolumnas}"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-align-justify"/>
+                                <p:columnToggler datasource="basicDT" trigger="toggler">
+                                    <p:ajax event="toggle" listener="#{descargosBean.onToggle}"/>
+                                </p:columnToggler>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hid}" toggleable="false">
+                    <h:outputText value="#{elem.desPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hnumeroSolicitud}" sortBy="#{elem.desCodigoDescargo}"  toggleable="false">
+                    <h:outputText  value="#{elem.desCodigoDescargo}"/>
+                </p:column>
+                <p:column headerText="#{msg.hnombreCEUA}" toggleable="false">
+                    <h:outputText value="#{elem.desNombreUnidadAdministrativa}"/>
+                </p:column>
+                <p:column headerText="#{msg.hfechaSolicitud}" sortBy="#{elem.desFechaSolicitud}"  toggleable="false">
+                    <h:outputText  value="#{elem.desFechaSolicitud}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hfechaDescargo}" sortBy="#{elem.desFechaDescargo}"  id="col1" visible="#{descargosBean.colVisibilityMap['col1']}">
+                    <h:outputText  value="#{elem.desFechaDescargo}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hnumBienesDescargar}"  id="col2" visible="#{descargosBean.colVisibilityMap['col2']}">
+                    <h:outputText  value="#{elem.cantidad}"/>
+                </p:column>
+                <p:column headerText="#{msg.hcostoTotalDescargar}"  id="col3" visible="#{descargosBean.colVisibilityMap['col3']}" styleClass="fondo_rosa">
+                     <h:outputText value="#{elem.totalMonto}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.htipoDescargo}" sortBy="#{elem.desTipoDescargoFk.edeNombre}"  id="col4" visible="#{descargosBean.colVisibilityMap['col4']}">
+                     <h:outputText  value="#{elem.desTipoDescargoFk.edeNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.desEstadoFk.ebiNombre}"  id="col5" visible="#{descargosBean.colVisibilityMap['col5']}" style="#{elem.desEstadoFk.ebiEstilo}">
+                     <h:outputText  value="#{elem.desEstadoFk.ebiNombre}"/>
+                </p:column>
+                
+                <p:column styleClass="columnaAcciones"  exportable="false" toggleable="false">
+                    <p:link outcome="#{ConstantesPaginas.DESCARGO}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.desPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" toggleable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_DESCARGO)}">
+                    <p:link outcome="#{ConstantesPaginas.DESCARGO}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.desPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" toggleable="false">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}"                 
+                                     rendered="#{descargosBean.solicitudDescargoPuedeEliminarse(elem)}"
+                                     action="#{descargosBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" toggleable="false">
+                    <p:commandButton icon="glyphicon glyphicon-time" styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" action="#{descargosBean.cargarHistorial(elem.desPk)}"  
+                                     update=":form:historialDetail" oncomplete="PF('historialDialog').show()" />
+                </p:column>
+            </p:dataTable>
+            
+            <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacionSolicitudDescargo}"
+                         header="#{msg.confirmacionEliminacionSolicitud}" severity="alert" widgetVar="confirmDialog">
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                     oncomplete="PF('confirmDialog').hide()"
+                                     styleClass="btn btn-primary"
+                                     action="#{descargosBean.eliminar()}"  />
+                    <p:blockUI block="@form" trigger="confirmDelete"/>
+                    <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                                   onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </p:confirmDialog>
+            
+            <p:dialog header="#{msg.hHistorialDescargo}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('historialDialog').initPosition()">
+                <ui:include src="componentes/historial.xhtml">
+                    <ui:param name="historial" value="#{descargosBean.historial}" />
+                </ui:include>
+            </p:dialog>
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

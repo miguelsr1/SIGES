@@ -1,0 +1,188 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consolidadoPOAporACoANP.titulo')}"/>
+                </h2>
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formMain"  prependId="false" >     
+            <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <div class="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <c:set var="labelConsolidadoPoa" value="#{poaConsolidadoMB.accionCentral ? 'labels.AccionCentral':'labels.AsignacionNoProgramable'}" />
+                        <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto(labelConsolidadoPoa)}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="accCentral" styleClass="form-control-static" value="#{poaConsolidadoMB.objeto.nombre}" />
+                        </div>
+                    </div>                  
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.PlanificacionEstrategica')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="accCentralpla" styleClass="form-control-static" 
+                                          value="#{poaConsolidadoMB.objeto.planificacionEstrategica.nombre}" />
+                        </div>
+                    </div>                  
+
+                    <div class="form-group">
+                        <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.LineaEstrategica')}:" />
+                        <div class="col-sm-9">
+                            <p:dataTable  id="supuestoTabla"
+                                          var="item" 
+                                          value="#{poaConsolidadoMB.objeto.lineasEstrategicas}" 
+                                          emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                          rowIndexVar="rowIndex">
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                    <h:outputText value="#{item.nombre}" />
+                                </p:column> 
+                            </p:dataTable> 
+                            <!--                            <h:outputText id="accCentrallin" styleClass="form-control-static" 
+                                                                      value="#{poaConsolidadoMB.objeto.planificacionEstrategicaLineaEstrategica.lineaEstrategica.nombre}" />-->
+                        </div>
+                    </div>                     
+
+                    <div class="form-group">
+                        <h:outputLabel for="anioFiscal" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                        <div class="col-sm-9">
+                            <h:selectOneMenu id="anioFiscal" value="#{poaConsolidadoMB.idAnioFiscal}"
+                                             styleClass="form-control textoMedio" hideNoSelectionOption="true" required="true"  
+                                             requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}" noSelectionOption="true"/>
+                                <f:selectItems value="#{utilsMB.getAniosFiscalesPlanificacion()}" />
+                                <f:ajax listener="#{poaConsolidadoMB.initConMontoPorAnio}" render="bloqueNoModal" />
+                            </h:selectOneMenu> 
+                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                </div>
+
+                <!--////////////////////////// TABLA GRANDE DE LINEAS ////////////////////////////-->    
+                <h:panelGroup layout="block" id="tablaLineas">
+
+                    <ui:repeat var="cadaPOA" value="#{poaConsolidadoMB.listPoa}" >
+                        <div>
+                            <span class="control-label">#{cadaPOA.unidadTecnica.nombre} </span>
+                            <span>#{textMB.obtenerTexto('labels.MontoTotal')}: #{poaConsolidadoMB.getMontoTotalPOA(cadaPOA)} </span>
+                            <span>#{textMB.obtenerTexto('labels.MontoUsado')}: #{poaConsolidadoMB.getMontoUsadoPOA(cadaPOA)}</span>  
+                            <span>#{textMB.obtenerTexto('labels.Saldo')}: #{poaConsolidadoMB.getSaldoPOA(cadaPOA)}</span>  
+                        </div>
+                        <ui:include src="./POTablaActividadInsumo.xhtml">
+                            <ui:param name="parameterBean" value="#{poaConsolidadoMB}" />
+                            <ui:param name="poa" value="#{cadaPOA}" />
+                            <ui:param name="consolidado" value="true" />
+                            <ui:param name="habilitarTDR" value="#{false}" />
+                        </ui:include>
+                    </ui:repeat>
+
+                    <h:panelGroup id="totalConsolidado" rendered="#{!empty poaConsolidadoMB.listPoa}" layout="block">
+                        <div class="form-horizontal">
+                            <div class="grupoCampos">
+                                <div class="form-group">
+                                    <h:outputLabel for="montTotal" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoTotal')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="montTotal" styleClass="form-control-static" value="#{poaConsolidadoMB.getSumaMontoTotal()}" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </div>
+                                </div>                  
+                                <div class="form-group">
+                                    <h:outputLabel for="montUsado" styleClass="col-sm-3 control-label" value=" #{textMB.obtenerTexto('labels.MontoUsado')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="montUsado" styleClass="form-control-static" value="#{poaConsolidadoMB.getSumaMontoUsado()}" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </div>
+                                </div>                   
+                                <div class="form-group">
+                                    <h:outputLabel for="montSaldo" styleClass="col-sm-3 control-label" value=" #{textMB.obtenerTexto('labels.Saldo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="montSaldo" styleClass="form-control-static" value="#{poaConsolidadoMB.getSumaSaldo()}">
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </div>
+                                </div> 
+                            </div>
+                        </div>
+                    </h:panelGroup>
+
+                    <h:panelGroup layout="block" styleClass="form-group" rendered="#{!poaConsolidadoMB.completoParaConsolidado and not empty poaConsolidadoMB.listPoa}">
+                        <div class="col-sm-12">
+                            <h:panelGroup layout="block" styleClass="alert alert-warning" >
+                                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.FaltanPOAParaConsolidado')}"
+                                              rendered="#{!poaConsolidadoMB.completoParaConsolidado and not empty poaConsolidadoMB.listPoa}"/>     
+                            </h:panelGroup>
+                        </div>
+                    </h:panelGroup>
+                    <div class="form-group">
+                        <div class="col-sm-9 col-sm-offset-3">
+                            <p:commandButton rendered="#{poaConsolidadoMB.completoParaConsolidado}"
+                                             styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.Consolidar')}" 
+                                             actionListener="#{poaConsolidadoMB.consolidar()}" update="bloqueNoModal"/>
+                            <h:outputLink  styleClass="btn btn-link" value="consultaPOAporACoANP.xhtml">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                            </h:outputLink>
+                        </div>
+                    </div>
+                </h:panelGroup>
+
+            </h:panelGroup>
+        </h:form>
+
+        <!--//////////////////////////  MODAL PARA AGREGAR MACROACTIVIDAD////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalActividad.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoMB}" />
+        </ui:include>
+
+        <!--//////////////////////////  MODAL PARA AGREGAR INSUMOS ////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalInsumo.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoMB}" />
+        </ui:include>
+
+        <!--//////////////////////////  MODAL CONFIRMACION DE ELIMINAR ////////////////////////////-->  
+        <h:form prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" onclick="confirmar();"  />
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+        <!-- js que setea la variable del modal-->
+        <h:outputScript library="js" name="confirmModal.js" />  
+        <!-- js para las imagenes dinamicas de holder-->
+
+    </ui:composition>
+</html>
+

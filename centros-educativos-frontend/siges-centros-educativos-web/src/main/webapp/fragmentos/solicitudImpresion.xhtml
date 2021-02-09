@@ -1,0 +1,241 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoSolicitudImpresion"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.SOLICITUDES_IMPRESIONES}">#{msg.gestionSolicitudImpresion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{solicitudImpresionBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.solicitudImpresion}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{solicitudImpresionBean.tituloPagina}"/>
+        </h3>
+
+        <p:outputPanel id="formularioSede">
+
+            <p:panel  toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+
+                    <f:subview  id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{solicitudImpresionBean}" />
+                            <ui:param name="actionParam" value="cargarDefinicionTitulo" />
+                            <ui:param name="seccion" value="#{solicitudImpresionBean.entidadEnEdicion.simSeccion}" />
+                            <ui:param name="retornarSoloSeccionesAbiertas" value="#{false}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_SOLICITUD_IMPRESION}" />
+                            <ui:param name="incluirCamposSeccion" value="#{solicitudImpresionBean.incluirCamposSeccion}"/>
+                        </ui:include>
+                    </f:subview>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_definicion_titulo">
+                        <h:outputLabel value="#{msg.tituloSolicitar}" for="combo_def_titulo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="combo_def_titulo" value="#{solicitudImpresionBean.definicionTituloCombo.selected}" rendered="#{solicitudImpresionBean.solImpId==null}" disabled="#{solicitudImpresionBean.seccionEnEdicion==null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{solicitudImpresionBean.definicionTituloCombo.items}" />  
+                                <p:ajax update="@form"  listener="#{solicitudImpresionBean.cargarSolicitudImpresion}" />
+                            </h:selectOneMenu>  
+                            <h:outputText value="#{solicitudImpresionBean.obtenerNombreTitulo()}"
+                                          styleClass="form-control-plaintext"  rendered="#{solicitudImpresionBean.solImpId!=null}" />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                    
+                    <p:outputPanel id="estadoSolicitud">
+                        <p:outputPanel styleClass="form-group row" rendered="#{(solicitudImpresionBean.entidadEnEdicion.simPk !=null)}">
+                            <h:outputText value="#{msg.estado}" styleClass="col-sm-4 col-form-label"/>
+                          
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:outputText value="#{solicitudImpresionBean.entidadEnEdicion.simEstado.text}"
+                                          styleClass="form-control-plaintext"   />
+                                </p:outputPanel>
+
+                        </p:outputPanel> 
+                        
+                    </p:outputPanel> 
+                    
+                    <p:outputPanel styleClass="form-group row" rendered="#{(solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.IMPRESA) }">
+                            <h:outputText value="#{msg.entregadoTituloDepartamental}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_titulo_dep" styleClass="form-check-input" 
+                                                             value="#{solicitudImpresionBean.entidadEnEdicion.simTituloEntregadoDepartamental}" disabled="#{ not sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_SOLICITUD_IMPRESION_ENTREGADO_DEPARTAMENTAL)}" >
+                                        <p:ajax update="fechaEntregaDep" />
+                                    </h:selectBooleanCheckbox>
+                                    <h:outputLabel for="input_titulo_dep" styleClass="form-check-label" >
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+
+                        </p:outputPanel>   
+                    <p:outputPanel id="fechaEntregaDep">
+                        <p:outputPanel  styleClass="form-group row" rendered="#{(solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.IMPRESA) and solicitudImpresionBean.entidadEnEdicion.simTituloEntregadoDepartamental eq true}">
+                            <h:outputText value="#{msg.fechaEntregaDepartamental}" styleClass="col-sm-4 col-form-label"/>
+                    
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar id="filtro_fecha_departamental" styleClass="form-control"
+                                            value="#{solicitudImpresionBean.entidadEnEdicion.simFechaEntregadoDepartamental}"
+                                            disabled="#{ not sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_SOLICITUD_IMPRESION_ENTREGADO_DEPARTAMENTAL) }"
+                                            pattern="#{applicationBean.patternFecha}"
+                                            converter="#{localDateConverter}"/>
+                            </p:outputPanel>
+
+                        </p:outputPanel> 
+                        </p:outputPanel>
+                        
+                       <p:outputPanel styleClass="form-group row" rendered="#{(solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.IMPRESA) }">
+                            <h:outputText value="#{msg.entregadoTituloCentros}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_centros" styleClass="form-check-input" 
+                                                             value="#{solicitudImpresionBean.entidadEnEdicion.simTituloEntregadoCentroEducativo}" disabled="#{ not sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_SOLICITUD_IMPRESION_ENTREGADO_CENTRO)}" >
+                                          <p:ajax update="fechaEntregaTitu" />
+                                    </h:selectBooleanCheckbox>                   
+                                    <h:outputLabel for="input_centros" styleClass="form-check-label" >
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+
+                        </p:outputPanel>  
+                        
+                    <p:outputPanel id="fechaEntregaTitu">
+                        <p:outputPanel styleClass="form-group row" rendered="#{(solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.IMPRESA) and solicitudImpresionBean.entidadEnEdicion.simTituloEntregadoCentroEducativo eq true}">
+                            <h:outputText value="#{msg.fechaEntregaCentros}" styleClass="col-sm-4 col-form-label"/>
+                          
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:calendar id="filtro_fecha_centors" styleClass="form-control"
+                                                value="#{solicitudImpresionBean.entidadEnEdicion.simFechaEntregadoCentroEducativo}"
+                                                disabled="#{ not sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_SOLICITUD_IMPRESION_ENTREGADO_CENTRO) }"
+                                                pattern="#{applicationBean.patternFecha}"
+                                                converter="#{localDateConverter}"/>
+                                </p:outputPanel>
+
+                        </p:outputPanel> 
+                        
+                    </p:outputPanel>    
+                    
+                    
+                    
+                    <p:outputPanel rendered="#{(solicitudImpresionBean.mensajeSolicitudImpresion!=null) and (solicitudImpresionBean.solImpId!= null or (solicitudImpresionBean.entidadEnEdicion.simSeccion != null and solicitudImpresionBean.entidadEnEdicion.simDefinicionTitulo!=null))}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{solicitudImpresionBean.mensajeSolicitudImpresion.conValor}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>    
+                        
+                        <p:outputPanel rendered="#{((solicitudImpresionBean.mensajeSolicitudImpresion!=null) and (solicitudImpresionBean.solImpId!= null or (solicitudImpresionBean.entidadEnEdicion.simSeccion != null and solicitudImpresionBean.entidadEnEdicion.simDefinicionTitulo!=null))) and  (empty solicitudImpresionBean.estudianteList)}" styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="La lista de estudiantes es vacía para los datos seleccionados." />
+                                    </li>
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+                        
+         
+
+
+                </p:outputPanel>
+            </p:panel> 
+
+            <p:outputPanel id="tDetalle">
+                <h:panelGroup rendered="#{solicitudImpresionBean.solImpId!= null or (solicitudImpresionBean.entidadEnEdicion.simSeccion != null and solicitudImpresionBean.entidadEnEdicion.simDefinicionTitulo!=null)}">
+                    <p:outputPanel id="pnlHeaderTabla">
+                        
+                        
+
+
+                        <p:outputPanel  >
+
+                            <p:dataTable id="workSpaceList" var="elem"
+                                         value="#{solicitudImpresionBean.estudianteList}"
+                                         rendered="#{not empty solicitudImpresionBean.estudianteList}"                                         
+                                         rowIndexVar="rowIndex" >
+
+                                <p:column headerText="#{msg.hnie}" style="width:3%">
+                                    <h:outputText value="#{elem.estPersona.perNie}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hnombre}" >
+                                    <h:outputText value="#{elem.estPersona.perNombreCompleto}" />
+                                </p:column>
+                                <p:column headerText="#{msg.nombreEnPartidaDeNacimiento}" >
+                                    <h:outputText value="#{elem.estPersona.perNombrePartidaNacimiento}" />
+                                </p:column>
+                                <p:column headerText="#{msg.solicitarImpresion}" >
+                                    <h:selectBooleanCheckbox value="#{solicitudImpresionBean.checkList[rowIndex]}" disabled="#{solicitudImpresionBean.soloLectura}"/>
+                                </p:column>
+                                <p:column headerText="#{msg.hAnulada}" rendered="#{solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.CON_EXCEPCIONES}" >
+                                    <h:outputText value="#{solicitudImpresionBean.buscarAnuladaEstudiante(elem.estPk)}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hObservacion}" rendered="#{solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.CON_EXCEPCIONES}" >
+                                    <h:outputText value="#{solicitudImpresionBean.buscarAnuladaObservacion(elem.estPk)}" />
+                                </p:column>
+
+
+
+
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardar" value="#{msg.enviar}" rendered="#{!solicitudImpresionBean.soloLectura and (not empty solicitudImpresionBean.estudianteList) and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SOLICITUD_IMPRESION)}" action="#{solicitudImpresionBean.mensajeGuardar()}"                                
+                                             disabled="#{solicitudImpresionBean.entidadEnEdicion.simSeccion == null}" 
+                                             update="confirmDialog" oncomplete="PF('confirmDialog').show()"
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                            <p:commandButton id="btnGuardarImp" rendered="#{(solicitudImpresionBean.entidadEnEdicion.simEstado eq EnumEstadoSolicitudImpresion.IMPRESA) and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_IMPRESION) and (sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_SOLICITUD_IMPRESION_ENTREGADO_CENTRO) or sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_EDITAR_SOLICITUD_IMPRESION_ENTREGADO_DEPARTAMENTAL) )}"  value="#{msg.guardar}" action="#{solicitudImpresionBean.guardar()}" 
+                                         update="@form" 
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>   
+                            <p:blockUI block="formularioSede" trigger="btnGuardar" />  
+                            <p:blockUI block="formularioSede" trigger="btnGuardarImp" /> 
+                            <p:defaultCommand target="btnGuardar" scope="formularioSede"/>  
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                </h:panelGroup>
+            </p:outputPanel>
+
+
+
+
+        </p:outputPanel>
+
+        <p:confirmDialog id="confirmDialog" 
+                         message="#{solicitudImpresionBean.mensajeDeGuardar}"
+                         header="#{msg.textoConfirmacionEnvio}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="formularioSede"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{solicitudImpresionBean.enviar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete" />    
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

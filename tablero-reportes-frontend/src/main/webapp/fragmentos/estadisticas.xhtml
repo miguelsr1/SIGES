@@ -1,0 +1,296 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+        <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hEstadisticas}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hEstadisticas}"/></h2>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h:panelGroup id="pnlSearch" styleClass="row">
+
+            <p:outputPanel styleClass="col-md-6">
+
+                <p:panel header="Indicador" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.categoria}" for="filtro_categ" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_categ" value="#{verEstadisticasBean.comboCategorias.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{verEstadisticasBean.comboCategorias.items}" />
+                                <p:ajax listener="#{verEstadisticasBean.selectCategoria()}" update="fila_filtro_ind fila_filtro_desag pnlResultado"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_ind">
+                        <h:outputLabel value="#{msg.indicador}" for="filtro_ind" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_ind" value="#{verEstadisticasBean.comboIndicadores.selected}" disabled="#{verEstadisticasBean.comboCategorias.selectedT == null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{verEstadisticasBean.comboIndicadores.items}" />
+                                <p:ajax listener="#{verEstadisticasBean.selectIndicador()}" update="fila_filtro_desag comparar_panel pnlResultado @parent"/>
+                            </h:selectOneMenu>
+                            <h:outputText value="#{msg.hpublico}" rendered="#{verEstadisticasBean.comboIndicadores.selectedT.indEsPublico}" style="font-weight: bold; padding-bottom:0px; margin-bottom: -24px;" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:panel>
+
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="col-md-6">
+
+                <p:panel header="Fuente de datos" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombreextraccion}" for="filtro_extr" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_extr" value="#{verEstadisticasBean.comboNombresExtr.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{verEstadisticasBean.comboNombresExtr.items}" />
+                            </h:selectOneMenu>
+                            <h:message for="filtro_extr" styleClass="msj-danger"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.anio}" for="filtro_anio" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputMask id="filtro_anio" styleClass="form-control texto-corto" value="#{verEstadisticasBean.filtro.anio}" 
+                                         mask="9999"/>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:panel>
+
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="col-md-6" id="fila_filtro_desag">
+
+                <p:panel header="Desagregación" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro" rendered="#{verEstadisticasBean.renderDesagregacionPanel}">
+
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.desagregacion}" for="filtro_des" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_des" value="#{verEstadisticasBean.comboDesagregaciones.selected}" disabled="#{verEstadisticasBean.comboIndicadores.selectedT == null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{verEstadisticasBean.comboDesagregaciones.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:panel>
+
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="col-md-6" id="comparar_panel">
+
+                <p:panel header="Fuente de datos comparación" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro" rendered="#{verEstadisticasBean.renderCompararPanel}">
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombreextraccion}" for="filtro_extr_comp" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="extr_comp" value="#{verEstadisticasBean.comboNombresExtrComp.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{verEstadisticasBean.comboNombresExtrComp.items}" />
+                            </h:selectOneMenu>
+                            <h:message for="extr_comp" styleClass="msj-danger"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.anio}" for="filtro_anio_c" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputMask id="filtro_anio_c" styleClass="form-control texto-corto" value="#{verEstadisticasBean.filtro.anioComparacion}" 
+                                         mask="9999"/>   
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:panel>
+
+            </p:outputPanel>
+
+        </h:panelGroup>
+
+        <p:outputPanel styleClass="row">
+            <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                <p:commandButton value="#{msg.generar}" id="btnGenerar" styleClass="btn btn-primary" action="#{verEstadisticasBean.generar()}" update="pnlResultado"/>
+                <p:commandLink value="#{msg.limpiar}" action="#{verEstadisticasBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                    <p:resetInput target="pnlSearch pnlResultado" />
+                </p:commandLink>
+                <p:blockUI block="@form" trigger="btnGenerar" />  
+                <p:defaultCommand target="btnGenerar" scope="pnlSearch"/>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="pnlResultado">
+            <p:dataTable id="basicDT"             
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{verEstadisticasBean.estGenerica}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         rendered="#{!verEstadisticasBean.crossTable and verEstadisticasBean.estGenerica != null}"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="indPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="20,50,100"
+                         rows="#{verEstadisticasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{verEstadisticasBean.estGenerica.size() lt (verEstadisticasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{verEstadisticasBean.estGenerica.size()} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="estadistica" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column rendered="#{verEstadisticasBean.etiquetaDato != null}" headerText="#{verEstadisticasBean.etiquetaDato}">
+                    <h:outputText value="#{elem.dato}" />
+                </p:column>
+                <p:column headerText="Desagregación" rendered="#{verEstadisticasBean.verColDesagregacion != null and verEstadisticasBean.verColDesagregacion}">
+                    <h:outputText value="#{elem.desagregacion}" />
+                </p:column>
+                <p:column headerText="#{msg.hcantidad}" styleClass="texto-right">
+                    <h:outputText rendered="#{!verEstadisticasBean.resultadoDouble}" value="#{elem.cantidad}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                    </h:outputText>
+
+                    <h:outputText rendered="#{verEstadisticasBean.resultadoDouble}" value="#{elem.cantidad}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}" pattern="#{applicationBean.formatValoresDecimales}"/>
+                    </h:outputText>
+
+                    <c:if test="#{verEstadisticasBean.indicadorSeleccionado.indMostrarTotalSinDesagregacion}">
+                        <f:facet name="footer">
+                            <h:outputText rendered="#{!verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.estGenerica.stream().map(item->item.cantidad).sum()}">
+                                <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                            </h:outputText>
+
+                            <h:outputText rendered="#{verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.estGenerica.stream().map(item->item.cantidad).sum()}">
+                                <f:convertNumber locale="#{sessionBean.localeNumber}" pattern="#{applicationBean.formatValoresDecimales}"/>
+                            </h:outputText>
+                        </f:facet>
+                    </c:if>
+
+                </p:column>
+
+            </p:dataTable>
+
+
+            <p:dataTable id="crossDT"                           
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{verEstadisticasBean.principalesLabels}"                          
+                         emptyMessage="#{msg.noHayResultados}"
+                         rendered="#{verEstadisticasBean.crossTable and verEstadisticasBean.estGenerica != null}"
+                         paginator="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="indPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="20,50,100"
+                         rows="#{verEstadisticasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{verEstadisticasBean.principalesLabels.size() lt (verEstadisticasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{verEstadisticasBean.principalesLabels.size()} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="crossDT" fileName="estadistica" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column rendered="#{verEstadisticasBean.etiquetaDato != null}" headerText="#{verEstadisticasBean.etiquetaDato}">
+                    <h:outputText value="#{elem}" />
+                </p:column>
+                <p:columns id="columna_desagregacion" value="#{verEstadisticasBean.desagregacionesLabels}" var="label" columnIndexVar="colIndex" styleClass="texto-right">
+                    <f:facet name="header">
+                        <h:outputText value="#{label}" />
+                    </f:facet>
+
+
+                    <h:outputText rendered="#{!verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.obtenerCantidadDesagregacion(elem, label)}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                    </h:outputText>
+
+                    <h:outputText rendered="#{verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.obtenerCantidadDesagregacion(elem, label)}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}" pattern="#{applicationBean.formatValoresDecimales}"/>
+                    </h:outputText>
+
+                    <c:if test="#{verEstadisticasBean.indicadorSeleccionado.indMostrarTotalDesagregacionPorColumna}">
+                        <f:facet name="footer">
+                            <h:outputText rendered="#{!verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.obtenerCantidadTotalDesagregacionPorColumna(label)}">
+                                <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                            </h:outputText>
+
+                            <h:outputText rendered="#{verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.obtenerCantidadTotalDesagregacionPorColumna(label)}">
+                                <f:convertNumber locale="#{sessionBean.localeNumber}" pattern="#{applicationBean.formatValoresDecimales}"/>
+                            </h:outputText>
+                        </f:facet>
+                    </c:if>
+
+                </p:columns>
+
+                <p:column headerText="#{msg.htotal}" styleClass="texto-right" style="font-weight: bold; color: black;" rendered="#{verEstadisticasBean.indicadorSeleccionado.indMostrarTotalDesagregacionPorFila}">
+
+                    <h:outputText rendered="#{!verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.obtenerCantidadTotalDesagregacionPorFila(elem)}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}"/>
+                    </h:outputText>
+
+                    <h:outputText rendered="#{verEstadisticasBean.resultadoDouble}" value="#{verEstadisticasBean.obtenerCantidadTotalDesagregacionPorFila(elem)}">
+                        <f:convertNumber locale="#{sessionBean.localeNumber}" pattern="#{applicationBean.formatValoresDecimales}"/>
+                    </h:outputText>
+
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

@@ -1,0 +1,109 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <div class="panelTituloPagina">
+            <h2 id="overview" class="page-header">
+                <h:outputText value="#{textMB.obtenerTexto('labels.VerAccionCentral')}" />
+            </h2>
+            
+            <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                    data-container="body" 
+                    data-toggle="popover" 
+                    data-placement="bottom" 
+                    data-html="true"
+                    data-content="#{textMB.obtenerTextoAyuda('ayuda.VerAccionCentral')}">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+            </button>
+            
+            <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.VerAccionCentral')}" escape="false" /> 
+        </div>
+
+        <h:form id="formCreatePlantilla"  prependId="false" >
+            <p:outputPanel id="bloqueNoModal" styleClass="form-horizontal">
+                <div class="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="nombre" value="#{accionCentralCE.objeto.nombre}" styleClass="form-control-static"     />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="codigo" value="#{accionCentralCE.objeto.codigo}" styleClass="form-control-static"     />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Planificacion')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="planificacion" value="#{accionCentralCE.objeto.planificacionEstrategica.nombre}" styleClass="form-control-static"     />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.LineasEstrategicas')}:" />                        
+                        <h:panelGroup layout="block"  id="linea" styleClass="col-sm-9" >                             
+                            <p:pickList id="pickList" value="#{accionCentralCE.lineasEstrategicas}" 
+                                        var="linea" itemLabel="#{linea.nombre}" itemValue="#{linea}" 
+                                        responsive="true" disabled="true">
+                                <f:facet name="sourceCaption">#{textMB.obtenerTexto('labels.Disponibles')}</f:facet>
+                                <f:facet name="targetCaption">#{textMB.obtenerTexto('labels.Seleccionadas')}</f:facet>
+                                <f:converter  binding="#{lineaEstrategicaConverter}" />     
+                            </p:pickList>
+                        </h:panelGroup>
+                        <h:message for="linea" styleClass="help-inline msj-danger" />
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ClasificadorFuncional')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText value="#{accionCentralCE.objeto.clasificadorFuncional.nombre}" styleClass="form-control-static " />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="objetivo" value="#{accionCentralCE.objeto.descripcion}" styleClass="form-control-static " />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grupoCampos">
+                    <!-- tabla de montos de direcciones -->
+                    <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                    <p:dataTable id="tablaTechos"
+                                 value="#{accionCentralCE.montosUT}" 
+                                 emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                 var="item">
+
+                        <p:column headerText="#{textMB.obtenerTexto('labels.Direccion')}" >
+                            <h:outputText value="#{item.ut.nombre}" />
+                        </p:column>
+                        <p:columns value="#{accionCentralCE.aniosPlanificacion}" var="column" columnIndexVar="colIndex">
+                            <f:facet name="header">
+                                <h:outputText rendered="#{colIndex!=0 and colIndex!= accionCentralCE.aniosPlanificacion.size()-1}" value="#{column}" />
+                                <h:outputText rendered="#{colIndex==0 }" value="#{accionCentralCE.planificacion.desde}"  converter="dateConverter" />
+                                <h:outputText rendered="#{colIndex==accionCentralCE.aniosPlanificacion.size()-1}"   value="#{accionCentralCE.planificacion.hasta}"  converter="dateConverter"  />                                                      
+                            </f:facet>
+                            <h:outputText  value="#{item.montoAnios[colIndex].monto}" styleClass="textoCorto numericos" >
+                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                            </h:outputText>
+                        </p:columns>
+                    </p:dataTable>
+                </div>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <h:outputLink styleClass="btn btn-link" value="#{accionCentralCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </p:outputPanel>
+        </h:form>
+    </ui:composition>
+</html>

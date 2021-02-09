@@ -1,0 +1,264 @@
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">                 
+
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionSelloFirma}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSelloFirma}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.SELLO_FIRMA}" title="#{msg.nuevoSelloFirma}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SELLO_FIRMA)}"
+                        styleClass="btn btn-secondary">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoSelloFirma}"/>
+                </p:link>               
+                                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SELLO_FIRMA)}" /> 
+                </ui:include>                
+                
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete" 
+                                            styleClass="form-control texto-medio"
+                                            value="#{sellosFirmasBean.sedSeleccionado}"
+                                            completeMethod="#{sellosFirmasBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"  
+                                            itemValue="#{sed}" 
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            placeholder="#{msg.autoCompleteEmptyItem}"
+                                            converter="#{sedesConverter}"
+                                            multiple="false">
+                            </p:autoComplete>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    
+
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{sellosFirmasBean.filtro.sfiHabilitado}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.dui}" for="b_dui" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputText autocomplete="off"  id="input_dui" styleClass="form-control" value="#{sellosFirmasBean.filtro.sfiDui}">
+                                <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/>  
+                            </p:inputText>
+                        </p:outputPanel>
+                    </p:outputPanel> 
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" 
+                                         value="#{sellosFirmasBean.filtro.sfiNombreCompletoPersona}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo">
+                        <h:outputLabel value="#{msg.tipoRepresentante}" for="b_tipo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9  ">
+                            <h:selectOneMenu   id="b_tipo" value="#{sellosFirmasBean.comboTipoRepresentante.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{sellosFirmasBean.comboTipoRepresentante.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>                        
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar"  styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{sellosFirmasBean.buscar()}" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{sellosFirmasBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{sellosFirmasBean.selloFirmaLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"      
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="sfiPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{sellosFirmasBean.paginado}"
+                         reflow="true" 
+                         rendered="#{not empty sellosFirmasBean.selloFirmaLazyModel}">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{sellosFirmasBean.totalResultados lt (sellosFirmasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{sellosFirmasBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="selloFirma" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="Id">
+                    <h:outputText value="#{elem.sfiPk}"/>
+                </p:column>
+                <p:column headerText="#{msg.hsede}">
+                    <h:outputText value="#{elem.sfiSede.sedCodigo}" id="textSede"/>
+                        <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >                           
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext " 
+                                                      value="#{elem.sfiSede.sedNombre}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext "
+                                                      value="#{elem.sfiSede.sedTelefono}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext " 
+                                                      value="#{elem.sfiSede.sedDireccion.dirDepartamento.depNombre}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext " 
+                                                      value="#{elem.sfiSede.sedDireccion.dirMunicipio.munNombre}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                        </p:tooltip>
+                </p:column>                
+                <p:column headerText="#{msg.htipoRepresentante}">
+                    <h:outputText value="#{elem.sfiTipoRepresentante.treNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hnombre}">
+                    <h:outputText value="#{elem.sfiPersona.perNombreCompleto}"/>
+                </p:column>
+                <p:column headerText="#{msg.hdui}">
+                     <h:outputText value="#{elem.sfiPersona.perDui}" />
+                </p:column>
+                <p:column headerText="#{msg.hnip}">
+                     <h:outputText value="#{elem.sfiPersona.perNip}" />
+                </p:column>
+                <p:column headerText="#{msg.hhabilitado}">
+                    <h:outputText value="#{elem.sfiHabilitado}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.sfiUltModUsuario}">
+                    <h:outputText value="#{elem.sfiUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.sfiUltModFecha}">
+                    <h:outputText value="#{elem.sfiUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.SELLO_FIRMA}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.sfiPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column> 
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SELLO_FIRMA)}">
+                    <p:link outcome="#{ConstantesPaginas.SELLO_FIRMA}" title="#{msg.editar}" styleClass="btn btn-icono" >
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.sfiPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" action="#{sellosFirmasBean.historial(elem.sfiPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_SELLO_FIRMA)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash" styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{sellosFirmasBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{sellosFirmasBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+
+        <p:dialog header="#{msg.historialSelloFirma}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{sellosFirmasBean.historialSellosFirmas}" /> 
+            </ui:include>   
+        </p:dialog>   
+    </h:form>
+</ui:composition>

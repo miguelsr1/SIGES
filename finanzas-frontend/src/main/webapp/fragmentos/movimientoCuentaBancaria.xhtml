@@ -1,0 +1,341 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <h:form id="form">      
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CUENTAS_BANCARIAS}.xhtml">#{msg.gestionCuentasBancarias}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionMovimientoCuentaBancaria}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionMovimientoCuentaBancaria}"/></h2>        
+            
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoMovimientoCuentaBancaria}" icon="glyphicon glyphicon-plus" 
+                                 action="#{movimientoCuentaBancariaBean.agregar()}" 
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_MOVIMIENTO_CUENTA_BANCARIA)}"
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarMovimientoCuentaBancaria" styleClass="btn btn-secondary" />
+            </p:outputPanel>
+            
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        <h3><h:outputText value="#{movimientoCuentaBancariaBean.sede}"/></h3>
+        <h3><h:outputText value="#{msg.hncuenta} #{movimientoCuentaBancariaBean.cuenta.cbcNumeroCuenta}"/></h3>
+        <h3><h:outputText value="#{msg.titular} #{movimientoCuentaBancariaBean.cuenta.cbcTitular}"/></h3>
+        <h3><h:outputText value="#{msg.tiposCuentaBancanria} #{movimientoCuentaBancariaBean.tiposCuentaBancaria}"/></h3>
+        
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.componente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_componente" value="#{movimientoCuentaBancariaBean.comboComponente.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{movimientoCuentaBancariaBean.comboComponente.items}" />
+                                <p:ajax listener="#{movimientoCuentaBancariaBean.cargarSubComponente()}" event="change" update="f_subcomponente" process="@this"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" rendered="#{movimientoCuentaBancariaBean.filtroMov.mcbFiltroFecha == 2}">
+                        <h:outputLabel value="#{msg.fechaDesde}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar showMinute="false" showHour="false" value="#{movimientoCuentaBancariaBean.filtroMov.mcbFechaDesdeS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.fecha}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="2" id="b_habilitado" value="#{movimientoCuentaBancariaBean.filtroMov.mcbFiltroFecha}">
+                                <f:selectItem itemValue="#{1}" itemLabel="#{msg.hmesActual}" />
+                                <f:selectItem itemValue="#{2}" itemLabel="#{msg.hrangoFecha}"/>
+                                <p:ajax listener="#{movimientoCuentaBancariaBean.cambioFiltroFecha}" update=":form:pnlSearch" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.tipomovimiento}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="2" id="b_tipo_movimiento" value="#{movimientoCuentaBancariaBean.inicial}" >
+                                <f:selectItem itemValue="#{1}" itemLabel="#{msg.hegresos}" />
+                                <f:selectItem itemValue="#{2}" itemLabel="#{msg.hingresos}"/>
+                                <p:ajax listener="#{movimientoCuentaBancariaBean.cambioFiltroMovimiento}" update=":form:pnlSearch" />
+                            </p:selectOneRadio> 
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.subcomponente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_subcomponente" value="#{movimientoCuentaBancariaBean.comboSubComponente.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{movimientoCuentaBancariaBean.comboSubComponente.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" rendered="#{movimientoCuentaBancariaBean.filtroMov.mcbFiltroFecha == 2}">
+                        <h:outputLabel value="#{msg.fechaHasta}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar showMinute="false" showHour="false" value="#{movimientoCuentaBancariaBean.filtroMov.mcbFechaHastaS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_otrosingresos">
+                        <h:outputLabel value="#{msg.otrosIngresos}" for="filtro_fecha_hasta" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="filtr_otrosingresos" value="#{movimientoCuentaBancariaBean.otrosIngresosFiltro}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{movimientoCuentaBancariaBean.buscar()}" update="pnlResultado" process="pnlSearch"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{movimientoCuentaBancariaBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{movimientoCuentaBancariaBean.listMovCuentaBancaria}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="mcbFecha"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{movimientoCuentaBancariaBean.paginado}"
+                         rowKey="#{elem.mcbPk}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{movimientoCuentaBancariaBean.totalResultados lt (movimientoCuentaBancariaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.movimientos}" /><h:outputText styleClass="cantidad" value="#{movimientoCuentaBancariaBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="movimientoCuentaBancaria" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hfacTipoDoc}" >
+                    <h:outputText value="#{elem.mcbPagoFk.pgsFactura.facTipoDocumento.text}"  />
+                </p:column>
+                <p:column headerText="#{msg.hnumeroDocumento}" >
+                    <h:outputText value="#{elem.mcbPagoFk.pgsFactura.facNumero}"  />
+                </p:column>
+                <p:column headerText="#{msg.hfechaPago}" sortBy="#{elem.mcbFecha}">
+                    <h:outputText value="#{elem.mcbFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hDetalle}" sortBy="#{elem.mcbDetalle}">
+                    <h:outputText value="#{elem.mcbDetalle}" />
+                </p:column> 
+                <p:column headerText="#{msg.hfacProveedor}" >
+                    <h:outputText value="#{elem.mcbProveedor}" />
+                </p:column>
+                <p:column headerText="#{msg.hfuenteIngreso}">
+                    <h:outputText value="#{elem.mcbMovFuenteIngresosFk.movRubroPk.ruNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hinusmo}" >
+                    <h:outputText value="#{elem.mcbPagoFk.pgsFactura.facItemPlanCompra.comInsumoFk.insNombre}"  />
+                </p:column>
+                <p:column headerText="#{msg.cheNumeroSerie}" >
+                    <h:outputText value="#{elem.mcbPagoFk.pgsChequeraFk.cheSerie}"  />
+                </p:column>
+                <p:column headerText="#{msg.detallePago}" >
+                    <h:outputText value="#{elem.mcbPagoFk.pgsComentario}"  />
+                </p:column>
+                <p:column headerText="#{msg.hnocheque}" >                    
+                    <h:outputText value="#{elem.mcbChequeCb}" rendered="#{mcbChequeCb == null}" id="chequeRetiro"/> 
+                </p:column>  
+                <p:column headerText="#{msg.hegresos}" sortBy="#{elem.mcbMonto}" styleClass="columna-derecha columnaRoja">
+                    <h:outputText value="#{movimientoCuentaBancariaBean.cargarMontoDebe(elem)}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                    <f:facet name="footer">
+                        <h:outputText value="#{movimientoCuentaBancariaBean.totale}" styleClass="align-right" style="width:100%;color:red;font-weight: bold">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{movimientoCuentaBancariaBean.locale}" />
+                        </h:outputText>
+                    </f:facet>
+                </p:column>
+                <p:column headerText="#{msg.hingresos}" sortBy="#{elem.mcbMonto}" styleClass="columna-derecha columnaVerde">
+                    <h:outputText value="#{movimientoCuentaBancariaBean.cargarMontoHaber(elem)}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>  
+                    <f:facet name="footer">
+                        <h:outputText value="#{movimientoCuentaBancariaBean.totali}"  style="text-align:right;width:100%;color:red;font-weight: bold">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{movimientoCuentaBancariaBean.locale}" />
+                        </h:outputText>
+                    </f:facet>
+                </p:column>                
+                 <p:column headerText="#{msg.hsaldo}" sortBy="#{elem.mcbSaldo}"  styleClass="align-right"  >
+                    <h:outputText value="#{elem.mcbSaldoFinal}" style="#{elem.mcbSaldoFinal lt 0 ? 'color:red': ''}" >
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hchequeCobrado}" id="input_cheque_cobrado">                     
+                    <p:selectBooleanCheckbox  value="#{elem.mcbChequeCobrado}" rendered="#{movimientoCuentaBancariaBean.validarColumnaChequeCobrado(elem)}" >
+                        <p:ajax listener="#{movimientoCuentaBancariaBean.cambiarChequeCobrado(elem)}" update=":form:pnlResultado"/>
+                    </p:selectBooleanCheckbox>                                                          
+                </p:column>
+                 <p:column headerText="#{msg.hchequeAnulado}" id="input_cheque_anulado">                     
+                         <h:outputText value="#{elem.mcbChequeAnulado}" converter="#{booleanConverter}" />                                                    
+                </p:column>
+                <p:column headerText="#{msg.estadoLiquidación}" sortBy="#{elem.mcbEstadoLiquidacion}">
+                    <h:outputText value="#{elem.mcbEstadoLiquidacion.text}"></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.transaccion}" sortBy="#{elem.mcbTransaccion}">
+                    <h:outputText value="#{elem.mcbTransaccion}"></h:outputText>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-plus" rendered="#{elem.mcbDesembolsoCedFk!=null}"
+                                     styleClass="btn btn-icono" title="#{msg.agregarTransacción}" action="#{movimientoCuentaBancariaBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+        
+        
+        
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <a href="#{ConstantesPaginas.CUENTAS_BANCARIAS}.xhtml">Volver</a>
+        </h:panelGroup>
+        
+        
+        <p:dialog header="#{msg.movimientoCuentaBancaria}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:ajax event="close" listener="#{movimientoCuentaBancariaBean.cierreDialog()}" />
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty movimientoCuentaBancariaBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioMovimientoCuentaBancaria">    
+                        <p:outputPanel styleClass="form-group row" id="fila_input_MovnumeroCuenta" >                        
+                            <h:outputLabel value="#{msg.numeroCuenta}" for="input_MovnumeroCuenta"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_MovnumeroCuenta" styleClass="form-control texto-corto" value="#{movimientoCuentaBancariaBean.cuenta.cbcNumeroCuenta}" disabled="true"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_mov">
+                            <h:outputLabel value="#{msg.tipoMovimientoPago}" for="input_MovTipoCuenta"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}" id="input_MovTipoCuenta" value="#{movimientoCuentaBancariaBean.comboTipoMovimiento.selected}" styleClass="form-control texto-corto">
+                                    <f:selectItems value="#{movimientoCuentaBancariaBean.comboTipoMovimiento.items}"/>
+                                    <p:ajax event="change" listener="#{movimientoCuentaBancariaBean.obtenerModoRetiro()}" update=":form:itemDetail" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fuente_ingreso" rendered="#{movimientoCuentaBancariaBean.esIngreso}" >
+                            <h:outputLabel value="#{msg.fuenteIngreso}" for="input_fuente_ingreso"  styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}" id="input_fuente_ingreso" value="#{movimientoCuentaBancariaBean.fuenteIngresoCombo.selected}" styleClass="form-control texto-corto">
+                                    <f:selectItems value="#{movimientoCuentaBancariaBean.fuenteIngresoCombo.items}" />                                    
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_retiro" rendered="#{movimientoCuentaBancariaBean.esRetiro}" >
+                            <h:outputLabel value="#{msg.tipoRetiro}" for="input_tipo_retiro"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}" id="input_tipo_retiro" value="#{movimientoCuentaBancariaBean.comboTipoRetiro.selected}" styleClass="form-control texto-corto">
+                                    <f:selectItems value="#{movimientoCuentaBancariaBean.comboTipoRetiro.items}" />
+                                    <p:ajax event="change" listener="#{movimientoCuentaBancariaBean.obtenerTipoRetiro()}" update=":form:itemDetail" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_cheque" rendered="#{movimientoCuentaBancariaBean.esCheque}">                        
+                            <h:outputLabel value="#{msg.numeroCheque}" for="input_cheque"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}" maxlength="15" autocomplete="off" styleClass="form-control texto-corto" id="input_cheque" value="#{movimientoCuentaBancariaBean.entidadEnEdicion.mcbChequeCb}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                         <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                            <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}" maxdate="#{movimientoCuentaBancariaBean.currentDateTime}" id="input_fecha" showMinute="false" showHour="false" value="#{movimientoCuentaBancariaBean.entidadEnEdicion.mcbFecha}" pattern="#{applicationBean.patternFechaHora}" converter="#{localDateTimeConverter}" ></p:calendar>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_detalle">
+                            <h:outputLabel value="#{msg.detalle}" for="input_detalle" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputTextarea disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}" id="input_detalle" styleClass="form-control texto-medio" value="#{movimientoCuentaBancariaBean.entidadEnEdicion.mcbDetalle}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_monto">
+                            <h:outputLabel value="#{msg.monto}" for="input_monto" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputNumber disabled="#{movimientoCuentaBancariaBean.agregarTransaccion}"  id="input_monto" styleClass="form-control texto-corto" value="#{movimientoCuentaBancariaBean.entidadEnEdicion.mcbMonto}"  />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_transaccion" rendered="#{movimientoCuentaBancariaBean.agregarTransaccion}">
+                            <h:outputLabel value="#{msg.numTransacción}" for="input_mov_transaccion"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_mov_transaccion" styleClass="form-control texto-corto" value="#{movimientoCuentaBancariaBean.entidadEnEdicion.mcbTransaccion}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{movimientoCuentaBancariaBean.guardar()}" update="form:pnlResultado form:itemDetail @form" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" actionListener="#{movimientoCuentaBancariaBean.cierreDialog()}"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>     
+        
+        <p:dialog header="#{msg.evaluarMovimiento}" widgetVar="itemDialog2" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail2">                                                             
+                <h:panelGroup rendered="#{not empty movimientoCuentaBancariaBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioEvaluacionLiquidacion">    
+                        <p:outputPanel styleClass="form-group row" id="fila_input_comentario" >                        
+                            <h:outputLabel value="#{msg.motivo}" for="fila_input_comentario"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">     
+                                <p:inputTextarea  id="input_comentario" styleClass="form-control texto-corto" value="#{movimientoCuentaBancariaBean.comentLiquidacion}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnEvaluar"  value="#{msg.guardar}" action="#{movimientoCuentaBancariaBean.evaluarMovLiquidacion()}" update="form:pnlResultado form:itemDetail2" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog2').hide();"   update=":form:itemDetail2" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnEvaluar" /> 
+                        <p:defaultCommand target="btnEvaluar" scope="itemDetail2"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+        
+    </h:form>
+</ui:composition>

@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" >
+        <h:form prependId="false" id="relacionInsumosItemsContratoForm">
+            <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" />
+            <p:dataTable
+                id="tablaDeInsumos"
+                var="relacion" 
+                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                value="#{contratoCE.relacionesItemsInsumos}"
+                paginator="true" rows="25"
+                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters} "
+                rowsPerPageTemplate="5,10,25,50"
+                styleClass="table">
+
+                <f:facet name="{Exporters}">
+                    <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                        <span class="glyphicon glyphicon-export"></span>
+                        <p:dataExporter type="csv" target="tablaDeInsumos" fileName="pagos" />
+                    </h:commandLink> 
+                </f:facet>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}"  sortBy="#{relacion.insumo.poInsumo.id}">
+                    <h:outputText value="#{relacion.insumo.poInsumo.id}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Insumo')}"  sortBy="#{relacion.insumo.poInsumo.insumo.nombre}">
+                    <h:outputText value="#{relacion.insumo.poInsumo.insumo.nombre}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Item')}"  sortBy="#{relacion.item.nombre}">
+                    <h:outputText value="#{relacion.item.nombre}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Observacion')}"  sortBy="#{relacion.insumo.observacion}">
+                    <h:outputText value="#{relacion.insumo.observacion}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.UT')}"  sortBy="#{relacion.insumo.poInsumo.unidadTecnica.nombre}">
+                    <h:outputText value="#{relacion.insumo.poInsumo.unidadTecnica.nombre}" />
+                </p:column>
+                <p:column styleClass="numericos" sortBy="#{relacion.montoUnitAdjudicado}">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.MontoUnitAdjudicado')}" title="#{textMB.obtenerTexto('labels.MontoUnitAdjudicadoTooltip')}"/>
+                    </f:facet> 
+                    <h:outputText value="#{relacion.montoUnitAdjudicado}">
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column styleClass="numericos" sortBy="#{relacion.cantidadAdjudicada}">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CantAdjudicadaInsumoContrato')}" title="#{textMB.obtenerTexto('labels.CantAdjudicadaInsumoContratoTooltip')}"/>
+                    </f:facet> 
+                    <h:outputText value="#{relacion.cantidadAdjudicada}" />
+                </p:column>
+                <p:column styleClass="numericos">
+                    <f:facet name="header">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.CantRecibidaInsumoContrato')}" title="#{textMB.obtenerTexto('labels.Cant RecibidaInsumoContratoTooltip')}"/>
+                    </f:facet> 
+                    <h:outputText value="#{contratoCE.getCantidadRecibidaInsumo(relacion)}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.porcentaje')}"  styleClass="numericos" >
+                    <h:outputText value="#{contratoCE.getPorcentaje(relacion.cantidadAdjudicada, contratoCE.getCantidadRecibidaInsumo(relacion))}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.TotalAdjudicado')}" styleClass="numericos" sortBy="#{relacion.montoTotalAdjudicado}">
+                    <h:outputText value="#{relacion.montoTotalAdjudicado}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.Pagado')}" styleClass="numericos">
+                    <h:outputText value="#{contratoCE.getMontoPagado(relacion)}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.porcentaje')}" styleClass="numericos" >
+                    <h:outputText value="#{contratoCE.getPorcentaje(relacion.montoTotalAdjudicado, contratoCE.getMontoPagado(relacion) )}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.MontoInsumoRescindido')}" styleClass="numericos">
+                    <h:outputText value="#{relacion.montoRescindido}" >
+                        <f:convertNumber minFractionDigits="2"  />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.DuracionInsumoEnContrato')}" styleClass="numericos">
+                    <h:outputText value="#{relacion.duracionInsumoEnContrato}" />
+                </p:column>
+                <p:column headerText="#{textMB.obtenerTexto('labels.EditarDuracionInsumoEnContrato')}" styleClass="numericos">
+                    <p:commandButton icon="glyphicon glyphicon-time" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.EditarDuracionInsumoEnContrato')}"  
+                                         oncomplete="$('#editarDuracionInsumoEnContrato').modal('show');" 
+                                         action="#{contratoCE.cargarDuracionInsumoEnContrato(relacion.id)}"  
+                                         update="modalEditarDuracionInsumoEnContratoForm"
+                                         rendered="#{permisosMB.permisos['EDITAR_DURACION_INSUMOS_CONTRATO'] and contratoCE.objeto.estado ne 'CERRADO'}"/>
+                    
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </h:panelGroup>
+    
+    <!-- Modal de editar la duración del insumo en el contrato -->
+        <div class="modal fade"  id="editarDuracionInsumoEnContrato" tabindex="-1" role="dialog" aria-labelledby="editarDuracionInsumoEnContrato">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarDuracionInsumoEnContratoForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.DuracionInsumoEnContrato')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.DuracionInsumo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="orden" value="#{contratoCE.relacionItemInsumoEnEdicion.duracionInsumoEnContrato}" styleClass="form-control numericos"  required="true"/>
+                                        <h:message for="orden" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>    
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{contratoCE.guardarDuracionInsumoEnContrato()}"   update="@form relacionInsumosItemsContratoForm"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+    
+</ui:composition>

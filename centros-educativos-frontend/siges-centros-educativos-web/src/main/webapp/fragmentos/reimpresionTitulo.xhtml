@@ -1,0 +1,167 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hreimpresionTitulo}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hreimpresionTitulo}"/></h2>
+
+            <p:outputPanel styleClass="float-right">               
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REIMPRESION_TITULO)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+            <h:panelGroup   >
+                <p:panel  toggleable="false" styleClass="panel-filtro">                        
+                    <p:outputPanel id="pnlSearchNie">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nie" >
+                            <h:outputLabel value="#{msg.nie}" for="input_nie" styleClass="col-sm-3 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-9 control-inline">
+                                <p:inputNumber styleClass="form-control texto-medio" 
+                                               autocomplete="off"
+                                               decimalPlaces="0" 
+                                               thousandSeparator=""  
+                                               decimalSeparator="" 
+                                               padControl="false" 
+                                               disabled="#{!sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_REIMPRESION_TITULO)}"
+                                               value="#{reimpresionTituloBean.nieBuscar}"
+                                               id="input_nie"/>
+                                <p:commandButton value="#{msg.continuar}" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_REIMPRESION_TITULO)}"
+                                                 update="@form" 
+                                                 action="#{reimpresionTituloBean.buscarNIE()}"
+                                                 id="btnBuscarNie" styleClass="btn btn-primary" >
+                                 <p:blockUI block="@form" trigger="btnBuscarNie" />     
+                                </p:commandButton>
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:defaultCommand target="btnBuscarNie" scope="pnlSearchNie"/>
+                    </p:outputPanel>
+                </p:panel>  
+            </h:panelGroup>
+
+
+            <p:outputPanel id="pnlResultado" >         
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>    
+                <p:dataTable id="basicDT"                         
+                             widgetVar="widResultado"                         
+                             var="elem"      
+                             rowStyleClass="#{reimpresionTituloBean.colorFila(elem)}"
+                             value="#{reimpresionTituloBean.solicitudImpresionEstudiante}"     
+                             rendered="#{reimpresionTituloBean.solicitudImpresionEstudiante != null and reimpresionTituloBean.solicitudImpresionEstudiante.size() gt 0}"
+                             emptyMessage="#{msg.noHayResultados}"
+                             sortField="simPk"               
+                             reflow="true">     
+
+                    <p:column headerText="#{msg.codSede}" sortBy="#{elem.simSeccion.secServicioEducativo.sduSede.sedCodigo}">
+                        <h:outputText value="#{elem.simSeccion.secServicioEducativo.sduSede.sedCodigo}" id="textSede"/>
+                        <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:outputText styleClass="form-control-plaintext" 
+                                                  value="#{elem.simSeccion.secServicioEducativo.sduSede.sedNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:outputText styleClass="form-control-plaintext "
+                                                  value="#{elem.simSeccion.secServicioEducativo.sduSede.sedTelefono}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{elem.simSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{elem.simSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                        </p:tooltip>
+                    </p:column>                       
+                    <p:column headerText="#{msg.hgrado}" >
+                        <h:outputText value="#{elem.simSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hSeccion}" >
+                        <h:outputText value="#{elem.simSeccion.secNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.htituloSolicitado}" >
+                        <h:outputText value="#{elem.simDefinicionTitulo.dtiNombre}" />
+                    </p:column>
+                    <p:column headerText="Motivo reimpresion" >
+                        <h:outputText value="#{elem.simMotivoReimpresion.mriNombre}" />
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false">
+                        <p:commandButton rendered="#{elem.simPk ==null and (not elem.simTituloAnulado)}" update=":form:itemDetail :form:pnlResultado" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-repeat" styleClass="btn btn-icono" title="Reimprimir" action="#{reimpresionTituloBean.elementoGuardar(elem)}"/>
+                    </p:column>
+                </p:dataTable> 
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:dialog header="Solicitud de reimpresión de título" id="popupOpc" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty reimpresionTituloBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioOpcion">                                               
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_escala">
+                            <h:outputLabel value="#{msg.motivoReimpresion}:" for="combo_tipo_escala" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="combo_tipo_escala" value="#{reimpresionTituloBean.comboMotivoReimpresion.selected}" styleClass="form-control">
+                                    <f:selectItems value="#{reimpresionTituloBean.comboMotivoReimpresion.items}" />           
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>    
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{reimpresionTituloBean.guardar()}" 
+                                                 update="form:pnlResultado form:itemDetail" 
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail :form:pnlResultado" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" />    
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+    </h:form>
+</ui:composition>

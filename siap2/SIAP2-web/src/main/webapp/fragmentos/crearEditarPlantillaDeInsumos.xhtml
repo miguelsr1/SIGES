@@ -1,0 +1,192 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.PlantillaDeInsumos')}" />
+                </h2>
+            </div>
+        </ui:fragment>  
+        <div class="row">
+            <div class="col-sm-6">
+                <p:panel header="Insumos ONU">
+                    <h:form id="formFiltroONU"  prependId="false"   styleClass="form-horizontal"> 
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <fieldset class="fieldsetSmall fieldset">
+                                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.FiltrarInsumosONU')}" /></legend>
+                                    <div class="buscador-filtros form-horizontal">
+                                        <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-2 control-label" value="#{textMB.obtenerTexto('labels.codigo')}:" />
+                                            <div class="col-sm-10">
+                                                <h:inputText  value="#{plantillaDeInsumosCE.filtroONUCodigo}" styleClass="form-control textoMedio" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-2 control-label" value="#{textMB.obtenerTexto('labels.nombre')}:" />
+                                            <div class="col-sm-10">
+                                                <h:inputText  value="#{plantillaDeInsumosCE.filtroONUnombre}" styleClass="form-control textoMedio" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-2 control-label" value="#{textMB.obtenerTexto('labels.rubro')}:" />
+                                            <div class="col-sm-10">
+                                                <h:inputText  value="#{plantillaDeInsumosCE.filtroONURubro}" styleClass="form-control textoMedio" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-10 col-sm-offset-2">
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <h:selectBooleanCheckbox value="#{plantillaDeInsumosCE.filtroONUSoloSinPlantillas}" /> #{textMB.obtenerTexto('labels.InsumosSinAsignar')}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-offset-2 col-sm-10">
+                                                <p:commandButton styleClass="btn btn-default" icon="glyphicon glyphicon-search" update="formFiltroONU formArboles" value="#{textMB.obtenerTexto('labels.Filtrar')}"  actionListener="#{plantillaDeInsumosCE.filtrarArbolONU()}"/>
+                                                <p:commandButton styleClass="btn btn-link" update="formFiltroONU formArboles" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{plantillaDeInsumosCE.limparArbolONU()}"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="col-sm-4 comentario">
+                                <p>Para agregar insumos:</p>
+                                <ul style="padding-left: 14px;">
+                                    <li>Seleccione el o los insumos a agregar</li>
+                                    <li>Seleccione el grupo de la plantilla de insumos</li>
+                                    <li>Y por úlitmo presione el botón "Agregar insumo"</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </h:form>
+
+                    <!-- ARBOL DE LA ONU-->                    
+                    <h:form id="formArboles"  prependId="false" styleClass="form-horizontal">
+                        <div>
+                            <h3>#{textMB.obtenerTexto('labels.InsumosONU')}</h3>
+                            <p:tree id="arbol" dynamic="true"
+                                    selectionMode="checkbox"
+                                    value="#{plantillaDeInsumosCE.rootNodeONU}" var="node"
+                                    selection="#{plantillaDeInsumosCE.selectedNodes}">
+                                <p:ajax event="expand"  listener="#{plantillaDeInsumosCE.onNodeExpandONU}" />
+                                <p:ajax event="select"/>
+                                <p:ajax event="unselect"/>
+                                <p:treeNode>
+                                    <h:outputText value="#{node.nombre}"/>
+                                </p:treeNode>
+                            </p:tree>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="cantidadInsumos">
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.InsumosSinAsignar')}:" />
+                                        <h:outputText id="cantInsumosSinAsignar" value="#{plantillaDeInsumosCE.getCantidadDeInsumosSinAsignar()}" />
+                                    </div>
+                                    <div>
+                                        <h:selectBooleanCheckbox value="#{plantillaDeInsumosCE.noMoverInsumos}" /> #{textMB.obtenerTexto('labels.NoMoverInsumos')}
+                                    </div>
+                                </div>
+                                <div class="botonesPasaje col-sm-6">
+                                    <p:commandButton styleClass="btn btn-primary"
+                                                     icon="glyphicon glyphicon-chevron-right" 
+                                                     value="#{textMB.obtenerTexto('labels.AgregarInsumos')}" 
+                                                     actionListener="#{plantillaDeInsumosCE.agregarInsumosSelecionados}"  
+                                                     update="formArboles arbolDeInsumos cantInsumosSinAsignar mensajesArbolONU" />
+                                </div>
+                            </div>  
+                            <div>
+                                <h:messages id="mensajesArbolONU" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                            </div>
+                        </div>
+                    </h:form>
+                </p:panel>
+            </div>
+            <div class="col-sm-6">
+                <p:panel header="Plantilla de Insumos">
+                    <h:form prependId="false">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <fieldset class="fieldsetSmall fieldset" style="min-height: 262px;">
+                                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.CrearGrupoEnPlantilla')}" /></legend>
+                                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                                    <h:panelGroup layout="block" id="posiblesAcciones" styleClass="form-horizontal">    
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-2 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                            <div class="col-sm-10">
+                                                <h:inputText id="nombre" maxlength="255" value="#{plantillaDeInsumosCE.nombreGrupo}" styleClass="form-control textoLargo"  required="#{not empty param['crearGrupo']}"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:message for="nombre" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-10 col-sm-offset-2">
+                                                <p:commandButton id="crearGrupo" styleClass="btn btn-primary" icon="glyphicon glyphicon-plus" value="#{textMB.obtenerTexto('labels.CrearGrupo')}" actionListener="#{plantillaDeInsumosCE.agregarGrupo}"  update="arbolDeInsumos @form"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h:messages id="mensajeCrearGrupo" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                        </div>
+                                    </h:panelGroup>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </h:form>
+
+                    <!-- ARBOL DE INSUMOS -->
+
+                    <h:form id="formArbolesPlantilla"  prependId="false">
+                        <div>
+                            <h3>#{textMB.obtenerTexto('labels.Plantilla')}</h3>
+                            <p:tree value="#{plantillaDeInsumosCE.rootPlantilla}" 
+                                    id="arbolDeInsumos"
+                                    dynamic="true"
+                                    var="node"
+                                    selectionMode="single"
+                                    selection="#{plantillaDeInsumosCE.nodoPlantillaSeleccionado}">
+                                <p:ajax event="expand"  listener="#{plantillaDeInsumosCE.onNodeExpandPlnatilla}" />
+                                <p:ajax event="select"/>
+                                <p:ajax event="unselect"/>
+                                <p:treeNode>
+                                    <h:outputText value="#{node.nombre}"/>
+                                </p:treeNode>
+                            </p:tree>
+                            <div class="eliminarInsumo">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}" 
+                                                 action="#{plantillaDeInsumosCE.eliminarInsumo()}"
+                                                 value="#{textMB.obtenerTexto('labels.Eliminar')}"
+                                                 update="arbol formArbolesPlantilla cantInsumosSinAsignar mensajesArbol">
+                                </p:commandButton>   
+                            </div>
+                            <div class="eliminarInsumo campoConBoton">
+                                <p:commandButton styleClass="btn btn-primary"
+                                                 icon="glyphicon glyphicon-chevron-right" 
+                                                 value="#{textMB.obtenerTexto('labels.MoverInsumoA')}" 
+                                                 actionListener="#{plantillaDeInsumosCE.moverInsumoAGrupo()}"  
+                                                 update="formArbolesPlantilla mensajesArbol" />
+                                <h:selectOneMenu id="idGrupoPlantilla" value="#{plantillaDeInsumosCE.comboNodosPlantillaDeInsumos.selected}" styleClass="form-control textoMedio">
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                    <f:selectItems value="#{plantillaDeInsumosCE.comboNodosPlantillaDeInsumos.items}" />
+                                </h:selectOneMenu> 
+                                <h:message for="idGrupoPlantilla" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <div class="eliminarInsumo">
+                            <h:messages id="mensajesArbol" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                        </div>
+                    </h:form>
+                </p:panel>
+            </div> 
+        </div>
+    </ui:composition>
+</html>

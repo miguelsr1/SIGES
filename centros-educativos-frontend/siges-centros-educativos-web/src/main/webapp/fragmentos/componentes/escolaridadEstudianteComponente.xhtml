@@ -1,0 +1,286 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+    <c:set var="estudiante" value="#{estudiante}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{escolaridadEstudianteComponenteBean.setSoloLectura(soloLectura)}"/>
+    </f:metadata>       
+
+    <p:outputPanel id="itemDetailescInmueble">
+
+        <p:fieldset legend="Escolaridades" >
+            <p:outputPanel id="pnlResultadoEsc" >
+                <p:dataTable id="basicDTEsc"                         
+                             widgetVar="widResultado"                         
+                             var="elem"                          
+                             value="#{escolaridadEstudianteComponenteBean.escolaridad}"   
+                             rendered="#{escolaridadEstudianteComponenteBean.escolaridad != null}"
+                             emptyMessage="#{msg.noHayResultados}"		
+                             paginator="#{escolaridadEstudianteComponenteBean.escolaridad.size() gt escolaridadEstudianteComponenteBean.paginado}"
+                             paginatorPosition="bottom"
+                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                             sortField="escPk"
+                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                             rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                             rows="#{escolaridadEstudianteComponenteBean.paginado}"
+                             reflow="true" >
+                    <f:facet name="{anterior}"  >
+                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                    </f:facet>
+                    <f:facet name="{siguiente}"  >
+                        <h:outputText styleClass="#{escolaridadEstudianteComponenteBean.escolaridad.size() lt (escolaridadEstudianteComponenteBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                    </f:facet>
+
+                    <f:facet name="header" >
+                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">      
+
+                                <p:outputPanel  style="text-align: right;">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <p:commandButton id="togglerEsc"  value="#{msg.hcolumnas}" 
+                                                         icon="glyphicon glyphicon-menu-hamburger" styleClass="btn btn-secondary" />
+                                        <p:columnToggler datasource="basicDTEsc" trigger="togglerEsc" />
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                            <p:dataExporter type="csv" target="basicDTEsc" fileName="inmuebles" pageOnly="false"/>
+                                        </h:commandLink>   
+                                    </p:outputPanel>
+
+                                </p:outputPanel>
+
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="#{msg.hSedeEducativa}" toggleable="false">
+                        <h:outputText value="#{escolaridadEstudianteComponenteBean.obtenerNombreSede(elem)}" id="textSedeEsc" />
+                        <p:tooltip for="textSedeEsc" position="bottom" styleClass="panelTooltip" rendered="#{elem.escServicioEducativo != null}">
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.nombre}" 
+                                               styleClass="col-sm-6 col-form-label " />
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{elem.escServicioEducativo.sduSede.sedNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.telefono}" 
+                                               styleClass="col-sm-6 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext "
+                                                  value="#{elem.escServicioEducativo.sduSede.sedTelefono}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.departamento}" 
+                                               styleClass="col-sm-6 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{elem.escServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.municipio}" 
+                                               styleClass="col-sm-6 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-6">
+                                    <h:outputText styleClass="form-control-plaintext " 
+                                                  value="#{elem.escServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:tooltip>
+                    </p:column>
+                    <p:column headerText="#{msg.hnivel}" toggleable="false">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}" />
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidadEducativa}" visible="false" toggleable="true" >
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"/>
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hmodalidadAtencion}" visible="false" toggleable="true">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"/>
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hsubModalidadAtencion}" visible="false" toggleable="true">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"/>
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hgrado}"  toggleable="false">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduGrado.graNombre}"/>
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqGrado.graNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hopcion}"   visible="false" toggleable="true">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduOpcion.opcNombre}" />
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqOpcion.opcNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hprogramaEducativo}"   visible="false" toggleable="true">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escServicioEducativo.sduProgramaEducativo.pedNombre}" />
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqProgramaEducativo.pedNombre}" />
+                    </p:column>
+                    <p:column headerText="#{msg.hanio}" toggleable="false" >
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia}" value="#{elem.escAnio.aleAnio}"/>
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqAnio}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hresultado}" toggleable="false">
+                        <h:outputText value="#{elem.escResultado.text}"/>
+                    </p:column>
+                    <p:column headerText="#{msg.hnumeroTramite}" toggleable="false">
+                        <h:outputText rendered="#{elem.escGeneradaPorEquivalencia}" value="#{elem.escEqNumeroTramite}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false" toggleable="false" rendered="#{!escolaridadEstudianteComponenteBean.soloLectura }">
+                        <p:commandButton update=" :form:tabs:popupOpc" rendered="#{elem.escMatriculaFk == null and (elem.escGeneradaPorEquivalencia == null or not elem.escGeneradaPorEquivalencia) and (elem.escCreadoCierre==false or elem.escCreadoCierre==null)  and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_ESCOLARIDAD_ESTUDIANTE)}" oncomplete="PF('itemDialogesc').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{escolaridadEstudianteComponenteBean.actualizar(elem)}"/>
+                    </p:column>
+                    <p:column styleClass="columnaAcciones" exportable="false" toggleable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ESCOLARIDAD_ESTUDIANTE)}">
+                        <p:commandButton oncomplete="PF('confirmDialogEliminarEscolaridad').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{escolaridadEstudianteComponenteBean.prepararParaEliminar(elem)}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+        </p:fieldset>
+        
+        <p:confirmDialog id="confirmDialogEliminarEscolaridad"
+                     message="#{msg.deseaEliminarEscolaridad}"
+                     header="#{msg.eliminarEscolaridad}" severity="alert" widgetVar="confirmDialogEliminarEscolaridad">  
+        <p:outputPanel styleClass="float-right" >
+            <p:commandButton id="confirmEliminarEscolaridad" value="#{msg.hconfirmar}" update="itemDetailescInmueble"
+                             oncomplete="PF('confirmDialogEliminarEscolaridad').hide()"
+                             styleClass="btn btn-primary"
+                             action="#{escolaridadEstudianteComponenteBean.eliminar()}"  />
+            <p:blockUI block="@form" trigger="confirmEliminarEscolaridad"/>
+            <p:commandLink id="cancelarEliminarEscolaridad" value="#{msg.cancelar}"
+                           onclick="PF('confirmDialogEliminarEscolaridad').hide()" styleClass="btn btn-link" />
+        </p:outputPanel>
+    </p:confirmDialog>
+
+
+        <p:fieldset legend="Títulos" rendered="#{not (escolaridadEstudianteComponenteBean.listTitulo.size() eq 0)}">
+            <p:dataTable id="basicDTtitulo"                               
+                         var="elem"                          
+                         value="#{escolaridadEstudianteComponenteBean.listTitulo}"   
+                         rendered="#{escolaridadEstudianteComponenteBean.listTitulo != null}"
+                         emptyMessage="#{msg.noHayResultados}"	
+                         >
+                <p:column headerText="#{msg.hSedeEducativa}" toggleable="false">
+                    <h:outputText value="#{elem.titSedeFk.sedCodigo}" id="textSedeTit" />
+                    <p:tooltip for="textSedeTit" position="bottom" styleClass="panelTooltip">
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.nombre}" 
+                                           styleClass="col-sm-6 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.titSedeFk.sedNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" 
+                                           styleClass="col-sm-6 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.titSedeFk.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" 
+                                           styleClass="col-sm-6 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.titSedeFk.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" 
+                                           styleClass="col-sm-6 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-6">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.titSedeFk.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>                 
+                <p:column headerText="#{msg.hanio}" >
+                    <h:outputText value="#{elem.titAnio}" />
+                </p:column>
+                <p:column headerText="Fecha de validez" >
+                    <h:outputText value="#{elem.titFechaValidez}" converter="#{localDateConverter}"/>                    
+                </p:column>    
+                <p:column headerText="Fecha de emisión" >
+                    <h:outputText value="#{elem.titFechaEmision}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="Título obtenido" >
+                    <h:outputText value="#{elem.titNombreCertificado}" />
+                </p:column>
+                <p:column headerText="#{msg.hnumeroRegistro}" >
+                    <h:outputText value="#{elem.titNumeroRegistro}" />
+                </p:column>
+                <p:column headerText="#{msg.hReposicion}" >
+                    <h:outputText value="#{elem.titReposicion}" converter="#{booleanConverter}" />
+                </p:column>                
+                
+            </p:dataTable>
+
+        </p:fieldset>     
+
+
+    </p:outputPanel>
+
+    <p:dialog header="Edición de escolaridad" id="popupOpc" widgetVar="itemDialogesc" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+        <p:outputPanel id="itemDetailesc">                                                             
+            <h:panelGroup rendered="#{not empty escolaridadEstudianteComponenteBean.entidadEnEdicion}"  >                    
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                <p:outputPanel id="formularioOpcion">       
+
+                    <f:subview id="seleccionarServicioEducativo">
+                        <ui:include src="seleccionarServicioEducativoDialog.xhtml"  >   
+                            <ui:param name="controllerParam2" value="#{escolaridadEstudianteComponenteBean}" />
+                            <ui:param name="actionParam2" value="servicioEducativoSeleccionar" />
+                            <ui:param name="servicioEducativo" value="#{escolaridadEstudianteComponenteBean.servicioEducativo}" />
+                            <ui:param name="idError" value="popupmsg2" />
+                        </ui:include>
+                    </f:subview>   
+                    <p:outputPanel styleClass="form-group row" id="anio">
+                        <h:outputLabel value="Año lectivo:" for="anio_combo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="anio_combo" value="#{escolaridadEstudianteComponenteBean.comboAnioLectivo.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{escolaridadEstudianteComponenteBean.comboAnioLectivo.items}" />           
+                            </h:selectOneMenu>  
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_combo_tipo_escala">
+                        <h:outputLabel value="Resultado:" for="combo_tipo_escala" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="combo_tipo_escala" value="#{escolaridadEstudianteComponenteBean.comboPromovidoCalificacion.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{escolaridadEstudianteComponenteBean.comboPromovidoCalificacion.items}" />           
+                            </h:selectOneMenu>  
+                        </p:outputPanel>                    
+                    </p:outputPanel>    
+
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardaresc"  value="#{msg.guardar}" action="#{escolaridadEstudianteComponenteBean.guardar()}" 
+                                             update="form:tabs:pnlResultadoEsc form:tabs:itemDetailesc" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialogesc').hide();"  update=":form:tabs:itemDetailesc" styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>                     
+                    <p:blockUI block="@form" trigger="btnGuardaresc" />    
+                    <p:defaultCommand target="btnGuardaresc" scope="itemDetailesc"/>       
+                </p:outputPanel>         
+            </h:panelGroup>            
+        </p:outputPanel>        
+    </p:dialog>   
+
+
+
+</ui:composition>

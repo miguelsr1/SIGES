@@ -1,0 +1,187 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoSolicitudCurso"/>
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CURSOS_DOCENTES}">#{msg.hcursoDocente}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.solicitudesCurso}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.solicitudesCurso}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="formularioSede">
+
+            <p:panel toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+
+                    <p:outputPanel styleClass="form-group row"  >
+                        <h:outputLabel value="#{msg.nombreCurso}" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText styleClass="form-control-plaintext" value="#{solicitudesCursoDocenteBean.entidadCurso.cdsNombre}" />
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.descripcion}" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText  styleClass=" form-control-plaintext" value="#{solicitudesCursoDocenteBean.entidadCurso.cdsDescripcion}" />
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.tipoModulo}" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText styleClass=" form-control-plaintext" 
+                                          value="#{solicitudesCursoDocenteBean.entidadCurso.cdsTipoModulo.tmoNombre}" />
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.fechaInicio}" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText styleClass=" form-control-plaintext" value="#{solicitudesCursoDocenteBean.entidadCurso.cdsFechaInicio}" converter="#{localDateConverter}" />
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.fechaFin}" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText styleClass=" form-control-plaintext" value="#{solicitudesCursoDocenteBean.entidadCurso.cdsFechaFin}" converter="#{localDateConverter}" />
+                        </p:outputPanel>  
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+            </p:panel> 
+
+            <p:outputPanel id="pnlResultado">
+
+                <p:outputPanel rendered="#{solicitudesCursoDocenteBean.cantidadAprobadas == solicitudesCursoDocenteBean.entidadCurso.cdsCupo}" styleClass="ui-messages">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.solicitudesAprobadasMaximas}" />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+                <h:panelGroup >
+                    <p:dataTable id="basicDT"
+                                widgetVar="widResultado"
+                                var="elem"
+                                value="#{solicitudesCursoDocenteBean.solicitudCursoDocenteLazyModel}"
+                                emptyMessage="#{msg.noHayResultados}"
+                                paginator="true"
+                                lazy="true"
+                                paginatorPosition="bottom"
+                                currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                sortField="scdPk"
+                                paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                rows="#{solicitudesCursoDocenteBean.paginado}"
+                                reflow="true" >
+                       <f:facet name="{anterior}">
+                           <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                       </f:facet>
+                       <f:facet name="{siguiente}">
+                           <h:outputText styleClass="#{solicitudesCursoDocenteBean.totalResultados lt (solicitudesCursoDocenteBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                       </f:facet>
+
+                       <f:facet name="header">
+                           <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                            <p:outputPanel styleClass="col-md-6">
+                                <h3><h:outputText value="#{msg.cupo}"/><h:outputText styleClass="cantidad" value="#{solicitudesCursoDocenteBean.entidadCurso.cdsCupo}" /></h3>
+                                <h3><h:outputText value="#{msg.solicitudCurso}"/><h:outputText styleClass="cantidad" value="#{solicitudesCursoDocenteBean.totalResultados}" /></h3>
+                                <h3><h:outputText value="#{msg.aprobadas}"/><h:outputText styleClass="cantidad" value="#{solicitudesCursoDocenteBean.cantidadAprobadas}" /></h3>
+                            </p:outputPanel>
+                            <p:outputPanel styleClass="col-md-6">
+                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                        <p:dataExporter type="csv" target="basicDT" fileName="solicitudesCursoDocente" pageOnly="false"/>
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                           </p:outputPanel>
+                       </f:facet>
+                        
+                       <p:column headerText="#{msg.hnombre}">
+                           <h:outputText value="#{elem.scdPersonal.psePersona.perNombreCompleto}" />
+                       </p:column>
+                        
+                       <p:column headerText="#{msg.hestado}">
+                           <h:outputText value="#{elem.scdEstado eq EnumEstadoSolicitudCurso.CREADA ? '-' : elem.scdEstado}" />
+                       </p:column>
+                        
+                       <p:column styleClass="columnaAcciones" exportable="false" 
+                                 rendered="#{solicitudesCursoDocenteBean.cantidadAprobadas lt solicitudesCursoDocenteBean.entidadCurso.cdsCupo}">
+                           <p:commandButton rendered="#{elem.scdEstado eq EnumEstadoSolicitudCurso.CREADA}"
+                                oncomplete="PF('confirmDialogAprobar').show()" 
+                                icon="glyphicon glyphicon-ok" 
+                                styleClass="btn btn-icono" title="#{msg.aprobar}" 
+                                action="#{solicitudesCursoDocenteBean.seleccionarSolicitud(elem)}"/>
+                       </p:column>
+                       <p:column styleClass="columnaAcciones" exportable="false" 
+                                 rendered="#{solicitudesCursoDocenteBean.cantidadAprobadas lt solicitudesCursoDocenteBean.entidadCurso.cdsCupo}">
+                            <p:commandButton rendered="#{elem.scdEstado eq EnumEstadoSolicitudCurso.CREADA}" 
+                                oncomplete="PF('confirmDialogRechazar').show()" 
+                                icon="glyphicon glyphicon-remove" 
+                                styleClass="btn btn-icono" title="#{msg.rechazar}" 
+                                action="#{solicitudesCursoDocenteBean.seleccionarSolicitud(elem)}"/>
+                       </p:column>
+                   </p:dataTable>
+                </h:panelGroup>
+            </p:outputPanel>
+            
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+        
+        
+        
+
+        <p:confirmDialog id="confirmDialogAprobar"
+                         message="#{msg.textoConfirmarAprobacion}"
+                         header="#{msg.aprobar}" severity="alert" widgetVar="confirmDialogAprobar">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmAprobar" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialogAprobar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{solicitudesCursoDocenteBean.aprobar()}"  />
+                <p:blockUI block="@form" trigger="confirmAprobar"/>
+                <p:commandLink id="cancelarAprobar" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogAprobar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+        
+        <p:confirmDialog id="confirmDialogRechazar"
+                         message="#{msg.textoConfirmarRechazo}"
+                         header="#{msg.rechazar}" severity="alert" widgetVar="confirmDialogRechazar">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmRechazar" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialogRechazar').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{solicitudesCursoDocenteBean.rechazar()}"  />
+                <p:blockUI block="@form" trigger="confirmRechazar"/>
+                <p:commandLink id="cancelarRechazar" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialogRechazar').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+        
+    </h:form>
+</ui:composition>

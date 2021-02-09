@@ -1,0 +1,277 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">       
+
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CUENTAS_BANCARIAS_CC}.xhtml">#{msg.gestionCuentasBancariasCC}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionMovimientoCajaChica}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionMovimientoCajaChica}"/></h2>        
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoMovimientoCajaChica}" icon="glyphicon glyphicon-plus" 
+                                 action="#{movimientoCajaChicaBean.agregar()}"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_MOVIMIENTOSCAJACHICA)}"
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarMovimientoCuentaBancaria" styleClass="btn btn-secondary" />
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3><h:outputText value="#{movimientoCajaChicaBean.sede}"/></h3>
+        <h3><h:outputText value="#{msg.hncuenta} #{movimientoCajaChicaBean.cuenta.bccNumeroCuenta}"/></h3>
+        <h3><h:outputText value="#{msg.titular} #{movimientoCajaChicaBean.cuenta.bccTitular}"/></h3>         
+        <p:outputPanel rendered="#{movimientoCajaChicaBean.cuenta.bccOtroIngreso!=null and movimientoCajaChicaBean.cuenta.bccOtroIngreso}">
+            <h3><h:outputText value="#{msg.otrosIngresos} #{msg.si}"/></h3>
+        </p:outputPanel>         
+        <p:outputPanel rendered="#{movimientoCajaChicaBean.cuenta.bccOtroIngreso!=null and !movimientoCajaChicaBean.cuenta.bccOtroIngreso}">
+            <h3><h:outputText value="#{msg.componente} #{movimientoCajaChicaBean.cuenta.bccSubcomponenteFk.gesCategoriaComponente.cpeNombre}"/></h3>
+            <h3><h:outputText value="#{msg.subcomponente} #{movimientoCajaChicaBean.cuenta.bccSubcomponenteFk.gesNombre}"/></h3>
+            <h3><h:outputText value="#{msg.banco} #{movimientoCajaChicaBean.cuenta.bccCuentaBancFk.cbcNumeroCuenta} - #{movimientoCajaChicaBean.cuenta.bccCuentaBancFk.cbcBancoFk.bncNombre}"/></h3>
+        </p:outputPanel>         
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.componente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_componente" value="#{movimientoCajaChicaBean.comboComponente.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{movimientoCajaChicaBean.comboComponente.items}" />
+                                <p:ajax listener="#{movimientoCajaChicaBean.cargarSubComponente()}" event="change" update="f_subcomponente" process="@this"/>
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" rendered="#{movimientoCajaChicaBean.filtroMov.mccFiltroFecha == 2}">
+                        <h:outputLabel value="#{msg.fechaDesde}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar showMinute="false" showHour="false" value="#{movimientoCajaChicaBean.filtroMov.mccFechaDesdeS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.fecha}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="2" id="b_habilitado" value="#{movimientoCajaChicaBean.filtroMov.mccFiltroFecha}">
+                                <f:selectItem itemValue="#{1}" itemLabel="#{msg.hmesActual}" />
+                                <f:selectItem itemValue="#{2}" itemLabel="#{msg.hrangoFecha}"/>
+                                <p:ajax listener="#{movimientoCajaChicaBean.cambioFiltroFecha}" update=":form:pnlSearch" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.subcomponente}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="f_subcomponente" value="#{movimientoCajaChicaBean.comboSubComponente.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{movimientoCajaChicaBean.comboSubComponente.items}" />
+                            </h:selectOneMenu>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" rendered="#{movimientoCajaChicaBean.filtroMov.mccFiltroFecha == 2}">
+                        <h:outputLabel value="#{msg.fechaHasta}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar showMinute="false" showHour="false" value="#{movimientoCajaChicaBean.filtroMov.mccFechaHastaS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{movimientoCajaChicaBean.buscar()}" update="pnlResultado" process="pnlSearch"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{movimientoCajaChicaBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{movimientoCajaChicaBean.listMovCajaChica}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="mccFecha, mcc_pk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{movimientoCajaChicaBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{movimientoCajaChicaBean.totalResultados lt (movimientoCajaChicaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{movimientoCajaChicaBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="movimientoCuentaBancaria" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hfacTipoDoc}" >
+                    <h:outputText value="#{elem.mccPagoFk.pgsFactura.facTipoDocumento.text}"  />
+                </p:column>
+                <p:column headerText="#{msg.hnumeroDocumento}" >
+                    <h:outputText value="#{elem.mccPagoFk.pgsFactura.facNumero}"  />
+                </p:column>
+                <p:column headerText="#{msg.hfechaPago}" sortBy="#{elem.mccFecha}">
+                    <h:outputText value="#{elem.mccFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.detalle}" sortBy="#{elem.mccDetalle}">
+                    <h:outputText value="#{elem.mccDetalle}" />
+                </p:column>
+                <p:column headerText="#{msg.hfacProveedor}" >
+                    <h:outputText value="#{elem.mccPagoFk.pgsFactura.facProveedorFk.proNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hinusmo}" >
+                    <h:outputText value="#{elem.mccPagoFk.pgsFactura.facItemPlanCompra.comInsumoFk.insNombre}"  />
+                </p:column>
+                  <p:column headerText="#{msg.cheNumeroSerie}" >
+                      <h:outputText value="#{elem.mccChequeraFK.cheSerie}"  />
+                </p:column>
+                <p:column headerText="#{msg.detallePago}" >
+                    <h:outputText value="#{elem.mccPagoFk.pgsComentario}"  />
+                </p:column>
+                <p:column headerText="#{msg.hnocheque}" >                    
+                    <h:outputText value="#{elem.mccCheque}" /> 
+                </p:column>
+                <p:column headerText="#{msg.hegresos}" styleClass="columna-derecha columnaRoja" sortBy="#{elem.mccMonto}">
+                    <h:outputText value="#{movimientoCajaChicaBean.cargarMontoDebe(elem)}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                    <f:facet name="footer">
+                        <h:outputText value="#{movimientoCajaChicaBean.totale}" styleClass="align-right" style="width:100%;color:red;font-weight: bold">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{movimientoCajaChicaBean.locale}" />
+                        </h:outputText>
+                    </f:facet>
+                </p:column>
+                <p:column headerText="#{msg.hingresos}" styleClass="columna-derecha columnaVerde" sortBy="#{elem.mccMonto}">
+                    <h:outputText value="#{movimientoCajaChicaBean.cargarMontoHaber(elem)}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                    <f:facet name="footer">
+                        <h:outputText value="#{movimientoCajaChicaBean.totali}"  style="text-align:right;width:100%;color:red;font-weight: bold">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{movimientoCajaChicaBean.locale}" />
+                        </h:outputText>
+                    </f:facet>
+                </p:column>
+                <p:column headerText="#{msg.hsaldo}" sortBy="#{elem.mccSaldo}">
+                    <h:outputText value="#{elem.mccSaldo}" style="#{elem.mccSaldoFinal lt 0 ? 'color:red': ''}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>                
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <a href="#{ConstantesPaginas.CUENTAS_BANCARIAS}.xhtml">Volver</a>
+        </h:panelGroup>
+
+        <p:dialog header="#{msg.movimientoCajaChica}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty movimientoCajaChicaBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioMovimientoCuentaBancaria"> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_MovnumeroCuenta" >                        
+                            <h:outputLabel value="#{msg.numeroCuenta}" for="input_MovnumeroCuenta"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_MovnumeroCuenta" styleClass="form-control texto-corto" value="#{movimientoCajaChicaBean.cuenta.bccNumeroCuenta}" disabled="true"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_mov">
+                            <h:outputLabel value="#{msg.tipoMovimientoPago}" for="input_MovTipoCuenta"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_estado_doc" 
+                                                 value="#{movimientoCajaChicaBean.tipomovimiento}" 
+                                                 styleClass="form-control texto-corto">
+                                    <f:selectItems value="#{movimientoCajaChicaBean.tipoMovimiento}"/>
+                                    <p:ajax event="change" listener="#{movimientoCajaChicaBean.obtenerTipoMovimiento()}" update=":form:itemDetail" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_chequera" rendered="#{movimientoCajaChicaBean.esIngreso and !movimientoCajaChicaBean.cuenta.bccOtroIngreso}" >
+                            <h:outputLabel value="#{msg.chequeraSerie}" for="input_chequera"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">                             
+                                <p:autoComplete id="input_chequera" 
+                                                styleClass="form-control texto-corto" 
+                                                value="#{movimientoCajaChicaBean.chequeraSeleccionada}" 
+                                                completeMethod="#{movimientoCajaChicaBean.completeChequera}" 
+                                                var="cheB" itemLabel="#{cheB.serieComplete}"
+                                                itemValue="#{cheB}" 
+                                                widgetVar="input_chequera_autocomplete" 
+                                                forceSelection="true"                                                 
+                                                maxResults="10" 
+                                                queryDelay="500" 
+                                                multiple="false" 
+                                                converter="#{chequerasConverter}" 
+                                                placeholder="#{msg.autoCompleteEmptyItem}">                                                                                                                    
+                                </p:autoComplete>                                   
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_cheque"  rendered="#{movimientoCajaChicaBean.esIngreso and !movimientoCajaChicaBean.cuenta.bccOtroIngreso}">
+                            <h:outputLabel value="#{msg.numeroCheque}" for="input_cheque"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText maxlength="15"
+                                             autocomplete="off"
+                                             styleClass="form-control texto-medio"
+                                             id="input_cheque"
+                                             value="#{movimientoCajaChicaBean.entidadEnEdicion.mccCheque}"
+                                             />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                            <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar maxdate="#{movimientoCajaChicaBean.currentDateTime}" id="input_fecha" showMinute="false" showHour="false" value="#{movimientoCajaChicaBean.entidadEnEdicion.mccFecha}" pattern="#{applicationBean.patternFechaHora}" converter="#{localDateTimeConverter}" ></p:calendar>
+                            </p:outputPanel>                    
+                        </p:outputPanel>                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_detalle">
+                            <h:outputLabel value="#{msg.detalle}" for="input_detalle" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputTextarea id="input_detalle" styleClass="form-control texto-medio" value="#{movimientoCajaChicaBean.entidadEnEdicion.mccDetalle}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_monto">
+                            <h:outputLabel value="#{msg.monto}" for="input_monto" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputNumber minValue="0" id="input_monto" styleClass="form-control texto-corto" value="#{movimientoCajaChicaBean.entidadEnEdicion.mccMonto}"  />
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{movimientoCajaChicaBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+    </h:form>
+</ui:composition>

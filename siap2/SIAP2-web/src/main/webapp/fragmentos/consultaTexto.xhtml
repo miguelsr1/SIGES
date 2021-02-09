@@ -1,0 +1,175 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaTexto')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.codigoTexto')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{textoConsulta.textoCodigo}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.valorTexto')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{textoConsulta.textoValor}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{textoConsulta.filterTable()}"
+                                                     onclick="dataTable.getPaginator().setPage(0);"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{textoConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>            
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', textoConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{textoConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                        <h:outputText value="#{item.propertyMap['texCodigo']}" styleClass="cortarTexto"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Idioma')}">
+                        <h:outputText value="#{item.propertyMap['texIdiId.idiDescripcion']}"  />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Valor')}"  styleClass="cortarTexto">
+                        <h:outputText value="#{item.propertyMap['texValor']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                         oncomplete="$('#editModal').modal('show');" 
+                                         action="#{textoConsulta.cargarToEditar(item.propertyMap['texId'])}"  
+                                         update="modalEditarForm"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                         styleClass="btn btn-danger btn-icono" 
+                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                         onclick="if (!existeConfirmacion(this.id))
+                                                     return false" 
+                                         action="#{textoConsulta.eliminarTexto(item.propertyMap['texId'])}"
+                                         update="tableForm confirmModalCallBackBody"
+                                         immediate="true">
+                        </p:commandButton>      
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+        <!-- Modal de editar -->
+        <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <h:form id="modalEditarForm" prependId="false">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarTexto')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{textoConsulta.editando.texCodigo}" styleClass="form-control-static cortarTexto"  />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Idioma')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{textoConsulta.editando.texIdiId.idiDescripcion}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.valorTexto')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="textValor" value="#{textoConsulta.editando.texValor}" styleClass="form-control"  />
+                                        <h:message for="textValor" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{textoConsulta.guardarEditando()}"   update="modalEditarForm tableForm"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form>      
+                </div>
+            </div>
+        </div> 
+        <!-- end modal editar-->
+
+
+
+        <!-- Modal de eliminar -->
+        <ui:include src="./eliminarGeneralModal.xhtml" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </ui:composition>
+</html>
+

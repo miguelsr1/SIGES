@@ -1,0 +1,351 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+    <h:panelGroup id="blockInsumo"  layout="block">
+        <div class="modal fade"  id="anadirInsumo" tabindex="-1" role="dialog" aria-labelledby="anadirInsumo">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalInsumo">
+                    <h:form id="anadirInsumoForm"  prependId="false" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.AniadirInsumo')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes" id="mensasParaModalInsumo"/>		
+
+                                <h:panelGroup id="menuHeader" layout="block" >
+                                    <ul class="nav nav-tabs">
+                                        <li class="active"><a data-toggle="tab" href="#tabInsumos">#{textMB.obtenerTexto('labels.Insumo')}</a></li>
+                                        <ui:fragment rendered="#{parameterBean.tempInsumo.noUACI}">
+                                            <li><a data-toggle="tab" href="#tabFCM">#{textMB.obtenerTexto('labels.FlujoCajaMenusal')}</a></li>
+                                        </ui:fragment>
+                                    </ul>
+                                </h:panelGroup>
+                                <div class="tab-content">
+
+                                    <!---  TABS DE  INSUMOS -->
+                                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                    <h:panelGroup id="tabInsumos" styleClass="tab-pane fade in active" layout="block"> 
+                                        <div class="form-group">
+                                            <h:outputLabel for="nombreInsumo" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                            <div class="col-sm-8">
+                                                <h:outputText id="nombreInsumo" value="#{parameterBean.tempInsumo.id}" styleClass="form-control-static"    />
+                                            </div>
+                                        </div>                                    
+                                        <div class="form-group">
+                                            <h:outputLabel for="insumoInsumo" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.Insumo')}:" />
+                                            <div class="col-sm-8">
+                                                <p:autoComplete id="insumoInsumo"
+                                                                styleClass="autocompleteLargo"
+                                                                forceSelection="true" 
+                                                                dropdown="true" 
+                                                                value="#{parameterBean.tempInsumo.insumo}" 
+                                                                completeMethod="#{utilsMB.completeInsumos}" var="insumo" itemLabel="#{insumo.nombre}" itemValue="#{insumo}"
+                                                                required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                                scrollHeight="#{utilsMB.autoCompleteScrollHeight}" >
+                                                    <f:converter  binding="#{insumoConverter}" />
+                                                    <p:ajax event="itemSelect" update="ultimosPrecios" />
+                                                    <p:column rendered="false">
+                                                        <img data-src="holder.js/50x50" class="img-circle" alt="#{insumo.nombre}"  src="#{imgUtils.getImgPath(insumo.archivo)}" />
+                                                    </p:column>
+                                                    <p:column>
+                                                        <h:outputText value="#{insumo.nombre}" />
+                                                    </p:column>
+                                                </p:autoComplete>
+                                                <br/>
+                                                <h:message for="insumoInsumo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-offset-4 col-sm-8">                                                
+                                                <h:selectOneRadio  styleClass="radio" value="#{parameterBean.tempInsumo.noUACI}" disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                    <f:selectItem itemValue="false" itemLabel=" #{textMB.obtenerTexto('labels.UACI')}" />
+                                                    <f:selectItem itemValue="true" itemLabel=" #{textMB.obtenerTexto('labels.NoUACI')}" />
+                                                    <f:ajax listener="#{parameterBean.reloadNoUacio}" render="tabFCM menuHeader @form" />
+                                                </h:selectOneRadio>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <p:outputLabel for="fechaContratacionInsumo" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.FechaEstimadaDeContratacion')}:"/>
+                                            <div class="col-sm-8">
+                                                <p:calendar id="fechaContratacionInsumo" 
+                                                            mindate="#{parameterBean.getInicioPO()}" 
+                                                            maxdate="#{parameterBean.getFinPO()}" 
+                                                            value="#{parameterBean.tempInsumo.fechaContratacion}" 
+                                                            styleClass="textoMedio" 
+                                                            required="true"  
+                                                            requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  
+                                                            locale="#{utilsMB.localeDate}" 
+                                                            pattern="#{utilsMB.patternDate}"/>
+                                                <h:message for="fechaContratacionInsumo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <h:panelGroup layout="block" id="fechaRealInicioEjecucionYDuracion" rendered="#{parameterBean.tempInsumo.noUACI}">
+                                            <div class="form-group">
+                                                <p:outputLabel for="fechaRealInicioEjecucion" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FechaRealInicioEjecucion')}:"/>
+                                                <div class="col-sm-8">
+                                                    <p:calendar id="fechaRealInicioEjecucion" 
+                                                                mindate="#{parameterBean.getInicioPO()}" 
+                                                                maxdate="#{parameterBean.getFinPO()}" 
+                                                                value="#{parameterBean.tempInsumo.fechaRealInicioEjecucion}" 
+                                                                styleClass="textoMedio" locale="#{utilsMB.localeDate}" 
+                                                                pattern="#{utilsMB.patternDate}"/>
+                                                    <h:message for="fechaRealInicioEjecucion" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel for="duracionInsumo" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.DuracionInsumo')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:inputText id="duracionInsumo" 
+                                                                 value="#{parameterBean.tempInsumo.duracion}" 
+                                                                 styleClass="form-control textoMedio numericos">
+                                                    </h:inputText>
+                                                    <h:message for="duracionInsumo" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </h:panelGroup>
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="observacionInsumo" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Observacion')}:" />
+                                            <div class="col-sm-8">
+                                                <h:inputTextarea id="observacionInsumo" value="#{parameterBean.tempInsumo.observacion}" styleClass="form-control textoLargo"   rows="4" />
+                                                <h:message for="observacionInsumo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="cantidadInsumo" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Cantidad')}:" />
+                                            <div class="col-sm-8">
+                                                <h:inputText id="cantidadInsumo" 
+                                                             value="#{parameterBean.tempInsumo.cantidad}" 
+                                                             styleClass="form-control textoMedio numericos"  
+                                                             disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                    <p:ajax event="keyup" update="montoTotal listaMontosDistribucionInsumo"  listener="#{parameterBean.recalcualrMontoTotalTmpInsumo()}" />
+                                                </h:inputText>
+                                                <h:message for="cantidadInsumo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="montoUnitario" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.MontoUnitario')}:" />
+                                            <div class="col-sm-8">
+                                                <p:inputText  id="montoUnitario" 
+                                                              value="#{parameterBean.tempInsumo.montoUnit}" 
+                                                              styleClass="form-control textoMedio inputTresCampos numericos"  
+                                                              required="true"  
+                                                              requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                              disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                    <p:ajax event="keyup" update="montoTotal listaMontosDistribucionInsumo"  listener="#{parameterBean.recalcualrMontoTotalTmpInsumo()}" />
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </p:inputText>
+                                                <h:message for="montoUnitario" styleClass="help-inline msj-danger" />
+                                                <h:outputText id="ultimosPrecios" styleClass="control-label agruparDosCampos" 
+                                                              value="#{parameterBean.getUltimos5PreciosUnitarios()}"/>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="montoTotal" styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.MontoTotal')}:" />
+                                            <div class="col-sm-8">
+                                                <p:inputText  validator="#{parameterBean.validateMontoInsumoTotal}"  
+                                                              id="montoTotal" 
+                                                              value="#{parameterBean.tempInsumo.montoTotal}" 
+                                                              styleClass="form-control textoMedio numericos"  
+                                                              required="true"  
+                                                              requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                              disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                    <p:ajax event="keyup" update="listaMontosDistribucionInsumo"/>
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </p:inputText>
+                                                <h:message for="montoTotal" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+                                        <p:outputPanel id="listaMontosDistribucionInsumo">
+                                            <ui:fragment rendered="#{ parameterBean.getTipoPO() eq 'TIPO_PO_PROYECTO' or parameterBean.getTipoPO() eq 'TIPO_POG_PROYECTO' }">  
+                                                <!--                                                <div class="form-group">
+                                                                                                    <h:outputText styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TipoMonto')}:"  />
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <h:selectOneRadio id="modalInsumo-tipo-estructura" styleClass="radio" value="#{parameterBean.tempInsumo.tipoMontoEstructura}" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                                                                            <f:selectItems value="#{utilsMB.getTipoMontoEstructuraProyecto()}" var="enumerado"  itemValue="#{enumerado}" itemLabel="#{textMB.obtenerTexto(enumerado.label)}" />
+                                                                                                            <f:ajax event="change" render="modalInsumo-bloque-motno-estructura"/> 
+                                                                                                        </h:selectOneRadio>
+                                                                                                        <h:message for="modalInsumo-tipo-estructura" styleClass="help-inline msj-danger" />
+                                                                                                    </div>
+                                                                                                </div>-->
+                                                <p:outputPanel id="modalInsumo-bloque-motno-estructura" >
+                                                    <fieldset class="fieldset fieldsetSmall margenSup">
+                                                        <p:outputPanel styleClass="form-group" rendered="#{parameterBean.isnumoRequiereTramos()}">
+                                                            <h:outputLabel for="tramoASelecionar" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TramoHasta')}:" />
+                                                            <div class="col-sm-8">
+                                                                <h:selectOneMenu id="tramoASelecionar" value="#{parameterBean.tmpIdTramo}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                                    <f:selectItems value="#{parameterBean.getTramosDisponibles()}" />
+                                                                    <f:ajax render="distribuccionMontosEnInsumo"   listener="#{parameterBean.cambiarTramo(parameterBean.tmpIdTramo)}" />
+                                                                </h:selectOneMenu> 
+                                                                <h:message for="tramoASelecionar" styleClass="help-inline msj-danger" />
+                                                            </div>
+                                                        </p:outputPanel>
+
+
+                                                        <legend><h:outputText  value="#{textMB.obtenerTexto('labels.MontosFuentes')}" /></legend>
+                                                        <h:dataTable id="distribuccionMontosEnInsumo" styleClass="table-padding" value="#{parameterBean.ordenarMontosFuentes(parameterBean.tempInsumo.montosFuentes)}" var="monto">
+                                                            <h:column>
+                                                                <h:outputLabel  styleClass="control-label">
+                                                                    <h:outputText  value="*#{monto.fuente.fuenteRecursos.nombre}, " />
+                                                                    <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" />
+                                                                </h:outputLabel>
+                                                            </h:column>
+                                                            <h:column>
+                                                                <h:panelGroup layout="span" styleClass="pull-right"  rendered="#{parameterBean.tieneSugerencia(monto)}">
+                                                                    <h:outputText  value="#{textMB.obtenerTexto('labels.Sugerencia')} " /> 
+                                                                    <h:outputText  value="#{parameterBean.caclularSugerencia(monto, parameterBean.tempInsumo.montoTotal )}" >
+                                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                    </h:outputText>
+                                                                </h:panelGroup> 
+                                                            </h:column>
+                                                            <h:column>
+                                                                <h:panelGroup  styleClass="input-group " layout="block">
+                                                                    <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                                    <p:inputText  id="modalInsumo-monto" value="#{monto.monto}"  styleClass="form-control numericos" 
+                                                                                  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                                                  disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                                        <p:ajax event="keyup"  listener="#{parameterBean.recalcularImporteFuente(monto)}"  />
+                                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                    </p:inputText>	
+                                                                </h:panelGroup> 
+                                                                <h:message for="modalInsumo-monto" styleClass="help-inline msj-danger" />
+                                                            </h:column>
+                                                        </h:dataTable>
+                                                    </fieldset>
+                                                </p:outputPanel>
+                                            </ui:fragment>
+                                        </p:outputPanel>
+                                    </h:panelGroup>
+                                    <!---  TABS DE  FCM -->
+                                    <h:panelGroup id="tabFCM" styleClass="tab-pane fade" layout="block"> 
+                                        <ui:fragment rendered="#{parameterBean.tempInsumo.noUACI}">
+                                            <div class="alert alert-warning" role="alert"> <strong>#{textMB.obtenerTexto('labels.Alerta.')}</strong>#{textMB.obtenerTexto('labels.Si_genera_automaticamente_FCM_Se_trabaja_con_decimales_de_dos_cigras_y_puede_perder_precision_Edite_los_montos_para_que_coincida')}</div>
+                                            <h:panelGroup layout="block" rendered="#{not parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                <div class="form-group">
+                                                    <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MesInicial')}:" for="fechaDesde"/>
+                                                    <div class="col-sm-9">
+                                                        <p:calendar value="#{parameterBean.FCMDesde}" styleClass="textoMedio" id="fechaDesde"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                                        <h:message for="fechaDesde" styleClass="help-inline msj-danger" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.CantMeses')}:" for="fechaHasta" />
+                                                    <div class="col-sm-9">
+                                                        <h:inputText id="fechaHasta" value="#{parameterBean.FCMCantMeses}"  styleClass="form-control textoCorto">
+                                                            <!--                                                    <f:validateLongRange minimum="1"  />-->
+                                                        </h:inputText>
+                                                        <h:message for="fechaHasta" styleClass="help-inline msj-danger" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="col-sm-9 col-sm-offset-3">
+                                                        <p:commandButton  styleClass="btn btn-primary"  value="#{textMB.obtenerTexto('labels.GenerarFCM')}" action="#{parameterBean.generarFCM()}"  update="flujoCajaMenusal mensasParaModalInsumo"/>
+                                                    </div>
+                                                </div>
+                                            </h:panelGroup>
+                                            <h:panelGroup layout="block" id="flujoCajaMenusal">
+                                                <h:panelGroup layout="block">
+                                                    <fieldset class="fieldset fieldsetSmall margenSup margenInf">
+                                                        <legend><h:outputText  value="#{textMB.obtenerTexto('labels.FlujoCajaMensual')}" /></legend>
+
+
+                                                        <!--                                                        <div class="form-group">
+                                                                                                                    <h:outputLabel for="mes-flujo"  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Meses')}" />
+                                                                                                                    <div class="col-sm-9">
+                                                                                                                        <h:outputText value="#{textMB.obtenerTexto('labels.TotalInsumoMes')}" styleClass="textoMedio"  />
+                                                                                                                        <ui:repeat  var="montoFuente" value="#{parameterBean.tempInsumo.montosFuentes}" varStatus="status">
+                                                                                                                            <h:outputText value="#{montoFuente.fuente.fuenteRecursos.codigo}" styleClass="textoMedio"  />                                                             
+                                                                                                                        </ui:repeat>
+                                                                                                                    </div>
+                                                                                                                </div>-->
+
+                                                        <div class="form-group">
+                                                            <h:outputLabel for="mes-flujo"  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Meses')}" />
+                                                            <div class="col-sm-9">
+                                                                <h:outputText value="#{textMB.obtenerTexto('labels.TotalInsumoMes')}" styleClass="textoMedio"  />
+                                                                <ui:repeat  var="fuenteFCM" value="#{parameterBean.ordenarMontosFuentes(parameterBean.tempInsumo.montosFuentes)}" varStatus="status"
+                                                                            rendered="#{parameterBean.cantidadMontosFuentesDePoInsumo ne 1 }">
+                                                                    <h:outputText value="#{fuenteFCM.fuente.fuenteRecursos.codigo}" styleClass="textoMedio"  />                                                             
+                                                                </ui:repeat>
+                                                            </div>
+                                                        </div>
+
+                                                        <ui:repeat  var="anioFlujo" value="#{parameterBean.tempInsumo.flujosDeCajaAnio.toArray()}">
+                                                            <ui:repeat  var="flujo" value="#{anioFlujo.flujoCajaMenusal}" varStatus="status">
+                                                                <div class="form-group">
+                                                                    <h:outputLabel for="mes-flujo"  styleClass="col-sm-3 control-label" value="#{parameterBean.getMesName(flujo.mes-1)}:" />
+                                                                    <div class="col-sm-9">
+                                                                        <h:inputText  id="mes-flujo" 
+                                                                                      value="#{flujo.monto}" 
+                                                                                      styleClass="form-control textoMedio numericos"  
+                                                                                      disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                                            <p:ajax update="flujoCajaMenusal" listener="#{parameterBean.calcularTotalProgramacionFinancieraInsumo()}"/>
+                                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                        </h:inputText>
+                                                                        <h:message for="mes-flujo" styleClass="help-inline msj-danger" />
+                                                                        <ui:repeat var="fuenteFCM" value="#{parameterBean.ordenarMontosFuentesFCM(flujo.montosFuentesInsumosFCM)}"
+                                                                                   rendered="#{parameterBean.cantidadMontosFuentesDePoInsumo ne 1 }">
+                                                                            <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                                          styleClass="form-control textoMedio numericos"
+                                                                                          disabled="#{parameterBean.insumoTieneFuenteCertificadaOParaCertificar}">
+                                                                                <p:ajax update="totalesMeses" listener="#{parameterBean.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                            </h:inputText>
+                                                                        </ui:repeat>
+                                                                    </div>                                                                   
+                                                                </div>
+                                                            </ui:repeat>                                                            
+                                                        </ui:repeat>
+
+                                                        <h:panelGroup  class="form-group" layout="block" id="totalesMeses">
+                                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Totales')}:" />
+                                                            <div class="col-sm-9">
+                                                                <h:outputText value="#{parameterBean.tempInsumo.totalProgramacionFinanciera}" styleClass="textoMedio numericos" >
+                                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                </h:outputText>
+                                                                <ui:repeat  var="montoFuente" value="#{parameterBean.ordenarMontosFuentes(parameterBean.tempInsumo.montosFuentes)}" varStatus="status"
+                                                                            rendered="#{parameterBean.cantidadMontosFuentesDePoInsumo ne 1 }">
+                                                                    <h:outputText value="#{montoFuente.totalProgramacionFinanciera}" styleClass="textoMedio numericos"  >
+                                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                    </h:outputText>                                                             
+                                                                </ui:repeat>
+                                                            </div>
+                                                        </h:panelGroup>
+
+                                                    </fieldset>
+                                                </h:panelGroup>
+                                            </h:panelGroup>
+                                        </ui:fragment>
+                                    </h:panelGroup>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{parameterBean.guardarInsumo()}" update="tablaLineas contenidoModalInsumo"/>
+                            <p:commandButton  styleClass="btn btn-link"  value="#{textMB.obtenerTexto('labels.Cancelar')}" actionListener="#{parameterBean.reloadPO()}" update="tablaLineas" oncomplete="$('#anadirInsumo').modal('hide');"  />
+                        </div>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+    </h:panelGroup>
+</ui:composition>

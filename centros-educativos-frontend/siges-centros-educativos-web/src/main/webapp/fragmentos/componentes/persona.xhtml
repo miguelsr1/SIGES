@@ -1,0 +1,715 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoPersona"/>
+
+    <c:set var="soloLecturaPersona" value="#{soloLecturaPersona}" scope="request"/>
+    <c:set var="persona" value="#{persona}" scope="request"/>
+    <c:set var="controllerParam" value="#{controllerParam}" scope="request"/>
+    <c:set var="actionParam" value="#{actionParam}" scope="request"/>
+    <c:set var="renderIdentPersonalSede" value="#{renderIdentPersonalSede}" scope="request"/>
+    <c:set var="continuarExistePersona" value="#{continuarExistePersona}" scope="request"/>
+    <c:set var="puedeEditarFechaNacimiento" value="#{puedeEditarFechaNacimiento}" scope="request"/>
+    <c:set var="verTrastornosAprendizaje" value="#{verTrastornosAprendizaje}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{personaBean.setRenderPartidaNacimiento(renderPartidaNacimiento)}"/>
+        <f:event type="preRenderView" listener="#{personaBean.setRenderIdentPersonalSede(renderIdentPersonalSede)}"/>
+        <f:event type="preRenderView" listener="#{personaBean.setSoloLectura(soloLecturaPersona)}"/>
+        <f:event type="preRenderView" listener="#{personaBean.actualizar(persona)}"/>
+        <f:event type="preRenderView" listener="#{personaBean.setContinuarExistePersona(continuarExistePersona)}"/>
+        <f:event type="preRenderView" listener="#{personaBean.setVerTrastornosAprendizaje(verTrastornosAprendizaje)}"/>
+    </f:metadata>
+    <p:outputPanel id="formularioPersona">
+        <fieldset>
+            <legend><h:outputText value="#{msg.datosPersonales}"/></legend>
+
+
+            <p:commandButton  id="buscarPersona" value="Buscar persona por identificación" 
+                              action="#{personaBean.buscarPersona()}" update="@form" process="@form" 
+                              rendered="#{personaBean.entidadEnEdicion.renderBuscarPersona}" 
+                              styleClass="btn btn-secondary" icon="glyphicon glyphicon-search" />
+            <p:blockUI block="@form" trigger="buscarPersona" />     
+
+            <p:outputPanel styleClass="row" rendered="#{!personaBean.entidadEnEdicion.renderBuscarPersona}">   
+                <p:outputPanel styleClass="col-sm-6">   
+                    <p:outputPanel styleClass="form-group row" id="fila_input_primerNombre">                        
+                        <h:outputLabel value="#{msg.primerNombre}" for="input_primerNombre" styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_primerNombre" value="#{personaBean.entidadEnEdicion.perPrimerNombre}" styleClass="form-control texto-medio" rendered="#{personaBean.puedeEditarNombresYApellidos}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarNombresYApellidos}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perPrimerNombre}"/>
+                            <h:message for="input_primerNombre" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_segundoNombre">                        
+                        <h:outputLabel value="#{msg.segundoNombre}" for="input_segundoNombre" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_segundoNombre" value="#{personaBean.entidadEnEdicion.perSegundoNombre}" styleClass="form-control texto-medio" rendered="#{personaBean.puedeEditarNombresYApellidos}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarNombresYApellidos}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perSegundoNombre}"/>
+                            <h:message for="input_segundoNombre" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tercerNombre">                        
+                        <h:outputLabel value="#{msg.tercerNombre}" for="input_tercerNombre" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_tercerNombre" value="#{personaBean.entidadEnEdicion.perTercerNombre}" styleClass="form-control texto-medio" rendered="#{personaBean.puedeEditarNombresYApellidos}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarNombresYApellidos}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perTercerNombre}"/>
+                            <h:message for="input_tercerNombre" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>                            
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_primerApellido">                        
+                        <h:outputLabel value="#{msg.primerApellido}" for="input_primerApellido" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_primerApellido" value="#{personaBean.entidadEnEdicion.perPrimerApellido}" styleClass="form-control texto-medio" rendered="#{personaBean.puedeEditarNombresYApellidos}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarNombresYApellidos}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perPrimerApellido}"/>
+                            <h:message for="input_primerApellido" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_segundoApellido">                        
+                        <h:outputLabel value="#{msg.segundoApellido}" for="input_segundoApellido" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_segundoApellido" value="#{personaBean.entidadEnEdicion.perSegundoApellido}" styleClass="form-control texto-medio" rendered="#{personaBean.puedeEditarNombresYApellidos}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarNombresYApellidos}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perSegundoApellido}"/>
+                            <h:message for="input_segundoApellido" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tercerApellido">                        
+                        <h:outputLabel value="#{msg.tercerApellido}" for="input_tercerApellido" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_tercerApellido" value="#{personaBean.entidadEnEdicion.perTercerApellido}" styleClass="form-control texto-medio" rendered="#{personaBean.puedeEditarNombresYApellidos}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarNombresYApellidos}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perTercerApellido}"/>
+                            <h:message for="input_tercerApellido" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>       
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nombre_partida_nacimiento">                        
+                        <h:outputLabel value="#{msg.nombrePartidaNacimiento}" for="input_nombre_partida_nacimiento" 
+                                       styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <h:inputText autocomplete="off" id="input_nombre_partida_nacimiento" 
+                                         value="#{personaBean.entidadEnEdicion.perNombrePartidaNacimiento}" 
+                                         styleClass="form-control texto-medio" 
+                                         rendered="#{personaBean.puedeEditarDatosSensiblesPersona}" maxlength="100"/>
+                            <h:outputText rendered="#{!personaBean.puedeEditarDatosSensiblesPersona}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perNombrePartidaNacimiento}"/>
+                            <h:message for="input_nombre_partida_nacimiento" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>       
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fechaNacimiento">                        
+                        <h:outputLabel value="#{msg.fechaNacimiento}" for="input_fechaNacimiento" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-8">                            
+                            <p:calendar id="input_fechaNacimiento" value="#{personaBean.entidadEnEdicion.perFechaNacimiento}" maxdate="#{applicationBean.today()}"
+                                        rendered="#{personaBean.puedeModificarFechaNacimiento()}" pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}" />
+                            <h:outputText rendered="#{!personaBean.puedeModificarFechaNacimiento()}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perFechaNacimiento}" converter="#{localDateConverter}" />
+                            <h:message for="input_fechaNacimiento" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_persona_nacionalidad" >
+                        <h:outputLabel value="#{msg.nacionalidad}" for="input_persona_nacionalidad"
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_persona_nacionalidad" styleClass="form-control dropdown texto-medio"
+                                             value="#{personaBean.comboNacionalidad.selected}"
+                                             rendered="#{personaBean.puedeEditarDatosSensiblesPersona}" >
+                                <f:selectItems  value="#{personaBean.comboNacionalidad.items}" />
+                                <p:ajax event="change" process="@this" update="fila_depto_mun fila_partida_nac" listener="#{personaBean.comboNacionalidadSelected}" />
+                            </h:selectOneMenu>  
+                            <h:outputText rendered="#{!personaBean.puedeEditarDatosSensiblesPersona}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perNacionalidad.nacNombre}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <h:panelGroup id="fila_partida_nac">
+                        <h:panelGroup rendered="#{personaBean.renderPartidaNacimiento and (personaBean.entidadEnEdicion.perNacionalidad != null) ? personaBean.entidadEnEdicion.perNacionalidad.nacCodigo.toUpperCase().equals(Constantes.CODIGO_NACIONALIDAD_EL_SALVADOR):false}">
+                            <p:outputPanel styleClass="form-group row">
+                                <h:outputText value="#{msg.partidaNacimiento}" styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-3">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="b_partida"
+                                                      disabled="#{!personaBean.puedeEditarPartidaNacimiento}"
+                                                      value="#{personaBean.tienePartida}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                        <p:ajax listener="#{personaBean.tienePartidaSelected}" event="change" update="fila_input_persona_tiene_partida fila_depto_mun"/>
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <h:panelGroup id="fila_input_persona_tiene_partida">
+                                <p:outputPanel styleClass="form-group row" rendered="#{personaBean.tienePartida}">
+                                    <p:outputPanel styleClass="offset-sm-4 col-sm-8" id="campoPartida" >
+                                        <fieldset>
+                                            <legend><h:outputText value="#{msg.hpartidaNacimiento}"/></legend>
+                                            <p:outputPanel styleClass="form-group row">
+                                                <h:outputText value="#{msg.presenta}" styleClass="col-sm-4 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-8" >
+                                                    <p:selectOneRadio layout="responsive" columns="2" id="b_presentaPartida"
+                                                                      disabled="#{!personaBean.puedeEditarPartidaNacimiento}"
+                                                                      value="#{personaBean.entidadEnEdicion.perPartidaNacimientoPresenta}">
+                                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                                        <p:ajax event="change" process="fila_input_persona_tiene_partida" update="fila_input_persona_tiene_partida"/>
+                                                    </p:selectOneRadio>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="form-group row">
+                                                <h:outputLabel value="#{msg.anio}" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">    
+                                                    <p:inputNumber autocomplete="off" rendered="#{personaBean.puedeEditarPartidaNacimiento}" decimalPlaces="0" thousandSeparator="" styleClass="form-control"
+                                                                   value="#{personaBean.entidadEnEdicion.perPartidaNacimientoAnio}" />
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaNacimientoAnio}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="form-group row">
+                                                <h:outputLabel value="#{msg.nroPartida}" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <p:inputNumber rendered="#{personaBean.puedeEditarPartidaNacimiento}" autocomplete="off" decimalPlaces="0" thousandSeparator="" 
+                                                                   value="#{personaBean.entidadEnEdicion.perPartidaNacimiento}" styleClass="form-control" />
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaNacimiento}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="row form-group" >
+                                                <h:outputLabel value="#{msg.folioPartida}" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <p:inputText autocomplete="off" rendered="#{personaBean.puedeEditarPartidaNacimiento}"
+                                                                 value="#{personaBean.entidadEnEdicion.perPartidaNacimientoFolio}" styleClass="form-control" />
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaNacimientoFolio}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="row form-group" >
+                                                <h:outputLabel value="#{msg.libroPartida}" styleClass="col-sm-4 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <p:inputText autocomplete="off" rendered="#{personaBean.puedeEditarPartidaNacimiento}"
+                                                                 value="#{personaBean.entidadEnEdicion.perPartidaNacimientoLibro}" styleClass="form-control"  />
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaNacimientoLibro}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="row form-group" >
+                                                <h:outputLabel value="#{msg.complementoPartida}" styleClass="col-sm-4 col-form-label "/>
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <p:inputText autocomplete="off" rendered="#{personaBean.puedeEditarPartidaNacimiento}"
+                                                                 value="#{personaBean.entidadEnEdicion.perPartidaNacimientoComplemento}" styleClass="form-control"  />
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaNacimientoComplemento}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+
+                                            <p:outputPanel styleClass="form-group row" id="fila_input_persona_departamento_partida">
+                                                <h:outputLabel value="#{msg.partidaDepartamento}" for="input_persona_departamento_partida"
+                                                               styleClass="col-sm-4 col-form-label obligatorio" />
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="input_persona_departamento_partida" styleClass="form-control texto-medio"
+                                                                     value="#{personaBean.comboDepartamentoPartida.selected}" 
+                                                                     rendered="#{personaBean.puedeEditarPartidaNacimiento}">
+                                                        <f:selectItems  value="#{personaBean.comboDepartamentoPartida.items}" />
+                                                        <p:ajax listener="#{personaBean.seleccionarDepartamentoPartida()}" event="change"
+                                                                process="@this" update="fila_input_persona_municipio_partida"/>
+                                                    </h:selectOneMenu>
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaDepartamento.depNombre}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+                                            <p:outputPanel styleClass="form-group row" id="fila_input_persona_municipio_partida">
+                                                <h:outputLabel value="#{msg.partidaMunicipio}" for="input_persona_municipio_partida"
+                                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+
+                                                <p:outputPanel styleClass="col-sm-8">
+                                                    <h:selectOneMenu id="input_persona_municipio_partida" styleClass="form-control texto-medio"
+                                                                     disabled="#{personaBean.comboDepartamentoPartida.selectedT == null}"
+                                                                     rendered="#{personaBean.puedeEditarPartidaNacimiento}"
+                                                                     value="#{personaBean.comboMunicipioPartida.selected}" >
+                                                        <f:selectItems value="#{personaBean.comboMunicipioPartida.items}" />
+                                                        <p:ajax listener="#{personaBean.seleccionarMunicipioPartida()}" event="change" process="@this"/>
+                                                    </h:selectOneMenu>
+                                                    <h:outputText rendered="#{!personaBean.puedeEditarPartidaNacimiento}" styleClass="form-control-plaintext"
+                                                                  value="#{personaBean.entidadEnEdicion.perPartidaMunicipio.munNombre}"/>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+
+                                            <p:outputPanel styleClass="row form-group" >
+                                                <p:outputPanel styleClass="col-sm-12 control-inline margen-sup10">
+                                                    <p:fileUpload fileUploadListener="#{personaBean.handlePartidaFileUpload}"
+                                                                  id="file__partidaupload"
+                                                                  mode="advanced" 
+                                                                  dragDropSupport="true"
+                                                                  label="Cargar partida"
+                                                                  rendered="#{personaBean.puedeEditarPartidaNacimiento}"
+                                                                  uploadLabel="#{msg.confirmar}"
+                                                                  invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                                                  invalidFileMessage="#{msg.formatoNoPermitidoImgPdf} "
+                                                                  update="@parent"
+                                                                  cancelLabel="#{msg.cancelar}"
+                                                                  auto="true"
+                                                                  sizeLimit="#{applicationBean.fotosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png|pdf)$/" />                    
+                                                    <p:commandButton value="Ver partida" ajax="false" onclick="this.form.target = '_blank';" rendered="#{personaBean.entidadEnEdicion.perPartidaNacimientoArchivo != null}" styleClass="btn btn-link">
+                                                        <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(personaBean.entidadEnEdicion.perPartidaNacimientoArchivo)}" />
+                                                    </p:commandButton>  
+                                                    <p:commandLink action="#{personaBean.eliminarPartidaArchivo()}" update="@parent" value="#{msg.eliminar}" rendered="#{personaBean.puedeEditarPartidaNacimiento and personaBean.entidadEnEdicion.perPartidaNacimientoArchivo != null}" />
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                            <p:outputPanel styleClass="row form-group" >
+                                                <p:outputPanel styleClass="col-sm-12">
+                                                    <p:commandButton title="#{msg.hpersonaValidadaRNPNPartidaNacimiento}" styleClass="btn btn-icono" icon="glyphicon glyphicon-ok-sign" style="color:green" rendered="#{identificacionComponenteBean.personaEdicion.perPartidaNacValidadaRNPN}"/>
+                                                    <p:commandButton icon="glyphicon glyphicon-info-sign" styleClass="btn btn-icono" style="color:orangered" title="#{msg.validacionRNPNPendiente}" rendered="#{identificacionComponenteBean.personaEdicion.perPartidaNacPendienteValidacionRNPN}"/>
+                                                    <p:commandButton  icon="glyphicon glyphicon-refresh"
+                                                                      styleClass="btn btn-secondary" 
+                                                                      update="@form" 
+                                                                      id="btnValidarRNPNPartidaNac"
+                                                                      value="#{msg.hconsultarRNPN}"
+                                                                      title="#{msg.hconsultarRNPNdesc}"
+                                                                      action="#{personaBean.validarPartidaNacimiento()}"
+                                                                      rendered="#{personaBean.puedeValidarPartidaNacimiento}"/>
+                                                    <p:blockUI block="@form" trigger="btnValidarRNPNPartidaNac" />
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </fieldset>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_persona_naturalizada">
+                        <h:outputLabel value="#{msg.naturalizada}" for="input_persona_naturalizada"
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_persona_naturalizada" disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}" value="#{personaBean.entidadEnEdicion.perNaturalizada}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <h:panelGroup id="fila_depto_mun">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_persona_departamento_nac" rendered="#{(personaBean.entidadEnEdicion.perNacionalidad != null) ? personaBean.entidadEnEdicion.perNacionalidad.nacCodigo.toUpperCase().equals(Constantes.CODIGO_NACIONALIDAD_EL_SALVADOR) : false}">
+                            <h:outputLabel value="#{msg.departamentoNacimiento}" for="input_persona_departamento_nac"
+                                           styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_persona_departamento_nac" styleClass="form-control texto-medio"
+                                                 value="#{personaBean.comboDepartamentoNacimiento.selected}" 
+                                                 rendered="#{personaBean.puedeEditarDatosSensiblesPersona}">
+                                    <f:selectItems  value="#{personaBean.comboDepartamentoNacimiento.items}" />
+                                    <p:ajax listener="#{personaBean.seleccionarDepartamento()}" event="change"
+                                            process="@this" update="fila_input_persona_municipio_nac"/>
+                                </h:selectOneMenu>
+                                <h:outputText rendered="#{!personaBean.puedeEditarDatosSensiblesPersona}" styleClass="form-control-plaintext"
+                                              value="#{personaBean.entidadEnEdicion.perDepartamentoNacimento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_persona_municipio_nac" rendered="#{(personaBean.entidadEnEdicion.perNacionalidad != null) ? personaBean.entidadEnEdicion.perNacionalidad.nacCodigo.toUpperCase().equals(Constantes.CODIGO_NACIONALIDAD_EL_SALVADOR):false}">
+                            <h:outputLabel value="#{msg.municipioNacimiento}" for="input_persona_municipio_nac"
+                                           styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_persona_municipio_nac" styleClass="form-control texto-medio"
+                                                 disabled="#{personaBean.comboDepartamentoNacimiento.selectedT == null}"
+                                                 rendered="#{personaBean.puedeEditarDatosSensiblesPersona}"
+                                                 value="#{personaBean.comboMunicipioNacimiento.selected}" >
+                                    <f:selectItems value="#{personaBean.comboMunicipioNacimiento.items}" />
+                                    <p:ajax listener="#{personaBean.seleccionarMunicipio()}" event="change" process="@this"/>
+                                </h:selectOneMenu>
+                                <h:outputText rendered="#{!personaBean.puedeEditarDatosSensiblesPersona}" styleClass="form-control-plaintext"
+                                              value="#{personaBean.entidadEnEdicion.perMunicipioNacimiento.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sexo">                        
+                        <h:outputLabel value="#{msg.sexo}" for="input_sexo" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_sexo" value="#{personaBean.comboSexos.selected}" styleClass="form-control dropdown texto-medio" rendered="#{personaBean.puedeEditarDatosSensiblesPersona}" >
+                                <f:selectItems value="#{personaBean.comboSexos.items}" />
+                                <p:ajax listener="#{personaBean.comboSexoSelected()}" event="change" />
+                            </h:selectOneMenu>                   
+                            <h:outputText rendered="#{!personaBean.puedeEditarDatosSensiblesPersona}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perSexo.sexNombre}"/>
+                            <h:message for="input_sexo" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_estadoCivil">                        
+                        <h:outputLabel value="#{msg.estadoCivil}" for="input_estadoCivil" styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_estadoCivil" value="#{personaBean.comboEstadoCivil.selected}" styleClass="form-control dropdown texto-medio" rendered="#{personaBean.puedeEditarRestoDeDatosPersona}" >
+                                <f:selectItems value="#{personaBean.comboEstadoCivil.items}" />
+                                <p:ajax listener="#{personaBean.comboEstadoCivilSelected}" event="change" />
+                            </h:selectOneMenu>       
+                            <h:outputText rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perEstadoCivil.eciNombre}"/>
+                            <h:message for="input_estadoCivil" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_etnia_">                        
+                        <h:outputLabel value="#{msg.etnia}" for="input_etnia" styleClass="col-sm-4 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="input_etnia" value="#{personaBean.comboEtnia.selected}" styleClass="form-control dropdown texto-medio" rendered="#{personaBean.puedeEditarRestoDeDatosPersona}">
+                                <f:selectItems value="#{personaBean.comboEtnia.items}" />
+                                <p:ajax listener="#{personaBean.comboEtniaSelected()}" event="change" />
+                            </h:selectOneMenu>    
+                            <h:outputText rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" styleClass="form-control-plaintext"
+                                          value="#{personaBean.entidadEnEdicion.perEtnia.etnNombre}"/>
+                            <h:message for="input_etnia" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tiene_discapacidad">
+                        <h:outputLabel value="#{msg.estudianteTieneDiscapacidad}" for="input_tiene_discapacidad"
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_tiene_discapacidad" 
+                                              disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}" value="#{personaBean.entidadEnEdicion.perTieneDiscapacidades}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax update="fila_discapacidades" listener="#{personaBean.tieneDiscapacidadSelected()}" event="change"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <h:panelGroup id="fila_discapacidades">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_discpacidad_autocomplete" rendered="#{personaBean.entidadEnEdicion.perTieneDiscapacidades}">
+                            <h:outputLabel value="#{msg.discapacidades}" for="input_discapacidad_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_discapacidad_autocomplete" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{personaBean.entidadEnEdicion.perDiscapacidades}"
+                                                rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"
+                                                completeMethod="#{personaBean.completeDiscapacidad}"
+                                                var="dis" itemLabel="#{dis.disNombre}" 
+                                                itemValue="#{dis}" 
+                                                onclick="PF('b_disc_autocomplete').search(PF('b_disc_autocomplete').input.val())"
+                                                widgetVar="b_disc_autocomplete"
+                                                forceSelection="true"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{discapacidadConverter}"
+                                                multiple="true" unique="true" >
+                                    <p:ajax event="itemSelect"  process="@this" update="input_discapacidad_autocomplete"/>
+                                </p:autoComplete>
+                                <h:outputText value="#{personaBean.entidadEnEdicion.discapacidadesAsString}" styleClass="form-control-plaintext" rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tiene_diagnostico" rendered="#{personaBean.entidadEnEdicion.perTieneDiscapacidades}">
+                            <h:outputLabel value="#{msg.estudiantePoseeDiagnostico}" for="input_tiene_diagnostico"
+                                           styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:selectOneRadio layout="responsive" columns="3" id="input_tiene_diagnostico" 
+                                                  disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}" value="#{personaBean.entidadEnEdicion.perTieneDiagnostico}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_referido" rendered="#{personaBean.entidadEnEdicion.perTieneDiscapacidades}">
+                            <h:outputLabel value="#{msg.estudianteReferido}" for="input_referido" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_referido" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{personaBean.entidadEnEdicion.perReferenciasApoyo}"
+                                                rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"
+                                                completeMethod="#{personaBean.completeReferenciaApoyo}"
+                                                var="rea" itemLabel="#{rea.reaNombre}" 
+                                                itemValue="#{rea}" 
+                                                onclick="PF('b_rea_autocomplete').search(PF('b_rea_autocomplete').input.val())"
+                                                widgetVar="b_rea_autocomplete"
+                                                forceSelection="true"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{referenciasApoyoConverter}"
+                                                multiple="true" unique="true" >
+                                </p:autoComplete>
+                                <h:outputText value="#{personaBean.entidadEnEdicion.referenciasApoyoAsString}" styleClass="form-control-plaintext" rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_recibe" rendered="#{personaBean.entidadEnEdicion.perTieneDiscapacidades}">
+                            <h:outputLabel value="#{msg.estudianteRecibe}" for="input_recibe" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_recibe" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{personaBean.entidadEnEdicion.perTerapias}"
+                                                rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"
+                                                completeMethod="#{personaBean.completeTerapia}"
+                                                var="ter" itemLabel="#{ter.terNombre}" 
+                                                itemValue="#{ter}" 
+                                                onclick="PF('b_ter_autocomplete').search(PF('b_ter_autocomplete').input.val())"
+                                                widgetVar="b_ter_autocomplete"
+                                                forceSelection="true"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{terapiasConverter}"
+                                                multiple="true" unique="true" >
+                                </p:autoComplete>
+                                <h:outputText value="#{personaBean.entidadEnEdicion.terapiasAsString}" styleClass="form-control-plaintext" rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                    </h:panelGroup>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tiene_trastorno_aprendizaje" rendered="#{personaBean.verTrastornosAprendizaje}">
+                        <h:outputLabel value="#{msg.tieneAlgunTrastornoDeAprendizaje}" for="input_tiene_trastorno_aprendizaje"
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_tiene_trastorno_aprendizaje" 
+                                              disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}" value="#{personaBean.entidadEnEdicion.perTieneTrastornoAprendizaje}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax update="fila_input_trastornos_autocomplete" event="change"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel  id="fila_input_trastornos_autocomplete">
+                        <p:outputPanel styleClass="form-group row"  rendered="#{personaBean.verTrastornosAprendizaje and personaBean.entidadEnEdicion.perTieneTrastornoAprendizaje}">
+                            <h:outputLabel value="#{msg.trastornosAprendizaje}" for="input_trastornos_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_trastornos_autocomplete" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{personaBean.entidadEnEdicion.perTrastornosAprendizaje}"
+                                                rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"
+                                                completeMethod="#{personaBean.completeTrastornoAprendizaje}"
+                                                var="dis" itemLabel="#{dis.traNombre}" 
+                                                itemValue="#{dis}" 
+                                                onclick="PF('b_trastornos_autocomplete').search(PF('b_trastornos_autocomplete').input.val())"
+                                                widgetVar="b_trastornos_autocomplete"
+                                                forceSelection="true"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{trastornoAprendizajeConverter}"
+                                                multiple="true" unique="true" >
+                                    <p:ajax event="itemSelect"  process="@this" update="input_trastornos_autocomplete"/>
+                                </p:autoComplete>
+                                <h:outputText value="#{personaBean.entidadEnEdicion.trastornosAprendizajeAsString}" styleClass="form-control-plaintext" rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_persona_embarazo">
+                        <h:outputLabel value="#{personaBean.entidadEnEdicion.perVisualizadaComoEstudiante ? msg.estudianteEmbarazada: msg.embarazo}" for="input_persona_embarazo"
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_persona_embarazo" 
+                                              disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}" value="#{personaBean.entidadEnEdicion.perEmbarazo}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax update="fila_input_persona_fecha_parto" event="change"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_persona_fecha_parto">
+                        <h:outputLabel value="#{msg.fechaParto}" for="input_persona_fecha_parto"
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_persona_fecha_parto" styleClass="form-control" 
+                                        disabled="#{!personaBean.puedeEditarRestoDeDatosPersona or !personaBean.entidadEnEdicion.perEmbarazo}"
+                                        value="#{personaBean.entidadEnEdicion.perFechaParto}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}" 
+                                        mindate="#{applicationBean.today()}"
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_persona_fecha_parto" styleClass="msj-danger"/> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-sm-6">   
+                    <p:fileUpload fileUploadListener="#{personaBean.handleFileUpload}"
+                                  id="file_upload"
+                                  mode="advanced" 
+                                  dragDropSupport="true"
+                                  label="Cargar foto"
+                                  rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"
+                                  uploadLabel="#{msg.confirmar}"
+                                  invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                  invalidFileMessage="#{msg.formatoNoPermitidoFotos} "
+                                  update="@parent"
+                                  cancelLabel="#{msg.cancelar}"
+                                  auto="true"
+                                  sizeLimit="#{applicationBean.fotosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png)$/" />                    
+                    <o:graphicImage value="#{imagenesBean.getFile(personaBean.entidadEnEdicion.perFoto.achPk)}" width="220" 
+                                    lastModified="#{personaBean.entidadEnEdicion.perFoto.achUltmodFechaAsDate}"
+                                    alt="#{personaBean.entidadEnEdicion.perFoto.achNombre}" title="#{personaBean.entidadEnEdicion.perFoto.achNombre}"
+                                    rendered="#{personaBean.entidadEnEdicion.perFoto != null and personaBean.entidadEnEdicion.perFoto.achPk != null and !personaBean.entidadEnEdicion.perFoto.achShowTmpFile}" />
+                    <o:graphicImage value="#{imagenesBean.getTmpFile(personaBean.entidadEnEdicion.perFoto.achTmpPath)}" width="220" 
+                                    alt="#{personaBean.entidadEnEdicion.perFoto.achNombre}" title="#{personaBean.entidadEnEdicion.perFoto.achNombre}"
+                                    rendered="#{personaBean.entidadEnEdicion.perFoto != null and personaBean.entidadEnEdicion.perFoto.achShowTmpFile}" />
+                    <o:graphicImage name="/imagenes/usuario.jpg" width="220" rendered="#{personaBean.entidadEnEdicion.perFoto == null or (personaBean.entidadEnEdicion.perFoto.achPk == null and !personaBean.entidadEnEdicion.perFoto.achShowTmpFile)}"/>
+                    <p:commandLink action="#{personaBean.eliminarFoto()}" update="@parent" value="#{msg.eliminar}" rendered="#{personaBean.puedeEditarRestoDeDatosPersona and personaBean.entidadEnEdicion.perFoto != null}" style="margin-top:5px; display: block;" />
+                </p:outputPanel>
+            </p:outputPanel>
+
+        </fieldset>
+
+        <p:fieldset legend="#{msg.hestadoPersona}" rendered="#{!personaBean.entidadEnEdicion.renderBuscarPersona}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_estado_persona" >
+                <h:outputLabel value="#{msg.estadoPersona}" for="input_estado_persona" 
+                               styleClass="col-sm-4 col-md-2 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">   
+                    <h:selectOneMenu id="input_estado_persona" styleClass="form-control dropdown texto-medio"
+                                     value="#{personaBean.comboEstadoPersona.selected}"
+                                     disabled="#{!sessionBean.getOperaciones().contains(ConstantesOperaciones.PUEDE_EDITAR_ESTADO_PERSONA)}" 
+                                     rendered="#{personaBean.puedeEditarRestoDeDatosPersona}">
+                        <f:selectItems  value="#{personaBean.comboEstadoPersona.items}" />
+                        <p:ajax event="change" process="@this" update="fila_input_datos_fallecimiento" listener="#{personaBean.comboEstadoPersonaSelected}" />
+                    </h:selectOneMenu>
+                    <h:outputText rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" styleClass="form-control-plaintext"
+                                  value="#{personaBean.entidadEnEdicion.perEstado.text}"/>
+                </p:outputPanel>                                                                                   
+            </p:outputPanel>
+
+            <h:panelGroup id="fila_input_datos_fallecimiento">
+                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_fallecimiento" 
+                               rendered="#{personaBean.entidadEnEdicion.perEstado eq EnumEstadoPersona.FALLECIDO}">
+                    <h:outputLabel value="#{msg.fechaFallecimiento}" for="input_fecha_fallecimiento" 
+                                   styleClass="col-sm-4 col-md-2 col-form-label"/>                        
+                    <p:outputPanel styleClass="col-sm-8 col-md-10">  
+                        <p:calendar id="input_fecha_fallecimiento" styleClass="form-control" 
+                                    value="#{personaBean.entidadEnEdicion.perFechaFallecimiento}" 
+                                    pattern="#{applicationBean.patternFecha}"
+                                    maxdate="#{applicationBean.today()}"
+                                    rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"
+                                    converter="#{localDateConverter}" 
+                                    converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                        <h:outputText rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" styleClass="form-control-plaintext"
+                                      converter="#{localDateConverter}"
+                                      value="#{personaBean.entidadEnEdicion.perFechaFallecimiento}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_motivo_fallecimiento" 
+                               rendered="#{personaBean.entidadEnEdicion.perEstado eq EnumEstadoPersona.FALLECIDO}">
+                    <h:outputLabel value="#{msg.motivoFallecimiento}" for="input_motivo_fallecimiento" 
+                                   styleClass="col-sm-4 col-md-2 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-8 col-md-10">   
+                        <h:selectOneMenu id="input_motivo_fallecimiento" styleClass="form-control dropdown texto-medio"
+                                         value="#{personaBean.comboMotivoFallecimiento.selected}"
+                                         rendered="#{personaBean.puedeEditarRestoDeDatosPersona}" >
+                            <f:selectItems  value="#{personaBean.comboMotivoFallecimiento.items}" />
+                            <p:ajax event="change" process="@this" listener="#{personaBean.comboMotivoFallecimientoSelected}" />
+                        </h:selectOneMenu>
+                        <h:outputText rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" styleClass="form-control-plaintext"
+                                      value="#{personaBean.entidadEnEdicion.perMotivoFallecimiento.mfaNombre}"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </h:panelGroup>
+        </p:fieldset>
+
+        <p:fieldset legend="#{msg.datosContacto}" rendered="#{!personaBean.entidadEnEdicion.renderBuscarPersona}">
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_email" >
+                <h:outputLabel value="#{msg.email}" for="input_email" styleClass="col-sm-4 col-md-2 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">                            
+                    <h:inputText autocomplete="off" id="input_email" value="#{personaBean.entidadEnEdicion.perEmail}" styleClass="form-control texto-medio " rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"/>
+                    <h:outputText rendered="#{!personaBean.puedeEditarRestoDeDatosPersona}" styleClass="form-control-plaintext"
+                                  value="#{personaBean.entidadEnEdicion.perEmail}"/>
+                </p:outputPanel>                                                                                   
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_telefonos" >
+                <h:outputLabel value="#{msg.telefonos}" for="tablaTelefonos" styleClass="col-sm-4 col-md-2 col-form-label"/> 
+                <p:outputPanel styleClass="col-sm-8 col-md-10" id="TelefonosTb">  
+                    <p:outputPanel styleClass="form-action-buttons">
+                        <p:commandButton value="#{msg.agregarTelefono}" icon="glyphicon glyphicon-plus" 
+                                         action="#{personaBean.agregarTelefono()}" 
+                                         update="telefonoDetalle" oncomplete="PF('telefonoDialog').show()"  
+                                         id="btnAgregarTelefono" styleClass="btn btn-secondary" rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"/>
+                    </p:outputPanel>                            
+
+                    <p:outputPanel id="pnlTelefonos">
+                        <p:dataTable id="tablaTelefonos" var="telefono" 
+                                     emptyMessage="#{msg.noHayResultados}"
+                                     value="#{personaBean.entidadEnEdicion.perTelefonos}">
+
+                            <p:column headerText="#{msg.htipoTelefono}">
+                                <h:outputText value="#{telefono.telTipoTelefono.ttoNombre}" />
+                            </p:column>
+                            <p:column headerText="#{msg.htelefono}">
+                                <h:outputText value="#{telefono.telTelefono}" />
+                            </p:column>
+                            <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{personaBean.puedeEditarRestoDeDatosPersona}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:telefonoDetalle"  
+                                                 oncomplete="PF('telefonoDialog').show()" 
+                                                 icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono" 
+                                                 title="#{msg.editar}" action="#{personaBean.editarTelefono(telefono)}">
+                                </p:commandButton>
+                            </p:column>                                                                              
+
+                            <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{personaBean.puedeEditarRestoDeDatosPersona}">
+                                <p:commandButton update=":#{component.namingContainer.parent.namingContainer.clientId}:TelefonosTb"  
+                                                 icon="glyphicon glyphicon-trash" 
+                                                 styleClass="btn btn-icono rojo" 
+                                                 title="#{msg.eliminar}" action="#{personaBean.eliminarTelefono(telefono)}"/>
+                            </p:column>                                         
+                        </p:dataTable>   
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:fieldset>
+
+    </p:outputPanel>
+
+    <p:dialog id="telefonoDialog" header="#{msg.agregarTelefono}" widgetVar="telefonoDialog" modal="true" showEffect="fade" 
+              hideEffect="fade" resizable="false" closable="true" >
+        <p:outputPanel id="telefonoDetalle"> 
+            <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>   
+            <p:outputPanel styleClass="form-group row" id="fila_input_tipotelefono">                        
+                <h:outputLabel value="#{msg.tipoTelefono}" for="input_tipotelefono" styleClass="col-sm-4 col-md-2 col-form-label obligatorio"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">
+                    <h:selectOneMenu id="input_tipotelefono" value="#{personaBean.comboTiposTelefonos.selected}" styleClass="form-control dropdown texto-medio" disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}">
+                        <f:selectItems value="#{personaBean.comboTiposTelefonos.items}" />
+                    </h:selectOneMenu>                                    
+                    <h:message for="input_tipotelefono" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_telefono">                        
+                <h:outputLabel value="#{msg.telefono}*" for="input_telefono" styleClass="col-sm-4 col-md-2 col-form-label"/>                        
+                <p:outputPanel styleClass="col-sm-8 col-md-10">                            
+                    <p:inputNumber autocomplete="off" id="input_telefono" value="#{personaBean.telefonoEnEdicion.telTelefono}" styleClass="form-control texto-medio" disabled="#{!personaBean.puedeEditarRestoDeDatosPersona}" decimalPlaces="0" thousandSeparator=""/>
+                    <h:message for="input_telefono" styleClass="msj-danger"/>
+                </p:outputPanel>                    
+            </p:outputPanel>                
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton id="btnGuardarTelefono"  value="#{msg.aceptar}" action="#{personaBean.agregarTelefonoAPersona()}"
+                                     update="telefonoDetalle pnlTelefonos TelefonosTb" styleClass="btn btn-primary" rendered="#{personaBean.puedeEditarRestoDeDatosPersona}"/>
+                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('telefonoDialog').hide();"  styleClass="btn btn-link"/>                        
+                </p:outputPanel>                    
+            </p:outputPanel>                     
+            <p:blockUI block="telefonoDetalle" trigger="btnGuardarTelefono" />     
+            <p:defaultCommand target="btnGuardarTelefono" scope="telefonoDetalle"/>                           
+        </p:outputPanel>
+    </p:dialog>
+
+</ui:composition>

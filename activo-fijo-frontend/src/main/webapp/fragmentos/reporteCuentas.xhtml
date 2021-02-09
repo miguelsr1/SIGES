@@ -1,0 +1,147 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.reporteDetalleSubCuentasContables}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.reporteDetalleSubCuentasContables}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPORTE_SUBCUENTAS_CONTABLES)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <f:subview id="filtroActivosView">
+                        <ui:include src="componentes/filtroActivos.xhtml">
+                            <ui:param name="renderActivoFijo" value="true" />
+                            <ui:param name="renderTipoUnidad" value="true" />
+                            <ui:param name="renderUnidadActivoFijo" value="true" />
+                            <ui:param name="renderUnidadAdministrativa" value="true" />
+                            <ui:param name="renderFuente" value="true" />
+                            <ui:param name="renderProyecto" value="true" />
+                            <ui:param name="renderCategoria" value="true" />
+                            <ui:param name="renderFechaAdquisicion" value="true" />
+                            <ui:param name="renderValorAdquisicionDesde" value="true"/>
+                            <ui:param name="renderValorAdquisicionHasta" value="true"/>
+                            <ui:param name="renderActivo" value="true"/>
+  
+                        </ui:include>
+                    </f:subview>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12 texto-right">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" action="#{depreciacionReportesBean.buscar()}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}"  action="#{depreciacionReportesBean.limpiar()}"
+                                           update="pnlSearch  pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch  pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+            
+        </h:panelGroup>
+        
+        
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"
+                         rendered="#{depreciacionReportesBean.depreciacionSubcuentasContablesDataModel != null}"
+                         value="#{depreciacionReportesBean.depreciacionSubcuentasContablesDataModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="catPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{depreciacionReportesBean.paginado}"
+                         reflow="true" >    
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{depreciacionReportesBean.totalResultados lt (depreciacionReportesBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{depreciacionReportesBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar" id="panelReporte"  rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_BIENES_SUBCUENTAS_CONTABLES) and depreciacionReportesBean.totalResultados > 0}" >
+
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="subcuentasContables" pageOnly="false"/>
+                                </h:commandLink>
+                                    <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_BIENES_SUBCUENTAS_CONTABLES}" method="get" target="_blank">
+                                       
+                                            <input type="hidden" name="uaf" value="#{depreciacionReportesBean.filtrosBienesBean.unidadAFSeleccionada.uafPk}" />
+                                            <input type="hidden" name="uad" value="#{depreciacionReportesBean.filtrosBienesBean.unidadSeleccionada.uadPk}"/>
+                                            <input type="hidden" name="sed" value="#{depreciacionReportesBean.filtrosBienesBean.sedeSeleccionada.sedPk}"/>
+                                            <input type="hidden" name="depId" value="#{depreciacionReportesBean.filtroBienes.departamentoId}"/>
+                                            <input type="hidden" name="munId" value="#{depreciacionReportesBean.filtroBienes.municipioId}"/>
+                                            <input type="hidden" name="catId" value="#{depreciacionReportesBean.filtroBienes.categoriaId}"/>
+                                            <input type="hidden" name="clasId" value="#{depreciacionReportesBean.filtroBienes.clasificacionId}"/>
+                                            <input type="hidden" name="fuenteId" value="#{depreciacionReportesBean.filtroBienes.fuenteId}"/>
+                                            <input type="hidden" name="proyectoId" value="#{depreciacionReportesBean.filtroBienes.proyectoId}"/>
+                                            <input type="hidden" name="fechaAdqDesde" value="#{depreciacionReportesBean.filtroBienes.fechaAdquisicionDesde}"/>
+                                            <input type="hidden" name="fechaAdqHasta" value="#{depreciacionReportesBean.filtroBienes.fechaAdquisicionHasta}"/>
+                                            <input type="hidden" name="activos" value="#{depreciacionReportesBean.filtroBienes.activos}"/>
+                                            <input type="hidden" name="valAdqDesde" value="#{depreciacionReportesBean.filtroBienes.valorAdquisicionDesde}"/>
+                                            <input type="hidden" name="valAdqHasta" value="#{depreciacionReportesBean.filtroBienes.valorAdquisicionHasta}"/>
+                                            <input type="hidden" name="tunidad" value="#{depreciacionReportesBean.filtrosBienesBean.tipoUnidad}"/>
+                                            <input type="submit" value="Generar Reporte"  class="btn btn-secondary" onblur="true"/>                     
+
+                                    </form>
+                                
+
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcategoria}" >
+                    <h:outputText value="#{elem.catNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hprecio}" >
+                    <h:outputText value="#{sessionBean.getFormatNumber(elem.totalValor, 2, 2)}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hvalorResidual}" >
+                    <h:outputText value="#{sessionBean.getFormatNumber(elem.totalValorResidual, 2, 2)}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hdepreciacionAcumulada}" >
+                    <h:outputText  value="#{sessionBean.getFormatNumber(elem.depreciacionAcumulada, 2, 2)}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hpendienteDepreciar}" >
+                    <h:outputText value="#{sessionBean.getFormatNumber(elem.pendienteDepreciar, 2, 2)}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+    </h:form>
+</ui:composition>

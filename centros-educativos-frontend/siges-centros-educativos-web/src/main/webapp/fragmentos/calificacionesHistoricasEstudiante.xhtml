@@ -1,0 +1,323 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <style>
+        .ui-messages-info-combo-anio {           
+            border-top-color: currentcolor;
+            border-right-color: currentcolor;
+            border-bottom-color: currentcolor;
+            border-left-color: currentcolor;
+            margin: 0px 0;
+            padding: 5px 10px 5px 10px;
+        }
+    </style>
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">Calificaciones por estudiante</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="Calificaciones por estudiante"/></h2>
+
+            <p:outputPanel styleClass="float-right">             
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CALIFICACIONES_HISTORICAS_ESTUDIANTE)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+
+
+            <p:panel  toggleable="false" styleClass="panel-filtro">                    
+                <p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                        <h:outputLabel value="#{msg.nie}" for="input_nie" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-4">
+                            <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control texto-medio" id="input_nie"
+                                           value="#{calificacionesHistoricasEstudianteBean.estudianteNie}" />
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-sm-5">
+                            <p:commandButton value="#{msg.buscar}"
+                                             action="#{calificacionesHistoricasEstudianteBean.buscarEstudiantePorNIE()}" 
+                                             update="@form" 
+                                             id="btnbuscarEstudianteNie" styleClass="btn btn-primary" icon="glyphicon glyphicon-search"  />
+                            <p:blockUI block="@form" trigger="btnbuscarEstudianteNie"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel  id="nombre">
+                        <p:outputPanel styleClass="form-group row" rendered="#{calificacionesHistoricasEstudianteBean.estudianteEnEdicion.estPk!=null}">
+                            <h:outputLabel value="#{msg.nombre}" for="nombre" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control-plaintext" value="#{calificacionesHistoricasEstudianteBean.estudianteEnEdicion.estPersona.perNombreCompleto}" />
+                            </p:outputPanel>   
+                        </p:outputPanel> 
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{calificacionesHistoricasEstudianteBean.estudianteEnEdicion != null and (calificacionesHistoricasEstudianteBean.listCalificacionModificar.size() gt 0)}">
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_rango_fechaescolar">
+                            <h:outputLabel value="Año:" for="combo_rango_fechaescolar" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu id="combo_rango_fechaescolar" value="#{calificacionesHistoricasEstudianteBean.anioSeleccionado}"  styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{calificacionesHistoricasEstudianteBean.comboAnios}" />  
+                                    <p:ajax update="@form" onstart="PF('blockerExord').show()" oncomplete="PF('blockerExord').hide()" listener="#{calificacionesHistoricasEstudianteBean.seleccionarAnio()}"  />
+                                    <p:blockUI block="@form" widgetVar="blockerExord" /> 
+                                </h:selectOneMenu>  
+                            </p:outputPanel>  
+                            <p:outputPanel styleClass="col-sm-5">
+                                <div class="ui-messages-info-combo-anio messages-info-azul ui-corner-all">
+                                   
+                                    <h:outputText styleClass="ui-messages-info-summary" escape="false" value="Tenga en cuenta que al seleccionar un año, además de filtrar las calificaciones, el reporte se emitirá para el año indicado." />
+
+                                </div>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel class="form-group row">
+                            <p:outputPanel styleClass="col-sm-9 offset-sm-3" id="fila_boton_reporte" 
+                                           >
+                                <p:outputPanel>
+                                    <p:link id="btnGenerarReporte"
+                                            rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_CALIFICACIONES_HISTORICO)}"
+                                            href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CALIFICACIONES_HISTORICAS}#{calificacionesHistoricasEstudianteBean.urlReporte}" target="_blank" 
+                                            title="#{msg.generarreportecalificaciones}" 
+                                            styleClass="btn btn-secondary">
+                                        <h:outputText styleClass="glyphicon glyphicon-file"/>
+                                        <h:outputText value="#{msg.reporteCalificaciones}"/>
+                                    </p:link>
+                                    <p:link outcome="#{ConstantesPaginas.ESTUDIANTE}" target="_blank"  styleClass="btn btn-secondary" style="margin-left:10px;">
+                                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                                        <f:param name="id" value="#{calificacionesHistoricasEstudianteBean.estudianteEnEdicion.estPk}"/>
+                                        <f:param name="edit" value="false"/>
+                                        <h:outputText styleClass="" value="Ir a ficha del estudiante"/>
+                                    </p:link>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_combo_componente">
+                            <h:outputLabel value="Componente:" for="combo_componente" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="combo_componente" value="#{calificacionesHistoricasEstudianteBean.componenteSeleccionado}"  styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{calificacionesHistoricasEstudianteBean.comboComponente}" />  
+                                    <p:ajax update="@form" onstart="PF('blockerComp').show()" oncomplete="PF('blockerComp').hide()" listener="#{calificacionesHistoricasEstudianteBean.seleccionarComponente()}"  />
+                                    <p:blockUI block="@form" widgetVar="blockerComp" /> 
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                    </p:outputPanel>
+                </p:outputPanel>    
+            </p:panel>        
+        </p:outputPanel>   
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         rendered="#{ calificacionesHistoricasEstudianteBean.listCalificacionModificar.size() gt 0 }"
+                         value="#{calificacionesHistoricasEstudianteBean.listCalificacionModificar}"                          
+                         emptyMessage="#{msg.noHayResultados}"	
+                         >
+                <p:column headerText="#{msg.hanio}" >
+                    <h:outputText value="#{elem.cheAnioMatricula}" />
+                </p:column>
+                <p:column headerText="Sede educativa">
+                    <h:outputText value="#{elem.cheSedeFk.sedCodigo}" id="textSede" rendered="#{elem.cheSedeFk !=null}"/>
+                    <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext" 
+                                              value="#{elem.cheSedeFk.sedNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.cheSedeFk.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.cheSedeFk.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.cheSedeFk.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+
+                    <h:outputText rendered="#{elem.cheSedeFk ==null}" value="#{elem.sedeExternaNombreCompleto}" />
+                </p:column>
+                <p:column headerText="Servicio educativo">
+                    <h:outputText value="#{elem.cheServicioEducativoExternoEtiquetaImpresion}"/>
+                </p:column>
+                <p:column headerText="Componente">
+                    <h:outputText value="#{elem.cheComponente}"/>
+                </p:column>
+                <p:column headerText="Nota final">
+                    <h:outputText value="#{elem.cheNF}"/>                 
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CALIFICACIONES_HISTORICAS_ESTUDIANTE)}">
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{calificacionesHistoricasEstudianteBean.actualizar(elem)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:itemDetailModificacion" rendered="#{elem.cheObservacionEdicion!=null}"
+                                     oncomplete="PF('itemDialogModificacion').show()" icon="glyphicon glyphicon-comment" styleClass="btn btn-icono" title="Observación" action="#{calificacionesHistoricasEstudianteBean.actualizar(elem)}"/>
+                </p:column>
+
+            </p:dataTable>
+        </p:outputPanel>
+
+        <p:dialog header="Edición de calificación" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty calificacionesHistoricasEstudianteBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioCalificacionesHistoricasEstudiante">  
+
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Nota final:" for="inptuComponente" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">    
+                                <p:inputNumber id="input_n_cal"
+                                   emptyValue="empty" styleClass="form-control texto-corto" inputStyle="text-align: right"  
+                                   minValue="0" 
+                                   maxValue="100"
+                                   thousandSeparator="" 
+                                   decimalSeparator="." 
+                                   value="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheNF}"/>     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Observación:" for="inptuObservacion_insert" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                               
+                                    <p:inputTextarea styleClass="form-control" 
+                                                     value="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheObservacionEdicion}" 
+                                                     rows="20"
+                                                     counter="displayContenidoTematico" maxlength="1000" 
+                                                     counterTemplate="{0} caracteres restantes." />
+                                     
+                              
+                                 <h:outputText id="displayContenidoTematico" />  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="Archivo:" for="inptuArchivo_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:fileUpload fileUploadListener="#{calificacionesHistoricasEstudianteBean.handlePartidaFileUpload}"
+                                                                  id="file__partidaupload"
+                                                                  mode="advanced" 
+                                                                  dragDropSupport="true"
+                                                                  label="Cargar"
+                                                                  uploadLabel="#{msg.confirmar}"
+                                                                  invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                                                  invalidFileMessage="#{msg.formatoNoPermitidoImgPdf} "
+                                                                  update="@parent"
+                                                                  cancelLabel="#{msg.cancelar}"
+                                                                  auto="true"
+                                                                  sizeLimit="#{applicationBean.documentosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png|pdf)$/" />    
+                                <p:commandButton value="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheArchivoEdicion.achNombre}" ajax="false" onclick="this.form.target = '_blank';"  styleClass="btn btn-link"
+                                                 rendered="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheArchivoEdicion!=null}">
+                                       <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheArchivoEdicion)}" />     
+                                </p:commandButton>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{calificacionesHistoricasEstudianteBean.guardar()}"  update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+                        <p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+        
+        <p:dialog header="Observaciones" widgetVar="itemDialogModificacion" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailModificacion">                                                             
+                <h:panelGroup rendered="#{not empty calificacionesHistoricasEstudianteBean.entidadEnEdicion}"  >                  
+                    <p:outputPanel id="formularioCalificacionesHistoricasEstudianteObservacion">  
+
+
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Nota final:"  styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">   
+                                <h:outputText styleClass="form-control-plaintext" value="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheNF}"/>                                
+                                      
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row">
+                            <h:outputLabel value="Observación:" for="inptuObservacion_insert" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">                               
+                                    <p:inputTextarea id="input_contenido_tem" styleClass="form-control" 
+                                                     value="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheObservacionEdicion}" 
+                                                     disabled="#{true}"
+                                                     rows="20"
+                                                     counter="displayContenidoTematicoa" maxlength="1000" 
+                                                     counterTemplate="{0} caracteres restantes." />                                     
+                              
+                                 <h:outputText id="displayContenidoTematicoa" />  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="Archivo:" for="inptuArchivo_insert" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:commandButton value="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheArchivoEdicion.achNombre}" ajax="false" onclick="this.form.target = '_blank';"  styleClass="btn btn-link"
+                                                 rendered="#{calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheArchivoEdicion!=null}">
+                                       <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(calificacionesHistoricasEstudianteBean.entidadEnEdicion.cheArchivoEdicion)}" />     
+                                </p:commandButton>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+
+                        						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog> 
+
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

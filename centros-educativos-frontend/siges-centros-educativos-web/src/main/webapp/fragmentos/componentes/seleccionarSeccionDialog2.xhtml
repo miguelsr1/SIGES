@@ -1,0 +1,181 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <c:set var="controllerParam2" value="#{controllerParam2}" scope="request"/>
+    <c:set var="actionParam2" value="#{actionParam2}" scope="request"/>
+    <c:set var="seccion2" value="#{seccion2}" scope="request"/>
+    <c:set var="retornarSoloSeccionesAbiertas2" value="#{retornarSoloSeccionesAbiertas2}" scope="request"/>
+    <c:set var="securityOperation2" value="#{securityOperation2}" scope="request"/>
+    <c:set var="sede2" value="#{sede2}" scope="request"/>
+
+    <p:outputPanel id="panelSeleccionarSeccionDialog">
+        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <p:autoComplete id="input_sede_autocomplete" 
+                                styleClass="form-control texto-medio"
+                                value="#{seleccionarSeccionBean2.sedeSeleccionada}"
+                                rendered="#{!seleccionarSeccionBean2.soloLectura}"
+                                disabled="#{seleccionarSeccionBean2.sedeEnEdicion!=null}"
+                                completeMethod="#{seleccionarSeccionBean2.completeSede}"
+                                var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                itemValue="#{sed}" 
+                                forceSelection="true"
+                                maxResults="10"
+                                queryDelay="500"
+                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                converter="#{sedesConverter}"
+                                multiple="false">
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarSede}" event="itemSelect"  process="@this" update="panelSeleccionarSeccionDialog"/>
+                </p:autoComplete>
+                <h:outputText styleClass="form-control-plaintext" value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduSede.sedCodigoNombre}" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_nivel">
+            <h:outputLabel value="#{msg.niveles}" for="input_nivel" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_nivel" value="#{seleccionarSeccionBean2.comboNivel.selected}"  styleClass="form-control texto-medio" disabled="#{seleccionarSeccionBean2.sedeSeleccionada == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboNivel.items}" />
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarNivel}"  process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_ciclo">
+            <h:outputLabel value="#{msg.ciclos}" for="input_ciclo" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_ciclo" value="#{seleccionarSeccionBean2.comboCiclo.selected}"  styleClass="form-control texto-medio" disabled="#{seleccionarSeccionBean2.comboNivel.selectedT == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboCiclo.items}"/>
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarCiclo}"  process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_modalidad">
+            <h:outputLabel value="#{msg.modalidadEducativa}" for="input_modalidad" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_modalidad" value="#{seleccionarSeccionBean2.comboModalidad.selected}"  styleClass="form-control texto-medio" disabled="#{seleccionarSeccionBean2.comboCiclo.selectedT == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboModalidad.items}"/>
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarModalidad}" process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+        
+        <h:panelGroup rendered="#{seleccionarSeccionBean2.comboOpcion.items.size() > 1}">
+        <p:outputPanel styleClass="form-group row" id="fila_input_opcion">
+            <h:outputLabel value="#{msg.opcion}" for="input_opcion" styleClass="col-sm-4 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_opcion" value="#{seleccionarSeccionBean2.comboOpcion.selected}"  
+                                 styleClass="form-control texto-medio" 
+                                 disabled="#{seleccionarSeccionBean2.comboModalidad.selectedT == null}" 
+                                 rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboOpcion.items}"/>
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarOpcion}" process="@all" 
+                            update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduOpcion.opcNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel> 
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{seleccionarSeccionBean2.comboProgramaEducativo.items.size() > 1}">
+        <p:outputPanel styleClass="form-group row" id="fila_input_programa">
+            <h:outputLabel value="#{msg.programa}" for="input_programa" styleClass="col-sm-4 col-form-label"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_programa" value="#{seleccionarSeccionBean2.comboProgramaEducativo.selected}"  
+                                 styleClass="form-control texto-medio" 
+                                 disabled="#{seleccionarSeccionBean2.comboOpcion.selectedT == null}" 
+                                 rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboProgramaEducativo.items}"/>
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarProgramaEducativo()}" process="@all" 
+                            update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduProgramaEducativo.pedNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel> 
+        </h:panelGroup>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_mod_aten">
+            <h:outputLabel value="#{msg.modalidadAtencion}" for="input_mod_aten" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_mod_aten" value="#{seleccionarSeccionBean2.comboModalidadAtencion.selected}" disabled="#{seleccionarSeccionBean2.comboModalidad.selectedT == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}" styleClass="form-control dropdown texto-medio">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboModalidadAtencion.items}" />    
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarModalidadAtencion}" process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>  
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>     
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_submod_aten" rendered="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion != null or seleccionarSeccionBean2.comboSubModalidadAtencion != null}">
+            <h:outputLabel value="#{msg.subModalidadAtencion}" for="input_submod_aten" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_submod_aten" value="#{seleccionarSeccionBean2.comboSubModalidadAtencion.selected}" disabled="#{seleccionarSeccionBean2.comboModalidad.selectedT == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}" styleClass="form-control dropdown texto-medio">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboSubModalidadAtencion.items}" />    
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarSubModalidadAtencion}" process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>  
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoCodigo}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>   
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_grado">
+            <h:outputLabel value="#{msg.grado}" for="input_grado" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_grado" value="#{seleccionarSeccionBean2.comboGrado.selected}"  styleClass="form-control texto-medio" disabled="#{seleccionarSeccionBean2.comboModalidadAtencion.selectedT == null or (seleccionarSeccionBean2.comboSubModalidadAtencion != null and seleccionarSeccionBean2.comboSubModalidadAtencion.selectedT == null)}" rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboGrado.items}"/>
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarGrado}" process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secServicioEducativo.sduGrado.graNombre}"
+                              styleClass="form-control-plaintext" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+            <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_anio_lectivo" value="#{seleccionarSeccionBean2.comboAnioLectivo.selected}"  styleClass="form-control texto-medio" disabled="#{seleccionarSeccionBean2.comboGrado.selectedT == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboAnioLectivo.items}"/>
+                    <p:ajax listener="#{seleccionarSeccionBean2.seleccionarAnioLectivo}" process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:outputText styleClass="form-control-plaintext" value="#{seleccionarSeccionBean2.entidadEnEdicion.secAnioLectivo.aleAnio}" rendered="#{seleccionarSeccionBean2.soloLectura}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <p:outputPanel styleClass="form-group row" id="fila_input_seccion">
+            <h:outputLabel value="#{msg.secciones}" for="input_seccion" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <h:selectOneMenu id="input_seccion" value="#{seleccionarSeccionBean2.comboSeccion.selected}"  styleClass="form-control texto-medio col-sm-8" disabled="#{seleccionarSeccionBean2.comboAnioLectivo.selectedT == null}" rendered="#{!seleccionarSeccionBean2.soloLectura}">
+                    <f:selectItems value="#{seleccionarSeccionBean2.comboSeccion.items}"/>
+                    <p:ajax listener="#{controllerParam2[actionParam2](seleccionarSeccionBean2.comboSeccion.selectedT)}" process="@this" update="panelSeleccionarSeccionDialog"/>
+                </h:selectOneMenu>
+                <h:panelGroup rendered="#{seleccionarSeccionBean2.soloLectura}">
+                    <span class="form-control-plaintext">
+                        <h:outputText value="#{seleccionarSeccionBean2.entidadEnEdicion.secNombre}"/>
+                        <h:outputText id="input_jornadaLaboral" value=" #{seleccionarSeccionBean2.entidadEnEdicion.secJornadaLaboral.jlaNombre}"/> 
+                    </span>
+                </h:panelGroup>
+            </p:outputPanel>  
+
+        </p:outputPanel>
+
+
+    </p:outputPanel>
+
+
+
+</ui:composition>

@@ -1,0 +1,161 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.actaResponsabilidad}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.actaResponsabilidad}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPORTE_ACTA_RESPONSABILIDAD)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <f:subview id="filtroActivosView">
+                        <ui:include src="componentes/filtroActivos.xhtml">
+                            <ui:param name="renderUnidadActivoFijo" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}" />
+                            <ui:param name="renderUnidadAdministrativa" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}" />
+                            <ui:param name="mostrarComboEmpleados" value="#{true}" />
+                            <ui:param name="cargarUADefecto" value="#{true}" />
+                            <ui:param name="tunidadObligatorio" value="#{true}" />
+                            <ui:param name="uafObligatorio" value="#{true}" />
+                            <ui:param name="uadObligatorio" value="#{true}" />
+                            <ui:param name="empObligatorio" value="#{true}" />
+                        </ui:include>
+                    </f:subview>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-12" style="margin-top: -15px;">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12 texto-right">
+                                <p:commandButton id="btnBuscar" value="#{msg.buscar}" action="#{actaResponsabilidadBean.buscar()}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                             update="pnlResultado"/>
+                            
+                            
+                            <p:commandLink value="#{msg.limpiar}"  action="#{actaResponsabilidadBean.limpiar()}"
+                                           update="pnlSearch  pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch  pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+            
+        </h:panelGroup>
+        
+        
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado" 
+                         rendered="#{actaResponsabilidadBean.bienesDepreciablesLazyModel != null}"
+                         var="elem"                          
+                         value="#{actaResponsabilidadBean.bienesDepreciablesLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="bdePk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{actaResponsabilidadBean.paginado}"
+                         reflow="true" >    
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{actaResponsabilidadBean.totalResultados lt (actaResponsabilidadBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{actaResponsabilidadBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <h:panelGroup id="panelReporte" styleClass="form-inline float-right panel-exportar" 
+                                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_ACTA_RESPONSABILIDAD) and actaResponsabilidadBean.totalResultados > 0 and  actaResponsabilidadBean.filtrosBienesBean.empleadoSeleccionado.empPk!= null}" >
+    
+                                 <form id="formRep" action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_ACTA_RESPONSABILIDAD_R}" method="get" target="_blank">
+                                     <p:outputPanel  styleClass="control-group"  >
+                                        <input type="hidden" name="uaf" value="#{actaResponsabilidadBean.filtroBienes.unidadActivoFijoId}" onblur="true"/>
+                                        <input type="hidden" name="uad" value="#{actaResponsabilidadBean.filtroBienes.unidadAdministrativaId}" onblur="true"/>
+                                        <input type="hidden" name="empId" value="#{actaResponsabilidadBean.filtroBienes.empleadoId}" onblur="true"/>
+                                        <p:outputPanel styleClass="float-right">
+                                            <input type="submit" value="Generar Reporte"  class="btn btn-secondary" />                     
+                                        </p:outputPanel>                    
+                                    </p:outputPanel> 
+                                </form> 
+                            </h:panelGroup>>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigoInventario}" sortBy="#{elem.bdeCodigoInventario}" exportable="false" toggleable="false">
+                    <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                </p:column>
+                 <p:column headerText="#{msg.hdescripcion}" id="col4" >
+                    <h:outputText value="#{elem.bdeDescripcion}" />
+                </p:column>
+                <p:column headerText="#{msg.hmarca}" sortBy="#{elem.bdeMarca}">
+                    <h:outputText  value="#{elem.bdeMarca}" />
+                </p:column>
+                <p:column headerText="#{msg.hnoSerie}">
+                    <h:outputText  value="#{elem.bdeNoSerie}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaAdquisicion}" sortBy="#{elem.bdeFechaAdquisicion}">
+                    <h:outputText  value="#{elem.bdeFechaAdquisicion}" converter="#{localDateConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hvalorAdquisicion}" sortBy="#{elem.bdeValorAdquisicion}">
+                    <h:outputText value="#{elem.bdeValorAdquisicion}" style="float:right"><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hcalidad}">
+                    <h:outputText  value="#{elem.bdeEstadoCalidad.ecaNombre}" />
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+        
+        
+    </h:form>
+    
+    <h:form id="formReporte">
+        <p:dialog header="#{msg.actaResponsabilidad}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('itemDialog').initPosition()">             
+            <p:outputPanel id="itemDetailDialog">                                                             
+                <h:panelGroup >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioTraslado2">
+                        <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_ACTA_RESPONSABILIDAD_R}" method="get" target="_blank">
+                            <p:outputPanel  styleClass="control-group" >
+                                <input type="hidden" name="uaf" value="#{actaResponsabilidadBean.filtroBienes.unidadActivoFijoId}" onblur="true"/>
+                                <input type="hidden" name="uad" value="#{actaResponsabilidadBean.filtroBienes.unidadAdministrativaId}" onblur="true"/>
+                                <input type="hidden" name="empId" value="#{actaResponsabilidadBean.filtroBienes.empleadoId}" onblur="true"/>
+                                <p:outputPanel styleClass="float-right">
+                                    <input type="submit" value="Generar Reporte"  onclick="PF('itemDialog').hide();" class="btn btn-secondary" />
+                                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                                </p:outputPanel>                    
+                            </p:outputPanel> 
+                        </form>   
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+    </h:form>
+</ui:composition>

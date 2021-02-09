@@ -1,0 +1,142 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+	
+		<nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.transferencias}</a></li>
+            </ol>
+        </nav>
+	
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.transferencias}"/></h2>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nroTransferencia}" for="b_numero" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" styleClass="form-control texto-medio" id="b_numero" value="#{transferenciasBean.filtro.traId}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{transferenciasBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{transferenciasBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                </p:outputPanel>
+                
+                
+                
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{transferenciasBean.transferenciaLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="traId"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{transferenciasBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{transferenciasBean.totalResultados lt (transferenciasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{transferenciasBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="transferenciaACed" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hnumero}" sortBy="#{elem.traId}">
+                    <h:outputText value="#{elem.traId}" />
+                </p:column>
+                
+                <p:column headerText="#{msg.hComponente}" sortBy="#{elem.traSubcomponente.gesCategoriaComponente.cpeNombre}">
+                    <h:outputText value="#{elem.traSubcomponente.gesCategoriaComponente.cpeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSubComponente}" sortBy="#{elem.traSubcomponente.gesNombre}">
+                    <h:outputText value="#{elem.traSubcomponente.gesNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hUnidadPresupuestaria}">
+                    <h:outputText value="#{elem.traLineaPresupuestaria.cuCuentaPadre.cuNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hLineaPresupuestaria}">
+                    <h:outputText value="#{elem.traLineaPresupuestaria.cuNombre}"/>
+                </p:column>
+                <p:column headerText="#{msg.hAnioFiscal}" sortBy="#{elem.traAnioFiscal.aniAnio}">
+                    <h:outputText value="#{elem.traAnioFiscal.aniAnio}" />
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.cantBenefi}" title="#{msg.cantidadBeneficiarios}"/>
+                    </f:facet>
+                    <h:outputText value="" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_REQ_FONDO}?id=#{elem.traId}" 
+                            title="#{msg.requerimientoFondo}" target="_blank" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-save-file" />
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_DETA_REQ_FONDO}?id=#{elem.traId}" 
+                            title="#{msg.requerimientoFondo}" target="_blank" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-save-file" />
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+		
+		<h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    
+        
+    </h:form>
+</ui:composition>

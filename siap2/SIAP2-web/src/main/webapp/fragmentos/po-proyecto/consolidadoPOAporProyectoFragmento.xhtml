@@ -1,0 +1,396 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.consolidadoPOAporProyecto.titulo')}"/>
+                </h2>
+            </div>
+        </ui:fragment>  
+
+        <h:form id="formMain"  prependId="false" >     
+            <h:panelGroup layout="block" id="bloqueNoModal" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <div class="grupoCampos">
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <c:set var="labelConsolidadoPoa" value="#{'labels.Proyecto'}" />
+                        <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto(labelConsolidadoPoa)}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="proyNombre" styleClass="form-control-static" value="#{poaConsolidadoProyMB.objeto.nombre}" />
+                        </div>
+                    </div>                     
+                    <div class="form-group">
+                        <h:outputLabel for="anioFiscal" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                        <div class="col-sm-9">
+                            <h:selectOneMenu id="anioFiscal" value="#{poaConsolidadoProyMB.idAnioFiscal}"  styleClass="form-control textoMedio" hideNoSelectionOption="true" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}" noSelectionOption="true"/>
+                                <f:selectItems value="#{poaConsolidadoProyMB.getPosiblesAniosPOA()}" />
+                                <f:ajax listener="#{poaConsolidadoProyMB.initProyecto()}" render="bloqueNoModal" />
+                            </h:selectOneMenu> 
+                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                </div>
+
+                <!--////////////////////////// TABLA GRANDE DE LINEAS ////////////////////////////-->    
+                <!-- tabla grande del consolidado -->
+                <div class="grupoCampos">
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <!--                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                         icon="glyphicon glyphicon-plus"
+                                                                         value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                                         update="contenidoModalLinea"
+                                                                         action="#{poaConsolidadoProyMB.initLinea()}"
+                                                                         oncomplete="$('#anadirLinea').modal('show');" 
+                                                                         immediate="true">
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{null}" />
+                                                        </p:commandButton>
+                                                        <p:commandButton styleClass="btn btn-default pull-right"  
+                                                                         icon="glyphicon glyphicon-eye-open"
+                                                                         value="#{textMB.obtenerTexto('labels.VerMontos')}" 
+                                                                         update="contenidoModalMontos"
+                                                                         oncomplete="$('#verMontos').modal('show');" 
+                                                                         immediate="true">
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{null}" />
+                                                        </p:commandButton>-->
+                        </div>
+                    </div> 
+
+
+
+                    <h:panelGroup id="tablaLineas"  layout="block">
+                        <h:panelGroup id="totalConsolidado" rendered="#{!empty poaConsolidadoProyMB.listPoa}" layout="block">
+                            <div class="form-horizontal">
+                                <div class="grupoCampos">
+                                    <div class="form-group">
+                                        <h:outputLabel for="montTotal" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoTotal')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText id="montTotal" styleClass="form-control-static" value="#{poaConsolidadoProyMB.getTotalGlobal()}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </div>
+                                    </div> 
+                                </div>
+                            </div>
+                        </h:panelGroup>
+
+                        <h:panelGroup layout="block"  styleClass="table-responsive">
+                            <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                            <table class="table"> 
+                                <thead> 
+                                    <tr> 
+                                        <th>#{textMB.obtenerTexto('labels.Linea')} - #{textMB.obtenerTexto('labels.UT')}</th>
+                                        <th>#{textMB.obtenerTexto('labels.Componente')} / #{textMB.obtenerTexto('labels.MacroActividad')} </th>
+                                        <th>#{textMB.obtenerTexto('labels.Producto')}</th>
+                                        <th>#{textMB.obtenerTexto('labels.Actividades')}</th>
+                                        <th>#{textMB.obtenerTexto('labels.Insumos')}</th>
+                                        <th class="numericos" >#{textMB.obtenerTexto('labels.MontoTotal')}</th>
+    <!--                                    <th>#{textMB.obtenerTexto('labels.Indicadores')}</th>-->
+                                        <th class="columnaAcciones">#{textMB.obtenerTexto('labels.Editar')}</th>
+                                        <th class="columnaAcciones">#{textMB.obtenerTexto('labels.Eliminar')}</th>
+                                    </tr> 
+                                </thead>
+                                <tbody>   
+                                    <ui:repeat var="cadaPOA" value="#{poaConsolidadoProyMB.listPoa}" >
+                                        <ui:repeat  var="lineaPog" value="#{cadaPOA.lineas}" varStatus="status">
+                                            <!--las lineas-->
+                                            <tr> 
+                                                <td>#{status.index} - #{cadaPOA.unidadTecnica.nombre}</td>
+                                                <td class="bold">
+                                                    <h:outputText value="#{lineaPog.producto.proyectoEstructura.nombre}" rendered="#{lineaPog.producto.proyectoEstructura.tipo eq 'COMPONENTE'}"/>
+                                                    <h:outputText value="#{lineaPog.producto.proyectoEstructura.macroActividad.nombre}" rendered="#{lineaPog.producto.proyectoEstructura.tipo eq 'MACROACTIVIDAD'}"/>
+                                                </td>
+                                                <td>#{lineaPog.producto.producto.nombre}</td> 
+                                                <td>                            
+                                                    <p:commandButton styleClass="btn btn-default btn-actividad"
+                                                                     icon="glyphicon glyphicon-plus"
+                                                                     value="#{textMB.obtenerTexto('labels.AnadirActividad')}" 
+                                                                     update="contenidoModalActividad"
+                                                                     action="#{poaConsolidadoProyMB.initActividad()}"
+                                                                     oncomplete="$('#anadirActividad').modal('show');" 
+                                                                     immediate="true">
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempActividad}" value="#{null}" />
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                    </p:commandButton>
+                                                </td>
+                                                <td></td>                                            
+                                                <td class="numericos">                                   
+                                                    <h:outputText value="#{poaConsolidadoProyMB.getTotalLinea(lineaPog)}" >
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText>
+                                                </td>
+                                                <!--                                            <td>
+                                                                                                <p:commandButton styleClass="btn btn-default btn-indicador"  
+                                                                                                                 icon="glyphicon glyphicon-signal"
+                                                                                                                 value="#{textMB.obtenerTexto('labels.Indicadores')}"  
+                                                                                                                 update="contenidoModalIndicadoresLinea"
+                                                                                                                 action="#{poaConsolidadoProyMB.initLineaPogParaIndicador()}"
+                                                                                                                 oncomplete="$('#anadirIndicadoresLinea').modal('show');" 
+                                                                                                                 immediate="true">
+                                                                                                    <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                                                                    <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                                                                </p:commandButton>
+                                                                                            </td>-->
+                                                <td class="columnaAcciones">
+                                                    <p:commandButton styleClass="btn btn-icono"  
+                                                                     icon="glyphicon glyphicon-pencil"
+                                                                     title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                     update="contenidoModalLinea"
+                                                                     action="#{poaConsolidadoProyMB.initLinea()}"
+                                                                     oncomplete="$('#anadirLinea').modal('show');" 
+                                                                     immediate="true">
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                    </p:commandButton>
+                                                </td>
+                                                <td class="columnaAcciones">                                                     
+                                                    <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                     styleClass="btn btn-danger btn-icono" 
+                                                                     title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                     onclick="if (!existeConfirmacion(this.id))
+                                                                             return false" 
+                                                                     action="#{poaConsolidadoProyMB.eliminarLinea()}"
+                                                                     update="tablaLineas confirmModalCallBackBody"
+                                                                     immediate="true">
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                        <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                    </p:commandButton>                                                   
+                                                </td>
+                                            </tr> 
+                                            <!--las aactividades--> 
+                                            <ui:repeat  var="actividad" value="#{lineaPog.actividades}" varStatus="statusActividad" >
+                                                <tr class="row-actividad"> 
+                                                    <td></td>
+                                                    <td></td>   
+                                                    <td></td> 
+                                                    <td class="bold">#{actividad.id} - #{actividad.actividadCodiguera.nombre}</td>
+                                                    <td>                            
+                                                        <p:commandButton styleClass="btn btn-default btn-insumo"  
+                                                                         icon="glyphicon glyphicon-plus"
+                                                                         value="#{textMB.obtenerTexto('labels.AnadirInsumo')}" 
+                                                                         update="contenidoModalInsumo"
+                                                                         action="#{poaConsolidadoProyMB.initInsumo()}"
+                                                                         oncomplete="$('#anadirInsumo').modal('show');" 
+                                                                         immediate="true">
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempInsumo}" value="#{null}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempActividad}" value="#{actividad}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                        </p:commandButton>
+                                                    </td>
+                                                    <td class="numericos">                     
+                                                        <h:outputText value="#{poaConsolidadoProyMB.getTotalActividad(actividad)}" >
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:outputText>
+                                                    </td> 
+                                                    <!--                                                <td></td> -->
+
+                                                    <!-- EDITA ACTIVIDAD -->
+                                                    <td class="columnaAcciones">                            
+                                                        <p:commandButton styleClass="btn btn-icono"  
+                                                                         icon="glyphicon glyphicon-pencil"
+                                                                         title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                         update="contenidoModalActividad"
+                                                                         action="#{poaConsolidadoProyMB.initActividad()}"
+                                                                         oncomplete="$('#anadirActividad').modal('show');" 
+                                                                         immediate="true">
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempActividad}" value="#{actividad}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                        </p:commandButton>
+                                                    </td>
+                                                    <td class="columnaAcciones">                            
+                                                        <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                         styleClass="btn btn-danger btn-icono" 
+                                                                         title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                         onclick="if (!existeConfirmacion(this.id))
+                                                                                 return false" 
+                                                                         action="#{poaConsolidadoProyMB.eliminarActividadLinea()}"
+                                                                         update="tablaLineas confirmModalCallBackBody"
+                                                                         immediate="true">
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempActividad}" value="#{actividad}" />
+                                                            <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                        </p:commandButton>                                                   
+                                                    </td>
+                                                </tr> 
+
+                                                <!--los insumos-->
+                                                <ui:repeat  var="insumo" value="#{actividad.insumos}" varStatus="insumoStatus" >
+                                                    <tr class="row-insumo"> 
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+
+                                                        <td class="bold">#{insumo.id} - #{insumo.insumo.nombre}</td>
+                                                        <td class="numericos">                                    
+                                                            <h:outputText value="#{insumo.montoTotal}" >
+                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                            </h:outputText>
+                                                        </td>
+
+                                                        <!--                                                    <td></td>-->
+
+                                                        <td class="columnaAcciones">   
+                                                            <p:commandButton styleClass="btn btn-icono"  
+                                                                             icon="glyphicon glyphicon-pencil"
+                                                                             title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                                             update="contenidoModalInsumo"
+                                                                             action="#{poaConsolidadoProyMB.initInsumo()}"
+                                                                             oncomplete="$('#anadirInsumo').modal('show');" 
+                                                                             immediate="true">
+
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempInsumo}" value="#{insumo}" />
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempActividad}" value="#{actividad}" />
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                            </p:commandButton>
+                                                        </td>
+                                                        <td class="columnaAcciones">   
+                                                            <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                                             styleClass="btn btn-danger btn-icono" 
+                                                                             title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                                             onclick="if (!existeConfirmacion(this.id))
+                                                                                     return false" 
+                                                                             action="#{poaConsolidadoProyMB.eliminarInsumoActividad()}"
+                                                                             update="tablaLineas confirmModalCallBackBody"
+                                                                             immediate="true">
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.poa}" value="#{cadaPOA}" />
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempInsumo}" value="#{insumo}" />
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempActividad}" value="#{actividad}" />
+                                                                <f:setPropertyActionListener target="#{poaConsolidadoProyMB.tempLinea}" value="#{lineaPog}" />
+                                                            </p:commandButton>
+                                                        </td>
+                                                    </tr> 
+                                                </ui:repeat> 
+                                            </ui:repeat> 
+                                        </ui:repeat> 
+                                    </ui:repeat>
+                                </tbody> 
+                            </table>     
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </div>
+
+                <!--////////////////////////// TABLA  DE  RIESGOS ////////////////////////////-->  
+
+                <h:panelGroup id="riesgosTabla" layout="block">
+                    <p:panel header="#{textMB.obtenerTexto('labels.Riesgos')}" >
+                        <ui:repeat var="cadaPOA" value="#{poaConsolidadoProyMB.listPoa}" >
+                            <ui:include src="./../po-comun/POTablaRiesgos.xhtml">
+                                <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+                                <ui:param name="poa" value="#{cadaPOA}" />
+                            </ui:include>
+                        </ui:repeat>
+                    </p:panel>
+                </h:panelGroup>
+
+                <h:panelGroup layout="block" styleClass="form-group" rendered="#{!poaConsolidadoProyMB.completoParaConsolidado and not empty poaConsolidadoProyMB.listPoa}">
+                    <div class="col-sm-12">
+                        <h:panelGroup layout="block" styleClass="alert alert-warning" >
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.FaltanPOAParaConsolidado')}"
+                                          rendered="#{!poaConsolidadoProyMB.completoParaConsolidado and not empty poaConsolidadoProyMB.listPoa}"/>                              
+                            <ui:repeat var="ut" value="#{poaConsolidadoProyMB.utPendientes}" >
+                                <h:outputText value="#{ut.nombre}" />  
+                            </ui:repeat>
+                        </h:panelGroup>
+                    </div>
+                </h:panelGroup>
+                <div class="form-group">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <p:commandButton rendered="#{poaConsolidadoProyMB.completoParaConsolidado}"
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-resize-small" value="#{textMB.obtenerTexto('labels.Consolidar')}" 
+                                         actionListener="#{poaConsolidadoProyMB.consolidar()}" update="bloqueNoModal"/>
+                        <h:outputLink  styleClass="btn btn-link" value="consultaPOAporProyecto.xhtml">
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                        </h:outputLink>
+                    </div>
+                </div>
+            </h:panelGroup>
+        </h:form>
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR RIESGO ////////////////////////////-->          
+        <ui:include src="./../po-comun/POAmodalRiesgo.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+        </ui:include>
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR LINEA ////////////////////////////-->  
+        <ui:include src="./POmodalAgregarLineaProyecto.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+            <ui:param name="sePuedeCompartir" value="#{false}" />
+        </ui:include>
+
+
+        <!--//////////////////////////  MODAL AGREGAR INDICADORES  ////////////////////////////-->  
+<!--        <ui:include src="./POmodalAgregarIndicadorProyecto.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+        </ui:include>-->
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR MACROACTIVIDAD////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalActividad.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+        </ui:include>
+
+
+        <!--//////////////////////////  MODAL PARA AGREGAR INSUMOS ////////////////////////////-->  
+        <ui:include src="./../po-comun/POmodalInsumo.xhtml">
+            <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+        </ui:include>
+
+
+        <!--//////////////////////////  MODAL PARA VER MONTOS ////////////////////////////-->  
+        <ui:include src="./POmodalVerMontosProyecto.html">
+            <ui:param name="parameterBean" value="#{poaConsolidadoProyMB}" />
+        </ui:include>
+
+
+        <!--//////////////////////////  MODAL CONFIRMACION DE ELIMINAR ////////////////////////////-->  
+        <h:form prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" onclick="confirmar();"  />
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+        <!-- js que setea la variable del modal-->
+        <h:outputScript library="js" name="confirmModal.js" />  
+        <!-- js para las imagenes dinamicas de holder-->
+
+    </ui:composition>
+</html>

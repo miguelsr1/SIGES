@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" >
+        <h:form prependId="false" styleClass="form-horizontal">
+            <div class="margenInf clearfix">
+                <p:commandButton styleClass="btn btn-default pull-right"  
+                                 icon="glyphicon glyphicon-plus"
+                                 value="#{textMB.obtenerTexto('labels.anadirModificativa')}"
+                                 rendered="#{permisosMB.permisos['CREAR_EDITAR_MODIFICATIVAS_CONTRATO_OC'] }"
+                                 action="#{contratoCE.cargarAniadirEditarModificativa(true)}"
+                                 update="anadirModificativaForm"/>      
+            </div>
+
+            <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}" />
+            <p:dataTable
+                id="tablaDeModificativas"
+                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"                
+                paginator="true" rows="25"
+                paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} "
+                rowsPerPageTemplate="5,10,25,50"
+                styleClass="table"
+                value="#{contratoCE.objeto.modificativas}" var="modificativa">
+
+                <f:facet name="{Exporters}">
+                    <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                        <span class="glyphicon glyphicon-export"></span>
+                        <p:dataExporter type="csv" target="tablaDeModificativas" fileName="Modificativas" />
+                    </h:commandLink> 
+                </f:facet>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.NroModificativa')}"  >
+                    <h:outputText value="#{modificativa.contratoOC.id}" /> - <h:outputText value="#{modificativa.numero}" />
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.Fecha')}"  >
+                    <h:outputText value="#{modificativa.fecha}" converter="dateConverter"/>
+                </p:column>
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.EstadoModificativa')}"  >
+                    <h:outputText value="#{textMB.obtenerTexto(modificativa.estado)}" />
+                </p:column>    
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.MontoModificativa')}"  styleClass="numericos">
+                    <h:outputText value="#{contratoCE.calcularMontoTotalModificativa(modificativa.id)}" >
+                        <f:convertNumber minFractionDigits="2" />
+                    </h:outputText>
+                </p:column> 
+
+                <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                    <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                     styleClass="btn btn-icono"  
+                                     title="#{textMB.obtenerTexto('labels.Editar')}"
+                                     action="#{contratoCE.cargarAniadirEditarModificativa(false)}"
+                                     update="anadirModificativaForm">
+                        <f:setPropertyActionListener target="#{contratoCE.tempModificativa}" value="#{modificativa}" />
+                    </p:commandButton>
+                </p:column>
+
+            </p:dataTable>
+        </h:form>
+    </h:panelGroup>
+
+    <!--MODAL PARA AÑADIR MODIFICATIVA DE CONTRATO-->
+    <h:panelGroup id="blockAnadirModificativa"  layout="block">
+        <div class="modal fade"  id="anadirModificativa" tabindex="-1" role="dialog" aria-labelledby="anadirPago">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content" id="anadirModificativaModal">
+                    <h:form id="anadirModificativaForm" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.anadirModificativa')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  id="mensajesGeneralesModalModificativas" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                                <div class="form-group">
+                                    <h:outputLabel for="idNroContrato" styleClass="col-sm-6 col-lg-2  control-label" value="#{textMB.obtenerTexto('labels.NroContrato')}:" />
+                                    <div class="col-sm-6 col-lg-7">
+                                        <h:outputText id="idNroContrato" value="#{contratoCE.objeto.nroContrato}" styleClass="form-control-static textoMedio"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="idProvContrato" styleClass="col-sm-6 col-lg-2  control-label" value="#{textMB.obtenerTexto('labels.ProvContrato')}:" />
+                                    <div class="col-sm-6 col-lg-7">
+                                        <h:outputText id="idProvContrato" value="#{contratoCE.obtenerNombreYNitProveedorContrato()}" styleClass="form-control-static textoMedio"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="idProvContrato" styleClass="col-sm-6 col-lg-2  control-label" value="#{textMB.obtenerTexto('labels.ComentariosModificativa')}:" />
+                                    <div class="col-sm-6 col-lg-7">
+                                        <h:inputText value="#{contratoCE.tempModificativa.comentarios}" styleClass="form-control textoLargo" rendered="#{contratoCE.tempModificativa.estado ne 'APROBADA'}"/>
+                                        <h:outputText value="#{contratoCE.tempModificativa.comentarios}" styleClass="form-control-staticl textoLargo" rendered="#{contratoCE.tempModificativa.estado eq 'APROBADA'}"/>
+                                    </div>
+                                </div>
+                                
+                                <h:panelGroup  layout="block" id="tabsPanel">
+                                    <h:panelGroup layout="block"  rendered="#{( contratoCE.objeto.estado eq 'EN_EJECUCION' or contratoCE.objeto.estado eq 'RESCINDIDO')}">
+                                        <p:tabView id="tabs" prependId="false" dynamic="true" cache="false">
+                                            <p:tab title="#{textMB.obtenerTexto('labels.InsumosModificativasContrato')}" >
+                                                <ui:include src="./insumosModificativasContrato.xhtml"></ui:include>
+                                            </p:tab>
+                                            <p:tab title="#{textMB.obtenerTexto('labels.ProgramacionPagosModificativasContrato')}" >
+                                                <ui:include src="./programacionPagosModificativasContrato.xhtml"></ui:include>
+                                            </p:tab>  
+                                            <p:tab title="#{textMB.obtenerTexto('labels.ReservaFondosModificativasContrato')}" disabled="#{contratoCE.deshabilitarTabCompromisoYReservaEnModificativa}">
+                                                <!--<ui:include src="./modificativasContrato.xhtml"></ui:include>-->
+                                            </p:tab> 
+                                            <p:tab title="#{textMB.obtenerTexto('labels.CompromisoPresupuestarioModificativasContrato')}" disabled="#{contratoCE.deshabilitarTabCompromisoYReservaEnModificativa}">
+                                                <ui:include src="./compromisoPresupuestarioModificativasContrato.xhtml"></ui:include>
+                                            </p:tab> 
+                                        </p:tabView>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  rendered="#{contratoCE.tempModificativa.compromisoPresupuestario ne null and contratoCE.tempModificativa.compromisoPresupuestario.estado eq 'VALIDADO' and contratoCE.tempModificativa.estado ne 'APROBADA'}"
+                                              styleClass="btn btn-primary" 
+                                              icon="glyphicon glyphicon-ok" 
+                                              value="#{textMB.obtenerTexto('labels.AprobarModificativa')}"
+                                              actionListener="#{contratoCE.aprobarModificativa()}"
+                                              update="tablaDeModificativas mensajesGeneralesModalModificativas formPrincipal relacionInsumosItemsContratoForm"
+                                              immediate="true"/>
+                            <p:commandButton  rendered="#{contratoCE.tempModificativa.estado ne 'APROBADA'}"
+                                              styleClass="btn btn-primary" 
+                                              icon="glyphicon glyphicon-ok" 
+                                              value="#{textMB.obtenerTexto('labels.GuardarModificativa')}"
+                                              actionListener="#{contratoCE.guardarModificativa()}"
+                                              update="tablaDeModificativas mensajesGeneralesModalModificativas"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </div>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+
+</ui:composition>

@@ -1,0 +1,222 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.seguimientoPOAs')}" /> 
+                </h2>
+
+               <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.seguimientoPOAs')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+ 
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.programaInstitucional')}:" />
+                                <div class="col-sm-8">
+                                    <p:autoComplete id="filtro_programa_autocomplete" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{poaConsultaSeguimiento.filtroProgramaInstitucionalSelected}"  
+                                            completeMethod="#{poaConsultaSeguimiento.completeProgramasInstitucionales}" 
+                                            maxResults="10"
+                                            var="prog" itemLabel="#{prog.nombre}"  
+                                            itemValue="#{prog}" 
+                                            onclick="PF('filtro_programa_autocomplete').search(PF('filtro_programa_autocomplete').input.val())" 
+                                            widgetVar="filtro_programa_autocomplete" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{programaConverter}"
+                                            multiple="false">
+                                    </p:autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.unidad_tecnica_especifica')}:" />
+                                <div class="col-sm-8">
+                                    <p:autoComplete id="filtro_unidad_tecnica_autocomplete" 
+                                            styleClass="form-control textoLargo" 
+                                            value="#{poaConsultaSeguimiento.filtroUnidadTecnicaSelected}"  
+                                            completeMethod="#{poaConsultaSeguimiento.completeUnidadesTecnicas}" 
+                                            maxResults="10"
+                                            var="ut" itemLabel="#{ut.nombre}"  
+                                            itemValue="#{ut}" 
+                                            onclick="PF('filtro_unidadtecnica_autocomplete').search(PF('filtro_unidadtecnica_autocomplete').input.val())" 
+                                            widgetVar="filtro_unidadtecnica_autocomplete" 
+                                            forceSelection="true" 
+                                            queryDelay="500" 
+                                            converter="#{unidadTecnicaConverter}"
+                                            multiple="false">
+                                    </p:autoComplete>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FechaDesde')}:" for="fechaDesde"/>
+                                <div class="col-sm-8">
+                                    <p:calendar value="#{poaConsultaSeguimiento.desde}" styleClass="textoMedio" id="fechaDesde" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FechaHasta')}:" for="fechaHasta"/>
+                                <div class="col-sm-8">
+                                    <p:calendar value="#{poaConsultaSeguimiento.hasta}" styleClass="textoMedio" id="fechaHasta" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{poaConsultaSeguimiento.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{poaConsultaSeguimiento.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>    
+        </h:form>
+        <h:form id="tableForm" >
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', poaConsultaSeguimiento.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="talbaUnidadTecnica"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{poaConsultaSeguimiento.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" sortBy="#{dummy.nombre}">
+                        <h:outputText value="#{item.propertyMap['nombre']}" styleClass="cortarTexto"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.unidad_tecnica_especifica')}" sortBy="#{dummy.unidadTecnica.nombre}">
+                        <h:outputText value="#{item.propertyMap['unidadTecnica.nombre']}"  styleClass="cortarTexto"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.programaInstitucional')}"  styleClass="cortarTexto" sortBy="#{dummy.programaInstitucional.nombre}">
+                        <h:outputText value="#{item.propertyMap['programaInstitucional.nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.anio')}" sortBy="#{anio.nombre}">
+                        <h:outputText value="#{item.propertyMap['anio.anio']}" />
+                    </p:column>
+
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" >
+                        <h:outputLink  value="seguimientoPOA.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}" rendered="#{item.propertyMap['estado'] eq 'APROBADO' }">
+                            <f:param name="id" value="#{item.propertyMap['id']}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.ActualizarEstado')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-sort" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.ActualizarEstado')}"  
+                                         action="#{poaConsultaSeguimiento.editar(item.propertyMap['id'])}"  
+                                         update="modalForm"
+                                         oncomplete="$('#editModal').modal('show');"/>
+                    </p:column>
+                    
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.ReportePOA')}" styleClass="columnaAcciones">
+                        <p:commandLink
+                            styleClass="btn btn-icono"  
+                            actionListener="#{utilsMB.generarReportePlanOperativoAnual(item.propertyMap['id'])}"
+                            ajax="false"
+                            title="#{textMB.obtenerTexto('labels.ReportePOA')}">
+                            <h:outputText styleClass="glyphicon glyphicon-print"/>
+                        </p:commandLink>
+                    </p:column>
+                    
+                </p:dataTable>
+            </div>
+        </h:form>
+        
+        <h:form id="modalForm"  prependId="false">
+            <!-- Modal de editar -->
+            <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.POAActualizarEstado')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <h:panelGroup layout="block" id="contentModal" styleClass="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{poaCE.poa.nombre ne null}" styleClass="form-control-static" value="#{poaConsultaSeguimiento.editando.nombre}" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{poaConsultaSeguimiento.editando.unidadTecnica ne null}" styleClass="form-control-static" value="#{poaConsultaSeguimiento.editando.unidadTecnica.nombre}" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.programaInstitucional')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{poaConsultaSeguimiento.editando.programaInstitucional ne null}" styleClass="form-control-static" value="#{poaConsultaSeguimiento.editando.programaInstitucional.nombre}" />
+                                    </div>
+                                </div>
+
+                                 <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.anio')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText rendered="#{poaConsultaSeguimiento.editando.anio ne null}" styleClass="form-control-static" value="#{poaConsultaSeguimiento.editando.anio.anio}" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Estado')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="estadoId"  value="#{poaConsultaSeguimiento.comboEstadosPOA.selected}" styleClass="form-control textoMedio">
+                                            <f:selectItems value="#{poaConsultaSeguimiento.comboEstadosPOA.items}"/>
+                                        </h:selectOneMenu> 
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{poaConsultaSeguimiento.modificarEstado()}"  update="tableForm:talbaUnidadTecnica contentModal"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:composition>
+</html>

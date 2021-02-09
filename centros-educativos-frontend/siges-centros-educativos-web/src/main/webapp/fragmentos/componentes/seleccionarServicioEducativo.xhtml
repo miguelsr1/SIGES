@@ -1,0 +1,226 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui">    
+
+    <c:set var="controllerParam2" value="#{controllerParam2}" scope="request"/>
+    <c:set var="actionParam2" value="#{actionParam2}" scope="request"/>
+    <c:set var="servicioEducativo" value="#{servicioEducativo}" scope="request"/>
+    <c:set var="soloLectura" value="#{soloLectura}" scope="request"/>
+    <c:set var="securityOperation" value="#{securityOperation}" scope="request"/>
+    <c:set var="actionParam3" value="#{actionParam3}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{seleccionarServicioEducativoBean.setSoloLectura(soloLectura)}"/>  
+    </f:metadata>   
+
+    <p:outputPanel>
+        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">
+            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-4 col-form-label obligatorio"/>
+            <p:outputPanel styleClass="col-sm-8">
+                <p:autoComplete id="input_sede_autocomplete" 
+                                styleClass="form-control texto-medio"
+                                value="#{seleccionarServicioEducativoBean.sedeSeleccionada}"
+                                rendered="#{!seleccionarServicioEducativoBean.soloLectura}"
+                                completeMethod="#{seleccionarServicioEducativoBean.completeSede}"
+                                var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                itemValue="#{sed}" 
+                                widgetVar="b_inst_resp_autocomplete"
+                                forceSelection="true"
+                                maxResults="10"
+                                queryDelay="500"
+                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                converter="#{sedesConverter}"
+                                multiple="false">
+                    <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarSede}" event="itemSelect"  
+                            process="@all" update="@form"/>
+                </p:autoComplete>
+                <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduSede.sedCodigoNombre}" 
+                              rendered="#{seleccionarServicioEducativoBean.soloLectura and !seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.sedeSeleccionada.sedCodigoNombre}" 
+                              rendered="#{seleccionarServicioEducativoBean.soloLectura and seleccionarServicioEducativoBean.soloLecturaCombos}" />
+            </p:outputPanel>                    
+        </p:outputPanel>
+
+        <h:panelGroup rendered="#{seleccionarServicioEducativoBean.verDeptoMun and seleccionarServicioEducativoBean.soloLectura}">
+            <p:outputPanel styleClass="form-group row" id="fila_output_sede_departamento">
+                <h:outputLabel value="#{msg.departamento}" for="output_sede_departamento" 
+                               styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:outputText styleClass="form-control-plaintext" id="output_sede_departamento"
+                                  value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                </p:outputPanel>
+            </p:outputPanel>
+            
+            <p:outputPanel styleClass="form-group row" id="fila_output_sede_municipio">
+                <h:outputLabel value="#{msg.municipio}" for="output_sede_municipio" 
+                               styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:outputText styleClass="form-control-plaintext" id="output_sede_municipio"
+                                  value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                </p:outputPanel>
+            </p:outputPanel>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{!seleccionarServicioEducativoBean.soloSede}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_nivel">
+                <h:outputLabel value="#{msg.niveles}" for="input_nivel" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_nivel" value="#{seleccionarServicioEducativoBean.comboNivel.selected}"  
+                                     styleClass="form-control texto-medio" disabled="#{seleccionarServicioEducativoBean.sedeSeleccionada == null}" 
+                                     rendered="#{!seleccionarServicioEducativoBean.soloLectura}">
+                        <f:selectItems value="#{seleccionarServicioEducativoBean.comboNivel.items}" />
+                        <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarNivel}"  process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNivel.nivNombre}"
+                                  styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura and !seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                    <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.comboNivel.selectedT.getNivNombre()}" 
+                                  rendered="#{seleccionarServicioEducativoBean.soloLectura and seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                </p:outputPanel>
+            </p:outputPanel>
+
+            <h:panelGroup rendered="#{seleccionarServicioEducativoBean.verCiclo}">
+                <p:outputPanel styleClass="form-group row" id="fila_input_ciclo">
+                    <h:outputLabel value="#{msg.ciclos}" for="input_ciclo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <h:selectOneMenu id="input_ciclo" value="#{seleccionarServicioEducativoBean.comboCiclo.selected}"  
+                                         styleClass="form-control texto-medio" disabled="#{seleccionarServicioEducativoBean.comboNivel.selectedT == null}" 
+                                         rendered="#{!seleccionarServicioEducativoBean.soloLectura}">
+                            <f:selectItems value="#{seleccionarServicioEducativoBean.comboCiclo.items}"/>
+                            <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarCiclo}"  process="@all" 
+                                    update="@form"/>
+                        </h:selectOneMenu>
+                        <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduGrado.graRelacionModalidad.reaModalidadEducativa.modCiclo.cicNombre}"
+                                      styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura}" />
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </h:panelGroup>
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_modalidad">
+                <h:outputLabel value="#{msg.modalidadEducativa}" for="input_modalidad" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_modalidad" value="#{seleccionarServicioEducativoBean.comboModalidad.selected}"  
+                                     styleClass="form-control texto-medio" disabled="#{seleccionarServicioEducativoBean.comboCiclo.selectedT == null}" 
+                                     rendered="#{!seleccionarServicioEducativoBean.soloLectura}">
+                        <f:selectItems value="#{seleccionarServicioEducativoBean.comboModalidad.items}"/>
+                        <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarModalidad}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduGrado.graRelacionModalidad.reaModalidadEducativa.modNombre}"
+                                  styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura and !seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                    <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.comboModalidad.selectedT.getModNombre()}" 
+                                  rendered="#{seleccionarServicioEducativoBean.soloLectura and seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                </p:outputPanel>                    
+            </p:outputPanel>     
+
+
+
+
+            <h:panelGroup rendered="#{seleccionarServicioEducativoBean.comboOpcion.items.size() > 1}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_opcion">
+                <h:outputLabel value="#{msg.opcion}" for="input_opcion" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_opcion" value="#{seleccionarServicioEducativoBean.comboOpcion.selected}"  
+                                     styleClass="form-control texto-medio" 
+                                     disabled="#{seleccionarServicioEducativoBean.comboModalidad.selectedT == null}" 
+                                     rendered="#{!seleccionarServicioEducativoBean.soloLectura}">
+                        <f:selectItems value="#{seleccionarServicioEducativoBean.comboOpcion.items}"/>
+                        <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarOpcion}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduOpcion.opcNombre}"
+                                  styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura and !seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                    <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.comboOpcion.selectedT.getOpcNombre()}" 
+                                  rendered="#{seleccionarServicioEducativoBean.soloLectura and seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                </p:outputPanel>                    
+            </p:outputPanel> 
+            </h:panelGroup>
+
+            <h:panelGroup rendered="#{seleccionarServicioEducativoBean.comboProgramaEducativo.items.size() ge 1 and seleccionarServicioEducativoBean.verProgramaEducativo}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_programa">
+                <h:outputLabel value="#{msg.programa}" for="input_programa" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_programa" value="#{seleccionarServicioEducativoBean.comboProgramaEducativo.selected}"  
+                                     styleClass="form-control texto-medio" 
+                                     disabled="#{seleccionarServicioEducativoBean.comboOpcion.selectedT == null}" 
+                                     rendered="#{!seleccionarServicioEducativoBean.soloLectura}">
+                        <f:selectItems value="#{seleccionarServicioEducativoBean.comboProgramaEducativo.items}"/>
+                        <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarProgramaEducativo()}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduProgramaEducativo.pedNombre}"
+                                  styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura}" />
+                </p:outputPanel>                    
+            </p:outputPanel> 
+            </h:panelGroup>
+
+
+
+            <p:outputPanel styleClass="form-group row" id="fila_input_mod_aten">
+                <h:outputLabel value="#{msg.modalidadAtencion}" for="input_mod_aten" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_mod_aten" value="#{seleccionarServicioEducativoBean.comboModalidadAtencion.selected}" 
+                                     disabled="#{seleccionarServicioEducativoBean.comboModalidad.selectedT == null}" 
+                                     rendered="#{!seleccionarServicioEducativoBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{seleccionarServicioEducativoBean.comboModalidadAtencion.items}" />    
+                        <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarModalidadAtencion}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>  
+                    <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduGrado.graRelacionModalidad.reaModalidadAtencion.matNombre}"
+                                  styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura and !seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                    <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.comboModalidadAtencion.selectedT.getMatNombre()}" 
+                                  rendered="#{seleccionarServicioEducativoBean.soloLectura and seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                </p:outputPanel>                    
+            </p:outputPanel> 
+            
+            
+            <h:panelGroup rendered="#{not empty seleccionarServicioEducativoBean.comboSubModalidadAtencion.items}">
+            <p:outputPanel styleClass="form-group row" id="fila_input_sub_mod_aten" >
+                <h:outputLabel value="#{msg.subModalidadAtencion}" for="input_sub_mod_aten" styleClass="col-sm-4 col-form-label obligatorio"/>
+                <p:outputPanel styleClass="col-sm-8">
+                    <h:selectOneMenu id="input_sub_mod_aten" 
+                                     value="#{seleccionarServicioEducativoBean.comboSubModalidadAtencion.selected}" 
+                                     disabled="#{seleccionarServicioEducativoBean.comboModalidad.selectedT == null}" 
+                                     rendered="#{!seleccionarServicioEducativoBean.soloLectura}" 
+                                     styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{seleccionarServicioEducativoBean.comboSubModalidadAtencion.items}" />    
+                        <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarSubModalidadAtencion()}" process="@all" 
+                                update="@form"/>
+                    </h:selectOneMenu>  
+                    <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduGrado.graRelacionModalidad.reaSubModalidadAtencion.smoNombre}"
+                                  styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura and !seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                    <h:outputText styleClass="form-control-plaintext" value="#{seleccionarServicioEducativoBean.comboSubModalidadAtencion.selectedT.getSmoNombre()}" 
+                                  rendered="#{seleccionarServicioEducativoBean.soloLectura and seleccionarServicioEducativoBean.soloLecturaCombos}" />
+                </p:outputPanel>                    
+            </p:outputPanel>
+            </h:panelGroup>
+
+            <h:panelGroup rendered="#{seleccionarServicioEducativoBean.verGrado}">
+                <p:outputPanel styleClass="form-group row" id="fila_input_grado">
+                    <h:outputLabel value="#{msg.grado}" for="input_grado" styleClass="col-sm-4 col-form-label obligatorio"/>
+                    <p:outputPanel styleClass="col-sm-8">
+                        <h:selectOneMenu id="input_grado" value="#{seleccionarServicioEducativoBean.comboGrado.selected}"  
+                                         styleClass="form-control texto-medio" 
+                                         disabled="#{not empty seleccionarServicioEducativoBean.comboSubModalidadAtencion.items? seleccionarServicioEducativoBean.comboSubModalidadAtencion.selectedT == null:seleccionarServicioEducativoBean.comboModalidadAtencion.selectedT == null }" 
+                                         rendered="#{!seleccionarServicioEducativoBean.soloLectura}">
+                            <f:selectItems value="#{seleccionarServicioEducativoBean.comboGrado.items}"/>
+                            <p:ajax listener="#{seleccionarServicioEducativoBean.seleccionarGrado}" process="@all" update="@form" />
+                        </h:selectOneMenu>
+                        <h:outputText value="#{seleccionarServicioEducativoBean.entidadEnEdicion.sduGrado.graNombre}"
+                                      styleClass="form-control-plaintext" rendered="#{seleccionarServicioEducativoBean.soloLectura}" />
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </h:panelGroup>
+            
+            
+        </h:panelGroup>
+
+
+    </p:outputPanel>
+
+
+
+</ui:composition>

@@ -1,0 +1,188 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ConsultaUnidadTecnica')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-xs-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{unidadTecnicaConsulta.filtroCodigo}" styleClass="form-control textoMedio"  />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{unidadTecnicaConsulta.filtroNombre}" styleClass="form-control textoMedio"  />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{unidadTecnicaConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{unidadTecnicaConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>    
+        </h:form>
+        <h:form id="tableForm" >
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', unidadTecnicaConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="talbaUnidadTecnica"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{unidadTecnicaConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}" sortBy="#{dummy.codigo}">
+                        <h:outputText value="#{item.propertyMap['codigo']}"  styleClass="cortarTexto"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}"  styleClass="cortarTexto" sortBy="#{dummy.nombre}">
+                        <h:outputText value="#{item.propertyMap['nombre']}" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.direccion')}" sortBy="#{dummy.direccion}">
+                        <h:selectBooleanCheckbox value="#{item.propertyMap['direccion']}" disabled="true"/>
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.responsable')}"  sortBy="#{dummy.uniUsuario.usuCod}">
+                        <h:outputText value="#{item.propertyMap['uniUsuario.usuCod']}"  styleClass="cortarTexto" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.padre')}" sortBy="#{dummy.padre.nombre}">
+                        <h:outputText value="#{item.propertyMap['padre.nombre']}"  styleClass="cortarTexto" />
+                    </p:column>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono "  title="#{textMB.obtenerTexto('labels.Editar')}"  oncomplete="$('#editModal').modal('show');" rendered="#{permisosMB.permisos['CREAR_UNIDAD_TECNICA'] }" actionListener ="#{unidadTecnicaConsulta.editar(item.propertyMap['id'])}"  update="contentModal"/>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.agregar.hijo')}" styleClass="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-plus" styleClass="btn btn-icono "  title="#{textMB.obtenerTexto('labels.agregar.hijo')}"  oncomplete="$('#editModal').modal('show');" rendered="#{permisosMB.permisos['AGREGAR_HIJO_UNIDAD_TECNICA'] }" actionListener ="#{unidadTecnicaConsulta.agregarHijo(item.propertyMap['id'])}"  update="contentModal"/>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+        <h:form id="modalForm"  prependId="false">
+            <!-- Modal de editar -->
+            <div class="modal fade"  id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarUnidadTecnica')}" /> </span>
+                        </div>
+                        <div class="modal-body">
+                            <h:panelGroup layout="block" id="contentModal" styleClass="form-horizontal">
+                                <h:messages id="mensajesEditar" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="ut_codigo" value="#{unidadTecnicaConsulta.editando.codigo}" styleClass="form-control" maxlength="20"     />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputText id="ut_nombre" value="#{unidadTecnicaConsulta.editando.nombre}" styleClass="form-control"  />
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.padre')}:" />
+                                    <div class="col-sm-9">
+                                        <h:selectOneMenu id="ut_padre" value="#{unidadTecnicaConsulta.comboPadres.selected}"  styleClass="form-control textoMedio" disabled="true" >
+                                            <f:selectItems value="#{unidadTecnicaConsulta.comboPadres.items}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.responsable')}:" />
+                                    <div class="col-sm-9">
+                                        <p:autoComplete id="input_usuarios_autocomplete" 
+                                                            styleClass="form-control textoLargo" 
+                                                            value="#{unidadTecnicaConsulta.editando.uniUsuario}"  
+                                                            completeMethod="#{unidadTecnicaConsulta.completeUsuarios}" 
+                                                            maxResults="10"
+                                                            var="usu" itemLabel="#{usu.usuCod}"  
+                                                            itemValue="#{usu}" 
+                                                            onclick="PF('usuarios_autocomplete').search(PF('usuarios_autocomplete').input.val())" 
+                                                            widgetVar="usuarios_autocomplete" 
+                                                            forceSelection="true" 
+                                                            queryDelay="500" 
+                                                            converter="#{usuarioConverter}"
+                                                            multiple="false">
+                                            </p:autoComplete>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-9 col-sm-offset-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox id="ut_direccion" value="#{unidadTecnicaConsulta.editando.direccion}" disabled="#{unidadTecnicaConsulta.editando.id ne null}"/>
+                                                #{textMB.obtenerTexto('labels.direccion')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="col-sm-9 col-sm-offset-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox id="ut_unidad_tecnica" value="#{unidadTecnicaConsulta.editando.unidadOperativa}" />
+                                                #{textMB.obtenerTexto('labels.UnidadOperativa')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                        <div class="modal-footer">                            
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" actionListener="#{unidadTecnicaConsulta.guardarEditando()}"  update="tableForm:talbaUnidadTecnica contentModal"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:composition>
+</html>
+

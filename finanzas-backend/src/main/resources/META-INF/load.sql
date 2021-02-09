@@ -1,0 +1,1 @@
+INSERT INTO centros_educativos.sg_organizaciones_curricular("ocu_codigo", "ocu_nombre","ocu_nombre_busqueda", "ocu_descripcion", "ocu_habilitado", "ocu_ult_mod_fecha", "ocu_ult_mod_usuario" , "ocu_version") VALUES ('1', 'Organización Curricular 2018','organizacion curricular 2018','Organización curricular del 2018',true, CURRENT_TIMESTAMP, 'admin', '0');

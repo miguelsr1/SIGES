@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+    <h:panelGroup layout="block" >
+
+        <!-- imprime componentes-->
+        <tr class="#{cssClass}">
+            <td> <h:outputText value="#{proyectoCE.getNumeracionComponente(componente)}" /></td>
+            <td> <h:outputText value="#{componente.nombre}" /></td>
+            <ui:fragment rendered="#{proyectoCE.ocultarProductos eq false}" > 
+                <td> </td>
+            </ui:fragment>
+            <td> 
+                <h:outputText value="#{componente.importe}" >
+                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                </h:outputText>
+            </td>
+<!--            <td>
+                <h:outputText value="#{componente.porcentaje}" >
+                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                </h:outputText>
+            </td>-->
+            <ui:fragment rendered="#{proyectoCE.ocultarFuentes eq false}" >  
+                <ui:repeat value="#{proyectoCE.getFuentesRecursosProyecto()}" var="fuente"  >
+                    <td class="numericos"> 
+                        <h:outputText value="#{proyectoCE.getMontoProyEstructura(componente, fuente)}" >
+                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                        </h:outputText>
+                    </td>
+                </ui:repeat>
+            </ui:fragment>
+
+            <td><h:outputText value="#{componente.unidadTecnica.nombre}" /></td>
+            <td class="columnaAcciones">
+                <p:commandButton icon="glyphicon glyphicon-eye-open" 
+                                 styleClass="btn btn-icono"  
+                                 title="#{textMB.obtenerTexto('labels.EditarComponente')}"  
+                                 action="#{proyectoCE.reloadComponente()}"
+                                 update="contenidoModalComponente"
+                                 oncomplete="$('#anadirComponente').modal('show');" 
+                                 immediate="true">
+                    <f:setPropertyActionListener target="#{proyectoCE.tmpComponente}" value="#{componente}" />
+                </p:commandButton>
+            </td>
+        </tr>
+        <!-- imprime productos -->
+        <ui:fragment rendered="#{proyectoCE.ocultarProductos eq false}" > 
+            <ui:repeat value="#{componente.productos}" var="producto">
+                <tr class="#{cssClass} fila-producto">
+                    <td>
+                        <ui:fragment rendered="#{esComponente}"> 
+                            <h:outputText value="#{proyectoCE.getNumeracionComponente(componente)}" />.0.#{producto.numero}
+                        </ui:fragment>
+                        <ui:fragment rendered="#{esComponente eq false}"> 
+                            <h:outputText value="#{proyectoCE.getNumeracionComponente(componente)}" />.#{producto.numero}
+                        </ui:fragment>
+                    </td>
+                    <td></td>
+                    <td>
+                        <h:outputText value="#{producto.producto.nombre}"/> 
+                        (<h:outputText value="#{textMB.obtenerTexto('labels.Meta:')}:" style="font-weight:bold"/> #{producto.cantidad} )
+                    </td>
+                    <td></td>
+<!--                    <td></td>-->
+                    <ui:fragment rendered="#{proyectoCE.ocultarFuentes eq false}" >  
+                        <ui:repeat value="#{proyectoCE.getFuentesRecursosProyecto()}" var="fuente"  >
+                            <td></td>
+                        </ui:repeat> 
+                    </ui:fragment>
+
+                    <td><h:outputText value="#{producto.unidadTecnica.nombre}" /></td>
+                    <td class="columnaAcciones">
+                        <p:commandButton icon="glyphicon glyphicon-eye-open" 
+                                         styleClass="btn btn-icono"  
+                                         title="#{textMB.obtenerTexto('labels.VerProducto')}"  
+                                         action="#{proyectoCE.reloadProductoEstructura()}"
+                                         update="asociarProductoForm"
+                                         oncomplete="$('#asociarProducto').modal('show');" 
+                                         immediate="true"  >
+                            <f:setPropertyActionListener target="#{proyectoCE.itemEstructura}" value="#{componente}" />
+                            <f:setPropertyActionListener target="#{proyectoCE.pdroductoEstructura}" value="#{producto}" />
+                        </p:commandButton>
+                    </td>
+                </tr>
+            </ui:repeat>
+        </ui:fragment>
+
+
+    </h:panelGroup>
+</ui:composition>

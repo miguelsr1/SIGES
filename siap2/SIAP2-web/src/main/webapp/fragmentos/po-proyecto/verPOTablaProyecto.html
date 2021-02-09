@@ -1,0 +1,228 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+    <h:panelGroup layout="block" styleClass="table-responsive">
+        <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+        <table class="table"> 
+            <thead> 
+                <tr> 
+                    <th>#{textMB.obtenerTexto('labels.Linea')}</th>
+                    <th>#{textMB.obtenerTexto('labels.Componente')} / #{textMB.obtenerTexto('labels.MacroActividad')} </th>
+                    <th>#{textMB.obtenerTexto('labels.Producto')}</th>
+
+                    <th>#{textMB.obtenerTexto('labels.Actividades')}</th>
+
+                    <th>#{textMB.obtenerTexto('labels.Insumos')}</th>
+
+                    <th>#{textMB.obtenerTexto('labels.Observaciones')}</th> 
+                    <th class="numericos" >#{textMB.obtenerTexto('labels.MontoTotal')}</th>
+
+
+                    <!--                    <th>#{textMB.obtenerTexto('labels.Indicadores')}</th>-->
+
+                    <ui:fragment  rendered="#{habilitarTDR}" >
+                        <th class="columnaAcciones">#{textMB.obtenerTexto('labels.TDR')}</th>
+                    </ui:fragment>
+
+                    <th class="columnaAcciones">#{textMB.obtenerTexto('labels.Ver')}</th>
+                </tr> 
+            </thead>
+            <tbody>   
+                <ui:repeat  var="lineaPog" value="#{parameterBean.getLineas()}" varStatus="status">
+                    <!-- las lineas-->
+                    <tr> 
+
+                        <td>#{status.index}</td>
+                        <td class="bold">
+                            <h:outputText value="#{lineaPog.producto.proyectoEstructura.nombre}" rendered="#{lineaPog.producto.proyectoEstructura.tipo eq 'COMPONENTE'}"/>
+                            <h:outputText value="#{lineaPog.producto.proyectoEstructura.macroActividad.nombre}" rendered="#{lineaPog.producto.proyectoEstructura.tipo eq 'MACROACTIVIDAD'}"/>
+                        </td>
+                        <td>#{lineaPog.producto.producto.nombre}</td> 
+
+                        <td>       
+                        </td>
+
+                        <td></td> 
+                        <td></td>
+                        <td class="numericos">   
+                            <h:outputText value="#{parameterBean.getTotalLinea(lineaPog)}" >
+                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                            </h:outputText>
+                        </td> 
+
+                        <!--                        <td>                                                                                          
+                                                    <p:commandButton styleClass="btn btn-default btn-indicador"  
+                                                                     icon="glyphicon glyphicon-signal"
+                                                                     value="#{textMB.obtenerTexto('labels.Indicadores')}"  
+                                                                     update="vercontenidoModalIndicadoresLinea"
+                                                                     action="#{parameterBean.initLineaPogParaIndicador()}"
+                                                                     oncomplete="$('#veranadirIndicadoresLinea').modal('show');" 
+                                                                     immediate="true">
+                                                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                                                    </p:commandButton>
+                                                </td>-->
+
+                        <ui:fragment  rendered="#{habilitarTDR}" >
+                            <td  class="columnaAcciones"></td>
+                        </ui:fragment>
+                        <td class="columnaAcciones">
+                            <p:commandButton styleClass="btn btn-icono"  
+                                             icon="glyphicon glyphicon-eye-open"
+                                             title="#{textMB.obtenerTexto('labels.Ver')}"  
+                                             update="vercontenidoModalLinea"
+                                             action="#{parameterBean.initLinea()}"
+                                             oncomplete="$('#veranadirLinea').modal('show');" 
+                                             immediate="true">
+                                <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                            </p:commandButton>
+                        </td>
+                    </tr> 
+                    <!-- las aactividades -->
+                    <ui:repeat  var="actividad" value="#{lineaPog.actividades}" varStatus="statusActividad" >
+                        <tr class="row-actividad"> 
+                            <td></td>
+                            <td></td>   
+                            <td></td> 
+
+                            <td class="bold">#{actividad.id} - #{actividad.actividadCodiguera.nombre}</td>
+
+                            <td></td>
+
+                            <td></td>
+
+                            <td class="numericos">   
+                                <h:outputText value="#{parameterBean.getTotalActividad(actividad)}" >
+                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                </h:outputText>
+                            </td> 
+                            <!--                            <td></td>-->
+
+                            <ui:fragment  rendered="#{habilitarTDR}" >
+                                <td  class="columnaAcciones"></td>
+                            </ui:fragment>
+                            <td class="columnaAcciones">                            
+                                <p:commandButton styleClass="btn btn-icono"  
+                                                 icon="glyphicon glyphicon-eye-open"
+                                                 title="#{textMB.obtenerTexto('labels.Ver')}"  
+                                                 update="vercontenidoModalActividad"
+                                                 action="#{parameterBean.initActividad()}"
+                                                 oncomplete="$('#veranadirActividad').modal('show');" 
+                                                 immediate="true">
+                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{actividad}" />
+                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                                </p:commandButton>
+                            </td>
+                        </tr> 
+
+
+
+                        <!-- los insumos-->
+                        <ui:repeat  var="insumo" value="#{actividad.insumos}" varStatus="insumoStatus" >
+                            <tr class="row-insumo"> 
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+
+                                <h:panelGroup layout="block" rendered="#{not parameterBean.getContratoAsociadoAInsumo(insumo)}">
+                                    <h:panelGroup layout="block" rendered="#{not parameterBean.getContratoAsociadoAInsumo(insumo)}">
+                                        <td class="bold">#{insumo.id} - #{insumo.insumo.nombre}</td>
+                                    </h:panelGroup>
+                                    <h:panelGroup layout="block" rendered="#{parameterBean.getContratoAsociadoAInsumo(insumo)}">
+                                        <td class="bold">
+                                            <p:commandLink 
+                                                value="#{insumo.id} - #{insumo.insumo.nombre}"
+                                                actionListener="#{parameterBean.generarFichaContratoQueContieneInsumo(insumo)}" 
+                                                ajax="false">
+                                            </p:commandLink>    
+                                        </td>   
+                                    </h:panelGroup> 
+                                </h:panelGroup>
+                                <h:panelGroup layout="block" rendered="#{parameterBean.getContratoAsociadoAInsumo(insumo)}">
+                                    <td class="bold">
+                                        <p:commandLink 
+                                            value="#{insumo.id} - #{insumo.insumo.nombre}"
+                                            actionListener="#{parameterBean.generarFichaContratoQueContieneInsumo(insumo)}" 
+                                            ajax="false">
+                                        </p:commandLink>    
+                                    </td>   
+                                </h:panelGroup>   
+
+
+                                <td>#{parameterBean.getObservacionesInsumoParaTabla(insumo.observacion)}</td>
+
+                                <td class="numericos">                                    
+                                    <h:outputText value="#{insumo.montoTotal}" >
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </td> 
+
+
+                                <ui:fragment  rendered="#{habilitarTDR}" >
+                                    <td  class="columnaAcciones">
+                                        <div class="btn-group">
+                                            <p:commandButton id="dynaButton" title="Otras Acciones" type="button" icon="glyphicon glyphicon-option-vertical" styleClass="btn btn-icono"/>
+                                            <p:menu overlay="true" trigger="dynaButton" my="left top" at="left bottom" styleClass="menuDesplegable">
+                                                <p:menuitem value="#{textMB.obtenerTexto('labels.TDR')}" 
+                                                            update="anadirTDRcontenidoModal verTDRcontenidoModal"
+                                                            action="#{parameterBean.initTDR()}"
+                                                            immediate="true">
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{insumo}" />
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{actividad}" />
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                                                </p:menuitem>
+                                                <p:separator/>
+                                                <p:menuitem value="#{textMB.obtenerTexto('labels.DisponibilidadPresupuestaria')}" 
+                                                            oncomplete="$('#anadirDisponibilidadPresModal').modal('show');" 
+                                                            immediate="true"
+                                                            update="anadirDisponibilidadPresModalContenidoModal"
+                                                            action="#{parameterBean.initInsumo()}">
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{insumo}" />
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{actividad}" />
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                                                </p:menuitem>
+                                                <p:menuitem rendered="#{parameterBean.mostrarDescertificacionInsumo(insumo.id)}"
+                                                            value="#{textMB.obtenerTexto('labels.MenuSolicitarDescertificacionFuentesInsumo')}" 
+                                                            oncomplete="$('#anadirDescertificarInsumoPorFuenteModal').modal('show');" 
+                                                            immediate="true"
+                                                            update="anadirDescertificarInsumoPorFuenteContenidoModal"
+                                                            action="#{parameterBean.initInsumo()}">
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{insumo}" />                                                    
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{actividad}" />
+                                                    <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                                                </p:menuitem>
+                                            </p:menu>
+                                        </div>
+                                    </td>
+                                </ui:fragment>
+                                <td class="columnaAcciones">   
+                                    <p:commandButton styleClass="btn btn-icono"  
+                                                     icon="glyphicon glyphicon-eye-open"
+                                                     title="#{textMB.obtenerTexto('labels.Ver')}"  
+                                                     update="vercontenidoModalInsumo"
+                                                     action="#{parameterBean.initInsumo()}"
+                                                     oncomplete="$('#veranadirInsumo').modal('show');" 
+                                                     immediate="true">
+                                        <f:setPropertyActionListener target="#{parameterBean.tempInsumo}" value="#{insumo}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempActividad}" value="#{actividad}" />
+                                        <f:setPropertyActionListener target="#{parameterBean.tempLinea}" value="#{lineaPog}" />
+                                    </p:commandButton>
+                                </td>
+
+                            </tr> 
+                        </ui:repeat> 
+                    </ui:repeat> 
+                </ui:repeat> 
+            </tbody> 
+        </table>     
+    </h:panelGroup>
+
+
+
+</ui:composition>

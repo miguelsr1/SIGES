@@ -1,0 +1,249 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+	
+		<nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.transferencias}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionRecibos}</li>
+            </ol>
+        </nav>
+	
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionRecibos}"/></h2>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_codigo">
+                        <h:outputLabel value="#{msg.numRecibo}" for="input_codigo_b" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" id="input_codigo_b" styleClass="form-control" value="#{recibosBean.filtroRecibo.recPk}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete_b">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete_b" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete_b" styleClass="form-control texto-medio" value="#{recibosBean.sedeSeleccionada}" completeMethod="#{recibosBean.completeSedeFiltro}" var="sed" itemLabel="#{sed.sedCodigoNombre}" itemValue="#{sed}"
+                                widgetVar="b_inst_resp_autocomplete" forceSelection="true" maxResults="10" queryDelay="500" multiple="false" converter="#{sedesConverter}" placeholder="#{msg.autoCompleteEmptyItem}">
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.bNroTransCed}" for="b_numero_transf" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber minValue="1" decimalPlaces="0" autocomplete="off" styleClass="form-control texto-medio" id="b_numero" value="#{recibosBean.filtroRecibo.recTransferencia}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+                
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_combo_anio_fisc">
+                        <h:outputLabel value="#{msg.aniofiscal}" for="input_anio_fiscal_b" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_anio_fiscal_b" value="#{recibosBean.anioFiscalCombo.selected}" styleClass="form-control texto-medio">
+                                <f:selectItems value="#{recibosBean.anioFiscalCombo.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_output_estado">
+                        <h:outputLabel value="#{msg.estado}" for="input_estado_b" styleClass="col-md-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_estado_b"  styleClass="form-control texto-medio">
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{recibosBean.buscar()}" update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{recibosBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{recibosBean.recibosLazyModel}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="recPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{recibosBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{recibosBean.totalResultados lt (recibosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{recibosBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="recibos" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hcodigoSede}" sortBy="#{elem.recTransferencia.tacCedFk.sedCodigo}">
+                    <h:outputText value="#{elem.recTransferencia.tacCedFk.sedCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombreSede}" sortBy="#{elem.recTransferencia.tacCedFk.sedNombre}">
+                    <h:outputText value="#{elem.recTransferencia.tacCedFk.sedNombre}" />
+                </p:column>
+                <p:column sortBy="#{elem.recTransferencia.tacPk}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroTransCed}" title="#{msg.hnumeroTransCed}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.recTransferencia.tacPk}" />
+                </p:column>
+                <p:column sortBy="#{elem.recFecha}">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.nroRecibo}" title="#{msg.hnumRecibo}"/>
+                    </f:facet>
+                    <h:outputText value="#{elem.recPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hmonto}" sortBy="#{elem.recMonto}">
+                    <h:outputText value="#{elem.recMonto}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hestado}" sortBy="#{elem.recEstado.text}">
+                    <h:outputText value="#{elem.recEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.recUltModFecha}">
+                    <h:outputText value="#{elem.recUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hdescargar}">
+                    <p:commandButton value="Descargar" ajax="false" onclick="this.form.target = '_blank';" styleClass="btn btn-link" rendered="#{elem.recArchivo!=null}">
+                        <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(elem.recArchivo)}" />
+                    </p:commandButton>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{recibosBean.actualizar(elem)}" rendered="#{elem.recTransferencia.tacReqFondoCed.rfcPk==null}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+		
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{recibosBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.recibos}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty recibosBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioRecibos">    
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                            <h:outputLabel value="#{msg.hfecha}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar showMinute="false" id="input_fecha" showHour="false" value="#{recibosBean.entidadEnEdicion.recFecha}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_monto">
+                            <h:outputLabel value="#{msg.hmonto}" for="input_monto" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputNumber minValue="0" id="input_monto" styleClass="form-control texto-corto" value="#{recibosBean.entidadEnEdicion.recMonto}"  />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_transferencia">
+                            <h:outputLabel value="#{msg.transferencias}" for="input_transferencia" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_transferencia" value="#{recibosBean.comboTransferencias.selected}" styleClass="form-control texto-medio">
+                                    <f:selectItems value="#{recibosBean.comboTransferencias.items}" />
+                                </h:selectOneMenu>  
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_archivo">
+                            <h:outputLabel value="#{msg.archivo}" for="input_archivo" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:fileUpload fileUploadListener="#{recibosBean.subirArchivo}"
+                                            id="input_archivo"
+                                            mode="advanced" 
+                                            dragDropSupport="true"
+                                            label="Cargar archivo"                                              
+                                            uploadLabel="#{msg.confirmar}"
+                                            invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                            invalidFileMessage="#{msg.formatoNoPermitidoXLSX} "
+                                            update="@parent"
+                                            cancelLabel="#{msg.cancelar}" 
+                                            auto="true"
+                                            sizeLimit="#{recibosBean.tamanioImportArchivo}" allowTypes="#{recibosBean.tipoImportArchivo}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>                
+                        
+                        
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{recibosBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+						<p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>       
+
+        
+    </h:form>
+</ui:composition>

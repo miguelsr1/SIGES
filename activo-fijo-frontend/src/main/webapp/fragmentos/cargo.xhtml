@@ -1,0 +1,565 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CARGOS}.xhtml">#{msg.gestionCargos}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{cargoBean.entidadEnEdicion.bdePk != null}" value="#{msg.edicionCargo}"/>
+                    <h:outputText rendered="#{cargoBean.entidadEnEdicion.bdePk == null}" value="#{msg.nuevoCargo}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionCargos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CARGOS)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+         
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos" style="text-align:left;"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup>
+                <p:fieldset id="mantenimientoBienesDepreciables" legend="#{msg.mantenimientoBienesDepreciables}">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipounidad" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}">
+                        <h:outputLabel value="#{msg.tipoUnidad}" for="input_tipounidad" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_tipounidad"  value="#{cargoBean.comboTiposUnidad.selected}" rendered="#{!cargoBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargoBean.comboTiposUnidad.items}" />
+                                <p:ajax event="change" listener="#{cargoBean.seleccionarTipoUnidadAF()}" process="@this" update="fila_filtro_unidadadministrativa dato_tipo_bien_seleccionado asignadoA input_codigo_inventario_generar"/>
+                            </h:selectOneMenu>
+                            <h:outputText value="#{cargoBean.tipoUnidadSeleccionada.text}" rendered="#{cargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                            <p:blockUI block="@form" trigger="input_tipounidad" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_activofijo" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}">
+                        <h:outputLabel value="#{msg.unidadActivoFijo}" for="input_activofijo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_activofijo"  value="#{cargoBean.comboUnidadesActivoFijo.selected}" rendered="#{!cargoBean.soloLectura}"  styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargoBean.comboUnidadesActivoFijo.items}" />
+                                <p:ajax event="change" listener="#{cargoBean.seleccionarUnidadActivoFijo()}"  process="@this" update="fila_filtro_unidadadministrativa dato_tipo_bien_seleccionado asignadoA input_codigo_inventario_generar"/>
+                            </h:selectOneMenu>
+                            <h:outputText value="#{cargoBean.unidadAFSeleccionada.codigoNombre}" rendered="#{cargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                            <p:blockUI block="@form" trigger="input_activofijo" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}">
+                        <h:outputLabel value="#{msg.unidadAdministrativa}" for="input_unidadadministrativa" styleClass="col-sm-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:panelGroup id="fila_filtro_unidadadministrativa">
+                                <p:selectOneMenu rendered="#{cargoBean.esUnidadAdministrativa and !cargoBean.soloLectura}" id="filtro_unidadadministrativa"  
+                                                 value="#{cargoBean.unidadSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                    effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                     <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                    <f:selectItems value="#{cargoBean.unidadesAdministrativas}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                    <p:ajax event="change" listener="#{cargoBean.seleccionarUnidadAdministrativa()}"  process="@this" update="dato_tipo_bien_seleccionado asignadoA input_codigo_inventario_generar"/>
+                                   <p:column>
+                                       <h:outputText value="#{u.codigoNombre}" />
+                                   </p:column>
+                               </p:selectOneMenu>
+                                <p:selectOneMenu rendered="#{!cargoBean.esUnidadAdministrativa and !cargoBean.soloLectura}" id="filtro_sede" value="#{cargoBean.sedeSeleccionada}" converter="#{sedeConverter}"
+                                            effect="fade" var="s"  styleClass="texto-medio" filter="true" filterMatchMode="contains">
+                                       <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                        <f:selectItems value="#{cargoBean.sedes}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                        <p:ajax event="change" listener="#{cargoBean.seleccionarUnidadAdministrativa()}"  process="@this" update="dato_tipo_bien_seleccionado asignadoA input_codigo_inventario_generar"/>
+                                       <p:column>
+                                           <h:outputText value="#{s.sedCodigoNombre}" />
+                                       </p:column>
+                                </p:selectOneMenu>
+                                <h:outputText value="#{cargoBean.unidadSeleccionada.uadPk != null ? cargoBean.unidadSeleccionada.codigoNombre : cargoBean.sedeSeleccionada.sedCodigoNombre}" rendered="#{cargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                <p:blockUI block="@form" trigger="filtro_unidadadministrativa filtro_sede" />
+                            </h:panelGroup>
+                           
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo_bien_categoria_vinculada" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VINCULAR_OTRA_CATEGORIA_BIEN)}">
+                        <h:outputLabel value="#{msg.tipoBienCategoriaVinculada}" for="input_tipo_bien_categoria_vinculada" styleClass="col-sm-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_tipo_bien_categoria_vinculada" value="#{cargoBean.entidadEnEdicion.bdeTipoBienCategoriaVinculada}" rendered="#{!cargoBean.soloLectura}" >
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax event="change" process="@this" update="dato_clasificacion_categoria" listener="#{cargoBean.tipoBienCategoriaVinculada()}"  />
+                            </p:selectOneRadio>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeTipoBienCategoriaVinculada}" converter="#{booleanConverter}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                    <h:panelGroup id="dato_clasificacion_categoria" >
+                        <p:outputPanel rendered="#{!cargoBean.entidadEnEdicion.bdeTipoBienCategoriaVinculada}">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_clasificacion" >
+                                <h:outputLabel value="#{msg.clasificacion}" for="input_clasificacion" styleClass="col-sm-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="input_clasificacion"  value="#{cargoBean.comboClasificacionBienes.selected}" rendered="#{!cargoBean.soloLectura}"  styleClass="form-control dropdown">
+                                        <f:selectItems value="#{cargoBean.comboClasificacionBienes.items}" />
+                                        <p:ajax event="change" listener="#{cargoBean.seleccionarClasificacion()}"  process="@this" update="input_categoria"/>
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{cargoBean.entidadEnEdicion.bdeCategoriaFk.cabClasificacionBienes.cbiNombre}" rendered="#{cargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_categoria">
+                                <h:outputLabel value="#{msg.categoria}" for="input_categoria" styleClass="col-sm-3 col-form-label obligatorio" />
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:selectOneMenu id="input_categoria"  value="#{cargoBean.comboCategoriaBienes.selected}" rendered="#{!cargoBean.soloLectura}"  styleClass="form-control dropdown">
+                                        <f:selectItems value="#{cargoBean.comboCategoriaBienes.items}" />
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{cargoBean.entidadEnEdicion.bdeCategoriaFk.cabNombre}" rendered="#{cargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+
+                    <h:panelGroup id="dato_tipo_bien_seleccionado">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipobien">
+                            <h:outputLabel value="#{msg.tipoBien}" for="input_tipobien_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:autoComplete id="input_tipobien_autocomplete" 
+                                                styleClass="form-control"
+                                                value="#{cargoBean.tipoBienSeleccionado}"
+                                                rendered="#{!cargoBean.soloLectura and cargoBean.editarTipoBien}"
+                                                completeMethod="#{cargoBean.completeTipoBien}"
+                                                var="tipobien" itemLabel="#{tipobien.tbiCodigoNombreCategoria}" 
+                                                itemValue="#{tipobien}" 
+                                                widgetVar="tipo_bien_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{tipoBienConverter}"
+                                                multiple="false" 
+                                                >
+                                    <p:ajax listener="#{cargoBean.seleccionarTipoBien()}" event="itemSelect"  process="@this" update="dato_tipo_bien_seleccionado datosBienesMuebles datosVehiculos input_descripcion fila_input_vida_util"/>
+                                </p:autoComplete>
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeTipoBien.tbiNombre}" rendered="#{cargoBean.soloLectura or !cargoBean.editarTipoBien}" />
+                                <p:blockUI block="@form" trigger="input_tipobien_autocomplete" />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_correlativo">
+                            <h:outputLabel value="#{msg.correlativo}" for="input_correlativo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputNumber autocomplete="off" id="input_correlativo"
+                                               value="#{cargoBean.entidadEnEdicion.bdeCodigoCorrelativo}"
+                                               rendered="#{cargoBean.editarCorrelativo and !cargoBean.soloLectura}"
+                                            styleClass="form-control texto-corto" 
+                                            maxValue="#{cargoBean.codigoCorrelativoMaxVal}"
+                                            minValue="0"
+                                            leadingZero = "allow, keep"
+                                            decimalPlaces="0" thousandSeparator=""
+                                            >
+                                    <p:ajax event="keyup" listener="#{cargoBean.completeCodigoInventario}" update="input_correlativo input_codigoinventario"/>
+                                </p:inputNumber>
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeCodigoCorrelativo}" rendered="#{cargoBean.soloLectura or !cargoBean.editarCorrelativo}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigoinventario">
+                            <h:outputLabel value="#{msg.codigoInventario}" for="input_codigoinventario" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:outputText styleClass="form-control-plaintext" id="input_codigoinventario" value="#{cargoBean.entidadEnEdicion.bdeCodigoInventario}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_link_inmueble" rendered="#{cargoBean.renderFichaInmueble and cargoBean.entidadEnEdicion.bdeInmuebleId != null}" >
+                            <h:outputLabel  styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:link id="btnFichaInmueble" value="#{msg.verFicha}" href="#{cargoBean.urlReporte}"
+                                                                                                    target="_blank" styleClass="btn btn-secondary"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                    </h:panelGroup>
+                    
+                </p:fieldset>
+                <p:fieldset id="datosGenerales" legend="#{msg.datosGenerales}">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_calidad">
+                        <h:outputLabel value="#{msg.calidad}" for="input_calidad" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_calidad"  value="#{cargoBean.comboEstadosCalidad.selected}" rendered="#{!cargoBean.soloLectura}"  styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargoBean.comboEstadosCalidad.items}" />
+                            </h:selectOneMenu>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeEstadoCalidad.ecaNombre}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <h:panelGroup id="asignadoA">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre_empleadoa" rendered="#{cargoBean.editarEmpleado and !cargoBean.soloLectura}" >
+                            <h:outputLabel value="#{msg.DUINombresEmpleados}" for="b_nombres_empleado" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9" >
+                                <p:autoComplete id="input_nombre_empleado_autocomplete" 
+                                                styleClass="form-control"
+                                                value="#{cargoBean.personaSeleccionada}"
+                                                rendered="#{!cargoBean.soloLectura}"
+                                                completeMethod="#{cargoBean.completePersona}"
+                                                var="per" itemLabel="#{per.perNombreCompleto}" 
+                                                itemValue="#{per}" 
+                                                widgetVar="input_nombre_empleado_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                placeholder="#{msg.autoCompleteEmptyItem}"
+                                                converter="#{personaConverter}"
+                                                multiple="false" 
+                                                >
+                                    <p:ajax listener="#{cargoBean.seleccionarEmpleadoUnidad()}" event="itemSelect"  process="@this" update="dato_asignadoa empleadoUnidad" />
+                                </p:autoComplete>
+                                <p:blockUI block="@form" trigger="input_nombre_empleado_autocomplete" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <h:panelGroup id="dato_asignadoa" rendered="#{cargoBean.editarEmpleado}" >
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.asignadoA}" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9" >
+                                      <h:outputText id="empleadoUnidad" styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeEmpleadoFk.empPersonaFk.perNombreCompleto}" />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_asignadoa" rendered="#{!cargoBean.editarEmpleado}">
+                            <h:outputLabel value="#{msg.asignadoA}" for="input_asignadoa" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9" >
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_asignadoa_texto" rendered="#{!cargoBean.soloLectura}" 
+                                             value="#{cargoBean.entidadEnEdicion.bdeAsignadoA}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeAsignadoA}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                        <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" 
+                                       styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputTextarea id="input_descripcion" styleClass="form-control obligatorio" rendered="#{!cargoBean.soloLectura}" 
+                                             value="#{cargoBean.entidadEnEdicion.bdeDescripcion}"
+                                             counter="display" maxlength="500" counterTemplate="{0} caracteres restantes." 
+                                             autoResize="false" />
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeDescripcion}" rendered="#{cargoBean.soloLectura}" />
+                            <h:outputText id="display" />
+                            <h:message for="input_descripcion" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>  
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_observacion">                        
+                        <h:outputLabel value="#{msg.observacion}" for="input_observacion" 
+                                       styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputTextarea id="input_observacion" styleClass="form-control" rendered="#{!cargoBean.soloLectura}" 
+                                             value="#{cargoBean.entidadEnEdicion.bdeObservacion}"
+                                             counter="displayObservacion" maxlength="500" counterTemplate="{0} caracteres restantes." 
+                                             autoResize="false" />
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeObservacion}" rendered="#{cargoBean.soloLectura}" />
+                            <h:outputText id="displayObservacion" />
+                            <h:message for="input_observacion" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:fieldset>
+                <h:panelGroup id="datosBienesMuebles">
+                    <p:fieldset  legend="#{msg.datosBienesMuebles}" rendered="#{cargoBean.renderSeccionBienesMuebles}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_marca">
+                            <h:outputLabel value="#{msg.marca}" for="input_marca" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_marca" value="#{cargoBean.entidadEnEdicion.bdeMarca}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeMarca}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_modelo">
+                            <h:outputLabel value="#{msg.modelo}" for="input_modelo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_modelo" value="#{cargoBean.entidadEnEdicion.bdeModelo}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeModelo}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_noserie">
+                            <h:outputLabel value="#{msg.noSerie}" for="input_noserie" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_noserie" value="#{cargoBean.entidadEnEdicion.bdeNoSerie}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeNoSerie}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:fieldset>
+                 </h:panelGroup>
+                <h:panelGroup id="datosVehiculos">
+                    <p:fieldset legend="#{msg.datosVehiculos}" rendered="#{cargoBean.renderSeccionVehiculos}">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_marcavehiculo">
+                            <h:outputLabel value="#{msg.marca}" for="input_marcavehiculo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_marcavehiculo" value="#{cargoBean.entidadEnEdicion.bdeMarca}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeMarca}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_modelovehiculo">
+                            <h:outputLabel value="#{msg.modelo}" for="input_modelovehiculo" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-corto" id="input_modelovehiculo" value="#{cargoBean.entidadEnEdicion.bdeModelo}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeModelo}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_noplaca">
+                            <h:outputLabel value="#{msg.noPlaca}" for="input_noplaca" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-corto" id="input_noplaca" value="#{cargoBean.entidadEnEdicion.bdeNoPlaca}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeNoPlaca}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nomotor">
+                            <h:outputLabel value="#{msg.noMotor}" for="input_nomotor" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-corto" id="input_nomotor" value="#{cargoBean.entidadEnEdicion.bdeNoMotor}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeNoMotor}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_anio">
+                            <h:outputLabel value="#{msg.anio}" for="input_anio" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputNumber autocomplete="off" id="input_anio" rendered="#{!cargoBean.soloLectura}" 
+                                               value="#{cargoBean.entidadEnEdicion.bdeAnio}"
+                                           styleClass="form-control texto-corto"
+                                           maxValue="9999"
+                                           minValue="0"
+                                           decimalPlaces="0" thousandSeparator="">
+                                </p:inputNumber>
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeAnio}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nochasis">
+                            <h:outputLabel value="#{msg.noChasis}" for="input_nochasis" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-corto" id="input_nochasis" value="#{cargoBean.entidadEnEdicion.bdeNoChasis}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeNoChasis}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_novin">
+                            <h:outputLabel value="#{msg.noVin}" for="input_novin" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control texto-corto" id="input_novin" value="#{cargoBean.entidadEnEdicion.bdeNoVin}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeNoSerie}" rendered="#{cargoBean.entidadEnEdicion.bdeNoVin}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_colorcarroceria">
+                            <h:outputLabel value="#{msg.colorCarroceria}" for="input_colorcarroceria" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" styleClass="form-control" id="input_colorcarroceria" value="#{cargoBean.entidadEnEdicion.bdeColorCarroceria}" rendered="#{!cargoBean.soloLectura}" />
+                                <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeColorCarroceria}" rendered="#{cargoBean.soloLectura}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:fieldset>
+                </h:panelGroup>
+                
+                <p:fieldset id="datosFinancieros" legend="#{msg.datosFinancieros}">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_vida_util" rendered="#{!cargoBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_VIDA_UTIL)}">
+                        <h:outputLabel value="#{msg.vidaUtil}" for="input_vida_util" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber autocomplete="off" id="input_vida_util"  
+                                       value="#{cargoBean.entidadEnEdicion.bdeVidaUtil}"
+                                       styleClass="form-control texto-corto"
+                                       maxValue="#{cargoBean.tipoBienSeleccionado.tbiCategoriaBienes.cabVidaUtil}"
+                                       decimalPlaces="0" thousandSeparator=""/>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeVidaUtil}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_formaadquisicion">
+                        <h:outputLabel value="#{msg.formaAdquisicion}" for="input_formaadquisicion" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_formaadquisicion"  value="#{cargoBean.comboFormaAdquisicion.selected}" rendered="#{!cargoBean.soloLectura}"  styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargoBean.comboFormaAdquisicion.items}" />
+                            </h:selectOneMenu>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeFormaAdquisicion.fadNombre}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fuente">
+                        <h:outputLabel value="#{msg.fuente}" for="input_fuente" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_fuente"  value="#{cargoBean.comboFuenteFinanciamiento.selected}" rendered="#{cargoBean.editarFuenteFinanciamiento and !cargoBean.soloLectura}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargoBean.comboFuenteFinanciamiento.items}" />
+                                <p:ajax event="change" listener="#{cargoBean.seleccionarFuente()}"  process="@this" update="fila_input_proyecto"/>
+                            </h:selectOneMenu>
+                            <h:outputText value="#{cargoBean.entidadEnEdicion.bdeFuenteFinanciamiento.ffiNombre}" rendered="#{!cargoBean.editarFuenteFinanciamiento or cargoBean.soloLectura}" styleClass="form-control-plaintext" />
+                            <p:blockUI block="@form" trigger="input_fuente" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proyecto">
+                        <h:outputLabel value="#{msg.proyecto}" for="input_proyecto" styleClass="col-sm-3 col-form-label #{cargoBean.fuenteSeleccionada.ffiRequiereProyecto ?'obligatorio' : ''}"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_proyecto"   value="#{cargoBean.comboProyectos.selected}" rendered="#{cargoBean.editarProyecto and !cargoBean.soloLectura}"
+                                             disabled="#{!cargoBean.fuenteSeleccionada.ffiRequiereProyecto}"
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargoBean.comboProyectos.items}" />
+                            </h:selectOneMenu>
+                            <h:outputText value="#{cargoBean.entidadEnEdicion.bdeProyectos.proNombre}" rendered="#{!cargoBean.editarProyecto or cargoBean.soloLectura}" styleClass="form-control-plaintext" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_documentoadquisicion">
+                        <h:outputLabel value="#{msg.documentoAdquisicion}" for="input_documentoadquisicion" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="input_documentoadquisicion" value="#{cargoBean.entidadEnEdicion.bdeDocumentoAdquisicion}" rendered="#{!cargoBean.soloLectura}" />
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeDocumentoAdquisicion}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fechaadquisicion">
+                        <h:outputLabel value="#{msg.fechaAdquisicion}" for="input_fechaadquisicion" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">   
+                            <p:calendar id="input_fechaadquisicion"  maxdate="#{applicationBean.today()}"
+                                        rendered="#{cargoBean.editarDatosAdquisicion and !cargoBean.soloLectura}"
+                                        value="#{cargoBean.entidadEnEdicion.bdeFechaAdquisicion}"
+                                        pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}" />
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeFechaAdquisicion}" rendered="#{cargoBean.soloLectura or !cargoBean.editarDatosAdquisicion}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_valoradquisicion">
+                        <h:outputLabel value="#{msg.valorAdquisicion}" for="input_valoradquisicion" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber autocomplete="off" id="input_valoradquisicion"
+                                           rendered="#{cargoBean.editarDatosAdquisicion and !cargoBean.soloLectura}"
+                                       value="#{cargoBean.entidadEnEdicion.bdeValorAdquisicion}"
+                                       styleClass="form-control texto-corto" 
+                                       maxValue="9999999999"
+                                       minValue="0"
+                                       decimalPlaces="2" thousandSeparator=""/>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeValorAdquisicion}" rendered="#{cargoBean.soloLectura or !cargoBean.editarDatosAdquisicion}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_valorestimado">
+                        <h:outputLabel value="#{msg.valorEstimado}" for="input_valorestimado" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_valorestimado" value="#{cargoBean.entidadEnEdicion.bdeEsValorEstimado}" rendered="#{!cargoBean.soloLectura}" >
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                            </p:selectOneRadio>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeEsValorEstimado}" rendered="#{cargoBean.soloLectura}" converter="#{booleanConverter}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proveedor">
+                        <h:outputLabel value="#{msg.proveedor}" for="input_proveedor" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="input_proveedor" value="#{cargoBean.entidadEnEdicion.bdeProveedor}" rendered="#{!cargoBean.soloLectura}" />
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeProveedor}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_numero_partida" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_NUMERO_PARTIDA)}">
+                        <h:outputLabel value="#{msg.numeroPartida}" for="input_numero_partida" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-corto" id="input_numero_partida" value="#{cargoBean.entidadEnEdicion.bdeNumeroPartida}" maxlength="30" rendered="#{!cargoBean.soloLectura}" />
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeNumeroPartida}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:fieldset>
+                <p:fieldset id="lote" legend="#{msg.lote}" rendered="#{cargoBean.renderLote}">
+                    <p:outputPanel styleClass="form-group row" id="fila_input_lote">
+                        <h:outputLabel value="#{msg.esLote}" for="input_lote" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="input_lote" value="#{cargoBean.entidadEnEdicion.bdeEsLote}" rendered="#{!cargoBean.soloLectura}" >
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                                <p:ajax event="change" update="fila_input_cantidad" listener="#{cargoBean.procesarLoteSelected}"/>
+                            </p:selectOneRadio>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeEsLote}" converter="#{booleanConverter}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_cantidad">
+                        <h:outputLabel value="#{msg.cantidad}" for="input_cantidad" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputNumber autocomplete="off" id="input_cantidad" disabled="#{!cargoBean.entidadEnEdicion.bdeEsLote}" rendered="#{!cargoBean.soloLectura}" 
+                                           value="#{cargoBean.entidadEnEdicion.bdeCantidadLote}"
+                                       styleClass="form-control texto-medio" 
+                                       maxlength="4" 
+                                       decimalPlaces="0" thousandSeparator="">
+                                <p:ajax event="keyup" listener="#{cargoBean.completeCodigoInventarioMaximoLote}" update="input_correlativo input_codigoinventario input_codigo_inventario_generar"/>
+                            </p:inputNumber>
+                            <h:outputText styleClass="form-control-plaintext" value="#{cargoBean.entidadEnEdicion.bdeCantidadLote}" rendered="#{cargoBean.soloLectura}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_codigo_inventario_generar">
+                        <h:outputLabel value="#{msg.codigoInventarioGenerar}" for="input_codigo_inventario_generar" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputLabel value="#{cargoBean.entidadEnEdicion.bdeCodigoInventarioGenerar}" id="input_codigo_inventario_generar" styleClass="form-control-plaintext" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:fieldset>
+                <div class="form-action-buttons">
+                    <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{cargoBean.guardar()}" update="@form" rendered="#{!cargoBean.soloLectura}"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    <p:outputPanel styleClass="float-right" style="padding-left:2px;">
+                        <p:link outcome="#{ConstantesPaginas.CARGO}" title="#{msg.agregarNuevoCargo}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_BIEN_DEPRECIABLE)}"
+                            styleClass="btn btn-secondary">
+                            <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                            <h:outputText styleClass="" value="#{msg.agregarNuevoCargo}"/>
+                        </p:link>
+                    </p:outputPanel>
+                    <p:blockUI block="@form" trigger="btnGuardar" /> 
+                </div>
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+        
+            <p:dialog header="Personas" widgetVar="empleadosDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('empleadosDialog').initPosition()">
+               <p:outputPanel id="motivoDetailDialog">                                                             
+                <h:panelGroup >             
+                    <p:outputPanel id="formularioEmpleados"> 
+                        
+                            <p:dataTable id="basicDT"                         
+                                     widgetVar="dataTableWidgetVar"                         
+                                     var="elem"                       
+                                     value="#{cargoBean.listaEmpleados}"
+                                     emptyMessage="#{msg.noHayResultados}"		
+                                     paginator="true"
+                                     lazy="true"
+                                     paginatorPosition="bottom"
+                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                     sortField="empPersonaFk.perPk"
+                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                     rows="10"
+                                     reflow="true"  
+                                     selection="#{cargoBean.empleadoSeleccionadoTemp}" 
+                                     rowSelectMode="checkbox"
+                                     rowKey="#{elem.empPersonaFk.perPk}"
+                                    > 
+
+                             <p:column selectionMode="single"  headerText="" exportable="false" style="width:16px;text-align:center"/>
+                             
+                             <p:column headerText="#{msg.hnombre}">                             
+                                 <h:outputText value="#{elem.empPersonaFk.perNombreCompleto}"/>                         
+                             </p:column> 
+                             <p:column headerText="#{msg.hDUI}">                             
+                                 <h:outputText value="#{elem.empPersonaFk.perDui}"/>                         
+                             </p:column>
+                         </p:dataTable> 
+                        
+                        <p:outputPanel  styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnAceptar"  value="Seleccionar" 
+                                                 action="#{cargoBean.seleccionarEmpleadoUnidad()}"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" update="form:empleadoUnidad"/>  
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('empleadosDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                      
+                        <p:blockUI block="@form" trigger="btnAceptar" />  
+                        <p:defaultCommand target="btnAceptar" scope="motivoDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>  
+                
+        </p:dialog>
+    </h:form>
+    
+</ui:composition>

@@ -1,0 +1,179 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">          
+        <f:passThroughAttribute name="autocomplete" value="off"/>   
+        <o:importConstants type="sv.gob.mined.siges.web.constantes.Constantes"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hcargaExterna}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+
+            <h2 class="page-header"><h:outputText value="#{msg.hcargaExterna}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.descarPlantilla}" 
+                                 icon="glyphicon glyphicon-save" 
+                                 id="btnDescargarPlantilla" 
+                                 styleClass="btn btn-secondary"  
+                                 style="margin-left: 0.5em;"
+                                 ajax="false" 
+                                 onclick="this.form.target = '_blank';">
+                    <p:fileDownload 
+                        value="#{handleArchivoBean.plantillaCargaIndicadorExterno()}" />
+                </p:commandButton>
+                
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CARGA_EXTERNA)}" /> 
+                </ui:include>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+
+        <p:panel toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro" style="margin-bottom: 10px;">
+            <p:outputPanel id="pnlResultado" styleClass="row">
+                <p:outputPanel styleClass="col-md-12">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nombre">                        
+                        <h:outputLabel value="#{msg.nombreextraccion}" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu value="#{cargaExternaBean.comboNombresExtr.selected}" styleClass="form-control dropdown texto-medio" rendered="#{cargaExternaBean.entidadEnEdicion.carPk == null}">
+                                <f:selectItems value="#{cargaExternaBean.comboNombresExtr.items}" />
+                            </h:selectOneMenu>    
+                            <h:outputText rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}" styleClass="form-control-plaintext"
+                                          value="#{cargaExternaBean.entidadEnEdicion.carNombre.nexNombre}"  />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                        <h:outputLabel value="#{msg.descripcion}" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputTextarea value="#{cargaExternaBean.entidadEnEdicion.carDescripcion}" styleClass="form-control" rendered="#{cargaExternaBean.entidadEnEdicion.carPk == null}"/>
+                            <h:outputText rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}" styleClass="form-control-plaintext"
+                                          value="#{cargaExternaBean.entidadEnEdicion.carDescripcion}"  />
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.anio}" for="input_anio" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:inputMask id="input_anio" styleClass="form-control texto-corto" value="#{cargaExternaBean.entidadEnEdicion.carAnio}" 
+                                         rendered="#{cargaExternaBean.entidadEnEdicion.carPk == null}"
+                                         mask="9999"/>            
+                            <h:outputText rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}" styleClass="form-control-plaintext"
+                                          value="#{cargaExternaBean.entidadEnEdicion.carAnio}"  />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.categoria}" for="filtro_categ" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_categ" value="#{cargaExternaBean.comboCategorias.selected}" 
+                                             rendered="#{cargaExternaBean.entidadEnEdicion.carPk == null}"
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargaExternaBean.comboCategorias.items}" />
+                                <p:ajax listener="#{cargaExternaBean.selectCategoria()}" update="fila_filtro_ind fila_filtro_desag"/>
+                            </h:selectOneMenu>
+                            <h:outputText rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}" styleClass="form-control-plaintext"
+                                          value="#{cargaExternaBean.entidadEnEdicion.carIndicador.indCategoria.cinNombre}"  />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_ind">
+                        <h:outputLabel value="#{msg.indicador}" for="filtro_ind" styleClass="col-sm-3 obligatorio col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_ind" value="#{cargaExternaBean.comboIndicadores.selected}" 
+                                             rendered="#{cargaExternaBean.entidadEnEdicion.carPk == null}"
+                                             disabled="#{cargaExternaBean.comboCategorias.selectedT == null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargaExternaBean.comboIndicadores.items}" />
+                                <p:ajax listener="#{cargaExternaBean.selectIndicador()}" update="fila_filtro_desag"/>
+                            </h:selectOneMenu>
+                            <h:outputText rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}" styleClass="form-control-plaintext"
+                                          value="#{cargaExternaBean.entidadEnEdicion.carIndicador.indNombre}"  />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_desag">
+                        <h:outputLabel value="#{msg.desagregacion}" for="filtro_des" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="filtro_des" value="#{cargaExternaBean.comboDesagregaciones.selected}" 
+                                             rendered="#{cargaExternaBean.entidadEnEdicion.carPk == null}"
+                                             disabled="#{cargaExternaBean.comboIndicadores.selectedT == null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargaExternaBean.comboDesagregaciones.items}" />
+                            </h:selectOneMenu>
+                            <h:outputText rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}" styleClass="form-control-plaintext"
+                                          value="#{cargaExternaBean.entidadEnEdicion.carDesagregacion.text}"  />
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="Tipo numérico:" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu value="#{cargaExternaBean.comboTipoNumerico.selected}" 
+                                             styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{cargaExternaBean.comboTipoNumerico.items}" />
+                            </h:selectOneMenu>                           
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="Datos:" styleClass="col-sm-3 col-form-label obligatorio"/>  
+                        <p:outputPanel id="panelFile" styleClass=" col-sm-8">
+                            <p:fileUpload fileUploadListener="#{cargaExternaBean.handleFileUpload}"
+                                          id="file_upload_archivo"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar archivo"                                              
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoXLSX} " 
+                                          update="panelFile"            
+                                          cancelLabel="#{msg.cancelar}" 
+                                          auto="true"
+                                          sizeLimit="#{cargaExternaBean.tamanioImportArchivo}" allowTypes="/(\.|\/)(xlsx)$/"/>
+                            <h:outputText styleClass="form-control-plaintext" 
+                                          value="#{cargaExternaBean.nombreArchivo}"
+                                          rendered="#{cargaExternaBean.nombreArchivo !=null}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel styleClass="row" >
+            <p:outputPanel styleClass="col-sm-12" >
+                <p:outputPanel styleClass="float-right">
+                    
+                    <p:outputPanel style="margin-bottom: 10px;" rendered="#{cargaExternaBean.entidadEnEdicion.carPk != null}">
+                        <a href="#{request.contextPath}/pp/#{ConstantesPaginas.IR_A_ESTADISTICAS}#{cargaExternaBean.navegacionEstadisticas()}">
+                            <span>Ver datos cargados</span>
+                        </a>
+                    </p:outputPanel>
+
+                    <p:commandButton value="#{msg.guardar}" update="@form"
+                                     id="btnGuardar" styleClass="btn btn-primary"  action="#{cargaExternaBean.guardar()}" 
+                                     />
+                    
+                    <p:blockUI block="@form" trigger="btnGuardar" /> 
+                    <p:defaultCommand target="btnGuardar" scope="@form"/>
+                </p:outputPanel>
+            </p:outputPanel>   
+        </p:outputPanel>   
+
+
+    </h:form>
+</ui:composition>

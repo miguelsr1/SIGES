@@ -1,0 +1,404 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.PERSONAS}.xhtml">#{msg.getionPersonas}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{personaBean.editable}" value="#{msg.edicionPersona}"/>
+                    <h:outputText rendered="#{!personaBean.editable}" value="#{msg.visualizarPersona}" />
+                </li>
+            </ol>  
+        </nav>          
+
+        <p:outputPanel styleClass="panel-titulo-pagina">         
+            <h2 class="page-header"><h:outputText value="#{msg.getionPersonas}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <p:outputPanel styleClass="float-right">
+                    <p:commandButton value="Unir persona" icon="fa fa-compress" 
+                                     oncomplete="PF('itemDialogPersonaUnir').show()"
+                                     action="#{personaBean.prepararUnirPersona}"
+                                     rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.UNIR_PERSONA)}"
+                                     id="btnCompletarNie" update="@form" process="@this" styleClass="btn btn-secondary" />
+                </p:outputPanel>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{personaBean.editable}" value="#{msg.edicionPersona}"/>
+            <h:outputText rendered="#{!personaBean.editable}" value="#{msg.visualizarPersona}" />
+        </h3>
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos" style="text-align:left;"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+
+            <h:panelGroup rendered="#{not empty personaBean.entidadEnEdicion}"  >
+                <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+                <p:tabView id="tabs" onTabChange="PF('tabsBlocker').show()">
+                    <p:ajax event="tabChange" listener="#{personaBean.changeTab}" update="@form" process="@form" />
+                    <p:tab title="#{msg.datosGenerales}" id="datosGenerales">
+                        <f:subview id="viewPersonalIden">
+                            <ui:include src="componentes/identificaciones.xhtml">
+                                <ui:param name="persona" value="#{personaBean.entidadEnEdicion}" />
+                                <ui:param name="soloLecturaIdentificaciones" value="#{personaBean.soloLectura}" />
+
+                                <ui:param name="renderIdentPersonalSede" value="true" />
+                            </ui:include>
+                        </f:subview>
+                        <ui:include src="componentes/persona.xhtml" >   
+                            <ui:param name="persona" id="estudiante" value="#{personaBean.entidadEnEdicion}" /> 
+                            <ui:param name="soloLecturaPersona" value="#{personaBean.soloLectura}" /> 
+                            <ui:param name="renderIdentPersonalSede" value="true" /> 
+                        </ui:include>
+
+                    </p:tab>
+                    <p:tab title="#{msg.registrossiges}" id="registros">
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-12 texto-right">                      
+
+                                <p:commandButton rendered="#{personaBean.personaSePuedeEliminar and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_PERSONA)}"
+                                                 process="@this"
+                                                 value="#{msg.eliminarPersona}"  
+                                                 oncomplete="PF('confirmDialogEliminarPersona').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-secondary rojo_sec"
+                                                 />
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                        <p:fieldset>
+                            <legend><h:outputText value="#{msg.datosEstudiante}"/></legend>
+
+                            <p:outputPanel rendered="#{personaBean.entidadEnEdicion.perEstudiante != null}">
+                                <p:panel>
+                                    <c:if test="#{personaBean.entidadEnEdicion.perEstudiante != null}" >
+                                        <ui:include src="componentes/matriculaComponente.xhtml" >   
+                                            <ui:param name="estudiante" id="estudiante" value="#{personaBean.entidadEnEdicion.perEstudiante}" /> 
+                                            <ui:param name="soloLecturaBitacoraMatricula" value="#{personaBean.soloLectura}" />
+                                        </ui:include>
+                                    </c:if>
+                                </p:panel>
+                            </p:outputPanel>
+                            <h:outputText value="#{msg.noHayRegistrosComoEstudiante}"  
+                                          rendered="#{personaBean.entidadEnEdicion.perEstudiante == null}"/>
+                        </p:fieldset>
+                        <p:fieldset>
+                            <legend><h:outputText value="#{msg.datosDocente}"/></legend>
+                            <p:outputPanel styleClass="row" rendered="#{personaBean.personal.psePk != null}">
+                                <p:outputPanel styleClass="col-md-6">
+                                    <p:outputPanel styleClass="form-group row" >
+                                        <h:outputLabel value="#{msg.estado}" 
+                                                       styleClass="col-sm-5 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-7">
+                                            <h:outputText value="#{personaBean.personal.pseDatoEmpleado.demEstado.text}" 
+                                                          styleClass="form-control-plaintext"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-6">
+                                    <p:outputPanel styleClass="form-group row" >
+                                        <h:outputLabel value="#{msg.codigoEmpleado}" 
+                                                       styleClass="col-sm-5 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-7">
+                                            <h:outputText value="#{personaBean.personal.pseDatoEmpleado.demCodigoEmpleado}" 
+                                                          styleClass="form-control-plaintext"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-6">
+                                    <p:outputPanel styleClass="form-group row" >
+                                        <h:outputLabel value="#{msg.nivelEscalafon}" 
+                                                       styleClass="col-sm-5 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-7">
+                                            <h:outputText value="#{personaBean.personal.pseDatoEmpleado.demNivelFk.nemNombre}" 
+                                                          styleClass="form-control-plaintext"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-6">
+                                    <p:outputPanel styleClass="form-group row" >
+                                        <h:outputLabel value="#{msg.categoriaEscalafon}" 
+                                                       styleClass="col-sm-5 col-form-label"/>
+                                        <p:outputPanel styleClass="col-sm-7">
+                                            <h:outputText value="#{personaBean.personal.pseDatoEmpleado.demCategoriaFk.cemNombre}" 
+                                                          styleClass="form-control-plaintext"/>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="col-md-12">
+                                    <p:dataTable id="basicDTContratos"                         
+                                                 widgetVar="widResultadoContratos"                         
+                                                 var="con"                          
+                                                 value="#{personaBean.personal.pseDatoEmpleado.demDatoContratacion}"                          
+                                                 emptyMessage="#{msg.noHayResultados}"		
+                                                 >
+                                        <f:facet name="header">
+                                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                                <p:outputPanel styleClass="col-md-12">
+                                                    <h4><h:outputText value="#{msg.hnombramientosContratos}" /></h4>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </f:facet>
+                                        <p:column headerText="#{msg.hsede}">
+                                            <h:outputText value="#{con.dcoCentroEducativo.sedCodigoNombre}"/>
+                                        </p:column>
+                                        <p:column headerText="#{msg.hDesde}">
+                                            <h:outputText value="#{con.dcoDesde}" converter="#{localDateConverter}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hHasta}">
+                                            <h:outputText value="#{con.dcoHasta}" converter="#{localDateConverter}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hcargo}">
+                                            <h:outputText value="#{con.dcoCargo.carNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hmodeloContrato}">
+                                            <h:outputText value="#{con.dcoModeloContrato.text}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            <h:outputText value="#{msg.noHayRegistrosComoDocente}" 
+                                          rendered="#{personaBean.personal.psePk == null}"/>
+                        </p:fieldset>
+                        <p:fieldset>
+                            <legend><h:outputText value="#{msg.datosFamilia}"/></legend>
+                            <p:outputPanel rendered="#{personaBean.listaAllegados.size()>0}">
+                                <p:dataTable id="basicDTAllegados"                         
+                                             widgetVar="widResultadoAllegados"                         
+                                             var="elem"                          
+                                             value="#{personaBean.listaAllegados}"                          
+                                             emptyMessage="#{msg.noHayResultados}"		
+                                             >
+                                    <p:column headerText="#{msg.esFamiliar}">
+                                        <h:outputText value="#{elem.allEsFamiliar}" converter="#{booleanConverter}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.tipoParentesco}">
+                                        <h:outputText value="#{elem.allTipoParentesco.tpaNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.esContactoEmergencia}">
+                                        <h:outputText value="#{elem.allContactoEmergencia}" converter="#{booleanConverter}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hnombre}">
+                                        <h:outputText value="#{elem.allPersonaReferenciada.nieNombre}" />
+                                    </p:column>                                      
+                                </p:dataTable>
+                            </p:outputPanel>
+                            <h:outputText value="#{msg.noHayDatosComoFamiliar}" 
+                                          rendered="#{personaBean.listaAllegados.size() == 0}"/>
+                        </p:fieldset>
+                    </p:tab>
+                </p:tabView>
+
+                <p:confirmDialog id="confirmEliminarPersona"
+                                 message="#{msg.deseaEliminarPersona}"
+                                 header="#{msg.eliminarPersona}" severity="alert" widgetVar="confirmDialogEliminarPersona">
+                    <p:outputPanel styleClass="float-right" >
+                        <p:commandButton id="confirmBotonElimPersona" value="#{msg.hconfirmar}" update="@form"
+                                         oncomplete="PF('confirmDialogEliminarPersona').hide()"
+                                         styleClass="btn btn-primary"
+                                         action="#{personaBean.eliminar()}"  />
+                        <p:blockUI block="@form" trigger="confirmBotonElimPersona"/>
+                        <p:commandLink id="cancelarEliminarPersona" value="#{msg.cancelar}"
+                                       onclick="PF('confirmDialogEliminarPersona').hide()" styleClass="btn btn-link" />
+                    </p:outputPanel>
+                </p:confirmDialog>
+
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+
+        <p:dialog header="Unir persona" widgetVar="itemDialogPersonaUnir" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetailEstudianteUnir">
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_nie">
+                    <h:outputLabel value="#{msg.nie}"  styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-4">
+                        <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator="" styleClass="form-control texto-corto" id="input_nie"
+                                       value="#{personaBean.filtroPersonaUnir.nie}" />
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_dui">
+                    <h:outputLabel value="#{msg.dui}"  styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-4">
+                        <p:inputText autocomplete="off" 
+                                     value="#{personaBean.filtroPersonaUnir.dui}" 
+                                     style="display:inline-block"
+                                     styleClass="form-control texto-corto">
+                            <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/> 
+                        </p:inputText>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_cun">
+                    <h:outputLabel value="#{msg.cun}"  styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-4">
+                        <p:inputNumber autocomplete="off" decimalPlaces="0" thousandSeparator=""
+                                       value="#{personaBean.filtroPersonaUnir.cun}" styleClass="form-control texto-corto" style="display:inline-block">
+                        </p:inputNumber>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="form-group row" id="fila_input_nip">
+                    <h:outputLabel value="#{msg.nip}" styleClass="col-sm-4 col-form-label"/>
+                    <p:outputPanel styleClass="col-sm-4">
+                        <p:inputText autocomplete="off" 
+                                     value="#{personaBean.filtroPersonaUnir.nip}" 
+                                     style="display:inline-block"
+                                     styleClass="form-control texto-corto">
+                            <p:keyFilter regEx="/[\d\-]/" preventPaste="false"/> 
+                        </p:inputText>
+                    </p:outputPanel>
+                </p:outputPanel>
+                
+                
+                <p:outputPanel styleClass="form-group row">
+                <h:outputText value="#{msg.otraIdentificacion}" styleClass="col-sm-4 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-4">
+                    <p:selectOneRadio layout="responsive" columns="3" id="b_otra_identificacion_unir_personal"
+                                      value="#{personaBean.tieneOtraIdent}">
+                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                        <p:ajax event="change" update="form:otrasIdentificaciones" listener="#{personaBean.seleccionarOtrasIdentificaciones}" />
+                    </p:selectOneRadio>
+                </p:outputPanel>
+            </p:outputPanel>
+
+                <p:outputPanel id="otrasIdentificaciones">
+                    <p:outputPanel rendered="#{personaBean.tieneOtraIdent}">
+                    <fieldset>
+                        <legend><h:outputText value="Otras identificaciones"/></legend>
+                        <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>   
+                        <p:outputPanel styleClass="form-group row" >                        
+                            <h:outputLabel value="#{msg.paisEmisor}" for="input_pais_dialog_unir" styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu id="input_pais_dialog_unir" value="#{personaBean.comboPais.selected}" styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{personaBean.comboPais.items}" />
+                                </h:selectOneMenu>                                    
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row" >                        
+                            <h:outputLabel value="#{msg.tipoIdentificacion}" for="input_tipoidentificacion_dialog_unir" styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-4">
+                                <h:selectOneMenu id="input_tipoidentificacion_dialog_unir" value="#{personaBean.comboTipoIdentificacion.selected}" 
+                                                 styleClass="form-control dropdown texto-medio" >
+                                    <f:selectItems value="#{personaBean.comboTipoIdentificacion.items}" />
+                                </h:selectOneMenu>                                    
+                            </p:outputPanel>                    
+                        </p:outputPanel>                 
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_identificacion">                        
+                            <h:outputLabel value="Número:" for="input_identificacion" styleClass="col-sm-4 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-4">                            
+                                <h:inputText autocomplete="off" id="input_identificacion" maxlength="50" value="#{personaBean.ideNumeroDocumento}" 
+                                             styleClass="form-control texto-medio" />
+                            </p:outputPanel>                  
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="Agregar otra identificación"
+                                                 action="#{personaBean.agregarOtraIdentificacionEnTabla()}" 
+                                                 id="btnbuscarEstudianteNie_dialog_unir" 
+                                                 update="otrasIdentificaciones pnlIdentificaciones_unir_personal"
+                                                 styleClass="btn btn-secondary" icon="glyphicon glyphicon-plus"  />
+                                <p:blockUI block="@form" trigger="btnbuscarEstudianteNie_dialog_unir" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                            <p:outputPanel id="pnlIdentificaciones_unir_personal" >
+                            <p:dataTable id="tablaIdentificaciones_unir_personal" var="identificacion"
+                                         emptyMessage="#{msg.noHayResultados}"
+                                         rendered="#{personaBean.listOtrasIdentificaciones.size()>0}"
+                                         value="#{personaBean.listOtrasIdentificaciones}">
+
+                                <p:column headerText="#{msg.htipoIdentificacion}">
+                                    <h:outputText value="#{identificacion.ideTipoDocumento.tinNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hnumeroDocumento}">
+                                    <h:outputText value="#{identificacion.ideNumeroDocumento}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hPaisEmisor}">
+                                    <h:outputText value="#{identificacion.idePaisEmisor.paiNombre}" />
+                                </p:column>                                    
+                                <p:column styleClass="columnaAcciones"  exportable="false" >
+                                    <p:commandButton update="form:otrasIdentificaciones"  
+                                                     icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" 
+                                                     title="Eliminar" action="#{personaBean.eliminarOtraIdentificacion(identificacion)}"/>
+                                </p:column>                                        
+                            </p:dataTable>
+                        </p:outputPanel>   
+
+                    </fieldset>  
+                    </p:outputPanel>   
+                </p:outputPanel>    
+
+                <p:outputPanel styleClass="form-group row ">
+                    <p:outputPanel styleClass="col-sm-10"/>
+                    <p:outputPanel styleClass="col-sm-2">
+                        <p:commandButton value="#{msg.buscar}"
+                                         action="#{personaBean.buscarPersonaUnir()}" 
+                                         id="btnbuscarEstudianteNie" 
+                                         update="itemDetailEstudianteUnir"
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-search"  />
+                        <p:blockUI block="@form" trigger="btnbuscarEstudianteNie" />
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel rendered="#{personaBean.entidadEnEdicionUnir!=null}">
+                    <fieldset>
+                        <legend><h:outputText value="Datos de persona a unir"/></legend>
+
+
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" escape="false" value="Tenga en cuenta que al confirmar la persona seleccionada será eliminada." />
+                                </li>
+                            </ul>
+                        </div>
+
+                        <p:outputPanel styleClass="form-group row" id="confirmacion_nombre_persona">
+                            <h:outputText value="#{msg.nombrecompleto}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:outputText  styleClass="form-control-plaintext" 
+                                               value="#{personaBean.entidadEnEdicionUnir.perNombreCompleto}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="confirmacion_ident">
+                            <h:outputText value="Identificaciones:" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                <h:outputText  styleClass="form-control-plaintext" 
+                                               value="#{personaBean.entidadEnEdicionUnir.perIdentificacionesAsString}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.hconfirmar}" id="btnConfirmarUnir" update="itemDetailEstudianteUnir form:itemDetail" action="#{personaBean.unirPersonas()}" styleClass="btn btn-primary"/>
+                                <p:blockUI block="itemDetailEstudianteUnir" trigger="btnConfirmarUnir" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </fieldset>    
+                </p:outputPanel>
+
+
+            </p:outputPanel>
+        </p:dialog>
+
+
+    </h:form>
+</ui:composition>

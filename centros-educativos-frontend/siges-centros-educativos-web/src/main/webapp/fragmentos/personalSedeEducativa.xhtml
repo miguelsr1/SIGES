@@ -1,0 +1,533 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+    <script>
+        window.document.addEventListener('markerClickEvent', handleEvent, false);
+        function handleEvent(e) {
+            updateAddressCoordinates([{name: 'latitude', value: e.detail.latitude}, {name: 'longitude', value: e.detail.longitude}]);
+        }
+    </script>
+
+    <h:form id="form">
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumModeloContrato"/>
+        <o:importConstants type="sv.gob.mined.siges.web.enumerados.TipoPersonalSedeEducativa"/>
+        
+
+        <p:remoteCommand name="updateAddressCoordinates" action="#{personalSedeEducativaBean.updateAddressCoordinates}" update="@(.latitud_update_class, .longitud_update_class)"/>
+
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.PERSONAL_SEDES_EDUCATIVA}.xhtml">#{msg.gestionPersonalSedeEducativo}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText value="#{personalSedeEducativaBean.tituloPagina}"/>
+                </li>
+            </ol>  
+        </nav>          
+
+
+
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionPersonalEducativo}"/></h2>
+
+            <p:outputPanel styleClass="float-right">    
+
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.PERSONAL_SEDE_EDUCATIVA)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText value="#{personalSedeEducativaBean.tituloPagina}"/>
+        </h3>
+
+        <p:outputPanel id="itemDetail">
+            <div class="requeridos" style="text-align:right;"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+
+            <c:if test="#{empty personalSedeEducativaBean.entidadEnEdicion}">
+                <h:panelGroup id="createContainer" rendered="#{empty personalSedeEducativaBean.entidadEnEdicion}">
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipo_personaSede">
+                        <h:outputLabel value="#{msg.tipo}" for="input_tipo_personaSede" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_tipo_personaSede" value="#{docenteContratosBean.comboTiposPersonalSedeEducativa.selected}" styleClass="form-control texto-medio"
+                                             rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoPk == null}">
+                                <f:selectItems value="#{docenteContratosBean.comboTiposPersonalSedeEducativa.items}"/>
+                                <p:ajax update="createContainer" process="createContainer" listener="#{docenteContratosBean.setTipoPersonal}"/>
+                            </h:selectOneMenu>
+                            <h:outputText styleClass="form-control-plaintext" id="output_tipo_sede" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoTipo.text}" rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoPk != null}"/> 
+                        </p:outputPanel>
+                    </p:outputPanel>    
+
+
+                    <p:outputPanel styleClass="form-group row" id="select_one">
+                        <h:outputLabel value="#{msg.modeloContrato}" for="select_tipo_calendario" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="select_tipo_calendario"  value="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato}">
+                                <f:selectItems value="#{docenteContratosBean.modelosContrato}" var="modc" itemLabel="#{modc.text}" itemValue="#{modc}" />
+                                <p:ajax update="createContainer" process="createContainer" listener="#{docenteContratosBean.limpiarCombosDependientesDeModeloContrato()}"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <h:panelGroup rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato != null}">
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_cargo">                        
+                            <h:outputLabel value="#{msg.cargo}" for="input_cargo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_cargo" value="#{docenteContratosBean.comboCargo.selected}" 
+                                                 styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboCargo.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_nombramiento" 
+                                       rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                                   or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">
+                            <h:outputLabel value="#{msg.tipoNombramiento}" for="input_tipo_nombramiento" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_tipo_nombramiento" value="#{docenteContratosBean.comboTipoNombramiento.selected}"  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboTipoNombramiento.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_contrato" 
+                                       rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                                   or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                            <h:outputLabel value="#{msg.tiposContrato}" for="input_tipo_contrato" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_tipo_contrato" value="#{docenteContratosBean.comboTipoContrato.selected}"   styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboTipoContrato.items}" />
+                                    <p:ajax update="fila_panel_fecha_hasta fila_panel_interinato" process="@this" event="change"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <h:panelGroup id="fila_panel_interinato" >
+                            <p:outputPanel styleClass="form-group row" id="fila_input_razones_interinato" 
+                                           rendered="#{docenteContratosBean.comboTipoContrato.selectedT!=null?docenteContratosBean.comboTipoContrato.selectedT.getTcoEsInterinato():false}">
+                                <h:outputLabel value="#{msg.razonesInterinato}" for="input_razones_interinato" 
+                                               styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:inputText id="input_razones_interinato"
+                                                 styleClass="form-control texto-medio" autocomplete="off" 
+                                                 value="#{docenteContratosBean.entidadEnEdicionContratos.dcoRazonesInterinato}"  />
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fuente_financiamiento"
+                                       rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                                   or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                            <h:outputLabel value="#{msg.fuenteFinanciamiento}" for="input_fuente_financiamiento" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_fuente_financiamiento" value="#{docenteContratosBean.comboFuenteFinanciamiento.selected}"  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboFuenteFinanciamiento.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>   
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_institucion_paga_salario"
+                                       rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                            <h:outputLabel value="#{msg.institucionPagaSalario}" for="input_institucion_paga_salario" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_institucion_paga_salario" value="#{docenteContratosBean.comboInstitucionPagaSalario.selected}" styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboInstitucionPagaSalario.items}" />
+                                    <p:ajax event="change" update="fila_panel_group_otro" process="@this"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>  
+                        </p:outputPanel>        
+
+                        <h:panelGroup id="fila_panel_group_otro" >
+                            <p:outputPanel styleClass="form-group row" id="fila_input_institucion_paga_salario_otro" rendered="#{(docenteContratosBean.comboInstitucionPagaSalario.selectedT!=null)?docenteContratosBean.comboInstitucionPagaSalario.selectedT.getIpsNombre().toUpperCase().equals(Constantes.VALIDAR_OTRO_CODIGO):false}">
+                                <h:outputLabel value="#{msg.otro}" for="input_institucion_paga_salario_otro" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <h:inputText id="input_institucion_paga_salario_otro" 
+                                                 styleClass="form-control texto-medio" autocomplete="off" 
+                                                 value="#{docenteContratosBean.entidadEnEdicionContratos.dcoInstitucionPagaSalarioOtro}"  />
+                                </p:outputPanel>    
+                            </p:outputPanel>       
+                        </h:panelGroup>   
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_institucion_paga"
+                                       rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">
+                            <h:outputLabel value="#{msg.tipoInstitucionPaga}" for="input_tipo_institucion_paga" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_tipo_institucion_paga" value="#{docenteContratosBean.comboTipoInstitucionPaga.selected}" styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboTipoInstitucionPaga.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_desde">
+                            <h:outputLabel value="#{msg.desde}" for="input_desde" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:calendar autocomplete="off" styleClass="fomr-control" id="input_desde" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoDesde}" 
+                                            pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"
+                                            converter="#{localDateConverter}" maxdate="#{applicationBean.today()}"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+
+                        <h:panelGroup id="fila_panel_fecha_hasta"  >
+                            <p:outputPanel styleClass="form-group row" id="fila_input_hasta" >    
+                                <h:outputLabel value="#{msg.hasta}"  styleClass="col-sm-3 col-form-label obligatorio"                    
+                                               rendered="#{docenteContratosBean.comboTipoContrato.selectedT!=null?docenteContratosBean.comboTipoContrato.selectedT.getTcoRequiereFechaHasta():false}" />
+                                <h:outputLabel value="#{msg.hasta}"  styleClass="col-sm-3 col-form-label" 
+                                               rendered="#{docenteContratosBean.comboTipoContrato.selectedT!=null?!docenteContratosBean.comboTipoContrato.selectedT.getTcoRequiereFechaHasta():true}" />
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <p:calendar autocomplete="off" styleClass="fomr-control" id="input_hasta" value="#{docenteContratosBean.entidadEnEdicionContratos.dcoHasta}" 
+                                                pattern="#{applicationBean.patternFecha}" locale="#{sessionBean.locale}"
+                                                converter="#{localDateConverter}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete">                        
+                            <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete" 
+                                                styleClass="form-control texto-medio"
+                                                value="#{docenteContratosBean.sedeSeleccionado}" 
+                                                completeMethod="#{docenteContratosBean.completeSede}"
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                                itemValue="#{sed}" 
+                                                widgetVar="b_inst_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}" >
+                                </p:autoComplete>
+                            </p:outputPanel>                    
+                        </p:outputPanel>     
+
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_modo_pago" 
+                                       rendered="#{docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.ACUERDO
+                                                   or docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.CONTRATO}">                        
+                            <h:outputLabel value="#{msg.modoPago}" for="input_modo_pago" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_modo_pago" value="#{docenteContratosBean.comboModoPago.selected}"  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboModoPago.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>    
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_actividades_docentes" 
+                                       rendered="#{not (docenteContratosBean.entidadEnEdicionContratos.dcoTipo eq TipoPersonalSedeEducativa.DOC)}">                        
+                            <h:outputLabel value="#{msg.actividadesDocentes}" for="input_actividades_docentes" 
+                                           styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9"> 
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_actividades_docentes" styleClass="form-check-input"  
+                                                             value="#{docenteContratosBean.entidadEnEdicionContratos.dcoActividadesDocentes}" />
+                                    <h:outputLabel for="input_actividades_docentes" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel> 
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_alfabetizador" rendered="#{(docenteContratosBean.entidadEnEdicionContratos.dcoTipo eq TipoPersonalSedeEducativa.ALF) and (docenteContratosBean.entidadEnEdicionContratos.dcoModeloContrato eq EnumModeloContrato.OTRO)}">                        
+                            <h:outputLabel value="#{msg.tipoAlfabetizador}" for="input_tipo_alfabetizador" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu id="input_tipo_alfabetizador" value="#{docenteContratosBean.comboTipoAlfabetizador.selected}"  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{docenteContratosBean.comboTipoAlfabetizador.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+
+                            <p:outputPanel styleClass="col-sm-3"/>
+                            <p:outputPanel styleClass="col-sm-9"> 
+                                <p:commandButton id="btnGuardarContrato"   value="#{msg.continuar}" 
+                                                 action="#{personalSedeEducativaBean.aceptarDatoContratacionInicial()}" 
+                                                 update="itemDetail" 
+                                                 styleClass="btn btn-primary" 
+                                                 />            
+                            </p:outputPanel>                  
+                        </p:outputPanel>                     
+                        <p:blockUI block="itemDetail" trigger="btnGuardarContrato" />   
+                        <p:defaultCommand target="btnGuardarContrato" scope="createContainer"/>    
+
+                    </h:panelGroup>
+
+                </h:panelGroup>    
+
+            </c:if>
+
+            <h:panelGroup rendered="#{not empty personalSedeEducativaBean.entidadEnEdicion}"  >
+                <p:blockUI block="tabs" widgetVar="tabsBlocker" />  
+                <p:tabView id="tabs" dynamic="false" onTabChange="PF('tabsBlocker').show()">
+                    <p:ajax event="tabChange" listener="#{personalSedeEducativaBean.changeTab}" update="@form" process="@form" />
+                    <p:tab id="tabDatosPersona" title="#{msg.hpersona}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_PERSONA_PERSONAL_SEDE) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_PERSONA_PERSONAL_SEDE)}">
+
+                        <p:commandButton value="#{msg.hrestablecerIdent}" update="@form" process="@form"
+                                         styleClass="btn btn-secondary"
+                                         rendered="#{personalSedeEducativaBean.renderRestablecerIdentificacion}"
+                                         action="#{personalSedeEducativaBean.restablecerPersonal()}"  />
+
+
+
+                        <f:subview id="viewPersonalIden">
+                            <ui:include src="componentes/identificaciones.xhtml">                                
+                                <ui:param name="persona" value="#{personalSedeEducativaBean.personaEnEdicion}" />
+                                <ui:param name="soloLecturaIdentificaciones" value="#{personalSedeEducativaBean.personaSoloLectura}" />
+                                <ui:param name="renderIdentPersonalSede" value="#{personalSedeEducativaBean.renderIdentPersonalSede}" />
+                                <ui:param name="renderOpcionTieneIdentificacion" value="#{false}" />  
+                            </ui:include>
+                        </f:subview>
+
+
+                        <!-- TODO: bug primefaces https://github.com/primefaces/primefaces/issues/3621 Luego usar c:if  -->
+                        <f:subview id="viewPersonalPersona">
+                            <ui:include src="componentes/persona.xhtml">
+                                <ui:param name="persona" id="persona" value="#{personalSedeEducativaBean.personaEnEdicion}" /> 
+                                <ui:param name="soloLecturaPersona" value="#{personalSedeEducativaBean.personaSoloLectura}" /> 
+                                <ui:param name="controllerParam" value="#{personalSedeEducativaBean}" />
+                                <ui:param name="actionParam" value="#{personalSedeEducativaBean.personaViewAction}" />
+                                <ui:param name="renderIdentPersonalSede" value="#{personalSedeEducativaBean.renderIdentPersonalSede}" />
+                                <ui:param name="continuarExistePersona" value="#{personalSedeEducativaBean.continuarExistePersona}" />
+                                <ui:param name="puedeEditarFechaNacimiento" value="#{true}" />
+                            </ui:include>   
+                        </f:subview>
+
+                        <p:fieldset legend="#{msg.residencia}" style="#{personalSedeEducativaBean.entidadEnEdicion.psePersona.renderBuscarPersona ? 'display: none;' : 'display: block;'}">
+                            <f:subview id="viewPersonalDire">
+                                <ui:include src="componentes/direccion.xhtml">
+                                    <ui:param name="direccion" value="#{personalSedeEducativaBean.direccionEnEdicion}" /> 
+                                    <ui:param name="soloLecturaDireccion"  value="#{personalSedeEducativaBean.direccionSoloLectura}" /> 
+                                </ui:include>
+                            </f:subview>
+                        </p:fieldset>
+
+                        <p:fieldset id="otrosDatosPersonal" legend="#{msg.otrosDatos}" style="#{personalSedeEducativaBean.entidadEnEdicion.psePersona.renderBuscarPersona ? 'display: none;' : 'display: block;'}">
+                            <f:subview id="otrosDatosAllegadoView">
+                                <ui:include src="componentes/otrosDatosPersonal.xhtml">
+                                    <ui:param name="personal" value="#{personalSedeEducativaBean.entidadEnEdicion}" />
+                                    <ui:param name="soloLecturaOtrosDatosPersonal" value="#{personalSedeEducativaBean.personaSoloLectura}" />
+                                </ui:include>
+                            </f:subview>
+                        </p:fieldset>
+
+                        <div class="form-action-buttons">
+                            <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{personalSedeEducativaBean.guardar()}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!personalSedeEducativaBean.soloLectura and !personalSedeEducativaBean.entidadEnEdicion.psePersona.renderBuscarPersona and sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_PERSONA_PERSONAL_SEDE)}"/>
+                            <p:blockUI block="tabDatosPersona" trigger="btnGuardar" />
+                            <p:defaultCommand target="btnGuardar" scope="tabDatosPersona"/>   
+                        </div>
+
+
+
+                    </p:tab>
+                    <p:tab id="tab_empleado" title="#{msg.empleado}" disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_EMPLEADO_PERSONAL_SEDE_TAB) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_EMPLEADO_PERSONAL_SEDE_TAB)}">
+                        <c:if test="#{personalSedeEducativaBean.entidadEnEdicion != null and personalSedeEducativaBean.entidadEnEdicion.psePk != null}">
+                            <ui:include src="componentes/docenteEmpleado.xhtml">
+                                <ui:param name="personalSede" id="personaDatoEmpleado" value="#{personalSedeEducativaBean.entidadEnEdicion}" /> 
+                                <ui:param name="soloLecturaDatoEmpleado" value="#{personalSedeEducativaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_EMPLEADO_PERSONAL_SEDE_TAB)}" /> 
+                            </ui:include>                               
+                        </c:if>
+                    </p:tab>
+                    <p:tab id="tab_docente_contratos" title="#{msg.hnombramientosContratos}" 
+                           disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_NOMBRAMIENTO_PERSONAL_SEDE_TAB) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_NOMBRAMIENTO_PERSONAL_SEDE_TAB)}">
+                        <c:if test="#{personalSedeEducativaBean.entidadEnEdicion != null and personalSedeEducativaBean.entidadEnEdicion.psePk != null}">
+                            <ui:include src="componentes/docenteContratos.xhtml">
+                                <ui:param name="personalSede" id="personaDatoEmpleado" value="#{personalSedeEducativaBean.entidadEnEdicion}" /> 
+                                <ui:param name="soloLecturaContratos" value="#{personalSedeEducativaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_NOMBRAMIENTO_PERSONAL_SEDE_TAB)}" /> 
+                            </ui:include>                               
+                        </c:if>
+                    </p:tab>
+                    <p:tab title="#{msg.hexperienciaLaboral}" 
+                           id="tab_experiencia_laboral"
+                           disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_EXPERIENCIA_LABORAL_PERSONAL_SEDE_TAB) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_EXPERIENCIA_LABORAL_PERSONAL_SEDE_TAB)}">
+                        <c:if test="#{personalSedeEducativaBean.entidadEnEdicion != null and personalSedeEducativaBean.entidadEnEdicion.psePk != null}">
+                            <ui:include src="componentes/docenteExperiencia.xhtml">
+                                <ui:param name="personalSede" id="personaDatoEmpleado" value="#{personalSedeEducativaBean.entidadEnEdicion}" /> 
+                                <ui:param name="soloLecturaExperiencia" value="#{personalSedeEducativaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_EXPERIENCIA_LABORAL_PERSONAL_SEDE_TAB)}" /> 
+                            </ui:include>                               
+                        </c:if>
+                    </p:tab>
+
+
+                    <p:tab id="tab_docente_documentos" title="#{msg.documentacion}" 
+                           disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" 
+                           rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_DOCUMENTACION_PERSONAL_SEDE)}">
+                        <c:if test="#{personalSedeEducativaBean.entidadEnEdicion != null and personalSedeEducativaBean.entidadEnEdicion.psePk != null}">
+                            <ui:include src="componentes/docenteDocumentos.xhtml">
+                                <ui:param name="personalSede" id="personaDatoEmpleado" value="#{personalSedeEducativaBean.entidadEnEdicion}" /> 
+                                <ui:param name="soloLecturaDocenteDocumento" value="#{personalSedeEducativaBean.soloLectura}" /> 
+                            </ui:include>                               
+                        </c:if>
+                    </p:tab>
+
+                    <p:tab title="#{msg.estudiosRealizados}" 
+                           id="tab_estudios_realizados"
+                           disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_ESTUDIOS_REALIZADOS_PERSONAL_SEDE_TAB) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_ESTUDIOS_REALIZADOS_PERSONAL_SEDE_TAB)}">
+                        <c:if test="#{personalSedeEducativaBean.entidadEnEdicion != null and personalSedeEducativaBean.entidadEnEdicion.psePk != null}">
+                            <ui:include src="componentes/estudiosRealizados.xhtml">
+                                <ui:param name="personalSede" id="personaEstudioRealizado" value="#{personalSedeEducativaBean.entidadEnEdicion}" /> 
+                                <ui:param name="soloLecturaEstudiosRealizados" id="personaEstudioRealizadoSoloLectura" value="#{personalSedeEducativaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_ESTUDIOS_REALIZADOS_PERSONAL_SEDE_TAB)}" /> 
+                            </ui:include> 
+                        </c:if>
+                    </p:tab>
+                    <p:tab id="tab_formacion_docente" title="#{msg.formacionDocente}" disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_FORMACION_DOCENTE_PERSONAL_SEDE_TAB) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FORMACION_DOCENTE_PERSONAL_SEDE_TAB)}">
+                        <c:if test="#{personalSedeEducativaBean.entidadEnEdicion != null and personalSedeEducativaBean.entidadEnEdicion.psePk != null}">
+                            <ui:include src="componentes/formacionDocente.xhtml">
+                                <ui:param name="personalSede" id="personaFormacionDocente" value="#{personalSedeEducativaBean.entidadEnEdicion}" /> 
+                                <ui:param name="soloLecturaFormacionDocente" id="personaFormacionDocenteSoloLectura" value="#{personalSedeEducativaBean.soloLectura or !sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FORMACION_DOCENTE_PERSONAL_SEDE_TAB)}" /> 
+                            </ui:include> 
+                        </c:if>
+                    </p:tab>
+                    <p:tab id="allegados" title="#{msg.hfamiliares}" disabled="#{personalSedeEducativaBean.entidadEnEdicion.psePk == null}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_FAMILIARES_PERSONAL_SEDE_TAB) or sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FAMILIARES_PERSONAL_SEDE_TAB)}">
+                        <div class="form-action-buttons">
+                            <p:commandButton  id="btnGuardarFamiliar" value="#{msg.agregar}" action="#{personalSedeEducativaBean.agregarFamiliar()}" update="@form" rendered="#{!personalSedeEducativaBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FAMILIARES_PERSONAL_SEDE_TAB)}" styleClass="btn btn-secondary" icon="glyphicon glyphicon-plus" />
+                        </div>
+                        <p:outputPanel id="listaFamiliares" >
+                            <p:dataTable id="basicDT"
+                                         widgetVar="widResultado"
+                                         var="elem"
+                                         value="#{personalSedeEducativaBean.listAllegados}"
+                                         emptyMessage="#{msg.noHayResultados}"
+                                         >
+                                <p:column headerText="#{msg.parentesco}" sortBy="#{elem.allTipoParentesco.tpaNombre}">
+                                    <h:outputText value="#{elem.allTipoParentesco.tpaNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.allPersona.perPrimerNombre}">
+                                    <h:outputText value="#{elem.allPersona.perPrimerNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.allPersona.perSegundoNombre}">
+                                    <h:outputText value="#{elem.allPersona.perSegundoNombre}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.allPersona.perPrimerApellido}">
+                                    <h:outputText value="#{elem.allPersona.perPrimerApellido}" />
+                                </p:column>
+                                <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.allPersona.perSegundoApellido}">
+                                    <h:outputText value="#{elem.allPersona.perSegundoApellido}" />
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{personalSedeEducativaBean.personaSoloLectura}">
+                                    <p:commandButton update="@form"  icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.ver}" action="#{personalSedeEducativaBean.editarFamiliar(elem)}"/>
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not personalSedeEducativaBean.personaSoloLectura}">
+                                    <p:commandButton update="@form"  icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" action="#{personalSedeEducativaBean.editarFamiliar(elem)}"/>
+                                </p:column>
+                                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not personalSedeEducativaBean.personaSoloLectura}">
+                                    <p:commandButton oncomplete="PF('confirmDialogAllegado').show()" icon="glyphicon glyphicon-trash " styleClass="btn btn-icono rojo" title="#{msg.eliminar}" action="#{personalSedeEducativaBean.editarFamiliar(elem)}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                        <p:outputPanel id="formularioReferente" rendered="#{not empty personalSedeEducativaBean.allegadoEnEdicion }">
+                            <div class="separador"></div>
+                            <h3>
+                                <h:outputText rendered="#{personalSedeEducativaBean.allegadoEnEdicion.allPk != null}" value="#{msg.edicionFamiliar} #{personalSedeEducativaBean.allegadoEnEdicion.allPersona.perNombreCompleto}"/>
+                                <h:outputText rendered="#{personalSedeEducativaBean.allegadoEnEdicion.allPk == null}" value="#{msg.agregarFamiliar}" />
+                            </h3>
+
+
+                            <h:panelGroup id="fila_input_parentesco_c">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_parentesco" >                        
+                                    <h:outputLabel value="#{msg.htipoParentesco}" for="input_parentesco" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>                        
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <h:selectOneMenu id="input_parentesco" value="#{personalSedeEducativaBean.comboTipoParentesco.selected}" styleClass="form-control dropdown texto-medio" disabled="#{personalSedeEducativaBean.personaSoloLectura}" >
+                                            <f:selectItems value="#{personalSedeEducativaBean.comboTipoParentesco.items}" />
+                                            <p:ajax listener="#{personalSedeEducativaBean.comboParentescoSelected()}" event="change" />
+                                        </h:selectOneMenu>                                    
+                                        <h:message for="input_parentesco" styleClass="msj-danger"/>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                            </h:panelGroup>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_persona_tiene_identificacion">
+                                <h:outputText value="#{msg.dependiente}" styleClass="col-sm-4 col-md-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                    <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado"
+                                                      value="#{personalSedeEducativaBean.allegadoEnEdicion.allDependiente}"
+                                                      disabled="#{personalSedeEducativaBean.soloLectura}">
+                                        <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    </p:selectOneRadio>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <f:subview id="idenFamiliarView">
+                                <ui:include src="componentes/identificaciones.xhtml">
+                                    <ui:param name="persona" value="#{personalSedeEducativaBean.personaEnEdicion}" />
+                                    <ui:param name="soloLecturaIdentificaciones" value="#{personalSedeEducativaBean.personaSoloLectura}" />
+                                    <ui:param name="renderIdentPersonalSede" value="#{personalSedeEducativaBean.renderIdentPersonalSede}" />
+                                    <ui:param name="renderOpcionTieneIdentificacion" value="#{false}" />
+                                </ui:include>
+                            </f:subview>
+
+                            <f:subview id="viewFamiliar">
+                                <ui:include src="componentes/persona.xhtml">
+                                    <ui:param name="persona" id="estudianteReferente" value="#{personalSedeEducativaBean.personaEnEdicion}" />
+                                    <ui:param name="soloLecturaPersona" id="edit" value="#{personalSedeEducativaBean.personaSoloLectura}" />
+                                    <ui:param name="controllerParam" value="#{personalSedeEducativaBean}" />
+                                    <ui:param name="actionParam" value="#{personalSedeEducativaBean.personaViewAction}" />
+                                </ui:include>
+                            </f:subview>
+
+                            <p:fieldset legend="#{msg.hDireccion}" style="#{personalSedeEducativaBean.allegadoEnEdicion.allPersona.renderBuscarPersona ? 'display: none;' : 'display: block;'}">
+                                <f:subview id="viewFamiliarDire">
+                                    <ui:include src="componentes/direccion.xhtml">
+                                        <ui:param name="direccion" value="#{personalSedeEducativaBean.direccionEnEdicion}" />
+                                        <ui:param name="soloLecturaDireccion" value="#{personalSedeEducativaBean.direccionSoloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+                            </p:fieldset>
+
+                            <p:fieldset id="otrosDatos" legend="#{msg.otrosDatos}" style="#{personalSedeEducativaBean.allegadoEnEdicion.allPersona.renderBuscarPersona ? 'display: none;' : 'display: block;'}">
+                                <f:subview id="otrosDatosView">
+                                    <ui:include src="componentes/otrosDatosAllegado.xhtml">
+                                        <ui:param name="allegado" value="#{personalSedeEducativaBean.allegadoEnEdicion}" />
+                                        <ui:param name="soloLecturaOtrosDatosAllegado" value="#{personalSedeEducativaBean.personaSoloLectura}" />
+                                    </ui:include>
+                                </f:subview>
+                            </p:fieldset>
+
+                            <div class="form-action-buttons">
+                                <p:commandButton  id="btnGuardarReferente" value="#{msg.guardar}" action="#{personalSedeEducativaBean.guardarFamiliar()}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{!personalSedeEducativaBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.EDITAR_FAMILIARES_PERSONAL_SEDE_TAB)}"/>
+                                <p:blockUI block="formularioReferente" trigger="btnGuardarReferente" />
+                                <p:defaultCommand target="btnGuardarReferente" scope="formularioReferente"/>   
+                            </div>
+                        </p:outputPanel>
+                        <p:confirmDialog id="confirmDialogAllegado"
+                                         message="#{msg.textoConfirmacionEliminacion}"
+                                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialogAllegado">
+                            <p:outputPanel styleClass="float-right" >
+                                <p:commandButton id="confirmDeleteAllegado" value="#{msg.hconfirmar}" update="@form"
+                                                 oncomplete="PF('confirmDialogAllegado').hide()"
+                                                 styleClass="btn btn-primary"
+                                                 action="#{personalSedeEducativaBean.eliminarFamiliar()}"  />
+                                <p:blockUI block="@form" trigger="confirmDeleteAllegado"/>
+                                <p:commandLink id="cancelarDeleteAllegado" value="#{msg.cancelar}"
+                                               onclick="PF('confirmDialogAllegado').hide()" styleClass="btn btn-link" />
+                            </p:outputPanel>
+                        </p:confirmDialog>
+                    </p:tab>
+                </p:tabView>
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div>
+            </h:panelGroup>            
+        </p:outputPanel>
+
+    </h:form>
+</ui:composition>

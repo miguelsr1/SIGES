@@ -1,0 +1,583 @@
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'VER_REPORTE_POA_PROYECTO_ADMINISTRATIVO',
+'Operación que permite acceder al reporte POA proyecto administrativo',
+'VER_REPORTE_POA_PROYECTO_ADMINISTRATIVO',
+'',
+'',
+0,null,1,null);
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'VER_REPORTE_POI_PROYECTO_ADMINISTRATIVO',
+'Operación que permite acceder al reporte POI proyecto administrativo',
+'VER_REPORTE_POI_PROYECTO_ADMINISTRATIVO',
+'',
+'',
+0,null,1,null);
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'VER_REPORTE_POI_PROYECTO_ADMINISTRATIVO_PRG_INSTITUCIONAL',
+'Operación que permite acceder al reporte POI proyecto administrativo',
+'VER_REPORTE_POI_PROYECTO_ADMINISTRATIVO_PRG_INSTITUCIONAL',
+'',
+'',
+0,null,1,null);
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'VER_REPORTE_SEGUIMIENTO_PROYECTO_ADMINISTRATIVO',
+'Operación que permite acceder al reporte POI proyecto administrativo',
+'VER_REPORTE_SEGUIMIENTO_PROYECTO_ADMINISTRATIVO',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+
+
+----------------------
+
+
+
+
+alter table ss_po_insumo add  poi_monto_comprometido NUMBER(20,2);
+alter table ss_po_insumo_hist add  poi_monto_comprometido NUMBER(20,2);
+COMMENT ON COLUMN ss_po_insumo.poi_monto_comprometido IS 'Monto comprometido del insumo';
+
+
+
+
+
+  CREATE TABLE "SS_COMPROMISOS_PRESTARIO" 
+   (	"COM_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"COM_ESTADO" VARCHAR2(255 BYTE), 
+	"COM_FECHA_EMISION" TIMESTAMP (6), 
+	"COM_FECHA_SOLICITUD" TIMESTAMP (6), 
+	"COM_FECHA_VALIDACION" TIMESTAMP (6), 
+	"COM_NUMERO_SAFI" VARCHAR2(255 BYTE), 
+	"COM_ULT_MOD" TIMESTAMP (6), 
+	"COM_ULT_USUARIO" VARCHAR2(255 BYTE), 
+	"COM_VERSION" NUMBER(10,0), 
+	"COM_USU_EMISION_ID" NUMBER(10,0), 
+	"COM_USU_VALIDACION_ID" NUMBER(10,0), 
+	"CON_PROCESO_ID" NUMBER(10,0), 
+	 PRIMARY KEY ("COM_ID"), 
+	 CONSTRAINT "SSCMPRMISOSPRESTARIOCNPRCESOID" FOREIGN KEY ("CON_PROCESO_ID")
+	  REFERENCES "SS_PROCESO_ADQ" ("PRO_ID") ENABLE, 
+	 CONSTRAINT "SSCMPRMISOSPRESTARIOCMSMSIONID" FOREIGN KEY ("COM_USU_EMISION_ID")
+	  REFERENCES "SS_USUARIO" ("USU_ID") ENABLE, 
+	 CONSTRAINT "SSCMPRMSSPRESTARIOCMSVLDCIONID" FOREIGN KEY ("COM_USU_VALIDACION_ID")
+	  REFERENCES "SS_USUARIO" ("USU_ID") ENABLE
+   );
+create table SS_COMPROMISOS_PRESTARIO_HIST as select * from SS_COMPROMISOS_PRESTARIO where 1 = 2; 
+alter table SS_COMPROMISOS_PRESTARIO_HIST add (START_DATE DATE ); 
+alter table SS_COMPROMISOS_PRESTARIO_HIST add (END_DATE DATE ); 
+
+
+COMMENT ON TABLE "SS_COMPROMISOS_PRESTARIO"  IS 'Tabla que contiene los compromisos presupuestarios';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_ID IS 'ID Clave primaria';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_ESTADO IS 'Estado del compromiso';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_FECHA_EMISION IS 'Fecha de emisión del compromiso';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_FECHA_SOLICITUD IS 'Fecha de solicitud del compromiso';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_NUMERO_SAFI IS 'Número en el sistema SAFI';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.CON_PROCESO_ID IS 'Referencia al proceso de adquisición';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_ULT_MOD IS 'Fecha de última modificación';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_ULT_USUARIO IS 'Último usuario que realizó cambios';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_VERSION IS 'Nro. de versión del registro';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_USU_EMISION_ID IS 'Referencia al usuario que emitió el compromiso';
+
+COMMENT ON COLUMN SS_COMPROMISOS_PRESTARIO.COM_USU_VALIDACION_ID IS 'Referencia al usuario que validó el compromiso';
+
+
+
+
+
+
+
+
+
+
+  CREATE TABLE "SS_POLIZAS_DE_CONCEN" 
+   (	"POL_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"POL_DESCRIPCION" CLOB, 
+	"POL_ESTADO" VARCHAR2(255 BYTE), 
+	"POL_MONTO" NUMBER(20,2), 
+	"POL_PROV_CORREO" VARCHAR2(255 BYTE), 
+	"POL_PROV_DIRECCION" VARCHAR2(255 BYTE), 
+	"POL_PROV_NIT" VARCHAR2(255 BYTE), 
+	"POL_PROV_NOMBRE" VARCHAR2(255 BYTE), 
+	"POL_PROV_RAZON_SOCIAL" VARCHAR2(255 BYTE), 
+	"POL_PROV_TELEFONO" VARCHAR2(255 BYTE), 
+	"POL_ULT_MOD" TIMESTAMP (6), 
+	"POL_ULT_USUARIO" VARCHAR2(255 BYTE), 
+	"POL_VERSION" NUMBER(10,0), 
+	"POL_FUENTE_ID" NUMBER(10,0), 
+	 PRIMARY KEY ("POL_ID"), 
+	 CONSTRAINT "SSPOLIZASDECONCENPOL_FUENTE_ID" FOREIGN KEY ("POL_FUENTE_ID")
+	  REFERENCES "SS_PO_MONT_FUENT_I" ("POG_ID") ENABLE
+   );
+create table SS_POLIZAS_DE_CONCEN_HIST as select * from SS_POLIZAS_DE_CONCEN where 1 = 2; 
+alter table SS_POLIZAS_DE_CONCEN_HIST add (START_DATE DATE ); 
+alter table SS_POLIZAS_DE_CONCEN_HIST add (END_DATE DATE ); 
+
+
+COMMENT ON TABLE "SS_POLIZAS_DE_CONCEN"  IS 'Tabla que contiene las Pólizas de Concentración';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_ID IS 'ID Clave primaria';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_DESCRIPCION IS 'Descripción de la póliza';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_ESTADO IS 'Estado de la póliza';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_MONTO IS 'Monto de la póliza';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_PROV_CORREO IS 'Correo del proveedor';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_PROV_DIRECCION IS 'Dirección del proveedor';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_PROV_NOMBRE IS 'Nombre del proveedor';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_PROV_RAZON_SOCIAL IS 'Razón social del proveedor';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_PROV_TELEFONO IS 'Teléfono del proveedor';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_FUENTE_ID IS 'Relación a la fuente que corresponde la póliza';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_ULT_MOD IS 'Fecha de última modificación';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_ULT_USUARIO IS 'Último usuario que realizó cambios';
+
+COMMENT ON COLUMN SS_POLIZAS_DE_CONCEN.POL_VERSION IS 'Nro. de versión del registro';
+
+
+
+
+
+
+
+
+  CREATE TABLE "SS_REL_POLIZA_IMPUESTO" 
+   (	"POL_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"IMP_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	 PRIMARY KEY ("POL_ID", "IMP_ID"), 
+	 CONSTRAINT "SS_REL_POLIZA_IMPUESTO_IMP_ID" FOREIGN KEY ("IMP_ID")
+	  REFERENCES "SS_IMPUESTOS" ("IMP_ID") ENABLE, 
+	 CONSTRAINT "SS_REL_POLIZA_IMPUESTO_POL_ID" FOREIGN KEY ("POL_ID")
+	  REFERENCES "SS_POLIZAS_DE_CONCEN" ("POL_ID") ENABLE
+   );
+create table SS_REL_POLIZA_IMPUESTO_HIST as select * from SS_REL_POLIZA_IMPUESTO where 1 = 2; 
+alter table SS_REL_POLIZA_IMPUESTO_HIST add (START_DATE DATE ); 
+alter table SS_REL_POLIZA_IMPUESTO_HIST add (END_DATE DATE ); 
+
+
+COMMENT ON TABLE "SS_REL_POLIZA_IMPUESTO"  IS 'Tabla que contiene las relaciones entre Pólizas de Concentración y impuestos';
+
+COMMENT ON COLUMN SS_REL_POLIZA_IMPUESTO.POL_ID IS 'ID de la póliza';
+
+COMMENT ON COLUMN SS_REL_POLIZA_IMPUESTO.IMP_ID IS 'ID del Impuesto';
+
+
+
+
+
+
+
+
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'CREAR_EDITAR_POLIZA',
+'Operación que permite crear o editar pólizas',
+'Crear o editar pólizas',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'CAMBIAR_ESTADO_POLIZA',
+'Operación que permite cambiar el estado de las pólizas',
+'Cambiar estado',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'CONSULTA_COMPROMISO_PRESUPUESTARIO',
+'Operación que permite consultar los compromisos presupuestarios',
+'Consulta compromiso presupuestario',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'VER_TODOS_COMPROMISOS',
+'Operación que permite ver todos los compromisos presupuestarios existentes',
+'Ver todos los compromisos presupuestarios',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'EMITIR_COMPROMISO',
+'Operación que permite emitir un compromiso presupuestario',
+'Emitircompromisos presupuestarios',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'VALIDAR_COMPROMISO_PRESUPUESTARIO',
+'Operación que permite validar un compromiso presupuestario',
+'Validar presupuestarios',
+'',
+'',
+0,null,1,null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------
+
+
+
+
+/*Se agranda el largo del campo de observaciones de contrato (según CU es de 500 y estaba de 255)*/
+
+ALTER TABLE SS_CONTRATO_OC  
+MODIFY (CON_OBSERVACIONES VARCHAR2(500 BYTE) );
+
+ALTER TABLE SS_CONTRATO_OC_HIST  
+MODIFY (CON_OBSERVACIONES VARCHAR2(500 BYTE) );
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'DESCERTIFICAR_MONTO_FUENTE_INSUMO',
+'Operación que permite realizar la descertificación de un monto de de fuente de un insumo',
+'Descertificar monto de fuente de insumo',
+'',
+'',
+0,null,1,null);
+
+
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'CONSULTA_TIEMPOS_PROCESO_ADQUISICION',
+'Operación que permite consultar los tiempos empleados en los procesos de adquisición',
+'Consultar de tiempos en Procesos de Adqusición',
+'',
+'',
+0,null,1,null);
+
+
+Insert into SS_OPERACION (
+OPE_ID,
+OPE_CODIGO,
+OPE_DESCRIPCION,
+OPE_NOMBRE,
+OPE_ORIGEN,
+OPE_TIPOCAMPO,
+OPE_USER_CODE,
+OPE_VERSION,
+OPE_VIGENTE,
+OPE_CATEGORIA_ID) values (
+seq_operacion.NEXTVAL,
+'REPORTE_INSUMOS_PAC',
+'Operación que permite obtener un reporte de un PAC',
+'Reporte de insumos del PAC',
+'',
+'',
+0,null,1,null);
+
+
+
+
+--------------------------------------------
+
+
+
+   CREATE TABLE "SIAP"."SS_REPROGRAMACIONES" 
+   (	"ID" NUMBER(*,0) NOT NULL ENABLE, 
+	"REP_ULT_USUARIO" VARCHAR2(45 BYTE), 
+	"ULTMOD" TIMESTAMP (6), 
+	"VERSION" NUMBER(*,0), 
+	 CONSTRAINT "PK_REPROG" PRIMARY KEY ("ID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+  TABLESPACE "USERS"  ENABLE
+   ) PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+  TABLESPACE "USERS" ;
+
+
+CREATE TABLE "SIAP"."SS_REPROG_DETALLE" 
+   (	"RDE_ID" NUMBER(*,0) NOT NULL ENABLE, 
+	"RDE_REP_ID" NUMBER(*,0) NOT NULL ENABLE, 
+	"RDE_POA_ID" NUMBER(*,0), 
+	"RDE_ACT_ID" NUMBER(*,0), 
+	"RDE_INS_ID" NUMBER(*,0), 
+	"RDE_NO_UACI" NUMBER(*,0), 
+	"RDE_OBSERVACIONES" VARCHAR2(1000 BYTE), 
+	"RDE_CANTIDAD" NUMBER(*,0), 
+	"RDE_UNITARIO" NUMBER(20,6), 
+	"RDE_TOTAL" NUMBER(20,6), 
+	"RDE_MES1" NUMBER(20,6), 
+	"RDE_MES2" NUMBER(20,6), 
+	"RDE_MES3" NUMBER(20,6), 
+	"RDE_MES4" NUMBER(20,6), 
+	"RDE_MES5" NUMBER(20,6), 
+	"RDE_MES6" NUMBER(20,6), 
+	"RDE_MES7" NUMBER(20,6), 
+	"RDE_MES8" NUMBER(20,6), 
+	"RDE_MES9" NUMBER(20,6), 
+	"RDE_MES10" NUMBER(20,6), 
+	"RDE_MES11" NUMBER(20,6), 
+	"RDE_MES12" NUMBER(20,6), 
+	"RDE_ULTMOD" TIMESTAMP (6), 
+	"RDE_ULTMOD_USU" VARCHAR2(45 BYTE), 
+	"RDE_VERSION" NUMBER, 
+	"COLUMN6" VARCHAR2(20 BYTE), 
+	 CONSTRAINT "FK_REPROG" FOREIGN KEY ("RDE_REP_ID")
+	  REFERENCES "SIAP"."SS_REPROGRAMACIONES" ("ID") ENABLE
+   ) PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+  TABLESPACE "USERS" ;
+
+
+ CREATE SEQUENCE  "SIAP"."SEQ_REP"  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE ;
+
+CREATE TABLE "SIAP"."SS_REPROGRAMACIONES_HIST" 
+   (	"ID" NUMBER(*,0) NOT NULL ENABLE, 
+	"ULTMOD" TIMESTAMP (6), 
+	"VERSION" NUMBER(*,0), 
+	"START_DATE" DATE, 
+	"END_DATE" DATE, 
+	"REP_ULT_USUARIO" VARCHAR2(45 BYTE)
+   ) PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+  TABLESPACE "USERS" ;
+ 
+
+
+
+
+
+-----------------------------------------------
+
+
+
+
+
+
+
+--metodo dos
+DELETE FROM ss_textos WHERE tex_valor like '??%??';
+
+insert into ss_textos select seq_textos.nextval,tex_codigo,tex_habilitado,tex_ult_mod,tex_ult_origen,
+tex_ult_usuario,tex_valor,tex_version,tex_idi_id
+from siap.ss_textos t1 where not exists (select 1 from ss_textos t2 where t1.tex_codigo = t2.tex_codigo) and t1.tex_valor not like '??%??';
+
+insert into ss_textos select seq_textos.nextval,tex_codigo,tex_habilitado,tex_ult_mod,tex_ult_origen,
+tex_ult_usuario,tex_valor,tex_version,tex_idi_id
+from siap_edu.ss_textos t1 where not exists (select 1 from ss_textos t2 where t1.tex_codigo = t2.tex_codigo) and t1.tex_valor not like '??%??'; 
+
+
+insert into ss_textos select seq_textos.nextval,tex_codigo,tex_habilitado,tex_ult_mod,tex_ult_origen,
+tex_ult_usuario,tex_valor,tex_version,tex_idi_id
+from siap_marcelo.ss_textos t1 where not exists (select 1 from ss_textos t2 where t1.tex_codigo = t2.tex_codigo) and t1.tex_valor not like '??%??'; 

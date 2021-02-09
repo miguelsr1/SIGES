@@ -1,0 +1,356 @@
+
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+
+
+
+    <div class="banner-content">  
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.portalSede}"/></h2>
+            <h4 class="page-header-description"><h:outputText rendered="#{sedesBean.textoBannerSedes != null}" value="#{sedesBean.textoBannerSedes}"/></h4>
+        </p:outputPanel>
+    </div>
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoFiltro" />
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        <div class="panel-filtro-tama">
+            <h3 class="titulosAmp">#{msg.busquedaSede}</h3>
+            <h:panelGroup id="searchPanels">
+                <p:panel header="#{msg.filtro}"  toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                    <p:outputPanel id="pnlSearch" styleClass="row">
+                        <p:outputPanel styleClass="col-md-12">
+                            <p:outputPanel styleClass="form-group row" id="fila_input_tipo_filtro">
+                                <h:outputLabel value="#{msg.tipo}" for="fila_input_tipo_filtro" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-10  ">
+                                    <p:selectOneRadio layout="responsive" columns="2" id="select_tipo_calendario"  value="#{sedesBean.tipoFiltroSelected}" >
+                                        <f:selectItems value="#{sedesBean.tipoFiltroList}" var="periodo" itemLabel="#{periodo.text}" itemValue="#{periodo}" />
+                                        <p:ajax update="pnlSearch" listener="#{sedesBean.seleccionarTipoFiltro()}"  />
+                                    </p:selectOneRadio>
+                                </p:outputPanel> 
+
+                            </p:outputPanel>         
+
+                            <p:outputPanel  rendered="#{sedesBean.tipoFiltroSelected eq EnumTipoFiltro.SEDE}">
+
+                                <p:outputPanel styleClass="form-group row" id="fila_input_tipo">
+                                    <h:outputLabel value="#{msg.tiposede}" for="b_tipo" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4  ">
+                                        <h:selectOneMenu   id="b_tipo" value="#{sedesBean.comboTiposSede.selected}"
+                                                           styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedesBean.comboTiposSede.items}" />
+                                            <p:ajax listener="#{sedesBean.seleccionarDepartamento}" event="change" 
+                                                    process="@this" update="fila_input_tipo"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel> 
+
+
+                                    <h:outputLabel styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4  " rendered="#{sedesBean.renderizarBuscarPorCercania}">
+                                        <p:link href="#{applicationBean.qgisUrl}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                                            <h:outputText styleClass="glyphicon glyphicon-map-marker"/>
+                                            <h:outputText style="margin-left:6px;" value="Buscar por cercanía"/>
+                                        </p:link>
+                                    </p:outputPanel>   
+
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:inputText autocomplete="off" styleClass="form-control codnomb" id="b_codigo" value="#{sedesBean.filtro.sedCodigo}" /> 
+                                    </p:outputPanel>
+
+                                    <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:inputText autocomplete="off" styleClass="form-control codnomb" id="b_nombre" value="#{sedesBean.filtro.sedNombre}" />    
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_departamento">
+                                    <h:outputLabel value="#{msg.departamento}" for="b_departamento" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:selectOneMenu   id="b_departamento" value="#{sedesBean.comboDepartamentos.selected}"
+                                                           styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedesBean.comboDepartamentos.items}" />
+                                            <p:ajax listener="#{sedesBean.seleccionarDepartamento}" event="change" 
+                                                    process="@this" update="fila_input_departamento"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+
+                                    <h:outputLabel value="#{msg.municipio}" for="b_municipio" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4 ">
+                                        <h:selectOneMenu   id="b_municipio" value="#{sedesBean.comboMunicipios.selected}" 
+                                                           styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedesBean.comboMunicipios.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                            
+                            <p:outputPanel  rendered="#{sedesBean.tipoFiltroSelected eq EnumTipoFiltro.SI}">
+                                 <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.codigoSistemaIntegrado}" for="b_codigo_si" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:inputText autocomplete="off" styleClass="form-control codnomb" id="b_codigo_si" value="#{sedesBean.filtro.sedSistemaIntegradoCodigo}" /> 
+                                    </p:outputPanel>
+
+                                    <h:outputLabel value="#{msg.nombreSistemaIntegrado}" for="b_nombre_si" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:inputText autocomplete="off" styleClass="form-control codnomb" id="b_nombre_si" value="#{sedesBean.filtro.sedSistemaIntegradoNombre}" />    
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.promotor}" for="b_promotor" styleClass="col-sm-2 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-4">
+                                        <h:selectOneMenu   id="b_promotor" value="#{sedesBean.comboPromotor.selected}"
+                                                           styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{sedesBean.comboPromotor.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                    
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:outputPanel>     
+
+                    </p:outputPanel>
+                </p:panel>	
+
+                <p:panel id="panelAvanzado" 
+                         header="#{msg.filtrosAvanzados}"
+                         styleClass="panel-filtro"
+                         closable="true"
+                         rendered="#{sedesBean.panelAvanzado}">
+                    <p:outputPanel id="pnlSearch2" styleClass="row" >
+                        <p:outputPanel styleClass="col-md-12">
+
+                            <p:outputPanel styleClass="form-group row">                                    
+                                <h:outputLabel value="#{msg.zona}" for="b_zona" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_zona" value="#{sedesBean.comboZonas.selected}" 
+                                                       styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedesBean.comboZonas.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+
+                                <h:outputLabel value="#{msg.finDeLucro}" for="b_finlucro" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4  ">
+                                    <p:outputPanel styleClass="col-sm-4 col-md-10">
+                                        <p:selectOneRadio layout="responsive" columns="3" id="b_finlucro" value="#{sedesBean.filtro.cedFineDeLucro}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                        </p:selectOneRadio>
+                                    </p:outputPanel>
+                                </p:outputPanel>                                    
+                            </p:outputPanel>               
+
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.subvencionado}" for="b_legalizada" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <p:outputPanel styleClass="col-sm-4 col-md-10">
+                                        <p:selectOneRadio layout="responsive" columns="3" id="b_subvencionada" value="#{sedesBean.filtro.priSubvencionada}">
+                                            <f:selectItems value="#{applicationBean.booleanValues}" />
+                                            <f:selectItem itemValue="#{null}" itemLabel="Todas"/>
+                                        </p:selectOneRadio>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <h:outputLabel value="#{msg.htipoCalendario}" for="b_tipoCalendario" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_tipoCalendario" value="#{sedesBean.tipoCalendarioFiltroCombo.selected}"
+                                                       styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedesBean.tipoCalendarioFiltroCombo.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.niveles}" for="b_nivel" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_nivel" value="#{sedesBean.comboNivel.selected}"
+                                                       styleClass="form-control dropdown texto-medio" >
+                                        <f:selectItems value="#{sedesBean.comboNivel.items}" />
+                                        <p:ajax listener="#{sedesBean.seleccionarNivel}" process="@this"
+                                                update="b_ciclos b_modalidad_educativa b_modalidad_atencion b_sub_modalidad b_grado b_opcion"></p:ajax>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+
+                                <h:outputLabel value="#{msg.ciclos}" for="b_ciclos" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_ciclos" value="#{sedesBean.comboCiclo.selected}"
+                                                       styleClass="form-control dropdown texto-medio" 
+                                                       disabled="#{sedesBean.comboNivel.selectedT==null}">
+                                        <f:selectItems value="#{sedesBean.comboCiclo.items}" />
+                                        <p:ajax listener="#{sedesBean.seleccionarCiclo}" process="@this"  
+                                                update="b_modalidad_educativa b_modalidad_atencion b_sub_modalidad b_grado" ></p:ajax>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.modalidad}" for="b_modalidad_educativa" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_modalidad_educativa" value="#{sedesBean.comboModalidad.selected}"
+                                                       styleClass="form-control dropdown texto-medio" 
+                                                       disabled="#{sedesBean.comboCiclo.selectedT==null}">
+                                        <f:selectItems value="#{sedesBean.comboModalidad.items}" />
+                                        <p:ajax listener="#{sedesBean.seleccionarModalidad()}" process="@this" 
+                                                update="b_opcion b_modalidad_atencion b_sub_modalidad b_grado" ></p:ajax>
+                                    </h:selectOneMenu>
+                                </p:outputPanel> 
+
+                                <h:outputLabel value="#{msg.modalidadAtencion}" for="b_modalidad_atencion" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_modalidad_atencion" value="#{sedesBean.comboModalidadAtencion.selected}"
+                                                       disabled="#{sedesBean.comboModalidad.selectedT == null}"
+                                                       styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedesBean.comboModalidadAtencion.items}" />
+                                        <p:ajax listener="#{sedesBean.seleccionarModalidadAtencion}" process="@this" 
+                                                update="b_sub_modalidad b_grado"></p:ajax>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+
+
+
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" >                                       
+
+                                <h:outputLabel value="#{msg.subModalidadAtencion}" for="b_sub_modalidad" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_sub_modalidad" value="#{sedesBean.comboSubModalidad.selected}"
+                                                       styleClass="form-control dropdown texto-medio" 
+                                                       disabled="#{sedesBean.comboModalidadAtencion.selectedT == null or sedesBean.comboSubModalidad.isEmpty()}">
+                                        <f:selectItems value="#{sedesBean.comboSubModalidad.items}" />
+                                        <p:ajax listener="#{sedesBean.seleccionarSubModalidadAtencion()}" process="@this" 
+                                                update="b_grado" ></p:ajax>
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+
+                                <h:outputLabel value="#{msg.opcion}" for="b_opcion" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_opcion" value="#{sedesBean.comboOpcion.selected}"
+                                                       styleClass="form-control dropdown texto-medio" 
+                                                       disabled="#{sedesBean.comboModalidad.selectedT == null}">
+                                        <f:selectItems value="#{sedesBean.comboOpcion.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel> 
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.programaEducativo}" for="b_programa_educativo" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_programa_educativo" value="#{sedesBean.comboProgramaEducativo.selected}"
+                                                       styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedesBean.comboProgramaEducativo.items}" />
+
+                                    </h:selectOneMenu>
+                                </p:outputPanel>
+
+                                <h:outputLabel value="#{msg.grado}" for="b_grado" styleClass="col-sm-2 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-4">
+                                    <h:selectOneMenu   id="b_grado" value="#{sedesBean.comboGrado.selected}"
+                                                       styleClass="form-control dropdown texto-medio"
+                                                       disabled="#{sedesBean.comboModalidadAtencion.selectedT == null or (!sedesBean.comboSubModalidad.isEmpty() and sedesBean.comboSubModalidad.selectedT == null)}">
+                                        <f:selectItems value="#{sedesBean.comboGrado.items}" />
+                                    </h:selectOneMenu>
+                                </p:outputPanel> 
+
+
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" >
+                                <h:outputLabel value="#{msg.tipoOrganismoAdministrativo}" for="input_tipo_org" styleClass="col-sm-2 col-form-label"/>                                                        
+                                <p:outputPanel styleClass="col-sm-4 ">                            
+                                    <h:selectOneMenu id="input_tipo_org"  value="#{sedesBean.tipoOrganismoAdministrativoCombo.selected}"  styleClass="form-control dropdown texto-medio">
+                                        <f:selectItems value="#{sedesBean.tipoOrganismoAdministrativoCombo.items}"/>
+                                    </h:selectOneMenu>                                    
+                                    <h:message for="input_tipo_org" styleClass="msj-danger"/>
+                                </p:outputPanel> 
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:panel>
+
+            </h:panelGroup>
+            <p:outputPanel>
+                <p:outputPanel styleClass="form-group row">
+                    <p:outputPanel styleClass="col-sm-12 texto-right">
+                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                         action="#{sedesBean.buscar()}" update="pnlResultado"/>
+                        <p:commandLink value="#{sedesBean.txtFiltroAvanzado}" 
+                                       action="#{sedesBean.verPanelAvanzado()}" 
+                                       update="searchPanels @this" styleClass="btn btn-link">
+                        </p:commandLink>
+                        <p:commandLink value="#{msg.limpiar}" action="#{sedesBean.limpiar()}" 
+                                       update="pnlSearch pnlSearch2 pnlResultado" immediate="true" styleClass="btn btn-link">
+                            <p:resetInput target="pnlSearch pnlSearch2 pnlResultado" />
+                        </p:commandLink>
+                        <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        <p:blockUI block="@form" trigger="btnBuscar" />
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </div>   
+
+
+
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataList id="basicDT"                         
+                        widgetVar="widResultado"                         
+                        var="elem"                          
+                        value="#{sedesBean.sedesLazyModel}"     
+                        rendered="#{sedesBean.sedesLazyModel != null}"
+                        emptyMessage="#{msg.noHayResultados}"
+                        paginator="true"
+                        lazy="true"
+                        paginatorPosition="bottom"
+                        currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"                        
+                        paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                        rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                        rows="#{sedesBean.paginado}"
+                        class="resultadocompleto"
+                        >                        
+                <f:facet name="header">
+                    <p:outputPanel styleClass="resultadosbusqueda">
+                        <h:outputText value="#{msg.resultadoBusqueda} " /><h:outputText styleClass="cantidad" value="#{sedesBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value=" #{msg.elementos}" />
+                    </p:outputPanel>
+                </f:facet>
+                <p:outputPanel styleClass="item">
+
+                    <p:outputPanel styleClass="item-detail">
+                        <p:outputPanel>
+                            <p:link outcome="#{ConstantesPaginas.SEDE}?sede=#{elem.sedPk}" title="#{msg.ver}">
+                                <h:outputText value="#{elem.sedNombre}" class="#{sedesBean.estiloSede(elem)}" />
+                            </p:link>                            
+                            <p:outputPanel class="infocontenido">
+
+                                <div class="spacecode space">
+                                    <h:outputLabel value="#{msg.codigo}" />
+                                    <h:outputText value="#{elem.sedCodigo}"/>
+                                </div>
+
+                                <div class="space">
+                                    <h:outputLabel value="#{msg.direccion}"/>
+                                    <h:outputText value="#{elem.sedDireccion.dirCompleta}"/>
+                                </div>
+
+                                <div class="space">
+                                    <h:outputLabel value="#{msg.contactos}" />
+                                    <h:outputText value="#{elem.sedTelefono}" />
+                                </div>
+
+                            </p:outputPanel>
+                            <h:outputText value="#{elem.sedSitioWeb}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:dataList>                        
+        </p:outputPanel>
+    </h:form>
+</ui:composition>
+

@@ -1,0 +1,164 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <h:form id="form">    
+        <p:blockUI block="@form" widgetVar="blocker" />
+
+        <p:outputPanel rendered="true">
+
+            <p:outputPanel styleClass="form-group row">
+                <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-3 col-md-2 col-form-label"/>
+                <p:outputPanel styleClass="col-sm-9 col-md-10">
+                    <h:selectOneMenu value="#{monitoreoEncuestasBean.comboDepartamentos.selected}" styleClass="form-control dropdown texto-medio">
+                        <f:selectItems value="#{monitoreoEncuestasBean.comboDepartamentos.items}" />
+                        <p:ajax onstart="PF('blocker').show()" update="refreshMatriculasEncuestas refreshEncuestasPorSexo encuestasPorSexoContainerParent" listener="#{monitoreoEncuestasBean.recargarYRenderizarGraficas()}"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+            <h3>Evolución encuestas</h3>
+            <p:outputPanel >
+                <div id="matriculasEncuestasContainer" style="width: 100%; height: 450px;"></div>
+            </p:outputPanel>
+
+            <h3>Encuestas por sexo</h3>
+            <p:outputPanel id="encuestasPorSexoContainerParent">
+                <p:outputPanel rendered="#{monitoreoEncuestasBean.renderGraficoEncuestasPorSexo}">
+                    <div id="encuestasPorSexoContainer" style="width: 100%; height: 450px;"></div>
+                </p:outputPanel>       
+                <p:outputPanel styleClass="ui-messages" rendered="#{!monitoreoEncuestasBean.renderGraficoEncuestasPorSexo}">
+                    <div class="ui-messages-info messages-info-azul ui-corner-all">
+                        <ul>
+                            <li class="control-inline">
+                                <h:outputText styleClass="ui-messages-info-summary" value="No hay registro de encuestas" style="padding-right: 15px"/>
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+            </p:outputPanel>
+
+
+
+
+        </p:outputPanel>
+
+        <p:outputPanel id="refreshMatriculasEncuestas">
+
+            <script type="text/javascript">
+                //<![CDATA[
+                function renderizarMatriculasEncuestas() {
+
+
+
+                    var data = google.visualization.arrayToDataTable([
+                #{monitoreoEncuestasBean.graficoMatriculasYEncuestas.chartData}
+                    ]);
+
+                    console.log(#{monitoreoEncuestasBean.graficoMatriculasYEncuestas.chartData});
+
+                    var container = document.getElementById('matriculasEncuestasContainer');
+
+
+                    var width = 350 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                    if (width > container.offsetWidth) {
+                        width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                    }
+
+
+                    // Set chart options
+                    var options = {
+                        width: width,
+                        chartArea: {left: 80, top: 10, bottom: 70, right: 180},
+                        theme: 'material',
+                        colors: [
+                            '#3A81D6',
+                            '#8CC63F'
+                        ]
+
+
+                    };
+                    // Instantiate and draw our chart, passing in some options.
+                    var chart = new google.visualization.ColumnChart(container);
+                    chart.draw(data, options);
+                }
+                ;
+
+
+
+                //]]>
+            </script>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="refreshEncuestasPorSexo">
+
+            <script type="text/javascript">
+                //<![CDATA[
+                function renderizarEncuestasPorSexo() {
+
+
+                    var render = #{monitoreoEncuestasBean.renderGraficoEncuestasPorSexo};
+
+                    if (render) {
+
+                        var data = google.visualization.arrayToDataTable([
+                #{monitoreoEncuestasBean.graficoEncuestasPorSexo.chartData}
+                        ]);
+
+
+
+                        var container = document.getElementById('encuestasPorSexoContainer');
+
+
+                        var width = 350 + ((data.getNumberOfColumns() - 1) * data.getNumberOfRows() * 50);
+
+                        if (width > container.offsetWidth) {
+                            width = container.offsetWidth; //Auto segun div. Se ajusta a pantalla
+
+                        }
+
+                        // Set chart options
+                        var options = {
+                            isStacked: true,
+                            width: width,
+                            chartArea: {left: 80, top: 10, bottom: 70, right: 180},
+                            theme: 'material',
+                            colors: [
+                                '#00498D',
+                                '#BE2857'
+                            ]
+                        };
+                        // Instantiate and draw our chart, passing in some options.
+                        var chart = new google.visualization.ColumnChart(container);
+                        chart.draw(data, options);
+                    }
+                }
+                ;
+
+                //]]>
+            </script>
+        </p:outputPanel>
+
+
+
+
+
+        <script type="text/javascript">
+            google.charts.load('47', {'packages': ['corechart', 'bar']});
+            google.charts.setOnLoadCallback(renderizarMatriculasEncuestas);
+            google.charts.setOnLoadCallback(renderizarEncuestasPorSexo);
+        </script>
+
+    </h:form>
+
+</ui:composition>

@@ -1,0 +1,224 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">       
+        
+        <f:passThroughAttribute name="autocomplete" value="off"/>   	
+	<nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.CUENTAS_BANCARIAS_DD}.xhtml">#{msg.gestionCuentasBancariasDD}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.movimientoDireDep}</li>
+            </ol>
+        </nav>
+	
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.movimientoDireDep}"/></h2>        
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoMovimientoDirDep}" icon="glyphicon glyphicon-plus" 
+                                 action="#{movimientoDireccionDepartamentalBean.agregar()}"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_MOVIMIENTO_CUENTA_BANCARIA)}"
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarMovimientoCuentaBancaria" styleClass="btn btn-secondary" />
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.hcuenta}: #{movimientoDireccionDepartamentalBean.cuenta.cbdNumeroCuenta}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    
+                    <p:outputPanel styleClass="form-group row" rendered="#{movimientoDireccionDepartamentalBean.filtroMov.mddFiltroFecha == 2}">
+                        <h:outputLabel value="#{msg.fechaDesde}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar showMinute="false" showHour="false" value="#{movimientoDireccionDepartamentalBean.filtroMov.mddFechaDesdeS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputText value="#{msg.fecha}" styleClass="col-sm-3 col-form-label"/>                
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="2" id="b_habilitado" value="#{movimientoDireccionDepartamentalBean.filtroMov.mddFiltroFecha}">
+                                <f:selectItem itemValue="#{1}" itemLabel="#{msg.hmesActual}" />
+                                <f:selectItem itemValue="#{2}" itemLabel="#{msg.hrangoFecha}"/>
+                                <p:ajax listener="#{movimientoDireccionDepartamentalBean.cambioFiltroFecha}" update=":form:pnlSearch" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+
+                    <p:outputPanel styleClass="form-group row" rendered="#{movimientoDireccionDepartamentalBean.filtroMov.mddFiltroFecha == 2}">
+                        <h:outputLabel value="#{msg.fechaHasta}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar showMinute="false" showHour="false" value="#{movimientoDireccionDepartamentalBean.filtroMov.mddFechaHastaS}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" ></p:calendar>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton value="#{msg.buscar}" id="btnBuscar" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{movimientoDireccionDepartamentalBean.buscar()}" update="pnlResultado" process="pnlSearch"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{movimientoDireccionDepartamentalBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+        
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{movimientoDireccionDepartamentalBean.listMovCuentasDepartamentales}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="mddFecha"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{movimientoDireccionDepartamentalBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{movimientoDireccionDepartamentalBean.totalResultados lt (movimientoDireccionDepartamentalBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.movimientos}" /><h:outputText styleClass="cantidad" value="#{movimientoDireccionDepartamentalBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="movimientoCuentaBancaria" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hfecha}" sortBy="#{elem.mddFecha}">
+                    <h:outputText value="#{elem.mddFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.detalle}" sortBy="#{elem.mddDetalle}">
+                    <h:outputText value="#{elem.mddDetalle}" />
+                </p:column>
+                <p:column headerText="#{msg.hegresos}" sortBy="#{elem.mddMonto}" styleClass="columna-derecha columnaRoja                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ">
+                    <h:outputText value="#{movimientoDireccionDepartamentalBean.cargarMontoDebe(elem)}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                    <f:facet name="footer">
+                        <h:outputText value="#{movimientoDireccionDepartamentalBean.totale}" styleClass="align-right" style="width:100%;color:red;font-weight: bold">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{movimientoDireccionDepartamentalBean.locale}" />
+                        </h:outputText>
+                    </f:facet>
+                </p:column>
+                <p:column headerText="#{msg.hingresos}" sortBy="#{elem.mddMonto}" styleClass="columna-derecha columnaVerde">
+                    <h:outputText value="#{movimientoDireccionDepartamentalBean.cargarMontoHaber(elem)}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" />
+                    </h:outputText>
+                     <f:facet name="footer">
+                        <h:outputText value="#{movimientoDireccionDepartamentalBean.totali}"  style="text-align:right;width:100%;color:red;font-weight: bold">
+                            <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{movimientoDireccionDepartamentalBean.locale}" />
+                        </h:outputText>
+                    </f:facet>
+                </p:column>
+                <p:column headerText="#{msg.hsaldo}" sortBy="#{elem.mddSaldo}">
+                    <h:outputText value="#{elem.mddSaldo}" ><f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" /></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.transaccion}" sortBy="#{elem.mddTransaccion}">
+                    <h:outputText value="#{elem.mddTransaccion}"></h:outputText>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:itemDetail" oncomplete="PF('itemDialog').show()" icon="glyphicon glyphicon-plus" rendered="#{elem.mddDetDesembolsoFk!=null}"
+                                     styleClass="btn btn-icono" title="#{msg.agregarTransacción}" action="#{movimientoDireccionDepartamentalBean.actualizar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+		
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <a href="#{ConstantesPaginas.CUENTAS_BANCARIAS_DD}.xhtml">Volver</a>
+        </h:panelGroup>
+
+        <p:dialog header="#{msg.movimientoDireDep}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:ajax event="close" listener="#{movimientoDireccionDepartamentalBean.banderasFalse()}" />
+            <p:outputPanel id="itemDetail">                                                             
+                <h:panelGroup rendered="#{not empty movimientoDireccionDepartamentalBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioMovimientoCuentaBancaria">                                               
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_MovnumeroCuenta" >                        
+                            <h:outputLabel value="#{msg.numeroCuenta}" for="input_MovnumeroCuenta"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-8">                            
+                                <h:inputText autocomplete="off" id="input_MovnumeroCuenta" styleClass="form-control texto-corto" value="#{movimientoDireccionDepartamentalBean.cuenta.cbdNumeroCuenta}" disabled="true"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha">
+                            <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:calendar  disabled="#{movimientoDireccionDepartamentalBean.historial}" maxdate="#{movimientoDireccionDepartamentalBean.currentDateTime}" id="input_fecha" showMinute="false" showHour="false" value="#{movimientoDireccionDepartamentalBean.entidadEnEdicion.mddFecha}" pattern="#{applicationBean.patternFechaHora}" converter="#{localDateTimeConverter}" ></p:calendar>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_detalle">
+                            <h:outputLabel value="#{msg.detalle}" for="input_detalle" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputTextarea disabled="#{movimientoDireccionDepartamentalBean.historial}" id="input_detalle" styleClass="form-control texto-medio" value="#{movimientoDireccionDepartamentalBean.entidadEnEdicion.mddDetalle}" />                     
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_monto">
+                            <h:outputLabel value="#{msg.monto}" for="input_monto" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <p:inputNumber disabled="#{movimientoDireccionDepartamentalBean.historial}" minValue="0" id="input_monto" styleClass="form-control texto-corto" value="#{movimientoDireccionDepartamentalBean.entidadEnEdicion.mddMonto}"  />
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_tipo_mov">
+                            <h:outputLabel value="#{msg.tipoMovimientoPago}" for="input_MovTipoCuenta"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu id="input_MovTipoCuenta" value="#{movimientoDireccionDepartamentalBean.entidadEnEdicion.mddTipoMovimiento}" styleClass="form-control texto-corto" disabled="#{movimientoDireccionDepartamentalBean.historial}">
+                                    <f:selectItems value="#{movimientoDireccionDepartamentalBean.tipoMovimiento}"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_transaccion" rendered="#{movimientoDireccionDepartamentalBean.historial}">
+                            <h:outputLabel value="#{msg.numTransacción}" for="input_mov_transaccion"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_mov_transaccion" styleClass="form-control texto-corto" value="#{movimientoDireccionDepartamentalBean.entidadEnEdicion.mddTransaccion}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{movimientoDireccionDepartamentalBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" actionListener="#{movimientoDireccionDepartamentalBean.banderasFalse()}"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardar" /> 
+			<p:defaultCommand target="btnGuardar" scope="itemDetail"/>  						
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>        
+        
+    </h:form>
+</ui:composition>

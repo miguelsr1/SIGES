@@ -1,0 +1,255 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado" />
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>        
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionSolicitudImpresion}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionSolicitudImpresion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.SOLICITUD_IMPRESION}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SOLICITUD_IMPRESION)}" title="#{msg.nuevoSolicitudImpresion}"
+                        styleClass="btn btn-secondary" >
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.nuevoSolicitudImpresion}"/>
+                </p:link>
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.SOLICITUD_IMPRESION)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.sedeEducativa}" for="input_sede_autocomplete" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete"
+                                            styleClass="form-control texto-medio"
+                                            value="#{solicitudesImpresionBean.sedSeleccionado}"
+                                            completeMethod="#{solicitudesImpresionBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}" 
+                                            >
+                                
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.entregadoCentro}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_sdsaa" value="#{solicitudesImpresionBean.filtro.simTituloEntregadoCentroEducativo}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" id="fila_filtro_municipio">
+                    
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.estado}" for="filtro_estado" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_estado" value="#{solicitudesImpresionBean.comboEstado.selected}" 
+                                             styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{solicitudesImpresionBean.comboEstado.items}" />
+
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel> 
+                    
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.entregadoDepartamental}" styleClass="col-sm-3 col-form-label"/>                
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_sa" value="#{solicitudesImpresionBean.filtro.simTituloEntregadoDepartamental}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                   
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="col-sm-12 texto-right">
+                    <p:defaultCommand target="buscarAsistencia"/>
+                    <p:commandButton id="buscarAsistencia" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                     icon="glyphicon glyphicon-search" action="#{solicitudesImpresionBean.buscar()}" 
+                                     update="pnlResultado"/>
+                    <p:commandLink value="#{msg.limpiar}" action="#{solicitudesImpresionBean.limpiar()}" 
+                                   update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                        <p:resetInput target="pnlSearch pnlResultado" />
+                    </p:commandLink>
+                    <p:defaultCommand target="buscarAsistencia" scope="pnlSearch"/>
+                    <p:blockUI block="@form" trigger="buscarAsistencia" />
+                </p:outputPanel>
+
+            </p:outputPanel>
+        </p:panel>
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{solicitudesImpresionBean.solicitudImpresionLazyModel}"
+                         rowStyleClass="#{solicitudesImpresionBean.colorRow(elem)}"
+                         emptyMessage="#{msg.noHayResultados}"      
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="simPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate2}"
+                         rows="#{solicitudesImpresionBean.paginado}"
+                         reflow="true" 
+                         rendered="#{not empty solicitudesImpresionBean.solicitudImpresionLazyModel}">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{solicitudesImpresionBean.totalResultados lt (solicitudesImpresionBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{solicitudesImpresionBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="solicitudesImpresion" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hnumero}" >
+                    <h:outputText value="#{elem.simPk}" />
+                </p:column>
+                <p:column headerText="#{msg.codSede}" sortBy="#{elem.simSeccion.secServicioEducativo.sduSede.sedCodigo}">
+                    <h:outputText value="#{elem.simSeccion.secServicioEducativo.sduSede.sedCodigo}" id="textSede"/>
+                        <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext" 
+                                                      value="#{elem.simSeccion.secServicioEducativo.sduSede.sedNombre}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext "
+                                                      value="#{elem.simSeccion.secServicioEducativo.sduSede.sedTelefono}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext " 
+                                                      value="#{elem.simSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" >
+                                    <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:outputText styleClass="form-control-plaintext " 
+                                                      value="#{elem.simSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}"/>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                        </p:tooltip>
+                </p:column>
+                <p:column headerText="#{msg.hDepartamento}" visible="false" >
+                    <h:outputText value="#{elem.simSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hMunicipio}" visible="false" >
+                    <h:outputText value="#{elem.simSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hsede}" visible="false">
+                    <h:outputText value="#{elem.simSeccion.secServicioEducativo.sduSede.sedNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}" >
+                    <h:outputText value="#{elem.simSeccion.secNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hestado}" >
+                    <h:outputText value="#{elem.simEstado.text}" />
+                </p:column>
+                <p:column headerText="#{msg.htipo}" >
+                    <h:outputText value="#{elem.simTipoImpresion.text}" />
+                </p:column>
+                <p:column headerText="#{msg.hSolicitante}" >
+                    <h:outputText value="#{elem.simUsuario.usuNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfecha}" >
+                    <h:outputText value="#{elem.simFechaSolicitud}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.htitulo}" >
+                    <h:outputText value="#{solicitudesImpresionBean.obtenerNombreTitulo(elem)}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:link outcome="#{ConstantesPaginas.SOLICITUD_IMPRESION}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.simPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>               
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{solicitudesImpresionBean.historial(elem.simPk)}"/>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+
+
+        <p:dialog header="#{msg.historialSolicitudImpresion}" widgetVar="historialDialog" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{solicitudesImpresionBean.historialSolicitudImpresion}" /> 
+            </ui:include>    
+        </p:dialog>    
+    </h:form>
+</ui:composition>

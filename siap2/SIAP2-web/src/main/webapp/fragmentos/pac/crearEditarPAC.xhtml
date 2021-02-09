@@ -1,0 +1,550 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearPAC')}"/>
+                </h2>
+            </div>
+        </ui:fragment>  
+        <h:form id="formHeader"  prependId="false" >     
+            <h:panelGroup layout="block" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <!--<p:focus context="bloqueNoModal" />-->
+                <div class="grupoCampos">
+                    <h:messages  showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/> 
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Anio')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText value="#{pacCE.objeto.anio}" styleClass="form-control-static"  />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                        <div class="col-sm-9">
+                            <h:inputText id="nombre" maxlength="255" value="#{pacCE.objeto.nombre}" styleClass="form-control textoLargo"  
+                                         disabled="#{pacCE.objeto.estado eq 'CERRADO'}"
+                                         required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:validateLength maximum="255" />
+                            </h:inputText>
+                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FechaDeInicio')}:" />
+                        <div class="col-sm-9">
+                            <p:calendar value="#{pacCE.objeto.fechaInicio}" styleClass="textoMedio" 
+                                        disabled="#{pacCE.objeto.estado eq 'CERRADO'}" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <p:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FechaDeFin')}:" />
+                        <div class="col-sm-9">
+                            <p:calendar value="#{pacCE.objeto.fechaFin}" styleClass="textoMedio" 
+                                        disabled="#{pacCE.objeto.estado eq 'CERRADO'}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                        </div>
+                    </div>
+                    <p:outputPanel styleClass="form-group" rendered="#{pacCE.objeto.iniciado}">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}" for="estado"/>
+                        <div class="col-sm-9">  
+                            <h:outputText value="#{textMB.obtenerTexto(pacCE.objeto.estado.label)}" id="estado" styleClass="form-control-static" /> 
+<!--                            <h:selectOneMenu  value="#{pacCE.objeto.estado}"  styleClass="form-control textoMedio" id="estado" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                <f:selectItems value="#{pacCE.getEstadoPAC()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                            </h:selectOneMenu>-->
+                        </div>
+                    </p:outputPanel>
+                    <div class="form-group">
+                        <div class="col-sm-9 col-sm-offset-3">
+                            <p:commandButton styleClass="btn btn-primary"  
+                                             value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                             update="@form mainPanel"
+                                             icon="glyphicon glyphicon-saved"
+                                             action="#{pacCE.guardar()}"
+                                             rendered="#{pacCE.objeto.iniciado  and pacCE.objeto.estado ne 'CERRADO'}">
+                            </p:commandButton>
+                            <p:commandButton styleClass="btn btn-primary"  
+                                             value="#{textMB.obtenerTexto('labels.Bloquear')}" 
+                                             update="@form mainPanel"
+                                             action="#{pacCE.bloquear()}"
+                                             rendered="#{pacCE.objeto.iniciado and pacCE.objeto.estado ne 'CERRADO' and permisosMB.permisos['CERRAR_PAC']}">
+                            </p:commandButton>
+                            <p:commandButton styleClass="btn btn-primary"  
+                                             value="#{textMB.obtenerTexto('labels.Desbloquear')}" 
+                                             update="@form mainPanel"
+                                             action="#{pacCE.desBloquear()}"
+                                             rendered="#{pacCE.objeto.iniciado  and pacCE.objeto.estado eq 'CERRADO' and permisosMB.permisos['CERRAR_PAC']}">
+                            </p:commandButton>
+                            <p:commandButton styleClass="btn btn-primary"  
+                                             value="#{textMB.obtenerTexto('labels.Iniciar')}" 
+                                             update="@form mainPanel"
+                                             icon="glyphicon glyphicon-saved"
+                                             action="#{pacCE.iniciarPAC()}"
+                                             rendered="#{not pacCE.objeto.iniciado}">
+                            </p:commandButton>
+                            <h:outputLink value="consultaPAC.xhtml" class="btn btn-link">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                            </h:outputLink>
+                        </div>
+                    </div>
+                </div>
+            </h:panelGroup>
+        </h:form>      
+        <h:messages id="mensajes2" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+        <h:panelGroup id="mainPanel" layout="block"   >   
+            <h:panelGroup layout="block" styleClass="row" rendered="#{pacCE.objeto.nombre != null}">
+                <div class="col-sm-6 ocultar-columnas" id="insumos-div">
+                    <p:panel header="#{textMB.obtenerTexto('labels.Insumos')}" >
+                        <div class="form-group">
+                            <button class="btn btn-link pull-right" onclick="reajustarInsumos()"><h:outputText value="#{textMB.obtenerTexto('labels.AsignacionDeInsumos')}" /><span id="ampliarInsumos" class="glyphicon glyphicon-right glyphicon-fullscreen"></span></button>
+                        </div>
+
+                        <!-- FILTRO DE ITEMS -->
+                        <h:form>
+                            <fieldset class="fieldsetSmall fieldset" style="clear: both">
+                                <legend><h:outputText value="Filtrar #{textMB.obtenerTexto('labels.Insumos')}"/></legend>
+                                <div class="buscador-filtros">
+                                    <div class="row">
+                                        <div class="form-horizontal">
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Rubro')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText  value="#{pacCE.filtroInsmoRubro}" styleClass="form-control textoMedio" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText  value="#{pacCE.filtroInsmoCodigo}" styleClass="form-control textoMedio" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText  value="#{pacCE.filtroInsmoNombre}" styleClass="form-control textoMedio" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}" />
+                                                <div class="col-sm-9">                      
+                                                    <h:selectOneMenu  value="#{pacCE.filtroInsumoEstado}"  styleClass="form-control textoMedio">
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.SinGrupo')}" itemValue="SIN_GRUPO"/>
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.ConGrupo')}" itemValue="CON_GRUPO"/>
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.Todos')}" itemValue="TODOS"/>
+                                                    </h:selectOneMenu>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-3 col-sm-9">
+                                                    <p:commandButton styleClass="btn btn-default"
+                                                                     icon="glyphicon glyphicon-search"
+                                                                     value="#{textMB.obtenerTexto('labels.Filtrar')}" 
+                                                                     update="@form formInsumo:arbolDeInsumos mensajes2">
+                                                    </p:commandButton>
+                                                    <p:commandButton styleClass="btn btn-link"
+                                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                                     update="@form formInsumo:arbolDeInsumos mensajes2"
+                                                                     actionListener="#{pacCE.limpiarInsumo()}">
+                                                    </p:commandButton>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </h:form>  
+                        <!-- FILTRO DE CODIGO-->
+                        <h:form id="formInsumo">
+
+                            <p:dataTable id="arbolDeInsumos" 
+                                         style="margin-top: 20px;"
+                                         var="item"
+                                         value="#{pacCE.getInsumosPendientesAgrupar()}"
+                                         selection="#{pacCE.insumosSeleccionados}" 
+                                         rowKey="#{item.id}"
+                                         emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+                                <p:ajax event="rowSelectCheckbox" listener="#{pacCE.test}" />
+                                <p:ajax event="rowUnselectCheckbox" listener="#{pacCE.test}" />
+                                <p:ajax event="toggleSelect" listener="#{pacCE.test}" />
+
+                                <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.ID')}" >
+                                    <h:outputText value="#{item.id}" />
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.MontoTotal')}" styleClass="numericos">
+                                    <h:outputText value="#{item.montoTotal}">
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.NombreInsumo')}">
+                                    <h:outputText value="#{item.insumo.nombre}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.UT')}">
+                                    <h:outputText value="#{item.unidadTecnica.nombre}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}" styleClass="numericos">
+                                    <h:outputText value="#{item.cantidad}"/>
+                                </p:column>
+                                
+                                
+                                <p:column headerText="#{textMB.obtenerTexto('labels.VerDetallesInsumo')}" styleClass="columnaAcciones">
+                                    <p:commandButton  icon="glyphicon glyphicon-eye-open" 
+                                                      styleClass="btn btn-icono"  
+                                                      title="#{textMB.obtenerTexto('labels.Ver')}" 
+                                                      update="veranadirInsumoForm"
+                                                      oncomplete="$('#veranadirInsumo').modal('show');" 
+                                                      immediate="true">
+                                        <f:setPropertyActionListener target="#{pacCE.insumoEnEdicion}" value="#{item}" />
+                                    </p:commandButton>
+                                </p:column>
+                                
+                                
+                            </p:dataTable>
+                            <div class="botonesPasaje">
+                                <p:commandButton rendered="#{pacCE.objeto.estado ne 'CERRADO' }"
+                                                 styleClass="btn btn-primary"  
+                                                 icon="glyphicon glyphicon-chevron-right" 
+                                                 value="#{textMB.obtenerTexto('labels.MoverInsumos')}" 
+                                                 actionListener="#{pacCE.moverInsumos()}"  
+                                                 update="formGrupo:arbolDeGrupos formInsumo:arbolDeInsumos mensajes2" />
+                            </div>
+                        </h:form>
+
+                    </p:panel>
+                </div>
+
+                <div class="col-sm-6 ocultar-columnas" id="grupos-div">
+                    <p:panel header="#{textMB.obtenerTexto('labels.Grupos')}" >
+                        <div class="form-group">
+                            <button class="btn btn-link pull-right" onclick="reajustarGrupos()"><h:outputText value="#{textMB.obtenerTexto('labels.AsignacionDeGrupos')}"/><span id="ampliarGrupo" class="glyphicon glyphicon-right glyphicon-fullscreen"></span></button>
+                        </div>
+
+                        <!-- FILTRO DE GRUPOS -->
+                        <h:form>
+                            <fieldset class="fieldsetSmall fieldset" style="clear: both;margin-bottom: 20px;min-height: 223px;">
+                                <legend><h:outputText value="Filtrar #{textMB.obtenerTexto('labels.Grupos')}"/></legend>
+                                <div class="buscador-filtros">
+                                    <div class="row">
+                                        <div class="form-horizontal">
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Nro')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText  value="#{pacCE.filtroGrupoNro}" styleClass="form-control textoMedio" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}" for="grupoEstado"/>
+                                                <div class="col-sm-9">                      
+                                                    <h:selectOneMenu  value="#{pacCE.filtroGrupoEstado}"  styleClass="form-control textoMedio" id="grupoEstado" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{pacCE.getEstadosGrupos()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                                    </h:selectOneMenu>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Metodo')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:selectOneMenu value="#{pacCE.filtroGrupoidMetodoAdquisicion}"  styleClass="form-control textoMedio" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}" />
+                                                        <f:selectItems value="#{pacCE.getMetodosAdquisicion()}"  />
+                                                    </h:selectOneMenu> 
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-3 col-sm-9">
+                                                    <p:commandButton styleClass="btn btn-default"
+                                                                     icon="glyphicon glyphicon-search"
+                                                                     value="#{textMB.obtenerTexto('labels.Filtrar')}" 
+                                                                     update="@form formGrupo:arbolDeGrupos mensajes2">
+                                                    </p:commandButton>
+                                                    <p:commandButton styleClass="btn btn-link"  
+                                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                                     update="@form formGrupo:arbolDeGrupos mensajes2"
+                                                                     actionListener="#{pacCE.limpiarGrupo()}">
+                                                    </p:commandButton>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <p:outputPanel styleClass="pull-right form-group">
+                                <p:commandButton rendered="#{pacCE.objeto.estado ne 'CERRADO' }"
+                                                 styleClass="btn btn-default"  
+                                                 icon="glyphicon glyphicon-repeat"
+                                                 value="#{textMB.obtenerTexto('labels.ReasignarGrupos')}" 
+                                                 update="mainPanel"
+                                                 immediate="true"
+                                                 action="#{pacCE.regenerarGrupos()}">
+                                </p:commandButton>
+                                <h:outputLink  rendered="#{pacCE.objeto.estado ne 'CERRADO' }" value="crearEditarPACGrupo.xhtml" class="btn btn-default">
+                                    <f:param name="idPac" value="#{pacCE.objeto.id}" />
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearGrupo')}"/>
+                                </h:outputLink>
+                            </p:outputPanel>
+                        </h:form>  
+                        <!-- TABLA DE GRUPOS -->
+                        <h:form id="formGrupo">
+                            <p:treeTable 
+                                id="arbolDeGrupos" 
+                                value="#{pacCE.getRootNodeGrupo()}" 
+                                emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                                selectionMode="single"
+                                selection="#{pacCE.selectedNode1}" 
+                                var="item" >
+                                
+                                <p:ajax event="select" />
+                                <p:ajax event="unselect"/>
+                                
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Nro')}" >
+                                    <h:outputText value="#{utilsMB.getNumeroParaPAC(item.objeto.id)}" rendered="#{item.tipo eq 'GRUPO'}"/>
+                                    <h:outputText value="#{item.objeto.id}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                    <h:outputText value="#{item.objeto.nombre}" rendered="#{item.tipo eq 'GRUPO'}"/>
+                                    <h:outputText value="#{item.objeto.insumo.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Estado')}">
+                                    <h:outputText value="#{textMB.obtenerTexto(item.objeto.estado.label)}" rendered="#{item.tipo eq 'GRUPO'}"/>
+                                </p:column> 
+                                <p:column headerText="#{textMB.obtenerTexto('labels.metodoAdquisicion')}" styleClass="columna-oculta">
+                                    <h:outputText value="#{item.objeto.metodoAdquisicion.nombre}" rendered="#{item.tipo eq 'GRUPO'}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Fecha')}" styleClass="columna-oculta">
+                                    <h:outputText value="#{item.objeto.fechaContratacion}" rendered="#{item.tipo eq 'INSUMO'}" converter="dateConverter"/>
+                                    <h:outputText value="#{item.objeto.fechaMinimoInsumo}" rendered="#{item.tipo eq 'GRUPO'}" converter="dateConverter"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.FechaEstimada')}" styleClass="columna-oculta">
+                                    <h:outputText value="#{item.objeto.fechaMaximaGant}" rendered="#{item.tipo eq 'GRUPO'}" converter="dateConverter"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Monto')}" styleClass="numericos">
+                                    <h:outputText value="#{item.objeto.total}" rendered="#{item.tipo eq 'GRUPO'}">
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                    <h:outputText value="#{item.objeto.montoTotal}" rendered="#{item.tipo eq 'INSUMO'}">
+                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.CantidadInsumos')}" styleClass="columna-oculta numericos" >
+                                    <h:outputText value="#{item.objeto.cantidad}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.UT')}" styleClass="columna-oculta">
+                                    <h:outputText value="#{item.objeto.unidadTecnica.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                    <h:outputLink  rendered="#{item.tipo eq 'GRUPO'}"
+                                                   value="crearEditarPACGrupo.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}" >
+                                        <f:param name="idGrupo" value="#{item.objeto.id}" />
+                                        <f:param name="idPac" value="#{pacCE.objeto.id}" />
+                                        <span class="glyphicon glyphicon-pencil"></span>
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                                    </h:outputLink>
+                                </p:column>
+                                <p:column headerText="#{textMB.obtenerTexto('labels.Unificar')}" styleClass="columnaAcciones"  rendered="#{pacCE.objeto.estado ne 'CERRADO' }">
+                                    <p:commandButton  rendered="#{item.tipo eq 'GRUPO'}"
+                                                      icon="glyphicon glyphicon-resize-small" 
+                                                      styleClass="btn btn-icono"  
+                                                      title="#{textMB.obtenerTexto('labels.Unificar')}"  
+                                                      update="unificarGruposForm"
+                                                      oncomplete="$('#unificarGrupos').modal('show');" 
+                                                      immediate="true">
+                                        <f:setPropertyActionListener target="#{pacCE.unificarGrupo1}" value="#{item.objeto}" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:treeTable>  
+                            <div class="eliminarInsumo">
+                                <p:commandButton rendered="#{pacCE.objeto.estado ne 'CERRADO' }"
+                                                 icon="glyphicon glyphicon-remove " 
+                                                 styleClass="btn btn-danger" 
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}" 
+                                                 action="#{pacCE.eliminarEnGrupo()}"
+                                                 value="#{textMB.obtenerTexto('labels.Eliminar')}"
+                                                 update="confirmModalCallBackBody formGrupo:arbolDeGrupos formInsumo:arbolDeInsumos">
+                                </p:commandButton> 
+                            </div>
+                        </h:form>  
+                    </p:panel>
+                </div>
+
+
+                <h:form>
+
+                </h:form> 
+            </h:panelGroup>
+        </h:panelGroup>
+
+
+
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+        <h:outputScript library="js" name="pacAmpliarTablas.js" />  
+
+
+
+        <!-- MODAL PARA AGREGAR UNIFICAR GRUPOS -->  
+        <h:panelGroup id="blockUnificarGrupos"  layout="block">
+            <div class="modal fade"  id="unificarGrupos" tabindex="-1" role="dialog" aria-labelledby="unificarGrupos">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoUnificarGrupos">
+                        <h:form id="unificarGruposForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.UnificarGrupos')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <p><h:outputText value="#{textMB.obtenerTexto('labels.SeVaAUnificarElGrupo_')} " />
+                                        <h:outputText value="#{pacCE.unificarGrupo1.nombre}" /></p>
+                                    <div class="form-group">
+                                        <p:outputLabel for="metodo2" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.GrupoAUnificar')}:"/>
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu  id="metodo2" value="#{pacCE.idGrupo2}"  styleClass="form-control textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.SelecioneUno')}" itemValue="#{null}" />
+                                                <f:selectItems value="#{pacCE.getGruposParaUnificar()}" />
+                                            </h:selectOneMenu>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{pacCE.unificarGrupos()}"   update="formGrupo:arbolDeGrupos unificarGruposForm"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+        
+        
+        
+        <!-- MODAL PARA VER UN INSUMO -->
+        <h:panelGroup id="verblockInsumo"  layout="block">
+        <div class="modal fade"  id="veranadirInsumo" tabindex="-1" role="dialog" aria-labelledby="anadirInsumo">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="vercontenidoModalInsumo">
+                    <h:form id="veranadirInsumoForm"  prependId="false" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.VerInsumo')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                <!---  TABS DE  INSUMOS -->                                     
+                                <div class="form-group">
+                                    <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Codigo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="vernombreInsumo" value="#{pacCE.insumoEnEdicion.id}" styleClass="form-control-static"   />
+                                    </div>
+                                </div>     
+                                <div class="form-group">
+                                    <p:outputLabel for="verfechaInsumo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FechaEstimadaDeContratacion')}:"/>
+                                    <div class="col-sm-9">
+                                        <h:outputText id="verfechaInsumo"  value="#{pacCE.insumoEnEdicion.fechaContratacion}" styleClass="form-control-static" converter="dateConverter"  >
+                                        </h:outputText>                                           
+                                    </div>
+                                </div>      
+                                <div class="form-group">
+                                    <h:outputLabel for="verobservacionInsumo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Observacion')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="verobservacionInsumo" value="#{pacCE.insumoEnEdicion.observacion}" styleClass="form-control-static"  />
+                                        <h:message for="verobservacionInsumo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>      
+                                <div class="form-group">
+                                    <h:outputLabel for="verinsumoInsumo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Insumo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText id="verinsumoInsumo" value="#{pacCE.insumoEnEdicion.insumo.nombre}" styleClass="form-control-static"  />
+                                        <h:message for="verinsumoInsumo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label>
+                                                <h:selectBooleanCheckbox value="#{pacCE.insumoEnEdicion.noUACI}" disabled="true" >
+                                                </h:selectBooleanCheckbox>
+                                                #{textMB.obtenerTexto('labels.NoUACI')}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>                      
+                                <div class="form-group">
+                                    <h:outputLabel for="vercantidadInsumo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Cantidad')}:" />
+                                    <div class="col-sm-9 numericos">
+                                        <h:outputText id="vercantidadInsumo" value="#{pacCE.insumoEnEdicion.cantidad}" styleClass="form-control-static textoMedio"  >
+                                        </h:outputText>
+                                        <h:message for="vercantidadInsumo" styleClass="help-inline msj-danger" />
+                                    </div>
+                                </div>                
+                                <div class="form-group">
+                                    <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoUnitario')}:" />
+                                    <div class="col-sm-9 numericos">
+                                        <h:outputText value="#{pacCE.insumoEnEdicion.montoUnit}" styleClass="form-control-static textoMedio"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel for="montoTotal" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoTotal')}:" />
+                                    <div class="col-sm-9 numericos">
+                                        <h:outputText    id="montoTotal" value="#{pacCE.insumoEnEdicion.montoTotal}" styleClass="form-control-static textoMedio"  >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>	
+                                    </div>
+                                </div>
+                                
+                                <div class="separador"></div> 
+                                
+                                <div class="form-group">
+                                    <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.GrupoPAC')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText  value="#{pacCE.insumoEnEdicion.pacGrupo.nombre}" styleClass="form-control-static"  />
+                                    </div>
+                                </div>  
+                                <div class="form-group">
+                                    <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MetodoAdquisicion')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText  value="#{pacCE.insumoEnEdicion.pacGrupo.metodoAdquisicion.nombre}" styleClass="form-control-static"  />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+
+
+
+
+
+
+
+
+
+    </ui:composition>
+</html>

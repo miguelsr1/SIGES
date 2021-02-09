@@ -1,0 +1,193 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.cambioSeccion}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.cambioSeccion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CAMBIO_SECCION)}" /> 
+                </ui:include>
+
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="formularioSede">
+
+            <p:panel toggleable="false">
+                <fieldset>
+                    <p:outputPanel id="itemDetailSede">
+                        <f:subview id="seleccionarSeccion">
+                            <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                                <ui:param name="controllerParam" value="#{cambioSeccionBean}" />
+                                <ui:param name="actionParam" value="cargarEstudiantes" />
+                                <ui:param name="seccion" value="#{cambioSeccionBean.seccionSeleccionada}" />
+                                <ui:param name="securityOperation" value="#{ConstantesOperaciones.CAMBIAR_SECCION_ESTUDIANTE}" />
+                            </ui:include>
+                        </f:subview>
+                    </p:outputPanel>
+                </fieldset>
+            </p:panel> 
+
+            <p:outputPanel id="tDetalle">
+                <h:panelGroup rendered="#{cambioSeccionBean.seccionSeleccionada != null}">
+                    <p:outputPanel id="pnlHeaderTabla">
+                        <p:outputPanel rendered="#{cambioSeccionBean.listaMatriculas.size() == 0}" 
+                                       styleClass="ui-messages">
+                            <div class="ui-messages-warn ui-corner-all">
+                                <span class="ui-messages-warn-icon"></span>
+                                <ul>
+                                    <li>
+                                        <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.noHayEstudiantes}" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </p:outputPanel>
+
+                        <h:panelGroup rendered="#{cambioSeccionBean.listaMatriculas.size()>0}">
+                            <h3><h:outputText value="#{msg.cantidadEstudiantes}"/>
+                                <h:outputText styleClass="cantidad" value="#{cambioSeccionBean.listaMatriculas.size()}" />
+                            </h3>
+                        </h:panelGroup>
+
+                    </p:outputPanel>
+
+                    <p:outputPanel id="tabla_matriculas">
+                        <p:outputPanel styleClass="container-fluid tipo-tabla"  
+                                       rendered="#{cambioSeccionBean.listaMatriculas.size() >0}">
+                            <p:outputPanel styleClass="row tipo-tr" > 
+                                <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.hnie}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-4 tipo-th" >#{msg.nombreEstudiante}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.hsexo}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-1 tipo-th" >#{msg.hfechaNacimiento}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-2 tipo-th" >#{msg.hfechaIngreso}</p:outputPanel>
+                                <p:outputPanel styleClass="col-md-3 tipo-th" >#{msg.hSeccion}</p:outputPanel>
+                            </p:outputPanel>
+                            <p:repeat value="#{cambioSeccionBean.listaMatriculas}" 
+                                      var="elem" varStatus="status">
+                                <p:outputPanel styleClass="tipo-tr">
+                                    <p:outputPanel styleClass="row">
+                                        <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                            <h:outputText value="#{elem.matEstudiante.estPersona.perNie}" />
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-4 tipo-td" >
+                                            <h:outputText styleClass="strong" value="#{elem.matEstudiante.estPersona.perNombreCompleto}" />
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                            <h:outputText value="#{elem.matEstudiante.estPersona.perSexo.sexNombre}" />
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-1 tipo-td" >
+                                            <h:outputText value="#{elem.matEstudiante.estPersona.perFechaNacimiento}" 
+                                                          converter="#{localDateConverter}"/>
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-2 tipo-td" >
+                                            <p:calendar id="input_calFechaInicio" styleClass="form-control" 
+                                                        value="#{cambioSeccionBean.fechaIngresoSecciones[status.index]}" 
+                                                        pattern="#{applicationBean.patternFecha}"
+                                                        maxdate="#{applicationBean.today()}" 
+                                                        converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}" 
+                                                        mask="true" showOn="button" />   
+                                        </p:outputPanel>
+                                        <p:outputPanel styleClass="col-md-3 tipo-td update_seccion_destino" >              
+                                            <h:selectOneMenu id="input_seccion_destino" rendered="#{cambioSeccionBean.seccionesSeleccionadas[status.index] == null}"
+                                                             value="#{cambioSeccionBean.combosSecciones[status.index].selected}"
+                                                             style="margin-bottom:8px"
+                                                             styleClass="form-control dropdown texto-medio">
+                                                <f:selectItems value="#{cambioSeccionBean.combosSecciones[status.index].items}" />
+                                            </h:selectOneMenu>
+                                            <h:outputText rendered="#{cambioSeccionBean.seccionesSeleccionadas[status.index] != null}"
+                                                          value="#{cambioSeccionBean.seccionesSeleccionadas[status.index].nombreSeccion}"
+                                                          styleClass="form-control-plaintext" />                                           
+                                            
+
+                                            <p:commandButton icon="#{cambioSeccionBean.seccionesSeleccionadas[status.index] != null ? '' : 'glyphicon glyphicon-transfer'}" styleClass="#{cambioSeccionBean.seccionesSeleccionadas[status.index] != null ? 'btn btn-primary' : 'btn btn-secondary'}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CAMBIAR_MODALIDAD_CAMBIO_SECCION)}"
+                                                             value="#{cambioSeccionBean.seccionesSeleccionadas[status.index] != null ? msg.ver : msg.hcambiarmodalidad}" action="#{cambioSeccionBean.seleccionarEstudianteIndex(status.index)}"  
+                                                             update=":form:itemDetailSeleccionarSeccion" oncomplete="PF('itemDetailSeleccionarSeccion').show()" />
+                                            
+                                            <p:commandButton styleClass="btn btn-link" rendered="#{cambioSeccionBean.seccionesSeleccionadas[status.index] != null}"
+                                                             title="#{msg.cancelar}" action="#{cambioSeccionBean.eliminarSeccionEstudianteIndex(status.index)}"  
+                                                             update="@parent"/>
+
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:repeat>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+
+
+
+
+
+            <p:outputPanel id="botonGuardar" styleClass="control-group" >
+                <h:panelGroup rendered="#{cambioSeccionBean.listaMatriculas.size()>0}">
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnGuardar" value="#{msg.guardar}" action="#{cambioSeccionBean.guardar()}" 
+                                         update="formularioSede"
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                        <p:blockUI block="formularioSede" trigger="btnGuardar" />    
+                        <p:defaultCommand target="btnGuardar" scope="formularioSede"/>  
+                    </p:outputPanel>                    
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+
+        <p:dialog header="Seleccionar sección" widgetVar="itemDetailSeleccionarSeccion" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemDetailSeleccionarSeccion" style="max-height: calc(100vh - 100px); overflow-y: auto; overflow-x: hidden; "> 
+
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>   
+
+                <f:subview id="seleccionarSeccion2">
+                    <ui:include src="componentes/seleccionarSeccionDialog2.xhtml" >   
+                        <ui:param name="controllerParam2" value="#{cambioSeccionBean}" />
+                        <ui:param name="actionParam2" value="seleccionarSeccion" />
+                        <ui:param name="seccion2" value="#{cambioSeccionBean.seccionDestinoSeleccionada}" />
+                        <ui:param name="securityOperation2" value="#{ConstantesOperaciones.CAMBIAR_SECCION_ESTUDIANTE}" />
+                        <ui:param name="sede2" value="#{cambioSeccionBean.sedeSeleccionada}" />
+                    </ui:include>
+                </f:subview>
+
+                <p:outputPanel styleClass="control-group" >
+                    <p:outputPanel styleClass="float-right">
+                        <p:commandButton id="btnAceptar"  value="#{msg.aceptar}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CAMBIAR_MODALIDAD_CAMBIO_SECCION)}"
+                                         update="form:itemDetailSeleccionarSeccion @(.update_seccion_destino)"
+                                         action="#{cambioSeccionBean.aceptarSeccion}"
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDetailSeleccionarSeccion').hide();"  
+                                       styleClass="btn btn-link" />
+                    </p:outputPanel>                    
+                </p:outputPanel>                     
+                <p:blockUI block="@form" trigger="btnAceptar" />  
+                <p:defaultCommand target="btnAceptar" scope="itemDetailSeleccionarSeccion"/>      
+            </p:outputPanel>                  
+
+        </p:dialog>
+
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

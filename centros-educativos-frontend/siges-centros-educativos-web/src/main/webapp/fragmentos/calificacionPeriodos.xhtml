@@ -1,0 +1,330 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumCalendarioEscolar" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTiposPeriodosCalificaciones" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado" />
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>        
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">#{msg.calificacionPeriodo}</li>             
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CALIFICACION_PERIODO)}" />
+                </ui:include>
+            </p:outputPanel>
+
+            <h2 class="page-header"><h:outputText value="#{msg.calificacionPeriodo}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+
+        <p:outputPanel id="formularioSede">
+
+            <p:panel  toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{calificacionPeriodoBean}" />
+                            <ui:param name="actionParam" value="seleccionarSeccion" />
+                            <ui:param name="seccion" value="#{calificacionPeriodoBean.seccionEnEdicion}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_PERIODOS_CALIFICACION}" />
+                            <ui:param name="retornarSoloSeccionesAbiertas" value="#{false}" />
+                            <ui:param name="incluirCamposSeccion" value="#{calificacionPeriodoBean.incluirCamposSeccion}"/>
+                        </ui:include>
+                    </f:subview>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_combo_cpe">
+                        <h:outputLabel value="#{msg.componentePlanEstudio}" for="combo_cpe" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:selectOneMenu id="combo_cpe" value="#{calificacionPeriodoBean.comboComponentePlanEstudio.selected}" disabled="#{calificacionPeriodoBean.seccionEnEdicion == null}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{calificacionPeriodoBean.comboComponentePlanEstudio.items}" />  
+                                <p:ajax id="comboComp" update="@form" onstart="PF('blocker').show()" listener="#{calificacionPeriodoBean.cargarPeriodoCalificacion()}"  >
+
+                                </p:ajax>
+                                <p:blockUI block="@form" widgetVar="blocker" /> 
+                            </h:selectOneMenu>  
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+
+                </p:outputPanel>
+            </p:panel> 
+
+
+            <div class="form-action-buttons" >
+                <p:commandButton value="#{msg.hverConfirmacionFirmada}" ajax="false" 
+                                 rendered="#{calificacionPeriodoBean.conf.cprPk != null and calificacionPeriodoBean.conf.cprArchivoFirmado != null}"
+                                 onclick="this.form.target = '_blank';" 
+                                 styleClass="btn btn-secondary">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(calificacionPeriodoBean.conf.cprArchivoFirmado)}" />
+                </p:commandButton>
+            </div>     
+
+            <div class="form-action-buttons" >
+                <p:commandButton rendered="#{calificacionPeriodoBean.conf != null and calificacionPeriodoBean.conf.cprFirmada
+                                             and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_CONFIRMACION_APROBACION)}"
+                                 oncomplete="PF('confirmDialog').show()"
+                                 id="eliminarConfirmacion" value="#{msg.heliminarConfirmacion}" 
+                                 styleClass="btn btn-primary rojo"  icon="glyphicon glyphicon-trash" />
+            </div>     
+
+
+            <div class="form-action-buttons" >
+                <p:commandButton rendered="#{calificacionPeriodoBean.notaAPRDeComponenteCalculada
+                                             and calificacionPeriodoBean.firmaAprobacionActivada 
+                                             and (calificacionPeriodoBean.conf == null or calificacionPeriodoBean.conf.cprFirmada eq false)
+                                             and sessionBean.operaciones.contains(ConstantesOperaciones.CONFIRMAR_APROBACION)}"
+                                 action="#{calificacionPeriodoBean.confirmar()}"
+                                 id="confirmarAprobacion" value="#{msg.hfirmar}" 
+                                 update="@form"  styleClass="btn btn-primary" />
+                <p:blockUI block="@form" trigger="confirmarAprobacion" />
+            </div>     
+
+            <h:panelGroup rendered="#{calificacionPeriodoBean.renderNotaInstitucional}">
+                <div class="form-action-buttons" >
+                    <p:commandButton rendered="#{calificacionPeriodoBean.renderCalcularNOTIN()}"  
+                                     id="btnGuardar" value="#{msg.hcalculoNotaInstitucional}" 
+                                     action="#{calificacionPeriodoBean.actualizarNotaInstitucionalYRecargarCalificaciones()}" 
+                                     update="@form"  styleClass="btn btn-primary" icon="fa fa-fw fa-calculator" />
+                    <p:blockUI block="@form" trigger="btnGuardar"/>
+                </div>
+            </h:panelGroup>
+
+            <h:panelGroup rendered="#{calificacionPeriodoBean.renderNotaAprobacion}">
+                <div class="form-action-buttons" >
+                    <p:commandButton rendered="#{calificacionPeriodoBean.renderCalcularAPR()}"  
+                                     id="btnGuardarAprobacion" value="#{msg.calculoNotaAprobacion}" 
+                                     action="#{calificacionPeriodoBean.actualizarNotaAprobacionYRecargarCalificaciones()}" 
+                                     update="@form"  styleClass="btn btn-primary" icon="fa fa-fw fa-calculator " />
+                    <p:blockUI block="@form" trigger="btnGuardarAprobacion"/>
+                </div>
+            </h:panelGroup>
+
+            <p:confirmDialog id="confirmDialog"
+                             message="#{msg.textoConfirmacionEliminacion}"
+                             header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                     oncomplete="PF('confirmDialog').hide()"
+                                     styleClass="btn btn-primary"
+                                     action="#{calificacionPeriodoBean.eliminarConfirmacion()}"  />
+                    <p:blockUI block="@form" trigger="confirmDelete"/>
+                    <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                                   onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </p:confirmDialog>
+
+            <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>  
+
+            <p:outputPanel id="tDetalle">
+
+                <h:panelGroup rendered="#{calificacionPeriodoBean.comboComponentePlanEstudio.selectedT != null}">
+                    <p:dataTable id="workSpaceList" var="estudiante"
+                                 value="#{calificacionPeriodoBean.listEstudiantes}"
+                                 styleClass="datatable" 
+                                 rowStyleClass="#{calificacionPeriodoBean.colorRow(estudiante)}"
+                                 rowIndexVar="rowIndex" >
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column colspan="2">
+                                    <f:facet name="header"><h:outputText value="#{msg.hestudiantes}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="#{calificacionPeriodoBean.listRangoFecha.size()}" rendered="#{calificacionPeriodoBean.listRangoFecha.size() > 0}">
+                                    <f:facet name="header"><h:outputText value="#{msg.hcpgPeriodosCalificacion}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hnotaInstitucional}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraPrueba!= null ?calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraPrueba:0}"
+                                          rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraPrueba>0}">
+                                    <f:facet name="header"><h:outputText value="#{msg.hprimeraRecuperacion}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraSuficiencia!= null ?calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraSuficiencia:0}"
+                                          rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraSuficiencia>0}">
+                                    <f:facet name="header"><h:outputText value="#{msg.hprimeraRecuperacionPS}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaPrueba!= null ?calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaPrueba:0}"
+                                          rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaPrueba>0}">
+                                    <f:facet name="header"><h:outputText value="#{msg.hsegundaRecuperacion}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaSuficiencia!= null ?calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaSuficiencia:0}"
+                                          rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaSuficiencia>0}">
+                                    <f:facet name="header"><h:outputText value="#{msg.hsegundaRecuperacionPS}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.notaFinal}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}">
+
+                                </p:column>
+                            </p:row>
+
+
+
+                            <p:row>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hnie}"/></f:facet>
+                                </p:column>
+                                <p:column colspan="1">
+                                    <f:facet name="header"><h:outputText value="#{msg.hnombre}"/></f:facet>
+                                </p:column>
+
+
+                                <ui:repeat var="titulRango" value="#{calificacionPeriodoBean.listRangoFecha}" rendered="#{calificacionPeriodoBean.listRangoFecha.size() > 0}">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{titulRango.rfeCodigo}"/>
+                                        </f:facet>
+                                    </p:column>
+                                </ui:repeat>
+
+                                <p:column colspan="1" >
+                                    <f:facet name="header">
+                                        <h:outputText value=""/>
+                                    </f:facet>
+                                </p:column>  
+
+                                <ui:repeat var="titulPrimeraRecuperacion" value="#{calificacionPeriodoBean.cantidadPrimeraPruebaList}" 
+                                           rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraPrueba>0}">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{titulPrimeraRecuperacion}"/>
+                                        </f:facet>
+                                    </p:column>
+                                </ui:repeat>
+
+                                <ui:repeat var="titulPrimeraRecuperacionPS" value="#{calificacionPeriodoBean.cantidadPrimeraRecuperacionPSList}" 
+                                           rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraSuficiencia>0}">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{titulPrimeraRecuperacionPS}"/>
+                                        </f:facet>
+                                    </p:column>
+                                </ui:repeat>
+
+                                <ui:repeat var="titulSegundaRecuperacion" value="#{calificacionPeriodoBean.cantidadSegundaRecuperacionList}" 
+                                           rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaPrueba>0}">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{titulSegundaRecuperacion}"/>
+                                        </f:facet>
+                                    </p:column>
+                                </ui:repeat>
+
+                                <ui:repeat var="titulSegundaRecuperacionPS" value="#{calificacionPeriodoBean.cantidadSegundaRecuperacionPSList}" 
+                                           rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaSuficiencia>0}">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="#{titulSegundaRecuperacionPS}"/>
+                                        </f:facet>
+                                    </p:column>
+                                </ui:repeat>
+
+
+                                <p:column colspan="1" >
+                                    <f:facet name="header">
+                                        <h:outputText value=""/>
+                                    </f:facet>
+                                </p:column> 
+
+                                <p:column colspan="1" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}">
+
+                                </p:column>
+
+                            </p:row>
+
+
+
+                        </p:columnGroup>
+
+                        <p:column headerText="Nie" >
+                            <h:outputText value="#{estudiante.estPersona.perNie}" />
+                        </p:column>
+                        <p:column headerText="Estudiante">
+                            <h:outputText value="#{estudiante.estPersona.perNombreCompleto}" />
+                        </p:column>
+
+                        <p:columns  value="#{calificacionPeriodoBean.listRangoFecha}" var="rango" 
+                                    columnIndexVar="colIndex" styleClass="texto-right" rendered="#{calificacionPeriodoBean.listRangoFecha.size() > 0}">
+                            <f:facet name="header" >
+                                <h:outputText value="#{rango.rfeCodigo}" />
+                            </f:facet>
+                            <h:outputText value="#{calificacionPeriodoBean.obtenerCalificacion(estudiante,rango)}" />
+                        </p:columns>
+
+                        <p:column colspan="1" styleClass="texto-right">        
+                            <h:outputText value="#{calificacionPeriodoBean.buscarCalificacionEspecial(estudiante, EnumTiposPeriodosCalificaciones.NOTIN)}" />
+                        </p:column>
+
+                        <p:columns  value="#{calificacionPeriodoBean.cantidadPrimeraPruebaList}" var="cantidadPP" 
+                                    columnIndexVar="colIndex" styleClass="texto-right" rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraPrueba>0}">
+                            <f:facet name="header" >
+                                <h:outputText value="#{cantidadPP}" />
+                            </f:facet>
+                            <h:outputText value="#{calificacionPeriodoBean.obtenerCalificacionRecuperacion(estudiante,EnumCalendarioEscolar.PREC,cantidadPP)}" />
+                        </p:columns>
+
+                        <p:columns  value="#{calificacionPeriodoBean.cantidadPrimeraRecuperacionPSList}" var="cantidadPRPS" 
+                                    columnIndexVar="colIndex" styleClass="texto-right" rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadPrimeraSuficiencia>0}">
+                            <f:facet name="header" >
+                                <h:outputText value="#{cantidadPRPS}" />
+                            </f:facet>
+                            <h:outputText value="#{calificacionPeriodoBean.obtenerCalificacionRecuperacion(estudiante,EnumCalendarioEscolar.PRECPS,cantidadPRPS)}" />
+                        </p:columns>
+
+                        <p:columns  value="#{calificacionPeriodoBean.cantidadSegundaRecuperacionList}" var="cantidadSR" 
+                                    columnIndexVar="colIndex" styleClass="texto-right" rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaPrueba>0}">
+                            <f:facet name="header" >
+                                <h:outputText value="#{cantidadSR}" />
+                            </f:facet>
+                            <h:outputText value="#{calificacionPeriodoBean.obtenerCalificacionRecuperacion(estudiante,EnumCalendarioEscolar.SREC,cantidadSR)}" />
+                        </p:columns>
+
+                        <p:columns  value="#{calificacionPeriodoBean.cantidadSegundaRecuperacionPSList}" var="cantidadSRPS" 
+                                    columnIndexVar="colIndex" styleClass="texto-right" rendered="#{calificacionPeriodoBean.componentePlanGrado.cpgCantidadSegundaSuficiencia>0}">
+                            <f:facet name="header" >
+                                <h:outputText value="#{cantidadSRPS}" />
+                            </f:facet>
+                            <h:outputText value="#{calificacionPeriodoBean.obtenerCalificacionRecuperacion(estudiante,EnumCalendarioEscolar.SRECPS,cantidadSRPS)}" />
+                        </p:columns>                       
+
+
+                        <p:column colspan="1" styleClass="texto-right" >        
+                            <h:outputText value="#{calificacionPeriodoBean.buscarCalificacionEspecial(estudiante, EnumTiposPeriodosCalificaciones.APR)}"  />
+                        </p:column>
+
+                        <p:column colspan="1" styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}">
+                            <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_FICHA_ESTUDIANTE}?id=#{estudiante.estPk}" 
+                                    target="_blank" styleClass="btn btn-icono" 
+                                    title="#{msg.hfichaEstudiante}">
+                                <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            </p:link>
+                        </p:column>
+
+
+                    </p:dataTable>
+                </h:panelGroup>       
+            </p:outputPanel>
+        </p:outputPanel>
+        
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

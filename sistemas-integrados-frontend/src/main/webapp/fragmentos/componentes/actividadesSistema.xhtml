@@ -1,0 +1,192 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui">    
+
+    <c:set var="sistemaIntegrado" value="#{sistemaIntegrado}" scope="request"/>
+
+    <p:outputPanel id="pnlActividades">
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.sedeEducativab}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:autoComplete id="input_sede_autocomplete"
+                                                styleClass="form-control texto-medio"
+                                                value="#{actividadesSistemaBean.sedeSeleccionada}"
+                                                completeMethod="#{actividadesSistemaBean.completeSede}"
+                                                var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                                itemValue="#{sed}"
+                                                widgetVar="b_inst_resp_autocomplete"
+                                                forceSelection="true"
+                                                maxResults="10"
+                                                queryDelay="500"
+                                                multiple="false"
+                                                converter="#{sedesConverter}"
+                                                placeholder="#{msg.autoCompleteEmptyItem}">
+                                </p:autoComplete>
+                            </p:outputPanel> 
+                        </p:outputPanel>
+
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_anio_lectivo">
+                        <h:outputLabel value="#{msg.anioLectivo}" for="input_anio_lectivo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_anio_lectivo" value="#{actividadesSistemaBean.comboAnioLectivo.selected}"  
+                                             styleClass="form-control texto-medio" >
+                                <f:selectItems value="#{actividadesSistemaBean.comboAnioLectivo.items}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.fuenteFinanciamiento}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu   id="b_financiamiento" 
+                                                   value="#{actividadesSistemaBean.comboFuenteFinanciamiento.selected}"
+                                                   styleClass="form-control dropdown texto-medio">
+                                    <f:selectItems value="#{actividadesSistemaBean.comboFuenteFinanciamiento.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-12" style="text-align: right;">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{actividadesSistemaBean.buscar()}" update="pnlResultadoActividades"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />  
+                            <p:commandLink value="#{msg.limpiar}" action="#{actividadesSistemaBean.limpiar()}" 
+                                           update="pnlSearch pnlResultadoActividades" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultadoActividades" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />    
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>   
+
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultadoActividades" >
+            <p:dataTable id="basicDTActividadesSistema" 
+                         widgetVar="widActividadesSistema"                         
+                         var="elem"                          
+                         value="#{actividadesSistemaBean.listaDetallesPlanEscolar}"                          
+                         emptyMessage="#{msg.noHayResultados}"      
+                         paginator="#{actividadesSistemaBean.totalResultados gt actividadesSistemaBean.paginado}"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="asiPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{actividadesSistemaBean.paginado}"
+                         reflow="true" 
+                         rendered="#{actividadesSistemaBean.listaDetallesPlanEscolar ne null}">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{actividadesSistemaBean.totalResultados lt (actividadesSistemaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{actividadesSistemaBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDTActividadesSistema" fileName="AcuerdosSistema" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.codSede}" sortBy="#{elem.dpePlanEscolarAnual.peaSede.sedCodigo}">
+                    <h:outputText value="#{elem.dpePlanEscolarAnual.peaSede.sedCodigo}" id="textSede"/>
+                    <p:tooltip id="toolTipContent" for="textSede" position="bottom" styleClass="panelTooltip" >
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.nombre}" styleClass="col-sm-4 col-form-label " />
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext" 
+                                              value="#{elem.dpePlanEscolarAnual.peaSede.sedNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.telefono}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext "
+                                              value="#{elem.dpePlanEscolarAnual.peaSede.sedTelefono}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.departamento}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.dpePlanEscolarAnual.peaSede.sedDireccion.dirDepartamento.depNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.municipio}" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:outputText styleClass="form-control-plaintext " 
+                                              value="#{elem.dpePlanEscolarAnual.peaSede.sedDireccion.dirMunicipio.munNombre}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:tooltip>
+                </p:column>
+                <p:column headerText="Año" >
+                    <h:outputText value="#{elem.dpePlanEscolarAnual.peaAnioLectivo.aleAnio}" />
+                </p:column>
+                <p:column headerText="#{msg.hactividad}" >
+                    <h:outputText value="#{elem.dpeActividad}" escape="false" />
+                </p:column>
+                <p:column headerText="#{msg.responsable}" sortBy="#{elem.dpeResponsables}">
+                    <h:outputText value="#{elem.dpeResponsables}" />
+                </p:column>
+                <p:column headerText="#{msg.hrecurso}" sortBy="#{elem.dpeRecursos.rcsNombre}">
+                    <h:outputText value="#{elem.dpeRecursos.rcsNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hcostoEstimado}" sortBy="#{elem.dpeCostoEstimado}">
+                    <h:outputText value="#{elem.dpeCostoEstimado}" />
+                </p:column>
+                <p:column headerText="#{msg.hfuenteFinanciamiento}" sortBy="#{elem.dpeFuenteFinanciamiento.ffiNombre}">
+                    <h:outputText value="#{elem.dpeFuenteFinanciamiento.ffiNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaIni}" sortBy="#{elem.dpeFechaInicio}">
+                    <h:outputText value="#{elem.dpeFechaInicio}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaFin}" sortBy="#{elem.dpeFechaFin}">
+                    <h:outputText value="#{elem.dpeFechaFin}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"> 
+                    <h:outputLink  value="#{applicationBean.centrosFrontEndUrl}/ce/pp/planEscolarAnual?id=#{elem.dpePlanEscolarAnual.peaPk}&amp;edit=false" target="_blank">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                    </h:outputLink>
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+
+    </p:outputPanel>
+</ui:composition>
+
+
+
+

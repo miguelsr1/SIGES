@@ -1,0 +1,98 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{consultaSeccionCierreAnioBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.consultaCierreAnioSecciones}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="formularioSede" >
+            <p:panel header="#{msg.filtro}" toggleable="false" styleClass="panel-filtro">
+                <p:outputPanel id="itemDetailSede">
+
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccionReporte.xhtml" >   
+                            <ui:param name="soloLectura" value="#{false}" />
+                        </ui:include>
+                    </f:subview>
+
+
+                    <p:outputPanel id="link_reporte" styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-4 offset-sm-4">
+                            <p:commandButton  id="btnGenerarReporte" value="#{msg.hconsultar}" action="#{consultaSeccionCierreAnioBean.generar()}" 
+                                              update="form:tDetalle"  styleClass="btn btn-primary" icon="glyphicon glyphicon-file" 
+                                              rendered="#{consultaSeccionCierreAnioBean.filtroSeccion.secAnioLectivoFk != null
+                                                          and consultaSeccionCierreAnioBean.filtroSeccion.secSedeFk != null}"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{consultaSeccionCierreAnioBean.limpiar()}" 
+                                           update="@form" immediate="true" styleClass="btn btn-link"
+                                           rendered="#{consultaSeccionCierreAnioBean.filtroSeccion.secAnioLectivoFk != null
+                                                       and consultaSeccionCierreAnioBean.filtroSeccion.secSedeFk != null}">
+                                <p:resetInput target="@form" />
+                            </p:commandLink>
+                            <p:blockUI block="formularioSede" trigger="btnGenerarReporte" />
+                            <p:defaultCommand target="btnGenerarReporte" scope="formularioSede"/>   
+                        </p:outputPanel>
+
+                    </p:outputPanel>
+
+
+                </p:outputPanel>
+            </p:panel> 
+
+            <p:outputPanel id="tDetalle">
+
+                <h:panelGroup rendered="#{consultaSeccionCierreAnioBean.listSeccion != null and consultaSeccionCierreAnioBean.listSeccion.size()>0}">
+                    <p:dataTable id="tablaReporteAsistenciaSecciones" var="sec"
+                                 value="#{consultaSeccionCierreAnioBean.listSeccion}"
+                                 emptyMessage="#{msg.noHayResultados}"
+                                 styleClass="datatable" 
+                                 rowIndexVar="rowIndex" >
+
+                        <f:facet name="header">
+                            <p:outputPanel styleClass="float-right">
+                                <p:outputPanel styleClass="form-inline panel-exportar">
+                                    <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                        <p:dataExporter type="csv" target="tablaReporteAsistenciaSecciones" fileName="consulta asistencia secciones" pageOnly="false"/>
+                                    </h:commandLink>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+
+                        <p:column headerText="#{msg.hgrado}" visible="true" exportable="false" >
+                            <h:outputText value="#{sec.secServicioEducativo.sduGrado.graNombre}"/>
+                        </p:column>
+
+                        <p:column headerText="#{msg.hSeccion}" visible="true" exportable="false">
+                            <h:outputText value="#{sec.nombreSeccion} " />
+                        </p:column>
+                        <p:column visible="true" headerText="#{msg.hCerrado}" styleClass="columnaAcciones" exportable="false">                          
+                            <h:outputText styleClass="#{consultaSeccionCierreAnioBean.estiloAsistenciaSeccion(sec)}"/>
+                        </p:column>
+                    
+
+                    </p:dataTable>
+                </h:panelGroup>       
+            </p:outputPanel>
+
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+    </h:form>
+</ui:composition>

@@ -1,0 +1,295 @@
+
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"            
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">    
+    <!-- <h:outputScript library="javascript" name="./../js/test.js" target="head" />-->
+
+    <h:form id="form">
+        <div class="contenedorSede">            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#{ConstantesPaginas.SEDES}.xhtml">#{msg.portalSede}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">#{sedeBean.tituloPagina}</li>
+                </ol>
+            </nav>
+
+            <div class="divTitulo">
+                <h:outputText class="#{sedeBean.estiloSede()}" value="#{sedeBean.tituloPagina}"/>
+            </div>                    
+
+            <p:galleria rendered="#{not empty sedeBean.imagenesInfra}" value="#{sedeBean.imagenesInfra}" var="image" panelHeight="313" showCaption="false" showFilmstrip="false" class="gallery">
+                <o:graphicImage value="#{imagenesBean.getFile(image.achPk)}" 
+                                lastModified="#{image.achUltmodFechaAsDate}"
+                                alt="#{image.achNombre}" title="#{image.achNombre}"/>
+            </p:galleria>
+
+            <p:outputPanel id="itemDetail">
+                <div class="titulosAmp">#{msg.datosGenerales}</div>
+
+                <p:outputPanel class="datossede">
+                    <div class="space">
+                        <h:outputLabel value="#{msg.codigo}"/>
+                        <h:outputText id="input_codigo" value="#{sedeBean.entidadEnEdicion.sedCodigo}"/>                
+                    </div>
+                    <div class="space" >
+                        <p:outputPanel   rendered="#{sedeBean.renderizarBuscarPorCercania}">
+                            <p:link href="#{applicationBean.qgisUrl}" target="_blank" styleClass="dropdown-item btn btn-link" >
+                                <h:outputText styleClass="glyphicon glyphicon-map-marker"/>
+                                <h:outputText style="margin-left:6px;" value="Buscar por cercanía"/>
+                            </p:link>
+                        </p:outputPanel>
+                    </div>    
+                    <div class="space">
+                        <h:outputLabel value="#{msg.sitioWeb}"/>
+                        <p:link href="http://#{sedeBean.entidadEnEdicion.sedSitioWeb}"    target="_blank" >
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedSitioWeb}" styleClass=" btn btn-link"/>
+                        </p:link>    
+                    </div>
+
+                    <div class="space">
+                        <h:outputLabel value="#{msg.nombre}" />                        
+                        <h:outputText id="input_nombre" value="#{sedeBean.entidadEnEdicion.sedNombre}" />
+                    </div>
+
+                    <div class="space">
+                        <h:outputLabel  value="#{msg.direccion}"/>
+                        <h:outputText value="#{sedeBean.entidadEnEdicion.sedDireccion.dirCompleta}" />
+                    </div>
+
+                    <div class="space">
+                        <h:outputLabel value="#{msg.tipoSede}"/>
+                        <h:outputText id="output_tipo_sede" value="#{sedeBean.entidadEnEdicion.sedTipo.text}"/>
+                    </div>
+
+                    <div class="space">
+                        <h:outputLabel value="#{msg.tipoCalendario}" />                        
+                        <h:outputText id="input_tipo_calendario" value="#{sedeBean.entidadEnEdicion.sedTipoCalendario.tceNombre}" />
+                    </div>
+
+                    <div class="space">
+                        <h:outputLabel value="#{msg.telefono}"/>                                                   
+                        <h:outputText id="input_telefono" value="#{sedeBean.entidadEnEdicion.sedTelefono}"/>
+                    </div>
+
+                    <div class="space">
+                        <h:outputLabel value="#{msg.jornadacons}"/>
+                        <h:outputText id="opt_jornada" value="#{sedeBean.ofertaJornadas}" />
+                    </div>
+                    <div class="space">
+                        <h:outputLabel value="#{msg.email}" />   
+                        <p:link href="mailto:#{sedeBean.entidadEnEdicion.sedCorreoElectronico}"  styleClass=" btn btn-link"  target="_blank" >
+                            <h:outputText value="#{sedeBean.entidadEnEdicion.sedCorreoElectronico}" />
+                        </p:link>
+                    </div>
+                </p:outputPanel>
+
+                <p:outputPanel>
+                    <ui:include src="componentes/mapa.xhtml">
+                        <ui:param name="mapa" value="#{sedeBean.entidadEnEdicion.sedDireccion}" />
+                    </ui:include>
+                </p:outputPanel>
+
+                <div class="titulosAmp">#{msg.ofertaEducativa}</div>
+                <p:outputPanel>
+                    <ui:include src="componentes/servicioEducativoComponente.xhtml">
+                        <ui:param name="sedeEducativa" value="#{sedeBean.entidadEnEdicion}" />
+                    </ui:include>
+                </p:outputPanel> 
+
+                <div class="titulosAmp">Propuesta pedagógica</div>
+                <p:outputPanel styleClass="ui-messages" rendered="#{(sedeBean.propuestaPedagogica.ppePk == null)or(sedeBean.propuestaPedagogica.ppeArchivo==null)}">                                
+                    <div class="ui-messages-info messages-info-azul ui-corner-all">     
+                        <ul style="margin-left:0px;">
+                            <li class="control-inline">
+                                <h:outputText styleClass="ui-messages-info-summary" value="La propuesta aún no ha sido registrada en SIGES para su descarga." style="padding-right: 15px"/>
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+                <p:outputPanel styleClass="ui-messages" rendered="#{(sedeBean.propuestaPedagogica.ppePk != null)and(sedeBean.propuestaPedagogica.ppeArchivo!=null)}">
+                    <div class="space">                                               
+                        <p:commandButton value="Descargar propuesta" 
+                                         icon="glyphicon glyphicon-save" 
+                                         id="btnDescargarPlantilla" 
+                                         styleClass="btn btn-secondary"  
+                                         style="margin-left: 0.5em;"
+                                         ajax="false" 
+                                         onclick="this.form.target = '_blank';">
+                            <p:fileDownload contentDisposition="inline" 
+                                            value="#{handleArchivoBean.descargarArchivo(sedeBean.propuestaPedagogica.ppeArchivo)}" />
+                        </p:commandButton>   
+                    </div>
+
+                </p:outputPanel>  
+              
+
+
+                <div class="titulosAmp">#{msg.hdiplomadosAutorizados}</div>
+
+                <p:outputPanel id="pnlDiplomados">
+                    <p:dataTable id="basicDTDiplomados"                                                
+                                 var="elem"                          
+                                 value="#{sedeBean.diplomadosAutorizados}"                          
+                                 emptyMessage="#{msg.noHayResultados}"		
+                                 sortField="dipPk"
+                                 reflow="true" >
+
+                        <p:column headerText="#{msg.hnombre}">
+                            <h:outputText value="#{elem.dipNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hdescripcion}">
+                            <h:outputText value="#{elem.dipDescripcion}" />
+                        </p:column>    
+                        <p:column styleClass="columnaAcciones" exportable="false">
+                            <p:commandButton update=":form:itemModulosDiplomadoDetail" oncomplete="PF('itemModulosDiplomadoDialog').show()" icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" title="#{msg.ver}" action="#{sedeBean.cargarModulosDiplomado(elem)}"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+
+
+                <p:outputPanel rendered="#{applicationBean.showAvg}">
+                    <br/>
+                    <div class="titulosAmp">#{msg.promedioCalificaciones}</div>
+
+                    <p:outputPanel styleClass="ui-messages" rendered="#{sedeBean.mensajeInfoPromedioCalificaciones != null}">                                
+                        <div class="ui-messages-info messages-info-azul ui-corner-all">     
+                            <ul style="margin-left:0px;">
+                                <li class="control-inline">
+                                    <h:outputText styleClass="ui-messages-info-summary" value="#{sedeBean.mensajeInfoPromedioCalificaciones}" style="padding-right: 15px"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="grafico_panel" styleClass="row">
+                        <p:outputPanel styleClass="col-md-4">
+
+                            <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                                <p:outputPanel id="filtros_grado" styleClass="row">                
+
+                                    <p:blockUI block="@form" widgetVar="treeSelectBlocker" />  
+                                    <p:tree value="#{treeGradoFilter.filtrosRoot}" var="node" dynamic="true" selectionMode="single"
+                                            selection="#{treeGradoFilter.selectedNode}">
+                                        <p:ajax event="expand" process="@this" listener="#{treeGradoFilter.onNodeExpand}" />
+                                        <p:ajax event="select" update="form:chartScriptContainer form:grafico" onstart="PF('treeSelectBlocker').show()"  oncomplete="updateChart()" listener="#{sedeBean.cargarCalificacionesPorArea()}" />
+
+                                        <p:treeNode type="org">
+                                            <h:outputText value="#{node.ocuNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode type="nivel">
+                                            <h:outputText value="#{node.nivNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode type="ciclo">
+                                            <h:outputText value="#{node.cicNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode type="modalidad">
+                                            <h:outputText value="#{node.modNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode type="modalidad_atencion">
+                                            <h:outputText value="#{node.matNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode type="submodalidad_atencion">
+                                            <h:outputText value="#{node.smoNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode type="grado">
+                                            <h:outputText value="#{node.graNombre}" />
+                                        </p:treeNode>
+                                        <p:treeNode>
+                                            <h:outputText value="#{node}" />
+                                        </p:treeNode>
+                                    </p:tree>
+
+
+                                </p:outputPanel>
+                            </p:panel>
+
+
+
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-sm-8" id="grafico">
+                            <p:outputPanel styleClass="space">
+                                <h:outputLabel  rendered="#{sedeBean.nombreNodoSeleccionado != null}" value="#{sedeBean.nombreNodoSeleccionado}"/>
+                            </p:outputPanel>
+                            <div class="space" style="display: none;" id="emptyChart">
+                                <h:outputLabel value="#{msg.noHayResultados}"/>
+                            </div>
+                            <svg class="chart"></svg>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <div class="volverLink">
+                    <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+                </div> 
+            </p:outputPanel>
+        </div>
+        <link href="./../resources/css/d3js_siges.css"/>
+        <script type="text/javascript" src="./../js/d3.v5.min.js"></script>
+        <script type="text/javascript" src="./../js/promediosGrafica.js"></script>
+
+        <p:dialog header="#{msg.hdiplomado}" widgetVar="itemModulosDiplomadoDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+            <p:outputPanel id="itemModulosDiplomadoDetail">                                                             
+                <h:panelGroup rendered="#{not empty sedeBean.diplomadoEnEdicion}"  >  
+
+                    <p:outputPanel styleClass="form-group row" id="fila_output_nombre" >                        
+                        <h:outputLabel value="#{msg.nombre}" for="output_nombre"  styleClass="col-sm-2 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-10">                            
+                            <h:outputText  id="output_nombre" styleClass="form-control-plaintext" value="#{sedeBean.diplomadoEnEdicion.dipNombre}"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+                    <p:outputPanel styleClass="form-group row"  >                        
+                        <h:outputLabel value="#{msg.modulos}" styleClass="col-sm-2 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-10">                            
+                            <p:outputPanel id="pnlModulosDiplomados">
+                                <p:dataTable id="basicDTModulosDiplomados"                                                
+                                             var="elem"                          
+                                             value="#{sedeBean.modulosDiplomado.get(sedeBean.diplomadoEnEdicion.dipPk)}"                          
+                                             emptyMessage="#{msg.noHayResultados}"		
+                                             sortField="mdiPk"
+                                             reflow="true" >
+
+                                    <p:column headerText="#{msg.hnombre}">
+                                        <h:outputText value="#{elem.mdiNombre}" />
+                                    </p:column>
+                                    <p:column headerText="#{msg.hdescripcion}" rendered="false">
+                                        <h:outputText value="#{elem.mdiDescripcion}" />
+                                    </p:column>            
+                                </p:dataTable>
+                            </p:outputPanel>             
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+
+
+                    <p:outputPanel styleClass="control-group" >
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandLink value="#{msg.hcerrar}" oncomplete="PF('itemModulosDiplomadoDialog').hide();" styleClass="btn btn-link"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>              
+
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>  
+
+        <p:outputPanel id="chartScriptContainer" >
+
+            <script type="text/javascript">
+
+                        window.updateChart = function () {
+                            var paverageCenter = '#{sedeBean.promedioInstitucion}';
+                            var paverageNational = '#{sedeBean.promedioNacional}';
+                            buildChart(paverageCenter, paverageNational);
+                        }
+            </script>
+
+        </p:outputPanel>
+
+    </h:form>
+</ui:composition>
+
+

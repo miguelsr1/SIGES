@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui">
+
+
+    <h:panelGroup id="verblockLinea"  layout="block">
+        <div class="modal fade"  id="veranadirLinea" tabindex="-1" role="dialog" aria-labelledby="anadirLinea">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:panelGroup styleClass="modal-content" layout="block" id="vercontenidoModalLinea">
+                    <h:form id="veranadirLineaForm"  prependId="false" > 
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Linea')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <ui:fragment rendered="#{sePuedeCompartir eq true}">
+                                <ul class="nav nav-tabs">
+                                    <li role="presentation" class="#{(parameterBean.modalAbierto == 1) ? 'active' : '' }">
+                                        <p:commandLink styleClass="btn btn-link"  
+                                                       value="#{textMB.obtenerTexto('labels.Linea')}"
+                                                       update="@form"
+                                                       immediate="true">
+                                            <f:setPropertyActionListener target="#{parameterBean.modalAbierto}" value="#{1}" />
+                                        </p:commandLink>
+                                    </li>
+                                    <li role="presentation"  class="#{(parameterBean.modalAbierto == 2) ? 'active' : '' }">
+                                        <p:commandLink styleClass="btn btn-link"  
+                                                       value="#{textMB.obtenerTexto('labels.Colaboradores')}"  
+                                                       update="@form"
+                                                       immediate="true" >
+                                            <f:setPropertyActionListener target="#{parameterBean.modalAbierto}" value="#{2}" />
+                                        </p:commandLink>
+                                    </li>
+                                </ul>
+                            </ui:fragment>
+                            <div class="tab-content">
+                                <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                <h:panelGroup layout="block"  styleClass="form-horizontal" rendered="#{parameterBean.modalAbierto == 1}">
+
+
+                                    <div class="form-group">
+                                        <h:outputLabel  styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Producto')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText styleClass="form-control-static" value="#{parameterBean.tempLinea.producto.producto.nombre}" />
+                                        </div>
+                                    </div>
+
+                                    <h:panelGroup layout="block" styleClass="margenSup">                                        
+                                        <ui:fragment  rendered="#{parameterBean.habilitadoValorSeguimiento()}" > 
+                                            <fieldset class="fieldset fieldsetSmall">
+                                                <legend>
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.CantidadesTotales')}" />
+                                                </legend>
+                                                <!-- se empieza a cambiar lista por tabla de elementos -->
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>         
+                                                                <th><h:outputText  value="#{textMB.obtenerTexto('labels.anio')}" /></th>
+                                                                <ui:repeat  var="valorSeguimiento" value="#{parameterBean.valoresSeguimiento}" varStatus="status">
+                                                                    <th class="numericos"><h:outputText  value="#{valorSeguimiento.anio}" /></th>
+                                                                </ui:repeat>         
+                                                                <th class="numericos"><h:outputText  value="#{textMB.obtenerTexto('labels.Total')}" /></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <ui:repeat  var="tipoSeg" value="#{parameterBean.getNombresDeTipoSeguimiento()}" varStatus="status">
+                                                                <tr>
+                                                                    <td><h:outputText  value="#{textMB.obtenerTexto('labels.Meta')} " /><h:outputText  value="#{textMB.obtenerTexto(tipoSeg)}" /> </td>
+                                                                    <ui:repeat  var="valorSeguimiento" value="#{parameterBean.valoresSeguimiento}">                                                                
+                                                                        <td class="numericos">
+                                                                            <h:outputText   value="#{valorSeguimiento.valores[status.index].valor}"  >
+                                                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                            </h:outputText> 	
+                                                                        </td>
+                                                                    </ui:repeat>
+                                                                    <td class="numericos">
+                                                                        <h:outputText value="#{parameterBean.sumarTotalValorSeguimiento(status.index)} " >
+                                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                        </h:outputText> 
+                                                                    </td>
+                                                                </tr>
+                                                            </ui:repeat>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </fieldset>
+                                        </ui:fragment>
+                                    </h:panelGroup>
+
+
+
+
+
+                                </h:panelGroup>
+
+                                <!-- COLABORADORES-->
+                                <h:panelGroup layout="block"  rendered="#{parameterBean.modalAbierto == 2}">                             
+                                    <h:outputText  value="#{textMB.obtenerTexto('labels.Colaboradores')}"/>
+                                    <ul class="list-unstyled">
+                                        <ui:repeat  var="ut" value="#{parameterBean.tempLinea.colaboradoras}" varStatus="status">
+                                            <li>#{ut.nombre}</li>
+                                        </ui:repeat>     
+                                    </ul>
+                                </h:panelGroup>
+                            </div>
+                        </div>
+                        <h:panelGroup layout="block" id="veranadirLineaFooter" styleClass="modal-footer">                            
+<!--                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-chevron-right" value="#{textMB.obtenerTexto('labels.Siguiente')}" actionListener="#{parameterBean.avanzarAnioSeguimiento()}"  rendered="#{false eq parameterBean.isUltimoAnioSeguimiento()} " update="tablaLineas vercontenidoModalLinea veranadirLineaFooter"/>-->
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </h:panelGroup>
+                    </h:form> 
+                </h:panelGroup>
+            </div>
+        </div> 
+    </h:panelGroup>
+
+
+
+
+
+</ui:composition>

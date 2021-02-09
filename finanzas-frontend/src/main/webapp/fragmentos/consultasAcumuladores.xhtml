@@ -1,0 +1,196 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:ct="http://www.chartistjsf.org/charts" 
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">               
+        <f:passThroughAttribute name="autocomplete" value="off"/> 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.consultas}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.consultas}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+
+
+
+
+                <!--
+                                <ui:include src="componentes/ayudaComponente.xhtml">
+                                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.DESEMBOLSOS)}" /> 
+                                </ui:include>-->
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.acumulador}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneRadio id="b_componente"
+                                              value="#{consultasBean.acumuladorSeleccionado}"    
+                                              styleClass="form-control texto-medio" 
+                                              >
+                                <f:selectItem itemLabel="#{msg.formulacion}" itemValue="1" />
+                                <f:selectItem itemLabel="#{msg.aprobacion}" itemValue="2"/>
+
+                            </h:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.detalle}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneRadio id="b_detalle"
+                                              value="#{consultasBean.criterioDetalle}"    
+                                              styleClass="form-control texto-medio" 
+                                              >
+                                <f:selectItem itemLabel="#{msg.conDetalle}" itemValue="1" />
+                                <f:selectItem itemLabel="#{msg.sinDetalle}" itemValue="2"/>
+
+                            </h:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.criterioDeAcumulacion}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_criterio"
+                                             value="#{consultasBean.criterioSeleccionado}"    
+                                             styleClass="form-control texto-medio" 
+                                             >
+                                <f:selectItem itemLabel="#{msg.criterioAreaInversion}" itemValue="1" />
+                                <f:selectItem itemLabel="#{msg.criterioRubro}" itemValue="2"/>
+                                <f:selectItem itemLabel="#{msg.criterioComponente}" itemValue="3"/>
+                                <f:selectItem itemLabel="#{msg.criterioUnidadPresupuestaria}" itemValue="4"/>
+
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.aniofiscal}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="b_estado" styleClass="form-control texto-medio" 
+                                             value="#{consultasBean.anioLectivoCombo.selected}"   >
+                                <f:selectItems value="#{consultasBean.anioLectivoCombo.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.codigoSede}" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText value="#{consultasBean.filtro.sedeEducativa}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+                <p:outputPanel styleClass="form-group row">
+                    <p:outputPanel styleClass="col-sm-9 col-md-10 offset-md-2 offset-sm-3">
+                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" 
+                                         styleClass="btn btn-primary" 
+                                         icon="glyphicon glyphicon-search" 
+                                         action="#{consultasBean.buscar()}" 
+                                         update="pnlResultado pnlGrafico"/>
+                        <p:commandLink value="#{msg.limpiar}" action="#{consultasBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                            <p:resetInput target="pnlSearch pnlResultado" />
+                        </p:commandLink>
+                        <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                        <p:blockUI block="@form" trigger="btnBuscar" />
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel> 
+
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                          
+                         value="#{consultasBean.listaResultado}"                          
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="false"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="dsbPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{consultasBean.paginado}"
+                         reflow="true" 
+                         >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{consultasBean.totalResultados lt (consultasBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" />
+                                <h:outputText styleClass="cantidad" value="#{consultasBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="resultadoConsulta" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column headerText="#{consultasBean.filtro.acum1}" >
+                    <h:outputText value="#{elem.acum1}" />
+                </p:column>
+                <p:column headerText="#{consultasBean.filtro.acum2}" 
+                          rendered="#{not empty consultasBean.filtro.acum2}" >
+                    <h:outputText value="#{elem.acum2}" />
+                </p:column>
+
+                <p:column headerText="#{msg.hImporte}" styleClass="columna-derecha columnaVerde ">
+                    <h:outputText value="#{elem.valor}" styleClass="columna-derecha  ">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{presupuestoEscolarBean.locale}" />
+                    </h:outputText>
+                </p:column>
+
+
+            </p:dataTable>
+        </p:outputPanel>
+        <p:outputPanel id="pnlGrafico" 
+                       style="margin-top:20px;width: 50%; height: 50%; margin-left: auto; margin-right: auto; margin-top: auto; margin-bottom: auto;">
+            <h2><h:outputText value="Distribución según: #{consultasBean.filtro.acum1}"
+                              rendered="#{not empty consultasBean.filtro.acum1}"/></h2>
+            <ct:chart id="pieChart" type="pie" model="#{consultasBean.pieChartModel}" >
+                <p:ajax event="itemSelect" listener="#{consultasBean.pieItemSelect}" update="pieChartMessage" />
+            </ct:chart>
+            <p:message id="pieChartMessage" for="pieChart" showDetail="true" />
+
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+
+    </h:form>
+</ui:composition>

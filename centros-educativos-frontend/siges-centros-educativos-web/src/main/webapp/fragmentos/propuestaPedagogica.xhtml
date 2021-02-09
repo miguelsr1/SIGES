@@ -1,0 +1,445 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.PROPUESTAS_PEDAGOGICAS}.xhtml">#{msg.gestionPropuestaPedagogica}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.propuestaPedagogica}</li>
+            </ol>
+        </nav>
+
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.propuestaPedagogica}"/></h2>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3>
+            <h:outputText rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppePk != null and propuestaPedagogicaBean.soloLectura}" value="#{msg.propuestaPedagogica}" />
+            <h:outputText rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppePk != null and !propuestaPedagogicaBean.soloLectura}" value="#{msg.edicionPropuestaPedagogica}" />
+            <h:outputText rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppePk == null}" value="#{msg.nuevaPropuestaPedagogica}" />
+        </h3>
+
+
+        <p:outputPanel id="panelEnt">
+
+            <fieldset>
+                <p:outputPanel id="formularioCalendarioEdit" >
+                    <p:outputPanel styleClass="form-group row" id="fila_output_codigo">
+                        <h:outputLabel value="#{msg.sede}" for="input_codigo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="input_sede_autocomplete_b"
+                                            styleClass="form-control texto-medio"
+                                            value="#{propuestaPedagogicaBean.sedeSeleccionada}"
+                                            completeMethod="#{propuestaPedagogicaBean.completeSede}"
+                                            var="sed" itemLabel="#{sed.sedCodigoNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}" 
+                                            disabled="#{propuestaPedagogicaBean.soloLectura}">
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nombre">                        
+                        <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:inputText autocomplete="off" styleClass="form-control" id="input_nombre" 
+                                         value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeNombre}" />
+                            <h:message for="input_nombre" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_inicio">
+                        <h:outputLabel value="#{msg.fechaInicio}" for="input_calFechaInicio" styleClass="col-sm-3 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_calFechaInicio" styleClass="form-control" 
+                                        value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeFechaInicio}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        disabled="#{propuestaPedagogicaBean.soloLectura}"
+                                        converter="#{localDateConverter}" converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_calFechaInicio" styleClass="msj-danger"/> 
+                        </p:outputPanel>     
+
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha_fin">
+                        <h:outputLabel value="#{msg.fechaFin}" for="input_calFechaFin" styleClass="col-sm-3 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar id="input_calFechaFin" styleClass="form-control" 
+                                        value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeFechaFin}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        disabled="#{propuestaPedagogicaBean.soloLectura}"
+                                        converter="#{localDateConverter}"  converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />
+                            <h:message for="input_calFechaFin" styleClass="msj-danger"/> 
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_caracterizacion">                        
+                        <h:outputLabel value="#{msg.caracterizacion}" for="input_caracterizacion" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:textEditor id="input_caracterizacion"   value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeCaracterizacion}" 
+                                          styleClass="form-control" readonly="#{propuestaPedagogicaBean.soloLectura}" 
+                                          height="300" style="margin-bottom:10px">
+                                <f:facet name="toolbar">
+                                    <span class="ql-formats">
+                                        <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                    </span>
+                                </f:facet>
+                            </p:textEditor>
+                            <h:message for="input_caracterizacion" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_problemasPriorizados">                        
+                        <h:outputLabel value="#{msg.problemasPriorizados}" for="input_problemasPriorizados" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:textEditor id="input_problemasPriorizados" value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeProblemasPriorizados}" 
+                                          styleClass="form-control" readonly="#{propuestaPedagogicaBean.soloLectura}" 
+                                          height="300" style="margin-bottom:10px">
+                                <f:facet name="toolbar">
+                                    <span class="ql-formats">
+                                        <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                    </span>
+                                </f:facet>
+                            </p:textEditor>
+                            <h:message for="input_problemasPriorizados" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_perfilEstudiante">                        
+                        <h:outputLabel value="#{msg.perfilEstudiante}" for="input_perfilEstudiante" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:textEditor id="input_perfilEstudiante" value="#{propuestaPedagogicaBean.entidadEnEdicion.ppePerfilEstudiante}" 
+                                          styleClass="form-control" readonly="#{propuestaPedagogicaBean.soloLectura}" 
+                                          height="300" style="margin-bottom:10px">
+                                <f:facet name="toolbar">
+                                    <span class="ql-formats">
+                                        <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                    </span>
+                                </f:facet>
+                            </p:textEditor>
+                            <h:message for="input_perfilEstudiante" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_retos">                        
+                        <h:outputLabel value="#{msg.retos}" for="input_retos" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:textEditor id="input_retos" value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeRetosPedagogicos}" 
+                                          styleClass="form-control" readonly="#{propuestaPedagogicaBean.soloLectura}" 
+                                          height="300" style="margin-bottom:10px">
+                                <f:facet name="toolbar">
+                                    <span class="ql-formats">
+                                        <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                    </span>
+                                </f:facet>
+                            </p:textEditor>
+                            <h:message for="input_retos" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_metas">                        
+                        <h:outputLabel value="#{msg.metas}" for="input_metas" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:textEditor id="input_metas" value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeMetas}" 
+                                          styleClass="form-control" readonly="#{propuestaPedagogicaBean.soloLectura}" 
+                                          height="300" style="margin-bottom:10px">
+                                <f:facet name="toolbar">
+                                    <span class="ql-formats">
+                                        <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                    </span>
+                                </f:facet>
+                            </p:textEditor>
+                            <h:message for="input_metas" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_indicadores">                        
+                        <h:outputLabel value="#{msg.indicadores}" for="input_indicadores" styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <p:textEditor id="input_indicadores" value="#{propuestaPedagogicaBean.entidadEnEdicion.ppeIndicadores}" 
+                                          styleClass="form-control" readonly="#{propuestaPedagogicaBean.soloLectura}" 
+                                          
+                                          height="300" style="margin-bottom:10px">
+                                <f:facet name="toolbar">
+                                    <span class="ql-formats">
+                                        <button class="ql-bold" title="#{msg.negrita}"></button>
+                                        <button class="ql-italic" title="#{msg.cursiva}"></button>
+                                        <button class="ql-underline" title="#{msg.subrayado}"></button>
+                                        <button class="ql-strike" title="#{msg.tachado}"></button>
+                                        <button class="ql-list" value="ordered" />
+                                        <button class="ql-list" value="bullet" />
+                                        <select class="ql-align" />
+                                        <button class="ql-clean" title="#{msg.limpiarFormato}" />
+                                    </span>
+                                </f:facet>
+                            </p:textEditor>
+                            <h:message for="input_indicadores" styleClass="msj-danger"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-group row" id="fila_archivo">
+                        <h:outputLabel value="#{msg.archivo}" for="file_upload_archivo" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:fileUpload fileUploadListener="#{propuestaPedagogicaBean.handleFileUpload}"
+                                          id="file_upload_archivo"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar archivo"
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoArchivoFotos} "
+                                          update="fila_archivo form:fila_boton"
+                                          cancelLabel="#{msg.cancelar}"
+                                          rendered="#{!propuestaPedagogicaBean.soloLectura}"
+                                          auto="true"
+                                          sizeLimit="#{applicationBean.fotosTamPermitido}" allowTypes="/(\.|\/)(jpe?g|png|pdf|doc)$/" />
+
+                            <o:graphicImage value="#{imagenesBean.getFile(propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achPk)}" width="220" 
+                                            lastModified="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achUltmodFechaAsDate}"
+                                            alt="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achNombre}" 
+                                            title="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achNombre}"
+                                            rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo != null and 
+                                                        propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achPk != null and 
+                                                        !propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achShowTmpFile}"/>
+
+                            <o:graphicImage value="#{imagenesBean.getTmpFile(propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achTmpPath)}" width="220" 
+                                            alt="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achNombre}" 
+                                            title="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achNombre}"
+                                            rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo != null and 
+                                                        propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo.achShowTmpFile}" />
+
+
+                                
+                            </p:outputPanel>     
+                      </p:outputPanel >
+                    <p:outputPanel id="fila_boton" styleClass="form-group row" >
+                        <h:outputLabel styleClass="col-sm-3 "/>
+                        <p:outputPanel styleClass="col-sm-1">
+                            <p:commandLink action="#{propuestaPedagogicaBean.eliminarArchivo()}" update="form:fila_archivo fila_boton" 
+                                               value="#{msg.eliminar}" 
+                                               rendered="#{!propuestaPedagogicaBean.soloLectura and propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo != null}" 
+                                               style="margin-top:5px; display: block;" />
+                        </p:outputPanel>    
+                        <p:outputPanel styleClass="col-sm-1">
+                                <p:commandButton value="Descargar" ajax="false" onclick="this.form.target = '_blank';" rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo != null}" styleClass="btn btn-link">
+                                    <p:fileDownload contentDisposition="inline" value="#{handleArchivoBean.descargarArchivo(propuestaPedagogicaBean.entidadEnEdicion.ppeArchivo)}" />
+                                </p:commandButton>  
+                            
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+                <div class="form-action-buttons">
+                    <p:commandButton  id="btnGuardar" value="#{msg.guardar}" action="#{propuestaPedagogicaBean.guardar()}" rendered="#{!propuestaPedagogicaBean.soloLectura}" update="@form"  styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                    <p:blockUI block="@form" trigger="btnGuardar" />
+                </div>
+            </fieldset>
+        </p:outputPanel>
+        <h:panelGroup rendered="#{propuestaPedagogicaBean.entidadEnEdicion.ppePk != null}">
+            <fieldset>
+                <legend>#{msg.hacuerdos}</legend>
+                <p:outputPanel id="pnlResultado">
+                    <p:outputPanel styleClass="float-right mb-2" id="input_acuerdos">
+                        <p:commandButton value="#{msg.agregarAcuerdo}" icon="glyphicon glyphicon-plus" 
+                                         id="btnAgregarAcuerdoPropuesta" styleClass="btn btn-secondary"  
+                                         oncomplete="PF('AcuerdoSedeDialog').show()"
+                                         update="form:AcuerdoSedeDialog"
+                                         action="#{propuestaPedagogicaBean.agregarAcuerdo()}"
+                                         rendered="#{not propuestaPedagogicaBean.soloLectura}"/>
+                        <!--  <h:message for="input_acuerdos" styleClass="msj-danger"/>-->
+                    </p:outputPanel>
+
+                    <p:dataTable id="basicDT"                         
+                                 widgetVar="widResultado"                         
+                                 var="elem"                          
+                                 value="#{propuestaPedagogicaBean.acuerdoList}" 
+                                 rowKey="#{elem.acuPk}" 
+                                 emptyMessage="#{msg.noHayResultados}"		
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                 reflow="true" >
+                        <p:column headerText="#{msg.hnombre}">
+                            <h:outputText value="#{elem.acuNombreAcuerdo}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hdescripcion}">
+                            <h:outputText value="#{elem.acuDescripcion}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hestado}">
+                            <h:outputText value="#{elem.acuEstado.text}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hfecha}">
+                            <h:outputText value="#{elem.acuFecha}" converter="#{localDateConverter}" />
+                        </p:column>
+                        <p:column id="aplicasi" >
+                            <f:facet name="header">
+                                <h:outputText value="#{msg.haplicaSI}"/>
+                                <p:tooltip position="bottom" value="#{msg.haplicaSistemaIntegrado}" for="aplicasi" />
+                            </f:facet> 
+                            <h:outputText value="#{elem.acuAplicaSistemasIntegrados}" converter="#{booleanConverter}"  />
+                        </p:column>                       
+                        <p:column styleClass="columnaAcciones" exportable="false" rendered="#{not propuestaPedagogicaBean.soloLectura}">
+                            <p:commandButton update=":form:pnlResultado form:AcuerdoSedeDialog" oncomplete="PF('AcuerdoSedeDialog').show()"
+                                             icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" title="#{msg.editar}" 
+                                             action="#{propuestaPedagogicaBean.editarAcuerdo(elem)}"/>
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false"
+                                  rendered="#{not propuestaPedagogicaBean.soloLectura}">
+                            <p:commandButton  icon="glyphicon glyphicon-trash " 
+                                              action="#{propuestaPedagogicaBean.editarAcuerdo(elem)}"
+                                              oncomplete="PF('confirmDialog').show()"
+                                              styleClass="btn btn-icono rojo" title="#{msg.eliminar}" />
+
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+            </fieldset>
+        </h:panelGroup>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>    
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}" 
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="form:pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{propuestaPedagogicaBean.eliminarAcuerdo()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog id="AcuerdoSedeDialog"  header="#{msg.agregarAcuerdo}"
+                  widgetVar="AcuerdoSedeDialog" modal="true" showEffect="fade" 
+                  hideEffect="fade" resizable="false" >
+            <p:outputPanel id="AcuerdoSedeDetalle" > 
+                <h:panelGroup rendered="#{not empty propuestaPedagogicaBean.acuerdoEnEdicion}"  >
+
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" 
+                                for="popupmsg" closable="true"/>   
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_tipo_acuerdo">
+                        <h:outputLabel value="#{msg.nombre}" for="input_acuerdo_tipo_acuerdo" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8 ">
+                            <h:inputText autocomplete="off" id="input_opcCodigo" styleClass="form-control texto-medio" value="#{propuestaPedagogicaBean.acuerdoEnEdicion.acuNombreAcuerdo}"/> 
+
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_id_resolucion">
+                        <h:outputLabel value="#{msg.descripcion}" for="input_acuerdo_id_resolucion" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8 ">
+                            <h:inputTextarea  id="input_descripcion" value="#{propuestaPedagogicaBean.acuerdoEnEdicion.acuDescripcion}" styleClass="form-control texto-medio"/>
+
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_numero_acuerdo">
+                        <h:outputLabel value="#{msg.estado}" for="input_acuerdo_numero_acuerdo" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8 ">
+                            <h:selectOneMenu   id="b_tipo" value="#{propuestaPedagogicaBean.comboEstado.selected}"
+                                               styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{propuestaPedagogicaBean.comboEstado.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_nombre_responsable">
+                        <h:outputLabel value="#{msg.fecha}" for="input_acuerdo_nombre_responsable" 
+                                       styleClass="col-sm-4 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-8 ">
+                            <p:calendar id="filtro_fecha_desde" styleClass="form-control"
+                                        value="#{propuestaPedagogicaBean.acuerdoEnEdicion.acuFecha}"
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_fecha_generacion">
+                        <h:outputLabel value="¿Aplica a sistemas integrados?:" for="input_acuerdo_fecha_generacion" 
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8 ">
+                            <p:selectOneRadio layout="responsive" columns="2" id="b_legalizada" value="#{propuestaPedagogicaBean.acuerdoEnEdicion.acuAplicaSistemasIntegrados}">
+                                <f:selectItems value="#{applicationBean.booleanValues}" />
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+
+
+                    <p:outputPanel styleClass="control-group" >
+                        <div class="form-action-buttons">
+                            <p:commandButton id="btnGuardarAcuerdos"  value="#{msg.guardar}"
+                                             action="#{propuestaPedagogicaBean.guardarAcuerdo()}" 
+                                             update="form:pnlResultado form:AcuerdoSedeDetalle" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                            <p:blockUI block="@form" trigger="btnGuardarAcuerdos" /> 
+                            <p:commandLink id="cancelarGuardado" value="#{msg.cancelar}"
+                                           onclick="PF('AcuerdoSedeDialog').hide()" styleClass="btn btn-link" />
+                        </div> 
+                    </p:outputPanel>  
+
+                    <p:defaultCommand target="btnGuardarAcuerdos" scope="AcuerdoSedeDetalle"/>                           
+
+                </h:panelGroup>  
+            </p:outputPanel>
+        </p:dialog>
+    </h:form>
+</ui:composition>

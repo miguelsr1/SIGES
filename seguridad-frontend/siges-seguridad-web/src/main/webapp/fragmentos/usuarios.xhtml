@@ -1,0 +1,636 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.centros_educativos.EnumAmbito" />
+    <h:form id="form">
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionUsuario}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionUsuario}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoUsuario}" icon="glyphicon glyphicon-plus"
+                                 action="#{usuariosBean.agregar()}"
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"
+                                 id="btnAgregarUsuario" styleClass="btn btn-secondary"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_USUARIO)}"/>
+                <p:commandButton title="#{msg.ayuda}" icon="glyphicon glyphicon-question-sign"
+                                 id="btnAyuda" styleClass="btn btn-icono btn-ayuda"
+                                 oncomplete="PF('sidebar2').show()"/>
+                <p:sidebar widgetVar="sidebar2" position="right" baseZIndex="90000">
+                    <ui:include src="componentes/ayudaComponente.xhtml">
+                        <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.USUARIOS)}" />
+                    </ui:include>
+                </p:sidebar>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.codigo}" for="b_codigo" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_codigo" value="#{usuariosBean.filtroUsuario.codigo}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.nombre}" for="b_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control" id="b_nombre" value="#{usuariosBean.filtroUsuario.nombre}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.categoria}" for="b_categoria" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu value="#{usuariosBean.comboCategoriaOperacion.selected}" id="b_categoria"
+                                             styleClass="form-control">
+                                <f:selectItems  value="#{usuariosBean.comboCategoriaOperacion.items}" />
+                                <p:ajax listener="#{usuariosBean.seleccionarCategoriaOperacion()}" event="change"
+                                        process="@this" update="fila_b_operacion" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_b_operacion">
+                        <h:outputLabel value="#{msg.ioperacion}" for="b_operacion" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="b_operacion"
+                                            styleClass="form-control"
+                                            value="#{usuariosBean.operacionSeleccionado}"
+                                            completeMethod="#{usuariosBean.completeOperacion}"
+                                            var="sed" itemLabel="#{sed.opeNombre}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            converter="#{operacionConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}"
+                                            multiple="false" disabled="#{usuariosBean.comboCategoriaOperacion.selectedT==null}" >
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.rol}" for="b_rol" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu value="#{usuariosBean.comboRolBuscar.selected}" id="b_rol" styleClass="form-control">
+                                <f:selectItems  value="#{usuariosBean.comboRolBuscar.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.ambito}" for="b_ambito" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu value="#{usuariosBean.comboAmbitoBusqueda.selected}" id="b_ambito"
+                                             styleClass="form-control">
+                                <f:selectItems  value="#{usuariosBean.comboAmbitoBusqueda.items}" />
+                                <p:ajax update="pnlSearch" process="pnlSearch" listener="#{usuariosBean.seleccionarAmbitoBusqueda}"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6" rendered="#{usuariosBean.comboAmbitoBusqueda.selectedT eq EnumAmbito.SEDE
+                                                                 or usuariosBean.comboAmbitoBusqueda.selectedT eq EnumAmbito.SISTEMA_INTEGRADO
+                                                                 or usuariosBean.comboAmbitoBusqueda.selectedT eq EnumAmbito.DEPARTAMENTAL
+                                                                 or usuariosBean.comboAmbitoBusqueda.selectedT eq EnumAmbito.IMPLEMENTADORA
+                                                                 or usuariosBean.comboAmbitoBusqueda.selectedT eq EnumAmbito.UNIDAD_ADMINISTRATIVA}">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.contexto}" for="a_contexto" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="b_contexto"
+                                            styleClass="form-control"
+                                            value="#{usuariosBean.contextoBusquedaSeleccionado}"
+                                            completeMethod="#{usuariosBean.completeContextoBusqueda}"
+                                            var="sed" itemLabel="#{sed.value}"
+                                            itemValue="#{sed}"
+                                            widgetVar="b_inst_resp_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            converter="#{mapEntryConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}"
+                                            multiple="false">
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group">
+                        <p:outputPanel styleClass="row">
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:selectOneRadio layout="responsive" columns="3" id="b_habilitado" value="#{usuariosBean.filtroUsuario.habilitado}">
+                                    <f:selectItems value="#{applicationBean.habilitadoValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                                </p:selectOneRadio>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-12">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-3 offset-sm-9">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary"
+                                             icon="glyphicon glyphicon-search"
+                                             action="#{usuariosBean.buscar()}" update="pnlResultado panel_acciones"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{usuariosBean.limpiar()}"
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado panel_acciones" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+
+
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"
+                         widgetVar="widResultado"
+                         var="elem"
+                         rendered="#{usuariosBean.usuarioLazyModel != null}"
+                         value="#{usuariosBean.usuarioLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="usuPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{usuariosBean.paginado}"
+                         reflow="true"
+                         selection="#{usuariosBean.usuariosSeleccionados}">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{usuariosBean.totalResultados lt (usuariosBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{usuariosBean.totalResultados} #{msg.elementos}" /></h3>
+                            <h:outputText value="#{msg.seleccionarFilas}"/>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="usuario" pageOnly="false"/>
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+
+                <p:column selectionMode="multiple" exportable="false" style="width:16px;text-align:center"/>
+                <p:column headerText="#{msg.hcodigo}" sortBy="#{elem.usuCodigo}">
+                    <h:outputText value="#{elem.usuCodigo}" />
+                </p:column>
+                <p:column headerText="#{msg.hnombre}" sortBy="#{elem.usuNombre}">
+                    <h:outputText value="#{elem.usuNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hhabilitado}">
+                    <h:outputText value="#{elem.usuHabilitado}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.usuarioEnviado}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.AGREGAR_USUARIO_A_PENTAHO)}">
+                    <h:outputText value="#{elem.usuEnviadoPentaho}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.hAdminPentaho}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.AGREGAR_USUARIO_A_PENTAHO)}">
+                    <h:outputText value="#{elem.usuEsAdminPentaho}" converter="#{booleanConverter}"/>
+                </p:column>
+                <p:column headerText="#{msg.husuarioMod}" sortBy="#{elem.usuUltModUsuario}">
+                    <h:outputText value="#{elem.usuUltModUsuario}" />
+                </p:column>
+                <p:column headerText="#{msg.hfechaMod}" sortBy="#{elem.usuUltModFecha}">
+                    <h:outputText value="#{elem.usuUltModFecha}" converter="#{localDateTimeConverter}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.USUARIO}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.usuPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_USUARIO)}">
+                    <p:link outcome="#{ConstantesPaginas.USUARIO}" title="#{msg.editar}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.usuPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.AGREGAR_USUARIO_A_PENTAHO)}">
+                    <p:commandButton update=":form:confirmEnviarPentahoDialog" oncomplete="PF('confirmEnviarPentahoDialog').show()"
+                                     icon="glyphicon glyphicon-send" styleClass="btn btn-icono" title="#{msg.enviarPentaho}"
+                                     action="#{usuariosBean.actualizarAPentaho(elem)}"
+                                     rendered="#{not elem.usuEnviadoPentaho}"/>
+                    <p:commandButton update=":form:confirmEliminarPentahoDialog" oncomplete="PF('confirmEliminarPentahoDialog').show()"
+                                     icon="glyphicon glyphicon-remove asistencia" styleClass="btn btn-icono" title="#{msg.eliminarPentaho}"
+                                     action="#{usuariosBean.actualizarAPentaho(elem)}"
+                                     rendered="#{elem.usuEnviadoPentaho}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()"
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}"
+                                     action="#{usuariosBean.historial(elem.usuPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_USUARIO)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash "
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}"
+                                     action="#{usuariosBean.eliminar(elem)}"/>
+                </p:column>
+            </p:dataTable>
+            <p:outputPanel>
+                <br/>
+                <br/>
+                <p:outputPanel rendered="#{usuariosBean.totalResultados>0}" id="panel_acciones">
+                    <fieldset>
+                        <legend><h:outputText value="#{msg.asignarSeleccionados}"/></legend>
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.rol}" for="a_rol" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu value="#{usuariosBean.comboRol.selected}" id="a_rol"
+                                                 styleClass="form-control texto-medio">
+                                    <f:selectItems  value="#{usuariosBean.comboRol.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputLabel value="#{msg.ambito}" for="a_ambito" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu value="#{usuariosBean.comboAmbito.selected}" id="a_ambito"
+                                                 styleClass="form-control texto-medio">
+                                    <f:selectItems  value="#{usuariosBean.comboAmbito.items}" />
+                                    <p:ajax listener="#{usuariosBean.seleccionarAmbito()}" event="change"
+                                            process="@this" update="fila_a_contexto fila_seleccionar_seccion fila_seleccionar_persona" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <h:panelGroup id="fila_a_contexto">
+
+                            <p:outputPanel rendered="#{usuariosBean.verRegla}" >
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.regla}"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu value="#{usuariosBean.comboReglasContexto.selected}" id="input_regla_contexto" styleClass="form-control texto-medio">
+                                            <f:selectItems value="#{usuariosBean.comboReglasContexto.items}" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+
+                            <p:outputPanel rendered="#{usuariosBean.inputContexto and usuariosBean.verUnidadActivoFijo}" >
+                                <p:outputPanel styleClass="form-group row">
+                                    <h:outputLabel value="#{msg.unidadActivoFijo}"  styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu id="b_unidadActivoFijo"
+                                                         value="#{usuariosBean.comboUnidadActivoFijo.selected}"
+                                                         styleClass="form-control dropdown texto-medio">
+                                            <f:selectItems value="#{usuariosBean.comboUnidadActivoFijo.items}"/>
+                                            <p:ajax event="change" listener="#{usuariosBean.seleccionarUnidadActivoFijo()}" process="@this"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel rendered="#{usuariosBean.inputContexto}">
+                                <p:outputPanel styleClass="form-group row"  rendered="#{usuariosBean.inputContexto}">
+                                    <h:outputLabel value="#{msg.contexto}" for="a_contexto" styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:autoComplete id="a_contexto"
+                                                        styleClass="form-control texto-medio"
+                                                        value="#{usuariosBean.contextoSeleccionado}"
+                                                        completeMethod="#{usuariosBean.completeContexto}"
+                                                        var="sed" itemLabel="#{sed.value}"
+                                                        itemValue="#{sed}"
+                                                        widgetVar="b_inst_resp_autocomplete"
+                                                        forceSelection="true"
+                                                        maxResults="10"
+                                                        queryDelay="500"
+                                                        converter="#{mapEntryConverter}"
+                                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                                        multiple="false" disabled="#{usuariosBean.comboAmbito.selectedT == null}" >
+                                        </p:autoComplete>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </h:panelGroup>
+
+
+                        <h:panelGroup id="fila_seleccionar_seccion">
+                            <p:fieldset legend="#{msg.buscarSeccion}"  rendered="#{usuariosBean.verSeleccionarSeccion}">
+                                <p:outputPanel >
+                                    <f:subview id="seleccionarSeccion">
+                                        <ui:include src="componentes/seleccionarSeccion.xhtml" >
+                                            <ui:param name="controllerParam" value="#{usuariosBean}" />
+                                            <ui:param name="actionParam" value="seleccionarSeccion" />
+                                            <ui:param name="seccion" value="#{usuariosBean.seccionSeleccionada}" />
+                                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_PERSONA_USUARIA_ROL}" />
+                                        </ui:include>
+                                    </f:subview>
+                                </p:outputPanel>
+                            </p:fieldset>
+                        </h:panelGroup>
+
+
+                        <h:panelGroup id="fila_seleccionar_persona">
+                            <p:fieldset legend="#{msg.buscarPersona}" rendered="#{usuariosBean.verSeleccionarPersona}">
+                                <p:outputPanel  styleClass="col-md-12" >
+                                    <p:outputPanel id="pnlSearchPersona">
+                                        <p:outputPanel styleClass="form-group row">
+                                            <h:outputLabel value="#{msg.nombresApellidos}" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:inputText autocomplete="off" styleClass="form-control texto-medio"
+                                                             value="#{usuariosBean.filtroPersona.perNombreCompleto}" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row">
+                                            <h:outputLabel value="#{msg.dui}" for="b_dui" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_dui"
+                                                             value="#{usuariosBean.filtroPersona.dui}" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row">
+                                            <h:outputLabel value="#{msg.nie}" for="b_nie" styleClass="col-sm-4 col-form-label"/>
+                                            <p:outputPanel styleClass="col-sm-8 ">
+                                                <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_nie"
+                                                             value="#{usuariosBean.filtroPersona.nie}" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_nacimiento">
+                                            <h:outputLabel value="#{msg.fechaNacimiento}" for="filtro_fecha_nacimiento" styleClass="col-sm-4 col-form-label "/>
+                                            <p:outputPanel styleClass="col-sm-8">
+                                                <p:calendar id="filtro_fecha_nacimiento" styleClass="form-control"
+                                                            value="#{usuariosBean.filtroPersona.perFechaNacimiento}"
+                                                            pattern="#{applicationBean.patternFecha}"
+                                                            converter="#{localDateConverter}"/>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+
+                                        <p:outputPanel styleClass="form-group row">
+                                            <p:outputPanel styleClass="col-sm-4 offset-sm-8">
+                                                <p:commandButton id="btnBuscarPersona" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search"
+                                                                 action="#{usuariosBean.buscarPersona()}" update="pnlResultadoPersona"/>
+                                                <p:commandLink value="#{msg.limpiar}" action="#{usuariosBean.limpiarPersona()}" update="pnlSearchPersona pnlResultadoPersona"
+                                                               immediate="true" styleClass="btn btn-link">
+                                                    <p:resetInput target="pnlSearchPersona pnlResultadoPersona" />
+                                                </p:commandLink>
+                                                <p:defaultCommand target="btnBuscarPersona" scope="pnlSearchPersona"/>
+                                                <p:blockUI block="@form" trigger="btnBuscarPersona" />
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+
+                                    <p:outputPanel id="pnlResultadoPersona" >
+                                        <p:dataTable id="basicDTPersona"
+                                                     widgetVar="widResultadoPersona"
+                                                     var="elem"
+                                                     value="#{usuariosBean.lazyDataModel}"
+                                                     emptyMessage="#{msg.noHayResultados}"
+                                                     lazy="true"
+                                                     paginator="true"
+                                                     paginatorPosition="bottom"
+                                                     currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                                     paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                                     rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                                     rows="#{usuariosBean.paginado}"
+                                                     reflow="true"
+                                                     sortOrder="descending"
+                                                     selection="#{usuariosBean.personaSeleccionada}"
+                                                     rowKey="#{elem.perPk}" >
+                                            <f:facet name="{anterior}">
+                                                <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                                            </f:facet>
+                                            <f:facet name="{siguiente}">
+                                                <h:outputText
+                                                    styleClass="#{usuariosBean.totalResultadosPersona lt (usuariosBean.paginado+1) ?
+                                                                  'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}"
+                                                    value="#{msg.siguiente} &gt;"/>
+                                            </f:facet>
+
+                                            <f:facet name="header">
+                                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                                    <p:outputPanel styleClass="col-md-6">
+                                                        <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{usuariosBean.totalResultadosPersona} #{msg.elementos}" /></h3>
+                                                    </p:outputPanel>
+                                                    <p:outputPanel styleClass="col-md-6">
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                            </f:facet>
+
+                                            <p:column selectionMode="single" style="width:16px;text-align:center" exportable="false"/>
+                                            <p:column headerText="#{msg.hnie}" sortBy="#{elem.perNie}">
+                                                <h:outputText value="#{elem.perNie}" />
+                                            </p:column>
+                                            <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.perPrimerNombreBusqueda}">
+                                                <h:outputText value="#{elem.perPrimerNombre}" />
+                                            </p:column>
+                                            <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.perSegundoNombreBusqueda}">
+                                                <h:outputText value="#{elem.perSegundoNombre}" />
+                                            </p:column>
+                                            <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.perPrimerApellidoBusqueda}">
+                                                <h:outputText value="#{elem.perPrimerApellido}" />
+                                            </p:column>
+                                            <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.perSegundoApellidoBusqueda}">
+                                                <h:outputText value="#{elem.perSegundoApellido}" />
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:outputPanel>
+
+                                </p:outputPanel>
+                            </p:fieldset>
+                        </h:panelGroup>
+
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarSeleccion"  value="#{msg.guardar}"
+                                                 action="#{usuariosBean.guardarSeleccion()}"
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_USUARIO)}"
+                                                 update="form:pnlResultado"
+                                                 styleClass="btn btn-primary"
+                                                 icon="glyphicon glyphicon-floppy-disk"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+
+                    </fieldset>
+
+                </p:outputPanel>
+
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup>
+
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{usuariosBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:confirmDialog id="confirmEnviarPentahoDialog"
+                         message="#{msg.textoEnviarPentaho}"
+                         header="#{msg.enviarPentaho}" severity="alert" widgetVar="confirmEnviarPentahoDialog">
+            <p:outputPanel styleClass="form-group row">
+                <h:outputText value="#{msg.hAdminPentaho}:" styleClass="col-sm-4 col-form-label"/>
+                <div class="col-sm-8">
+                    <p:outputPanel styleClass="form-check" style="float:left;">
+                        <h:selectBooleanCheckbox id="input_es_admin_pentaho" styleClass="form-check-input" value="#{usuariosBean.entidadEnEdicion.usuEsAdminPentaho}" />
+                        <h:outputLabel for="input_es_admin_pentaho" styleClass="form-check-label">
+                            <h:outputText value="#{msg.si}"/>
+                        </h:outputLabel>
+                    </p:outputPanel>
+                </div>
+            </p:outputPanel>
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmEnviarPentaho" value="#{msg.hconfirmar}"
+                                 oncomplete="PF('confirmEnviarPentahoDialog').hide()"
+                                 update="pnlResultado"
+                                 styleClass="btn btn-primary"
+                                 action="#{usuariosBean.enviarAPentaho()}"  />
+                <p:blockUI block="@form" trigger="confirmEnviarPentaho"/>
+                <p:commandLink id="cancelarEnviarPentaho" value="#{msg.cancelar}"
+                               onclick="PF('confirmEnviarPentahoDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:confirmDialog id="confirmEliminarPentahoDialog"
+                         message="#{msg.textoEliminarPentaho}"
+                         header="#{msg.eliminarPentaho}" severity="alert" widgetVar="confirmEliminarPentahoDialog">
+            <p:outputPanel styleClass="panelBotonesDer" >
+                <p:commandButton id="confirmEliminarPentaho" value="#{msg.hconfirmar}"
+                                 oncomplete="PF('confirmEliminarPentahoDialog').hide()"
+                                 update="pnlResultado"
+                                 styleClass="btn btn-primary"
+                                 action="#{usuariosBean.eliminarDePentaho()}"  />
+                <p:blockUI block="@form" trigger="confirmEliminarPentaho"/>
+                <p:commandLink id="cancelarEliminarPentaho" value="#{msg.cancelar}"
+                               onclick="PF('confirmEliminarPentahoDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+
+        <p:dialog header="#{msg.usuario}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetail">
+                <h:panelGroup rendered="#{not empty usuariosBean.entidadEnEdicion}"  >
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>
+                    <p:outputPanel id="formularioUsuario">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >
+                            <h:outputLabel value="#{msg.codigo}" for="input_codigo"  styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_codigo" styleClass="form-control" value="#{usuariosBean.entidadEnEdicion.usuCodigo}"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                            <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{usuariosBean.entidadEnEdicion.usuNombre}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="form-group row" id="fila_input_correo">
+                            <h:outputLabel value="#{msg.correoElectronico}" for="input_correo" styleClass="col-sm-4 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:inputText autocomplete="off" id="input_correo" styleClass="form-control" value="#{usuariosBean.entidadEnEdicion.usuEmail}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputText value="#{msg.superUsuario}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_superUsuario" styleClass="form-check-input" value="#{usuariosBean.entidadEnEdicion.usuSuperUsuario}" disabled="#{usuariosBean.esSuperUsuario() }" />
+                                    <h:outputLabel for="input_superUsuario" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" >
+                            <h:outputText value="#{msg.habilitado}" styleClass="col-sm-4 col-form-label"/>
+                            <div class="col-sm-8">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{usuariosBean.entidadEnEdicion.usuHabilitado}" />
+                                    <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+
+
+                        <p:outputPanel styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{usuariosBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_USUARIO)}"
+                                                 />
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:defaultCommand scope="form:itemDetail" target="btnGuardar"/>
+                        <p:blockUI block="@form" trigger="btnGuardar" />
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:dialog>
+
+
+        <p:dialog header="#{msg.historialUsuario}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{usuariosBean.historialUsuario}" />
+            </ui:include>
+        </p:dialog>
+    </h:form>
+</ui:composition>

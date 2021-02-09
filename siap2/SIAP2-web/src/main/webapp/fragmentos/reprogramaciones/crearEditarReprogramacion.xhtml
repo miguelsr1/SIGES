@@ -1,0 +1,1474 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+
+
+
+
+
+
+
+        <div>
+            <p:tabView id="tabViewReprogramacion" activeIndex="#{reprogramacionBase.tabSeleccionado}">
+
+                <p:tab title="Detalle" >
+
+                    <h:form id="formTablaDetalle"  styleClass="form-horizontal">
+
+                        <div>
+                            <h:messages id="mensajes" showSummary="true" 
+                                        errorClass="alert alert-danger" 
+                                        infoClass="alert alert-success" 
+                                        styleClass="mensajes"/>
+                        </div>
+
+                        <p:outputPanel id="contenidoTablasDetalle" >
+
+
+                            <div class="grupoCampos">
+
+                                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Estado')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{textMB.obtenerTexto(reprogramacionBase.reprog.estado.label)}" styleClass="form-control-static" />
+                                    </div>
+                                </div>
+
+
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.RequiereAprobacion')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{reprogramacionBase.requiereAPROBACION}" converter="booleanConverter" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Descripcion')}:" />
+                                    <div class="col-sm-9">
+                                        <h:inputTextarea value="#{reprogramacionBase.reprog.repDescripcion}" 
+                                                         styleClass="form-control" 
+                                                         rows="10"  
+                                                         rendered="#{reprogramacionBase.estaEnFormulacion() }" />
+                                        <h:outputText value="#{reprogramacionBase.reprog.repDescripcion}"
+                                                      styleClass="form-control-static"
+                                                      rendered="#{not reprogramacionBase.estaEnFormulacion()}"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-6">
+                                        <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.DetallesReprogramacion')}" />
+                                    </div>
+                                    <div class="col-sm-6 clearfix">                        
+                                        <p:commandButton  styleClass="btn btn-default pull-right"  
+                                                          icon="glyphicon glyphicon-plus"
+                                                          value="#{textMB.obtenerTexto('labels.AgregarLinea')}" 
+                                                          action="#{reprogramacionBase.cargarDetalleToEditar()}" 
+                                                          rendered="#{reprogramacionBase.estaEnFormulacion()}"
+                                                          update="editarDetalleForm" 
+                                                          oncomplete="$('#editarDetalleModal').modal('show');">
+                                            <f:setPropertyActionListener target="#{reprogramacionBase.reprogEnEdicion}" value="#{null}" />
+                                        </p:commandButton>
+                                    </div>
+                                </div>
+
+                                <p:dataTable value="#{reprogramacionBase.reprog.rep_detalle_lista}" var="rep_det"
+                                             id="tablaDetalleReprogramacion" 
+                                             emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.OEG')}" >
+                                        <h:outputText value="#{rep_det.poaInsumo.insumo.objetoEspecificoGasto.clasificador}"/>
+                                        <h:outputText value="#{rep_det.insumoNuevo.objetoEspecificoGasto.clasificador}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" >
+                                        <h:outputText value="#{rep_det.poaInsumo.nombre}"/>
+                                        <h:outputText value="#{rep_det.insumoNuevo.nombre}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.insumoNuevoCantidad}">
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Unitario')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.insumoNuevoUnitario}">
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Original')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.poaInsumo.montoTotal}" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Disminucion')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.diferencia}"  rendered="#{rep_det.diferencia.longValue() lt 0}">
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{reprogramacionBase.reprog.diferenciaDisminucionTotal}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Aumento')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.diferencia}" rendered="#{rep_det.diferencia.longValue() gt 0}" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{reprogramacionBase.reprog.diferenciaAumentoTotal}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.insumoNuevoTotal}" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Certificado')}" styleClass=" numericos">
+                                        <h:outputText value="#{rep_det.poaInsumo.montoTotalCertificado}" >
+                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Uaci')}">
+                                        <h:outputText value="#{not rep_det.insumoNuevoNoUaci}" converter="booleanConverter"/>
+                                    </p:column>
+
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.Observaciones')}" rendered="false">
+                                        <h:outputText value="#{rep_det.insumoNuevoObservaciones}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.NroProcesoAdq')}" >
+                                        <h:outputText value="#{rep_det.poaInsumo.procesoInsumo.procesoAdquisicion.secuenciaAnio} - #{rep_det.poaInsumo.procesoInsumo.procesoAdquisicion.secuenciaNumero}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.NombreProcesoAdq')}" >
+                                        <h:outputText value="#{rep_det.poaInsumo.procesoInsumo.procesoAdquisicion.nombre}"/>
+                                    </p:column>
+                                    <p:column headerText="#{textMB.obtenerTexto('labels.EstadoProcesoAsq')}" >
+                                        <h:outputText value="#{textMB.obtenerTexto(rep_det.poaInsumo.procesoInsumo.procesoAdquisicion.estado.label)}" />
+                                    </p:column>
+
+
+                                    <p:column exportable="false"  headerText="#{textMB.obtenerTexto('labels.Editar')}" 
+                                              styleClass="columnaAcciones" 
+                                              rendered="#{reprogramacionBase.estaEnFormulacion()}">
+                                        <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                         styleClass="btn btn-icono"  
+                                                         title="#{textMB.obtenerTexto('labels.Editar')}"                                                     
+                                                         update="editarDetalleForm" 
+                                                         oncomplete="$('#editarDetalleModal').modal('show');"
+                                                         action="#{reprogramacionBase.cargarDetalleToEditar()}" 
+                                                         rendered="#{permisosMB.permisos['REPROGRAMAR_TODAS_UT'] or permisosMB.tieneOperacionEnUT(rep_det.poa.unidadTecnica.id, 'REPROGRAMAR_REPROGRAMAR_UT')}" >
+                                            <f:setPropertyActionListener target="#{reprogramacionBase.reprogEnEdicion}" value="#{rep_det}" />
+                                        </p:commandButton>
+                                    </p:column>
+
+
+                                    <p:column exportable="false"  headerText="#{textMB.obtenerTexto('labels.Eliminar')}" 
+                                              styleClass="columnaAcciones"
+                                              rendered="#{reprogramacionBase.estaEnFormulacion()}">
+                                        <p:commandButton icon="glyphicon glyphicon-remove"  styleClass="btn btn-icono"  
+                                                         title="#{textMB.obtenerTexto('labels.Eliminar')}" 
+                                                         update="tabViewReprogramacion @form"
+                                                         action="#{reprogramacionBase.eliminarDetalle()}" 
+                                                         rendered="#{permisosMB.permisos['REPROGRAMAR_TODAS_UT'] or permisosMB.tieneOperacionEnUT(rep_det.poa.unidadTecnica.id, 'REPROGRAMAR_REPROGRAMAR_UT')}">
+                                            <f:setPropertyActionListener target="#{reprogramacionBase.reprogEnEdicion}" value="#{rep_det}" />
+                                        </p:commandButton>
+                                    </p:column>
+
+
+                                </p:dataTable>
+
+                                <div class="modal-footer">
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                                      value="#{textMB.obtenerTexto('labels.Aceptar')}" 
+                                                      actionListener="#{reprogramacionBase.guardarReprog()}" 
+                                                      rendered="#{reprogramacionBase.estaEnFormulacion()}"
+                                                      update="tabViewReprogramacion @form" ajax="true"/>
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                                      value="#{textMB.obtenerTexto('labels.Enviar')}" 
+                                                      actionListener="#{reprogramacionBase.enviarReprog()}" 
+                                                      rendered="#{(not empty reprogramacionBase.reprog.id) and (reprogramacionBase.estaEnFormulacion())}"
+                                                      update="tabViewReprogramacion @form" ajax="true"/>
+                                    <h:outputLink styleClass="btn btn-link" value="#{reprogramacionBase.getVolver()}" >
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                    </h:outputLink>
+                                </div>
+
+                            </div>
+
+
+
+                            <p:outputPanel id="tablasDiferencias" styleClass="grupoCampos">
+                                <!-- EMPIEZAN LAS TABLAS DE DIFERENCIA POR INSUMO -->
+                                <div class="form-group">
+                                    <div class="col-sm-6">
+                                        <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.DiferenciaPorInsumo')}" />
+                                    </div>
+                                    <div class="col-sm-6 clearfix">  
+
+                                        <p:commandButton  styleClass="btn  btn-default pull-right" 
+                                                          icon="glyphicon glyphicon-refresh" 
+                                                          value="#{textMB.obtenerTexto('labels.Actualizar')}" 
+                                                          actionListener="#{reprogramacionBase.actualizarFinanciera()}" 
+                                                          update="tabViewReprogramacion @form" ajax="true"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <!--                                <div>
+                                                                        <div class="subtitulo"> <h:outputText value="#{textMB.obtenerTexto('labels.DiferenciaPorInsumo')}"/>
+                                                                        </div>
+                                                                    </div>-->
+                                    <p:dataTable value="#{reprogramacionBase.listaRFin}" var="fin" emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                            <h:outputText value="#{fin.reprog.poaInsumo.nombre}" />
+                                            <h:outputText value="#{fin.reprog.insumoNuevo.nombre}"/>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UACIOrig')}">
+                                            <h:outputText value="#{not fin.reprog.poaInsumo.noUACI}" converter="booleanConverter" />
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UACI')}">
+                                            <h:outputText value="#{not fin.reprog.insumoNuevoNoUaci}" converter="booleanConverter" />
+                                        </p:column>
+                                        <p:column   headerText="#{textMB.obtenerTexto('labels.Enero')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes1}"    styleClass="#{NumberUtils.estiloNumero(fin.mes1)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Febrero')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes2}"   styleClass="#{NumberUtils.estiloNumero(fin.mes2)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Marzo')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes3}"    styleClass="#{NumberUtils.estiloNumero(fin.mes3)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Abril')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes4}"    styleClass="#{NumberUtils.estiloNumero(fin.mes4)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Mayo')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes5}"    styleClass="#{NumberUtils.estiloNumero(fin.mes5)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Junio')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes6}"    styleClass="#{NumberUtils.estiloNumero(fin.mes6)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Julio')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes7}"    styleClass="#{NumberUtils.estiloNumero(fin.mes7)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Agosto')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes8}"   styleClass="#{NumberUtils.estiloNumero(fin.mes8)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Setiembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes9}"   styleClass="#{NumberUtils.estiloNumero(fin.mes9)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Octubre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes10}"   styleClass="#{NumberUtils.estiloNumero(fin.mes10)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Noviembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes11}"   styleClass="#{NumberUtils.estiloNumero(fin.mes11)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Diciembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.mes12}"    styleClass="#{NumberUtils.estiloNumero(fin.mes12)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.getTotal()}" styleClass="#{NumberUtils.estiloNumero(fin.getTotal())}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+
+                                    </p:dataTable>
+                                    <div>
+                                        <div class="subtitulo"><h:outputText value="#{textMB.obtenerTexto('labels.DiferenciaPAC')}"/>
+                                        </div>
+                                    </div>
+                                    <p:dataTable value="#{reprogramacionBase.listaRFin}" var="fin" emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}" >
+                                            <h:outputText value="#{fin.reprog.poaInsumo.nombre}" />
+                                            <h:outputText value="#{fin.reprog.insumoNuevo.nombre}"/>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UACIOrig')}">
+                                            <h:outputText value="#{not fin.reprog.poaInsumo.noUACI}" converter="booleanConverter" />
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UACI')}">
+                                            <h:outputText value="#{not fin.reprog.insumoNuevoNoUaci}" converter="booleanConverter" />
+                                        </p:column>
+
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Grupo')}">
+                                            <h:outputText value="#{fin.reprog.grupoPAC.nombre}"  />
+                                        </p:column>
+                                        <p:column   headerText="#{textMB.obtenerTexto('labels.Enero')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes1}"  style="#{NumberUtils.estiloNumero(fin.pacmes1)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(1)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Febrero')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes2}"    style="#{NumberUtils.estiloNumero(fin.pacmes2)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(2)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Marzo')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes3}"    style="#{NumberUtils.estiloNumero(fin.pacmes3)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(3)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Abril')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes4}"    style="#{NumberUtils.estiloNumero(fin.pacmes4)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(4)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Mayo')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes5}"    style="#{NumberUtils.estiloNumero(fin.pacmes5)}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(5)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Junio')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes6}"   style="#{NumberUtils.estiloNumero(fin.pacmes6)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(6)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Julio')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes7}"   style="#{NumberUtils.estiloNumero(fin.pacmes7)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(7)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Agosto')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes8}"  style="#{NumberUtils.estiloNumero(fin.pacmes8)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(8)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Setiembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes9}"   style="#{NumberUtils.estiloNumero(fin.pacmes9)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(9)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Octubre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes10}"   style="#{NumberUtils.estiloNumero(fin.pacmes10)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(10)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Noviembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes11}"   style="#{NumberUtils.estiloNumero(fin.pacmes11)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(11)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Diciembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pacmes12}"   style="#{NumberUtils.estiloNumero(fin.pacmes12)}" >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(12)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.getTotalPAC()}" styleClass="#{NumberUtils.estiloNumero(fin.getTotalPAC())}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{reprogramacionBase.calcularDifTotalPACPorMes(13)}">
+                                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                </h:outputText>
+                                            </f:facet>
+                                        </p:column>
+                                        <p:column exportable="false"  headerText="#{textMB.obtenerTexto('labels.Editar')}" 
+                                                  styleClass="columnaAcciones" 
+                                                  rendered="#{reprogramacionBase.modoProcesarPAC and permisosMB.permisos['REPROGRAMAR_GUARDAR_PAC']}">
+                                            <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                             styleClass="btn btn-icono"  
+                                                             title="#{textMB.obtenerTexto('labels.Editar')}"                                                     
+                                                             update="editarDetalleForm" 
+                                                             oncomplete="$('#editarDetalleModal').modal('show');"
+                                                             action="#{reprogramacionBase.cargarDetalleToEditar()}" 
+                                                             rendered="#{not fin.reprog.insumoNuevoNoUaci}" >
+                                                <f:setPropertyActionListener target="#{reprogramacionBase.reprogEnEdicion}" value="#{fin.reprog}" />
+                                            </p:commandButton>
+                                        </p:column>
+
+
+
+
+
+
+                                    </p:dataTable>
+                                    <div>
+                                        <div class="subtitulo">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.DiferenciaPEP')}"/>
+                                        </div>
+                                    </div>
+                                    <p:dataTable value="#{reprogramacionBase.listaRFin}" var="fin" emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                            <h:outputText value="#{fin.reprog.poaInsumo.nombre}" />
+                                            <h:outputText value="#{fin.reprog.insumoNuevo.nombre}"/>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UACIOrig')}">
+                                            <h:outputText value="#{not fin.reprog.poaInsumo.noUACI}" converter="booleanConverter" />
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.UACI')}">
+                                            <h:outputText value="#{not fin.reprog.insumoNuevoNoUaci}" converter="booleanConverter" />
+                                        </p:column>
+                                        <p:column   headerText="#{textMB.obtenerTexto('labels.MontoComprometido')}" styleClass=" numericos">
+                                            <h:outputText value="#{reprogramacionBase.calcularMontoComprometidoInsumo(fin)}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column   headerText="#{textMB.obtenerTexto('labels.MontoDisponible')}" styleClass=" numericos">
+                                            <h:outputText value="#{reprogramacionBase.calcularMontoDisponibleInsumo(fin)}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column   headerText="#{textMB.obtenerTexto('labels.Enero')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes1}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Febrero')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes2}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Marzo')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes3}"  >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Abril')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes4}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Mayo')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes5}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Junio')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes6}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Julio')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes7}"  >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Agosto')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes8}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Setiembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes9}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Octubre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes10}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="#{textMB.obtenerTexto('labels.Noviembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes11}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Diciembre')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.pepmes12}"   >
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass=" numericos">
+                                            <h:outputText value="#{fin.getTotalPEP()}" styleClass="#{NumberUtils.estiloNumero(fin.getTotalPEP())}">
+                                                <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                    </p:dataTable>
+
+
+                                </div>
+                                <div class="modal-footer">
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                                      value="#{textMB.obtenerTexto('labels.GuardarPAC')}" 
+                                                      actionListener="#{reprogramacionBase.guardarReprog() }" 
+                                                      rendered="#{reprogramacionBase.modoProcesarPAC and permisosMB.permisos['REPROGRAMAR_GUARDAR_PAC'] and false}"
+                                                      update="tabViewReprogramacion @form" ajax="true"/>
+
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                                      value="#{textMB.obtenerTexto('labels.AceptarPAC')}" 
+                                                      actionListener="#{reprogramacionBase.aprobarEnPAC()}" 
+                                                      rendered="#{reprogramacionBase.modoProcesarPAC and permisosMB.permisos['REPROGRAMAR_ACEPTAR_PAC'] and false}"
+                                                      update="tabViewReprogramacion @form" ajax="true"/>
+
+                                    <p:commandButton  styleClass="btn btn-secondary" icon="glyphicon glyphicon-ok" 
+                                                      value="#{textMB.obtenerTexto('labels.RechazarPAC')}" 
+                                                      actionListener="#{reprogramacionBase.rechazarPAC()}" 
+                                                      rendered="#{reprogramacionBase.modoProcesarPAC and permisosMB.permisos['REPROGRAMAR_RECHAZAR_PAC'] and false}"
+                                                      update="tabViewReprogramacion @form" ajax="true"/>
+
+                                    <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                                      value="#{textMB.obtenerTexto('labels.AplicarReprogramacion')}"
+                                                      rendered="#{reprogramacionBase.reprog.estado eq 'APROBADO' and permisosMB.permisos['REPROGRAMAR_ACEPTAR_REPROGRAMACION']}"
+                                                      actionListener="#{reprogramacionBase.aplicarReprogramacion()}" 
+                                                      update="tabViewReprogramacion @form" ajax="true"/>
+
+                                    <h:outputLink styleClass="btn btn-link" value="#{reprogramacionBase.getVolver()}" >
+                                        <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                    </h:outputLink>
+                                </div>
+                            </p:outputPanel>
+
+                        </p:outputPanel>
+
+                    </h:form>
+                </p:tab>
+                <!--                <p:tab title="En Edicion" >
+                
+                                </p:tab>-->
+
+
+
+
+
+
+
+
+
+<!--                <p:tab title="Edición del PAC" rendered="#{reprogramacionBase.modoProcesarPAC}" >
+
+                    <h:form id="formReprogPAC"  prependId="false" >
+
+
+                        <div class="form-group">
+                            <h:panelGroup  id="pnlProgFinancieraUACIPAC">
+                                <h:panelGroup >
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoCertificado')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText value="#{reprogramacionBase.insumoEnEdicion.montoTotalCertificado}"  styleClass="numericos textoMedio"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoAdjudicado')}:" />
+                                        <div class="col-sm-9">
+                                            <h:outputText value="#{reprogramacionBase.insumoEnEdicion.procesoInsumo.montoTotalAdjudicado}"  styleClass="numericos textoMedio"/>
+                                        </div>
+                                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                        </div>
+                        </h:panelGroup>
+                        </h:panelGroup>
+
+                        </p:outputPanel>
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="" />
+                            <div class="col-sm-9">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                                  value="#{textMB.obtenerTexto('labels.ConfirmarPAC')}" 
+                                                  actionListener="#{reprogramacionBase.guardarPacReprog()}" 
+                                                  update="tabViewReprogramacion @form" ajax="true"/>
+                            </div>
+                        </div>
+                    </h:form>
+
+
+
+
+
+                </p:tab>-->
+
+                <p:tab title="POA">
+                    <h:form>
+
+                        <p:outputPanel id="bloqueSeleccionPOA" styleClass="form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.POA')}:" />
+                                <div class="col-sm-9">
+                                    <h:selectOneMenu  id="poaComboVisualizador" value="#{reprogramacionBase.comboPOAVisualizar.selected}"  
+                                                      styleClass="form-control textoLargo" 
+                                                      required="true"  
+                                                      requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                        <f:ajax render="tblPOA" listener="#{reprogramacionBase.cambioComboPOAVisualizar()}"/>
+                                        <f:selectItems value="#{reprogramacionBase.comboPOAVisualizar.items}" />
+                                    </h:selectOneMenu> 
+                                    <h:message for="poaCombo" styleClass="help-inline msj-danger" />
+                                </div>
+                            </div>
+                        </p:outputPanel>
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tblPOA" fileName="POAs" />
+                        </h:commandLink> 
+                        <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                        <p:dataTable value="#{reprogramacionBase.listaDatosPOA}" 
+                                     var="linea" 
+                                     id="tblPOA"
+                                     emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+                            <p:column headerText="#{textMB.obtenerTexto('header.Producto')}" rendered="#{reprogramacionBase.reprog.tipoReprogramacion eq 'PROYECTO' }">
+                                <h:outputText value="#{linea.producto}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('header.Actividad')}">
+                                <h:outputText value="#{linea.actividad}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('header.IdInsumo')}">
+                                <h:outputText value="#{linea.insumoId}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('header.CodigoInsumo')}">
+                                <h:outputText value="#{linea.insumoCodigo}" />
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('header.NombreInsumo')}">
+                                <h:outputText value="#{linea.insumoNombre}" />
+                            </p:column>
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.Monto')}">
+                                <h:outputText value="#{linea.monto}" >
+                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.MontoCertificado')}">
+                                <h:outputText value="#{linea.montoCertificado}" >
+                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.MontoAdjudicado')}">
+                                <h:outputText value="#{linea.montoAdjudicado}" >
+                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.MontoComprometido')}">
+                                <h:outputText value="#{linea.montoComprometido}" >
+                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}" />
+                                </h:outputText>
+                            </p:column>
+
+
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.MontoDisponibleCertificado')}">
+                                <h:outputText value="#{linea.montoDisponibleCertificado}" >
+                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.MontoDisponibleComprometido')}">
+                                <h:outputText value="#{linea.montoDisponibleComprometido}" >
+                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}" />
+                                </h:outputText>
+                            </p:column>
+
+
+
+                            <p:column styleClass="numericos" headerText="#{textMB.obtenerTexto('header.UACI')}">
+                                <h:outputText value="#{linea.uaci}" >
+
+                                </h:outputText>
+                            </p:column>
+
+                        </p:dataTable>
+                    </h:form>
+                </p:tab>
+            </p:tabView>
+        </div>
+
+
+
+
+
+
+        <!-- MODAL PARA AGREGAR DETALLE -->
+        <div class="modal fade"  id="editarDetalleModal" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <h:form id="editarDetalleForm" prependId="false">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.EditarDetalle')}" /> </span>
+                        </div>
+                        <div class="modal-body"> 
+                            <div class="col-sm-12">
+                                <h:messages id="mensajesEdicion" 
+                                            showSummary="true" 
+                                            errorClass="alert alert-danger" 
+                                            infoClass="alert alert-success" 
+                                            styleClass="mensajes"/>
+                            </div>
+                            <p:outputPanel id="bloqueNoModal" styleClass="form-horizontal">
+                                <div class="grupoCampos">
+                                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                    <!-- POA -->
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.POA')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="poaCombo" value="#{reprogramacionBase.comboPOA.selected}"  
+                                                             styleClass="form-control textoLargo" 
+                                                             required="true"  
+                                                             requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:ajax render="productoCombo comboActividad comboInsumos modalInsumo-bloque-motno-estructura pacINFO pnlProgFinanciera" listener="#{reprogramacionBase.cambioPOA(true)}"/> 
+                                                <f:selectItems value="#{reprogramacionBase.comboPOA.items}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="poaCombo" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    <!-- PRODUCTO -->
+                                    <ui:fragment rendered="#{reprogramacionBase.reprog.tipoReprogramacion eq 'PROYECTO' }">
+                                        <div class="separador"></div>
+                                        <p:outputPanel  styleClass="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Producto')}:" />
+                                            <div class="col-sm-9">
+                                                <h:selectOneMenu id="productoCombo" value="#{reprogramacionBase.comboLineasPOA.selected}"  
+                                                                 styleClass="form-control textoLargo" required="true"  
+                                                                 requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                    <f:ajax render="comboActividad comboInsumos modalInsumo-bloque-motno-estructura pnlProgFinanciera" listener="#{reprogramacionBase.cambioLinea(true)}"/> 
+                                                    <f:selectItems value="#{reprogramacionBase.comboLineasPOA.items}" />
+                                                </h:selectOneMenu>
+                                                <h:message for="productoCombo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </p:outputPanel>
+                                    </ui:fragment>
+
+                                    <!-- ACTIVIDAD -->
+                                    <div class="separador"></div>
+
+                                    <div class="form-group">
+                                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Actividad')}:" />
+                                        <p:outputPanel id="opcionesActividad" styleClass="col-sm-5">
+                                            <h:selectOneMenu id="comboActividad" value="#{reprogramacionBase.comboActividades.selected}"  
+                                                             styleClass="form-control textoLargo" 
+                                                             required="true"  
+                                                             requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                             rendered="#{ not reprogramacionBase.reprogEnEdicion.nuevaActividad }">
+                                                <f:ajax render="comboInsumos pnlProgFinanciera" listener="#{reprogramacionBase.cambioActividad()}"/> 
+                                                <f:selectItems value="#{reprogramacionBase.comboActividades.items}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="comboActividad" styleClass="help-inline msj-danger" />
+
+                                            <ui:fragment rendered="#{reprogramacionBase.reprogEnEdicion.nuevaActividad }">
+                                                <!-- asignacion no programable-->
+                                                <h:selectOneMenu id="idActividadNP" 
+                                                                 value="#{reprogramacionBase.idActividadNP}"  
+                                                                 styleClass="form-control textoMedio"  
+                                                                 required="true"  
+                                                                 requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"
+                                                                 rendered="#{ reprogramacionBase.reprog.tipoReprogramacion eq 'ASIGNACION_NO_PROGRAMABLE'}">
+                                                    <f:selectItems value="#{reprogramacionBase.getActividadAsignacionNP()}" />
+                                                    <f:ajax render="pnlProgFinanciera"/>
+                                                </h:selectOneMenu> 
+                                                <h:message for="idActividadNP" styleClass="help-inline msj-danger" rendered="#{ reprogramacionBase.reprog.tipoReprogramacion eq 'ASIGNACION_NO_PROGRAMABLE'}"/>
+
+                                                <!--accion central-->
+                                                <h:inputText id="nombreActividad" 
+                                                             value="#{reprogramacionBase.reprogEnEdicion.actividadNuevaAccionCentral}" 
+                                                             styleClass="form-control textoLargo"  
+                                                             required="true"  
+                                                             requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                             rendered="#{ reprogramacionBase.reprog.tipoReprogramacion eq 'ACCION_CENTRAL'}">
+                                                    <f:validateLength maximum="255" />
+                                                </h:inputText>
+                                                <h:message for="nombreActividad" styleClass="help-inline msj-danger"  rendered="#{ reprogramacionBase.reprog.tipoReprogramacion eq 'ACCION_CENTRAL'}" />
+
+                                                <!-- proyecto -->
+                                                <p:autoComplete id="idActividadProyecto" 
+                                                                styleClass="autocompleteLargo"
+                                                                dropdown="true" 
+                                                                value="#{reprogramacionBase.reprogEnEdicion.actividadNuevaProyecto}" 
+                                                                completeMethod="#{utilsMB.completeTextCodigueraActividadesPO}"  
+                                                                var="codigueraAct" itemLabel="#{codigueraAct.nombre}" itemValue="#{codigueraAct}" 
+                                                                required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                                rendered="#{ reprogramacionBase.reprog.tipoReprogramacion eq 'PROYECTO'}" 
+                                                                scrollHeight="#{utilsMB.autoCompleteScrollHeight}">
+                                                    <f:converter  binding="#{poActividadProyectoConverter}" />   
+                                                    <f:ajax render="pnlProgFinanciera"/>
+                                                </p:autoComplete>
+                                                <h:message for="idActividadProyecto" styleClass="help-inline msj-danger" rendered="#{ reprogramacionBase.reprog.tipoReprogramacion eq 'PROYECTO'}"/>
+                                            </ui:fragment>
+
+                                        </p:outputPanel>
+                                        <div class="col-sm-4">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <h:selectBooleanCheckbox value="#{reprogramacionBase.reprogEnEdicion.nuevaActividad}" >
+                                                        <f:ajax render="opcionesActividad infoinsumo modalInsumo-bloque-info-basica-insumo pnlProgFinanciera distribuccionMontosEnInsumo"  listener="#{reprogramacionBase.cambioCrearActividad()}" />
+                                                    </h:selectBooleanCheckbox>
+                                                    #{textMB.obtenerTexto('labels.NuevaActividad')}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- INSUMO -->
+                                    <p:outputPanel id="infoinsumo">
+                                        <div class="separador"></div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Insumo')}:" />
+                                            <div class="col-sm-5">
+                                                <h:selectOneMenu id="comboInsumos" value="#{reprogramacionBase.comboInsumos.selected}"  
+                                                                 styleClass="form-control textoLargo" required="true"  
+                                                                 requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                                 rendered="#{not reprogramacionBase.reprogEnEdicion.nuevoInsumo}"> 
+                                                    <f:ajax render="modalInsumo-bloque-info-basica-insumo modalInsumo-bloque-motno-estructura  pacINFO pnlProgFinanciera blockDatosProcesoAdqDePoInsumo" 
+                                                            listener="#{reprogramacionBase.cambioInsumo()}"/>
+                                                    <f:selectItems value="#{reprogramacionBase.comboInsumos.items}" />
+                                                </h:selectOneMenu>
+                                                <h:message for="comboInsumos" styleClass="help-inline msj-danger" rendered="#{not reprogramacionBase.reprogEnEdicion.nuevoInsumo}" />
+
+                                                <p:autoComplete id="insumoInsumo"
+                                                                styleClass="autocompleteLargo"
+                                                                forceSelection="true" 
+                                                                dropdown="true" 
+                                                                value="#{reprogramacionBase.reprogEnEdicion.insumoNuevo}" 
+                                                                completeMethod="#{utilsMB.completeInsumos}" var="insumo" itemLabel="#{insumo.nombre}" itemValue="#{insumo}"
+                                                                required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" 
+                                                                rendered="#{ reprogramacionBase.reprogEnEdicion.nuevoInsumo}" 
+                                                                scrollHeight="#{utilsMB.autoCompleteScrollHeight}" >
+                                                    <f:converter  binding="#{insumoConverter}" />                                                
+                                                    <p:column rendered="false">
+                                                        <img data-src="holder.js/50x50" class="img-circle" alt="#{insumo.nombre}"  src="#{imgUtils.getImgPath(insumo.archivo)}" />
+                                                    </p:column>
+                                                    <p:column>
+                                                        <h:outputText value="#{insumo.nombre}" />
+                                                    </p:column>
+                                                    <f:ajax render="pnlProgFinanciera"/>
+                                                </p:autoComplete>
+                                                <br/>
+                                                <h:message for="insumoInsumo" styleClass="help-inline msj-danger" rendered="#{not reprogramacionBase.reprogEnEdicion.nuevoInsumo}" />
+
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <h:selectBooleanCheckbox value="#{reprogramacionBase.reprogEnEdicion.nuevoInsumo}" 
+                                                                                 disabled="#{reprogramacionBase.reprogEnEdicion.nuevaActividad}">
+                                                            <f:ajax render="infoinsumo modalInsumo-bloque-info-basica-insumo pnlProgFinanciera distribuccionMontosEnInsumo"/>
+                                                        </h:selectBooleanCheckbox>
+                                                        #{textMB.obtenerTexto('labels.nuevoInsumo')}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                    </p:outputPanel>
+
+                                    <p:outputPanel id="modalInsumo-bloque-info-basica-insumo" >
+
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Tipo')}:" />
+                                            <div class="col-sm-9">
+                                                <h:selectOneRadio value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}"
+                                                                  styleClass="radio" >
+                                                    <f:ajax render="pnlProgFinanciera pacINFO" listener="#{reprogramacionBase.cambioUACI()}"/> 
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('UACI')}" itemValue="false"/>
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('NOUACI')}" itemValue="true"/>
+                                                </h:selectOneRadio>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="form-group">
+                                            <p:outputLabel for="fechaContratacionInsumo" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.FechaEstimadaDeContratacion')}:"/>
+                                            <div class="col-sm-9">
+                                                <p:calendar id="fechaContratacionInsumo" value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoFechaContratacion}" 
+                                                            styleClass="textoMedio" 
+                                                            required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  
+                                                            locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" />
+                                                <h:message for="fechaContratacionInsumo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+
+
+
+                                        <div class="form-group">
+                                            <h:outputLabel for="observacionInsumo" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Observacion')}:" />
+                                            <div class="col-sm-9">
+                                                <h:inputTextarea id="observacionInsumo" value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoObservaciones}" styleClass="form-control textoLargo"   rows="4" />
+                                                <h:message for="observacionInsumo" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Cantidad')}:" />
+                                            <div class="col-sm-3  ">
+                                                <h:inputText value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoCantidad}" styleClass="numericos form-control" >
+                                                    <p:ajax event="keyup" update="insumoMontoTotal modalInsumo-bloque-motno-estructura"  listener="#{reprogramacionBase.recalcualrMontoTotalReprogEnEdicion()}" />
+                                                </h:inputText>
+                                            </div>
+                                            <div class="col-sm-3   ">
+                                                <h:outputText value="#{reprogramacionBase.insumoEnEdicion.cantidad}" styleClass="numericos textoMedio"/>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoUnitario')}:" />
+                                            <div class="col-sm-3  ">
+                                                <h:inputText value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoUnitario}"  styleClass="numericos form-control">
+                                                    <p:ajax event="keyup" update="insumoMontoTotal modalInsumo-bloque-motno-estructura"  listener="#{reprogramacionBase.recalcualrMontoTotalReprogEnEdicion()}" />
+                                                </h:inputText>
+                                            </div>
+                                            <div class="col-sm-3  ">
+                                                <h:outputText value="#{reprogramacionBase.insumoEnEdicion.montoUnit}" styleClass="numericos textoMedio">
+                                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}"/>
+                                                </h:outputText>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoTotal')}:" />
+                                            <div class="col-sm-3  ">
+                                                <h:inputText id="insumoMontoTotal" value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoTotal}"
+                                                             styleClass="numericos form-control" />
+                                            </div>
+                                            <div class="col-sm-3  ">
+                                                <h:outputText value="#{reprogramacionBase.insumoEnEdicion.montoTotal}" styleClass="numericos textoMedio" >
+                                                    <f:convertNumber pattern="#{utilsMB.patternDinero}" locale="#{utilsMB.localeDinero}"/>
+                                                </h:outputText>
+                                            </div>
+                                        </div>
+
+                                        <p:outputPanel id="blockDatosProcesoAdqDePoInsumo" layout="block" rendered="#{not reprogramacionBase.reprogEnEdicion.nuevoInsumo and reprogramacionBase.insumoEnEdicion.procesoInsumo ne null}">  
+                                            <h:panelGroup layout="block" rendered="#{reprogramacionBase.insumoEnEdicion.procesoInsumo.procesoAdquisicion ne null}">
+                                                <div class="form-group">
+                                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.NroProcesoAdq')}:" />
+                                                    <div class="col-sm-3  ">
+                                                        <h:outputText id="nroProcesoAdq" styleClass="form-control-static" value="#{reprogramacionBase.insumoEnEdicion.procesoInsumo.procesoAdquisicion.secuenciaAnio}"/>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.NombreProcesoAdq')}:" />
+                                                    <div class="col-sm-3  ">
+                                                        <h:outputText id="nombreProcesoAdq" styleClass="form-control-static" value="#{reprogramacionBase.insumoEnEdicion.procesoInsumo.procesoAdquisicion.nombre}"/>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.EstadoProcesoAsq')}:" />
+                                                    <div class="col-sm-3  ">
+                                                        <h:outputText id="estadoProcesoAsq" styleClass="form-control-static" value="#{textMB.obtenerTexto(reprogramacionBase.insumoEnEdicion.procesoInsumo.procesoAdquisicion.estado.label)}"/>
+                                                    </div>
+                                                </div>
+                                            </h:panelGroup>
+                                        </p:outputPanel>
+
+                                    </p:outputPanel>
+
+                                    <p:outputPanel id="modalInsumo-bloque-motno-estructura" >
+                                        <fieldset class="fieldset fieldsetSmall margenSup">
+                                            <p:outputPanel styleClass="form-group" rendered="#{reprogramacionBase.isnumoRequiereTramos()}">
+                                                <h:outputLabel for="tramoASelecionar" styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.TramoHasta')}:" />
+                                                <div class="col-sm-8">
+                                                    <h:selectOneMenu id="tramoASelecionar" value="#{reprogramacionBase.tmpIdTramo}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{reprogramacionBase.getTramosDisponibles()}" />
+                                                        <f:ajax render="distribuccionMontosEnInsumo"   listener="#{reprogramacionBase.cambiarTramo(reprogramacionBase.tmpIdTramo)}" />
+                                                    </h:selectOneMenu> 
+                                                    <h:message for="tramoASelecionar" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </p:outputPanel>
+
+
+                                            <legend><h:outputText  value="#{textMB.obtenerTexto('labels.MontosFuentes')}" /></legend>
+                                            <!--<h:dataTable id="distribuccionMontosEnInsumo" styleClass="table-padding" value="#{reprogramacionBase.reprogEnEdicion.insumoNuevoMontosFuentes}" var="monto">-->
+                                            <h:dataTable id="distribuccionMontosEnInsumo" styleClass="table-padding" value="#{reprogramacionBase.obtenerListaOrdenadaMontosFuentesReprogEnEdicion()}" var="monto">
+                                                <h:column>
+                                                    <h:outputLabel  styleClass="control-label">
+                                                        <h:outputText  value="*#{monto.fuente.fuenteRecursos.nombre}, " />
+                                                        <h:outputText value="#{monto.fuente.categoriaConvenio.nombre}:" />
+                                                    </h:outputLabel>
+                                                </h:column>
+                                                <!--                                                <h:column>
+                                                                                                    <h:panelGroup layout="span" styleClass="pull-right"  rendered="#{parameterBean.tieneSugerencia(monto)}">
+                                                                                                        <h:outputText  value="#{textMB.obtenerTexto('labels.Sugerencia')} " /> 
+                                                                                                        <h:outputText  value="#{parameterBean.caclularSugerencia(monto, parameterBean.tempInsumo.montoTotal )}" >
+                                                                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                                                                        </h:outputText>
+                                                                                                    </h:panelGroup> 
+                                                                                                </h:column>-->
+                                                <h:column>
+                                                    <h:panelGroup  styleClass="input-group " layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                        <p:inputText  id="modalInsumo-monto" value="#{monto.monto}"  styleClass="form-control numericos" 
+                                                                      required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                        </p:inputText>	
+                                                    </h:panelGroup> 
+                                                    <h:message for="modalInsumo-monto" styleClass="help-inline msj-danger" />
+                                                </h:column>
+
+
+                                                <h:column>
+                                                    <h:panelGroup  styleClass="input-group " layout="block">
+                                                        <h:outputText styleClass="input-group-addon" value="#{textMB.obtenerTexto('labels.MonedaSistema')}" />
+                                                        <p:inputText   value="#{monto.certificado}"  styleClass="form-control numericos" disabled="#{not reprogramacionBase.reprogEnEdicion.nuevoInsumo}" >
+                                                        </p:inputText>	
+                                                    </h:panelGroup> 
+                                                </h:column>
+
+
+                                                <h:column rendered="#{reprogramacionBase.reprog.estado eq 'PENDIENTE_PAC' and  (not reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci )}">
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <h:selectBooleanCheckbox value="#{monto.certificadoDisponibilidadPresupuestariaAprobada}"  />
+                                                            #{textMB.obtenerTexto('labels.CertificadoAprobado')}
+                                                        </label>
+                                                    </div>
+                                                </h:column>
+
+
+                                            </h:dataTable>
+                                        </fieldset>
+                                    </p:outputPanel>
+
+
+
+
+
+                                    <!-- informacion del pac -->
+                                    <p:outputPanel  id="pacINFO"  >
+                                        <ui:fragment rendered="#{reprogramacionBase.reprog.estado eq 'PENDIENTE_PAC' and  (not reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci )}" >
+                                            <div class="separador"></div>
+
+
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.ProcesoAdquisicion')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:outputText value="#{reprogramacionBase.reprogEnEdicion.poaInsumo.procesoInsumo.procesoAdquisicion.nombre}" styleClass="form-control-static" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.EstadoProceso')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:outputText value="#{textMB.obtenerTexto(reprogramacionBase.reprogEnEdicion.poaInsumo.procesoInsumo.procesoAdquisicion.estado.label)}" styleClass="form-control-static" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.PAC')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:outputText value="#{reprogramacionBase.getNombrePAC()}" styleClass="form-control-static" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.PACGrupo')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:selectOneMenu  id="grupoDelPAC"  
+                                                                      styleClass="form-control textoLargo" 
+                                                                      value="#{reprogramacionBase.comboGrupo.selected}" 
+                                                                      required="true" requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                        <f:selectItems value="#{reprogramacionBase.comboGrupo.items}"/>
+                                                    </h:selectOneMenu>
+                                                    <h:message for="grupoDelPAC" styleClass="help-inline msj-danger" />
+                                                </div>
+                                            </div>
+                                        </ui:fragment>
+                                    </p:outputPanel>
+
+
+
+
+
+                                    <!-- PANEL NO UACI-->                                 
+                                     <!--<h:panelGroup  id="pnlProgFinanciera" rendered="#{reprogramacionBase.comboInsumos.selected ne null or reprogramacionBase.reprogEnEdicion.insumoNuevo ne null}">-->
+                                    <h:panelGroup  id="pnlProgFinanciera">
+                                        <div class="separador"></div>
+                                        <!--<h:panelGroup rendered="#{reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci or reprogramacionBase.reprog.estado eq 'PENDIENTE_PAC' }">-->
+                                        <h:panelGroup>
+                                            <h:outputLabel styleClass="col-sm-12 control-label" value="#{textMB.obtenerTexto('labels.ProgramacionFinanciera')}:"/>
+
+                                            <div class="form-group">
+                                                <h:outputLabel for="mes-flujo"  styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Meses')}" />
+                                                <div class="col-sm-1">
+                                                    <h:outputText value="#{textMB.obtenerTexto('labels.TotalInsumoMes')}" styleClass="textoMedio"  />
+                                                </div>
+                                                <ui:repeat  var="fuenteFCM" value="#{reprogramacionBase.ordenarMontosFuentes(reprogramacionBase.reprogEnEdicion.insumoNuevoMontosFuentes)}" varStatus="status"
+                                                            rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:outputText value="#{fuenteFCM.fuente.fuenteRecursos.codigo}" styleClass="textoMedio"  /> 
+                                                    </div>
+                                                </ui:repeat>
+
+                                            </div>
+
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes1')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes1}"
+                                                                 styleClass="numericos form-control textoMedio">
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(1)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes2')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes2}"
+                                                                 styleClass="numericos form-control textoMedio"  >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(2)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes3')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes3}"
+                                                                 styleClass="numericos form-control textoMedio"  >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(3)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes4')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes4}"
+                                                                 styleClass="numericos form-control textoMedio">
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(4)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes5')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes5}"
+                                                                 styleClass="numericos form-control textoMedio">
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(5)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes6')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes6}"
+                                                                 styleClass="numericos form-control textoMedio" >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(6)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes7')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes7}"
+                                                                 styleClass="numericos form-control textoMedio" >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(7)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes8')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes8}"
+                                                                 styleClass="numericos form-control textoMedio" >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(8)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes9')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes9}"
+                                                                 styleClass="numericos form-control textoMedio"  >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(9)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes10')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes10}"
+                                                                 styleClass="numericos form-control textoMedio" >
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(10)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes11')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes11}"
+                                                                 styleClass="numericos form-control textoMedio"  >
+                                                        <p:ajax update="totalesMeses"  listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(11)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Mes12')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.reprogEnEdicion.rdeMes12}"
+                                                                 styleClass="numericos form-control textoMedio">
+                                                        <p:ajax update="totalesMeses" listener="#{reprogramacionBase.actualizarTotalMesesInsumo()}"/>
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat var="fuenteFCM" value="#{reprogramacionBase.obtenerFuentesFCMPorMes(12)}"
+                                                           rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{fuenteFCM.monto}" 
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <p:ajax update="totalesMeses" listener="#{reprogramacionBase.calcularTotalProgramacionFinancieraMontosFuentes()}"/>
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+
+                                            <h:panelGroup  class="form-group" layout="block" id="totalesMeses">
+                                                <h:outputLabel styleClass="col-sm-1 control-label" value="#{textMB.obtenerTexto('labels.Totales')}:" />
+                                                <div class="col-sm-1">
+                                                    <h:inputText value="#{reprogramacionBase.totalMesesInsumo}" disabled="true" styleClass="form-control textoMedio numericos">
+                                                        <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:inputText>
+                                                </div>
+                                                <ui:repeat  var="montoFuente" value="#{reprogramacionBase.ordenarMontosFuentes(reprogramacionBase.reprogEnEdicion.insumoNuevoMontosFuentes)}" varStatus="status"
+                                                            rendered="#{reprogramacionBase.cantidadMontosFuentesDePoInsumo ne 1 and reprogramacionBase.reprogEnEdicion.insumoNuevoNoUaci}">
+                                                    <div class="col-sm-1">
+                                                        <h:inputText  value="#{montoFuente.totalProgramacionFinanciera}" 
+                                                                      disabled="true"
+                                                                      styleClass="form-control textoMedio numericos">
+                                                            <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                        </h:inputText>
+                                                    </div>
+                                                </ui:repeat>
+                                            </h:panelGroup>
+
+
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+
+                                </div>
+
+
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" 
+                                              value="#{textMB.obtenerTexto('labels.Aceptar')}" 
+                                              actionListener="#{reprogramacionBase.guardarLineaReprog()}" 
+                                              update="@form tabViewReprogramacion:formTablaDetalle:contenidoTablasDetalle"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </h:form>
+
+            </div>
+        </div>
+
+
+
+
+    </ui:composition>
+</html>
+

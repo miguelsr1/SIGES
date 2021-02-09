@@ -1,0 +1,179 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText rendered="#{!planificacionEstrategicaCE.update}" value="#{textMB.obtenerTexto('labels.CrearPlanificacionEstrategica')}" />
+                    <h:outputText rendered="#{planificacionEstrategicaCE.update}" value="#{textMB.obtenerTexto('labels.EditarPlanificacionEstrategica')}" />
+                </h2>
+
+                <button type="button" class="btn btn-default pull-right ayuda-btn" 
+                        data-container="body" 
+                        data-toggle="popover" 
+                        data-placement="bottom" 
+                        data-html="true"
+                        data-content="#{textMB.obtenerTextoAyuda('ayuda.CrearPlanificacionEstrategica')}">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                </button>
+
+                <h:outputText styleClass="ayuda-descripcion" value="#{textMB.obtenerTextoAyuda('descripcion.CrearPlanificacionEstrategica')}" escape="false" /> 
+            </div>
+        </ui:fragment> 
+
+        <h:form id="crear"  >          
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <p:focus context="bloqueNoModal" />
+                <h:panelGroup layout="block" id="bloqueNoModal" styleClass="grupoCampos" >
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" for="nombre"/>
+                        <div class="col-sm-9">
+                            <h:inputText id="nombre"  maxlength="255"  value="#{planificacionEstrategicaCE.objeto.nombre}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                <f:validateLength maximum="255" />
+                            </h:inputText>
+                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <p:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.FechaDesde')}:" for="desde"/>
+                        <div class="col-sm-9">
+                            <p:calendar id="desde" value="#{planificacionEstrategicaCE.objeto.desde}" styleClass="textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" />
+                            <h:message for="desde" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <p:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.FechaHasta')}:" for="hasta"/>
+                        <div class="col-sm-9">
+                            <p:calendar id="hasta" value="#{planificacionEstrategicaCE.objeto.hasta}" styleClass="textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" />
+                            <h:message for="hasta" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}:" for="estado"/>
+                        <div class="col-sm-9">                      
+                            <h:selectOneMenu  value="#{planificacionEstrategicaCE.objeto.estado}"  styleClass="form-control textoMedio" id="estado" >
+                                <f:selectItems value="#{planificacionEstrategicaCE.getEstadoPlanificacion()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                            </h:selectOneMenu>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Objetivo')}:" for="objetivo"/>
+                        <div class="col-sm-9">
+                            <h:inputTextarea id="objetivo" value="#{planificacionEstrategicaCE.objeto.objetivo}" styleClass="form-control textoLargo"   rows="10" />
+                            <h:message for="objetivo" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                </h:panelGroup>
+
+                <!--         </h:form>   
+                        <h:form id="tabla" > -->
+
+                <div class="grupoCampos">
+                    <div class="form-group">
+                        <div class="col-sm-6">
+                            <h:outputText styleClass="subtitulo" value="#{textMB.obtenerTexto('labels.LineasEstrategicas')}" />
+                        </div>
+                        <div class="col-sm-6 clearfix">
+                            <p:commandButton styleClass="btn btn-default pull-right"  
+                                             icon="glyphicon glyphicon-plus"
+                                             value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                             update="anadir:lineaToAdd"
+                                             oncomplete="$('#addLineaEstrategica').modal('show');" />
+                        </div>
+                    </div>
+                    <h:panelGroup layout="block" id="panelTabla">
+                        <p:dataTable  id="lineaTabla"
+                                      var="item" 
+                                      value="#{planificacionEstrategicaCE.lineasEstrategicas}" 
+                                      emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}" 
+                                      rowIndexVar="rowIndex">
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.nombre')}">
+                                <h:outputText value="#{item.nombre}" />
+                            </p:column>
+
+                            <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones"  rendered="#{permisosMB.permisos['CREAR_EDITAR_LINEA_ESTRATEGICA'] }">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                     return false" 
+                                                 action="#{planificacionEstrategicaCE.eliminarLinea(item)}"
+                                                 update="lineaTabla confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>                        
+                            </p:column> 
+                        </p:dataTable>
+                    </h:panelGroup>
+                </div>
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{planificacionEstrategicaCE.guardar}"  update="crear"/>
+                        <h:outputLink styleClass="btn btn-link" value="#{planificacionEstrategicaCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+        </h:form>   
+        <h:form id="anadir" > 
+            <!-- Modal para añadir planificacion -->
+            <div class="modal fade"  id="addLineaEstrategica" tabindex="-1" role="dialog" aria-labelledby="addLineaEstrategica">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title">
+                                <h:outputText value="#{textMB.obtenerTexto('labels.lineaEstrategica')}" /> 
+                            </span>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="itemToAdd">
+                                <div class="form-horizontal">
+                                    <h:messages id="mensajesTurno" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <div class="form-group" >
+                                        <h:outputLabel styleClass="col-sm-4 control-label" value="*#{textMB.obtenerTexto('labels.lineaEstrategica')}:" for="lineaToAdd" />
+                                        <div class="col-sm-8">
+                                            <h:selectOneMenu id="lineaToAdd" value="#{planificacionEstrategicaCE.idLineaToAdd}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}">
+                                                <f:selectItem itemLabel=""  itemValue="#{null}"/>
+                                                <f:selectItems value="#{planificacionEstrategicaCE.getLineasDisponibles()}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="lineaToAdd" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" actionListener="#{planificacionEstrategicaCE.addLinea()}"   update="crear:panelTabla anadir:itemToAdd"/>
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+
+        </h:form>
+
+        
+        
+        <!-- MODAL CONFIRMAR  ELIMINAR -->
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+
+
+
+    </ui:composition>
+</html>

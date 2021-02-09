@@ -1,0 +1,191 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      template="./../publico/template.xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <ui:composition>
+        <h:form id="formFirmaPublica" prependId="false" rendered="#{firmaPublicaMB.soloMuestraFirma == false}">
+            <div class="modal-header">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('label.firmaDeDocumento')}" /> 
+                </h2>
+            </div>
+            <div class="modal-body">
+                <p:outputPanel class="ui-messages-warn ui-corner-all" rendered="#{firmaPublicaMB.softwarePfeaDownlodLink==''}">
+                    <span class="ui-messages-warn-icon"></span>
+                    <ul>
+                        <li role="alert" aria-atomic="true">
+                            <span class="ui-messages-warn-summary">#{textMB.obtenerTexto('messages.sistemaOperativoNoSoportado')}</span>
+                        </li>
+                    </ul>
+                </p:outputPanel>                                    
+            </div>
+        </h:form>
+        
+        <h1>#{textMB.obtenerTexto('labels.tituloFirmaSiges')}</h1>
+
+        <!-- Nuevo Wizard Firma Publica -->
+        <div id="modalFirmarArchivo">
+            <div class="modal-dialog" style="width:100%;" role="document">
+                <div class="modal-content">
+                    <h:form id="formFirmar" prependId="false">
+                        <div class="modal-header">
+                            <h2 id="overview" class="page-header">
+                                <h:outputText value="#{textMB.obtenerTexto('label.firmaDeDocumento')}" /> 
+                            </h2>
+                        </div>
+                        <div class="modal-body">
+                            <p:outputPanel id="pnlWizard">
+                                <ul class="wizard-nav-tabs wizard-nav-tabs-4">
+
+                                    <li class="#{firmaPublicaMB.pasoWizard=='APLICATIVO'?'active':''}">
+                                        <a href="#" title="Paso 1" tabindex="-1">
+                                            <span class="wizard-step">1</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoAplicativo')}</span>
+                                        </a>
+                                    </li>
+                                    <li class="#{firmaPublicaMB.pasoWizard=='FIRMA'?'active':''}">
+                                        <a href="#" title="Paso 2" tabindex="-1">
+                                            <span class="wizard-step">2</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoFirma')}</span>
+                                        </a>
+                                    </li>
+                                    <li class="#{firmaPublicaMB.pasoWizard=='CONFIRMACION'?'active':''}">
+                                        <a href="#" title="Paso 3" tabindex="-1">
+                                            <span class="wizard-step">3</span>
+                                            <span class="wizard-step-description">#{textMB.obtenerTexto('labels.pasoConfirmacion')}</span>
+                                        </a>
+                                    </li>
+                                </ul>                                
+                                <!-- Paso 1: descargar e instalar el aplicativo, permitir continuar si ya lo tiene -->
+                                <p:outputPanel id="tabInstalacion" rendered="#{firmaPublicaMB.pasoWizard=='APLICATIVO'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend><h:outputText value="#{textMB.obtenerTexto('labels.DescargarAplicativo')}" /></legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                            <div class="col-sm-6 form-horizontal">
+
+
+                                                <div class="form-group">
+                                                    <h:outputLink  target="_blank" title="#{textMB.obtenerTexto('labels.agesicDownloadLink')}" 
+                                                                   value="#{firmaPublicaMB.softwarePfeaDownlodLink}">
+                                                        <h:outputText value="#{textMB.obtenerTexto('labels.softwareDownloadLink')}"  styleClass="ui-helper" />
+                                                    </h:outputLink>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div>
+                                                        <div class="checkbox">
+                                                            <h:selectBooleanCheckbox id="descargado" value="#{firmaPublicaMB.descargado}"
+                                                                                     label="#{textMB.obtenerTexto('labels.descargadoEInstalado')}" />
+                                                            <h:outputLabel for="descargado" value="#{textMB.obtenerTexto('labels.descargadoEInstalado')}" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p:outputPanel id="pnlDescripcionInstalacion" class="col-sm-6 form-horizontal">
+                                                <h:outputFormat value="#{firmaPublicaMB.describirInstalacion()}" escape="false" />
+                                            </p:outputPanel>
+                                        </fieldset>
+                                    </div>
+                                </p:outputPanel>
+                                <!-- Paso 2: esperar a que el ciudadano firme el documento con el aplicativo -->
+                                <p:outputPanel id="tabEsperarArchivoFirmado" rendered="#{firmaPublicaMB.pasoWizard=='FIRMA'}">
+                                    <div class="panel-filtro">
+                                        <fieldset style="width: 100%">
+                                            <legend><h:outputText value="#{textMB.obtenerTexto('labels.firmeElDocumentoConElAplicativo')}"/></legend>
+                                            <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                            <div class="form-group" style="text-align:center;">
+                                                <p:graphicImage value="/img/cargando.gif"  width="50px;"/>
+                                            </div>
+                                        </fieldset>
+                                    </div>    
+                                    <p:poll widgetVar="pollEsperarArchivoFirmado" interval="5"  
+                                            autoStart="true" stop="#{firmaPublicaMB.stopPollFirma()}" update="pnlWizard pnlBotones" />
+                                </p:outputPanel>
+                                <!-- Paso 3: mostrar un mensaje de confirmación -->
+                                <p:outputPanel id="tabEsperaPersistenciaArchivoFirmado" rendered="#{firmaPublicaMB.pasoWizard=='CONFIRMACION'}">
+                                    <div class="panel-filtro">
+
+                                       <p:messages showDetail="true" showSummary="false" autoUpdate="true" />
+                                        <div class="form-group" style="text-align:center; width: 100%">
+                                            <h:outputText value="#{textMB.obtenerTexto('labels.archivoFirmadoRecibidoCorrectamente')} - " /> 
+                                            <p:commandLink title="#{textMB.obtenerTexto('labels.signedDownloadLink')}" 
+                                                           value="#{textMB.obtenerTexto('labels.descargar')}" ajax="false">
+                                                <p:fileDownload value="#{firmaPublicaMB.documentoFirmado}" />
+                                            </p:commandLink>
+                                        </div>
+                                        
+                                        <div class="form-group" style="text-align:center; width: 100%">
+                                            <h:outputText value="Para finalizar el proceso haga click en el botón Confirmar" />
+                                        </div>
+
+                                        <div class="form-group" style="text-align:center; width: 100%">
+                                            <p:commandButton styleClass="btn btn-primary" value="Confirmar" style="margin-left: 0px;" 
+                                                             action="#{firmaPublicaMB.cerrarWizard()}" 
+                                                             update="pnlWizard pnlBotones"/>
+                                        </div>
+
+                                        
+
+
+
+
+                                    </div>    
+                                </p:outputPanel> 
+                            </p:outputPanel>
+                        </div>
+                        <p:outputPanel id="pnlBotones" class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.siguiente')}" 
+                                             action="#{firmaPublicaMB.siguientePaso()}" update="pnlWizard pnlBotones" 
+                                             rendered="#{firmaPublicaMB.pasoWizard!='CONFIRMACION' and firmaPublicaMB.pasoWizard!='APLICATIVO'
+                                                         and firmaPublicaMB.pasoWizard!='MENSAJE'}"
+                                             onclick="PF('bloqueador').show();" oncomplete="PF('bloqueador').hide();"
+                                             />
+                            <p:commandButton styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.siguiente')}" 
+                                             action="#{firmaPublicaMB.siguientePaso()}" update="pnlWizard pnlBotones"
+                                             rendered="#{firmaPublicaMB.pasoWizard=='APLICATIVO'}"
+                                             oncomplete="if (args &amp;&amp; !args.validationFailed) PF('download').jq.click()" />
+                            <p:commandButton widgetVar="download" styleClass="ui-helper-hidden" ajax="false">
+                                <p:fileDownload value="#{firmaPublicaMB.archivoPfea}" />
+                            </p:commandButton>
+                            <p:commandButton styleClass="btn btn-link" value="#{textMB.obtenerTexto('labels.cancelar')}" 
+                                             action="#{firmaPublicaMB.cerrarWizard()}" 
+                                             rendered="#{firmaPublicaMB.pasoWizard!='CONFIRMACION' and firmaPublicaMB.pasoWizard!='MENSAJE'}"/>
+                            <p:commandButton styleClass="btn btn-primary" value="#{textMB.obtenerTexto('labels.cerrar')}" 
+                                             action="#{firmaPublicaMB.cerrarWizard()}" 
+                                             rendered="#{false and firmaPublicaMB.pasoWizard=='CONFIRMACION' or firmaPublicaMB.pasoWizard=='MENSAJE'}"
+                                             update="pnlWizard pnlBotones"/>
+                        </p:outputPanel>
+                    </h:form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade confirm-modal-callback data-backdrop"  id="modalDocumentoPublicoSubido" tabindex="-1" role="dialog" data-backdrop="static" >
+            <div class="modal-dialog" role="document" style="margin-top:200px; width:350px; height:50px;">
+                <div class="modal-content">
+                    <h:form id="formProgreso" prependId="false">
+                        <div class="modal-header">
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.headerModal.cargaArchivo')}"/></span>
+                        </div>
+                        <div class="modal-body">
+                            <p:panel>
+                                <div class="form-group" style="text-align:center;">
+                                    <h4>
+                                        <h:outputText id="archivoFirmadoExiste" value="#{textMB.obtenerTexto('labels.messages.archivoSubido')}"/>
+                                    </h4>
+                                </div>
+                            </p:panel>    
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton id="cancelarEspera" styleClass="btn btn-primary" style="float:right;"
+                                             icon="glyphicon glyphicon-saved"  value="#{textMB.obtenerTexto('labels.aceptar')}"
+                                             onclick="PF('modalDocumentoPublicoSubido').hide();"/>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </div> 
+    </ui:composition>
+</html>

@@ -1,0 +1,108 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.constancia}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.constancia}"/></h2>
+            <p:outputPanel styleClass="float-right">
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.REPORTE_CONSTANCIA)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>   
+        
+        
+        <h:panelGroup id="searchPanels">
+            <p:panel  toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+                <div class="requeridos" style="text-align:left;"><h:outputText value="#{msg.textoCamposObligatorios}"/></div>
+                <p:outputPanel id="pnlSearch" styleClass="row">
+                    <f:subview id="filtroActivosView">
+                        <ui:include src="componentes/filtroActivos.xhtml">
+                            <ui:param name="renderTipoUnidad" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}" />
+                            <ui:param name="renderUnidadAdministrativa" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}" />
+                            <ui:param name="renderUnidadActivoFijo" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}" />
+                            <ui:param name="renderMunicipio" value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_MUNICIPIO)}" />
+                            <ui:param name="tunidadObligatorio" value="#{true}" />
+                            <ui:param name="uafObligatorio" value="#{true}" />
+                            <ui:param name="uadObligatorio" value="#{true}" />
+                        </ui:include>
+                    </f:subview>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-12">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-12 texto-right">
+                            <p:commandButton  value="#{msg.generarConstancia}" action="#{constanciaBean.generarNuevo()}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_CONSTANCIA)}"
+                                  styleClass="btn btn-primary"
+                                                 icon="glyphicon glyphicon-list-alt"
+                                                 oncomplete="PF('itemDialog').show()"
+                                                 update="formReporte:itemDetailDialog"/>
+                            <p:commandLink value="#{msg.limpiar}"  action="#{constanciaBean.limpiar()}"
+                                        update="pnlSearch" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch" />
+                            </p:commandLink>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+        </h:panelGroup>
+        
+        <div class="form-action-buttons">
+            <h:panelGroup id="botones">
+  
+                
+            </h:panelGroup>
+            
+        </div>
+        <div class="volverLink">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </div>
+        
+        
+        
+    </h:form>
+    
+    <h:form id="formReporte">
+        <p:dialog header="#{msg.constancia}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('itemDialog').initPosition()">             
+            <p:outputPanel id="itemDetailDialog">                                                             
+                <h:panelGroup >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioConstancia2">
+                        <form action="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_CONSTANCIA_R}" method="get" target="_blank">
+                            <input type="hidden" name="tu" id="tu"  value="#{constanciaBean.tipoUnidad}" required="true"/>
+                            <input type="hidden" name="uaf" id="uaf" value="#{constanciaBean.filtroBienes.unidadActivoFijoId}" required="true"/>
+                            <input type="hidden" name="uad" id="uad" value="#{constanciaBean.filtroBienes.unidadAdministrativaId}" required="true"/>
+                            <p:outputPanel styleClass="form-group row" id="fila_input_periodo">                        
+                                <h:outputLabel value="#{msg.periodoConstancia}" for="input_periodo" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                                <p:outputPanel styleClass="col-sm-9">
+                                    <input type="number" autocomplete="off" pattern="[0-9]*" id="per" name="per" class="form-control texto-corto" min="1" max="9999" minlength="1" maxlength="4" onblur="true" required="true"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel  styleClass="control-group" >
+                                <p:outputPanel styleClass="float-right">
+                                    <input type="submit" value="#{msg.generarConstancia}"  onclick="PF('itemDialog').hide();" class="btn btn-secondary" onblur="true" />
+                                    <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+                        </form>   
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+    </h:form>
+</ui:composition>

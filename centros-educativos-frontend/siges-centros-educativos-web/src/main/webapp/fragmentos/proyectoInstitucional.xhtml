@@ -1,0 +1,476 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <h:form id="form"> 
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.registrarProyectoInstitucional}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.registrarProyectoInstitucional}"/></h2>
+
+            <p:outputPanel styleClass="float-right">               
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.PROYECTO_INSTITUCIONAL)}" /> 
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel>
+            <h:panelGroup rendered="#{proyectoInstitucionalBean.proyectoSeleccionado.pinPk == null}"  >
+                <p:panel  toggleable="false" styleClass="panel-filtro">
+                    <p:outputPanel id="pnlSearchProyecto">
+                        <p:outputPanel styleClass="form-group row" id="fila_b_input_tipo_beneficio" >
+                            <h:outputLabel value="#{msg.tipoBeneficio}" for="b_input_tipo_beneficio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu  id="b_input_tipo_beneficio" 
+                                                  value="#{proyectoInstitucionalBean.comboTipoBeneficio.selected}"
+                                                  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{proyectoInstitucionalBean.comboTipoBeneficio.items}" />
+                                    <p:ajax event="change" listener="#{proyectoInstitucionalBean.seleccionarTipoBeneficio()}" 
+                                            process="@this"  update="fila_b_input_proyecto fila_b_input_beneficio fila_b_input_asociacion"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>  
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_b_input_proyecto" >
+                            <h:outputLabel value="#{msg.proyecto}" for="b_input_proyecto" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu  id="b_input_proyecto" 
+                                                  value="#{proyectoInstitucionalBean.comboProyecto.selected}" 
+                                                  disabled="#{proyectoInstitucionalBean.comboTipoBeneficio.selectedT==null}"
+                                                  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{proyectoInstitucionalBean.comboProyecto.items}" />
+                                    <p:ajax event="change" listener="#{proyectoInstitucionalBean.seleccionarProyecto()}" process="@this" 
+                                            update="fila_b_input_beneficio fila_b_input_asociacion"/>
+                                </h:selectOneMenu>
+                            </p:outputPanel>  
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_b_input_beneficio" >
+                            <h:outputLabel value="#{msg.beneficio}" for="b_input_beneficio" styleClass="col-sm-4 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu  id="b_input_beneficio" 
+                                                  value="#{proyectoInstitucionalBean.comboBeneficio.selected}" 
+                                                  disabled="#{proyectoInstitucionalBean.comboProyecto.selectedT ==null}"
+                                                  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{proyectoInstitucionalBean.comboBeneficio.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>  
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_b_input_asociacion" >
+                            <h:outputLabel value="#{msg.asociacion}" for="b_input_asociacion" styleClass="col-sm-4 col-form-label "/>
+                            <p:outputPanel styleClass="col-sm-8">
+                                <h:selectOneMenu  id="b_input_asociacion" 
+                                                  value="#{proyectoInstitucionalBean.comboAsociacion.selected}" 
+                                                  disabled="#{proyectoInstitucionalBean.comboProyecto.selectedT ==null}"
+                                                  styleClass="form-control texto-medio" >
+                                    <f:selectItems value="#{proyectoInstitucionalBean.comboAsociacion.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>  
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-10 texto-right">
+                                <p:commandButton value="#{msg.continuar}" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PROYECTO_INSTITUCIONAL_SEDE)}"
+                                                 update="@form" 
+                                                 action="#{proyectoInstitucionalBean.cargarProyecto()}"
+                                                 id="btnBuscarProyecto" styleClass="btn btn-primary" >
+                                </p:commandButton>
+                            </p:outputPanel>
+                        </p:outputPanel>
+
+                        <p:defaultCommand target="btnBuscarProyecto" scope="pnlSearchProyecto"/>
+                    </p:outputPanel>
+                </p:panel>
+            </h:panelGroup>
+
+
+            <p:outputPanel id="pnlResultado" >
+                <h:panelGroup rendered="#{proyectoInstitucionalBean.proyectoSeleccionado.pinPk !=null}"  >
+                    <fieldset>
+                    <p:outputPanel styleClass="row">
+                        
+                        <p:outputPanel styleClass="col-sm-12">   
+                            <p:outputPanel styleClass="form-group row" id="fila_input_tipo_beneficio">                        
+                                <h:outputLabel value="#{msg.tipoBeneficio}" for="input_tipo_beneficio" styleClass="col-sm-4 col-form-label"/>                        
+                                <p:outputPanel styleClass="col-sm-8"> 
+                                    <h:inputText autocomplete="off" id="input_tipo_beneficio" 
+                                                 value="#{proyectoInstitucionalBean.beneficioSeleccionado.bnfTipoBeneficio.text}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"/>
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_proyecto">
+                                <h:outputLabel value="#{msg.proyecto}" for="input_proyecto" 
+                                               styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_proyecto" 
+                                                 value="#{proyectoInstitucionalBean.proyectoSeleccionado.pinNombre}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true" />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_descripcion">                        
+                                <h:outputLabel value="#{msg.descripcion}" for="input_descripcion" styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_descripcion" 
+                                                 value="#{proyectoInstitucionalBean.proyectoSeleccionado.pinDescripcion}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"
+                                                 />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_programa_institucional">                        
+                                <h:outputLabel value="#{msg.programaInstitucional}" for="input_programa_institucional" 
+                                               styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_programa_institucional" 
+                                                 value="#{proyectoInstitucionalBean.proyectoSeleccionado.pinProgramaInstitucional.pinNombre}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"
+                                                 />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_inicio">
+                                <h:outputLabel value="#{msg.fechaInicio}" for="input_fecha_inicio" 
+                                               styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_fecha_inicio" 
+                                                 value="#{proyectoInstitucionalBean.proyectoSeleccionado.pinFechaInicio}" 
+                                                 converter="#{localDateConverter}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"
+                                                 />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_fin">
+                                <h:outputLabel value="#{msg.fechaFin}" for="input_fecha_fin" 
+                                               styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_fecha_fin" 
+                                                 value="#{proyectoInstitucionalBean.proyectoSeleccionado.pinFechaFin}" 
+                                                 converter="#{localDateConverter}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"
+                                                 />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_asociacion">
+                                <h:outputLabel value="#{msg.asociacion}" for="input_asociacion" 
+                                               styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_asociacion" 
+                                                 value="#{proyectoInstitucionalBean.asociacionSeleccionado.asoNombre}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"
+                                                 />
+                                </p:outputPanel>                    
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_beneficio">
+                                <h:outputLabel value="#{msg.beneficio}" for="input_beneficio" 
+                                               styleClass="col-sm-4 col-form-label "/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <h:inputText autocomplete="off" id="input_beneficio" 
+                                                 value="#{proyectoInstitucionalBean.beneficioSeleccionado.bnfNombre}" 
+                                                 styleClass="form-control texto-medio" 
+                                                 disabled="true"
+                                                 />
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_fecha_otorgado">
+                                <h:outputLabel value="#{msg.fechaOtorgado}" for="input_fecha_otorgado" 
+                                               styleClass="col-sm-4 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:calendar id="input_fecha_otorgado" styleClass="form-control" 
+                                                value="#{proyectoInstitucionalBean.proyectoSedeEnEdicion.proFechaOtorgado}" 
+                                                pattern="#{applicationBean.patternFecha}" 
+                                                converter="#{localDateConverter}" 
+                                                showOn="button" autocomplete="off"
+                                                mask="true"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                  
+
+                            <p:outputPanel styleClass="form-group row" id="fila_input_observaciones" >
+                                <h:outputLabel value="#{msg.observacionesProvisional}" for="input_observaciones" 
+                                               styleClass="col-sm-4 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-8">
+                                    <p:inputTextarea id="input_observaciones"  
+                                                     styleClass="form-control texto-medio" 
+                                                     value="#{proyectoInstitucionalBean.proyectoSedeEnEdicion.proObservaciones}" 
+                                                     counter="displayObs" maxlength="250" counterTemplate="{0} caracteres restantes." autoResize="false"/>
+                                    <h:outputText id="displayObs" />
+                                </p:outputPanel>  
+                            </p:outputPanel>
+                            
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton value="#{msg.guardar}" 
+                                                 action="#{proyectoInstitucionalBean.guardar()}" 
+                                                 update="@form" icon="glyphicon glyphicon-floppy-disk" 
+                                                 id="btnGuardarProyecto" 
+                                                 styleClass="btn btn-primary" 
+                                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PROYECTO_INSTITUCIONAL_SEDE)}" >
+                                </p:commandButton>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    </fieldset>
+                    <br/>
+                    
+                    <h:panelGroup id="listaEstudiantes">
+                        <p:outputPanel rendered="#{proyectoInstitucionalBean.proyectoSedeEnEdicion.proPk!=nul and proyectoInstitucionalBean.beneficioSeleccionado.isTipoEstudiante}">
+                            <fieldset>
+                                <legend><h:outputText value="#{msg.hestudiantes}"/></legend>
+                                
+                                <p:panel header="#{msg.filtro}"
+                                    styleClass="panel-filtro"
+                                    closable="true" toggleable="true" collapsed="true">
+                                    <p:outputPanel styleClass="row" id="pnlBusquedaEstudiante">
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="form-group row">
+                                                <h:outputLabel value="#{msg.nie}" for="filtro_lista_nie" styleClass="col-sm-3 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-9 ">
+                                                    <p:inputNumber autocomplete="off" id="filtro_lista_nie" 
+                                                                   value="#{proyectoInstitucionalBean.filtroProyectoEstudiantes.nie}" 
+                                                                   styleClass="form-control texto-medio" thousandSeparator="" decimalPlaces="0" decimalSeparator="" />
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                        
+                                        <p:outputPanel styleClass="col-md-6">
+                                            <p:outputPanel styleClass="form-group row">
+                                                <h:outputLabel value="#{msg.nombresApellidos}" for="filtro_lista_nombre" styleClass="col-sm-3 col-form-label"/>
+                                                <p:outputPanel styleClass="col-sm-9 ">
+                                                    <div class="ui-inputgroup">
+                                                        <h:inputText autocomplete="off" styleClass="form-control"
+                                                                     style="display: inline-block;"
+                                                                     disabled="true"  id="filtro_lista_nombre"
+                                                                     value="#{proyectoInstitucionalBean.filtroNombreCompleto.nombreCompleto}" />
+                                                        <f:subview id="busquedaNombre">
+                                                            <ui:include src="componentes/busquedaNombreComponente.xhtml"  >   
+                                                                <ui:param name="controllerParam" value="#{proyectoInstitucionalBean}" />
+                                                                <ui:param name="actionParam" value="filtroNombreCompletoSeleccionar" />
+                                                                <ui:param name="filtroNombreCompleto" value="#{proyectoInstitucionalBean.filtroNombreCompleto}" />
+                                                            </ui:include>
+                                                        </f:subview>
+                                                    </div>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+
+
+                                        <p:outputPanel styleClass="col-md-12" >
+                                            <p:outputPanel styleClass="form-group row">
+                                                <p:outputPanel styleClass="col-sm-12 texto-right" style="padding-right: 2em;">
+                                                    <p:commandButton id="btnBuscarEstudiantesLista" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                                                     icon="glyphicon glyphicon-search" 
+                                                                     action="#{proyectoInstitucionalBean.buscar()}" 
+                                                                     update="tablaEstudiantes"/>
+                                                    <p:commandLink value="#{msg.limpiar}" action="#{proyectoInstitucionalBean.limpiar()}" 
+                                                                   update="pnlBusquedaEstudiante tablaEstudiantes" immediate="true" styleClass="btn btn-link">
+                                                        <p:resetInput target="pnlBusquedaEstudiante tablaEstudiantes" />
+                                                    </p:commandLink>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:panel>
+                                
+                                <p:outputPanel id="btnAgregarEstudiantes" styleClass="control-group" >
+                                    <p:outputPanel styleClass="row float-right" style="padding-right: 1.5em;">
+                                        <p:commandButton value="#{msg.agregarEstudiante}" icon="glyphicon glyphicon-plus" 
+                                                         update=":form:itemDialog" 
+                                                         oncomplete="PF('itemDialog').show()" ajax="true" 
+                                                         actionListener="#{proyectoInstitucionalBean.nuevaBusqueda()}" 
+                                                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PROYECTO_INST_ESTUDIANTE)}"  
+                                            id="btnAgregarEstudiante" styleClass="btn btn-secondary" >
+                                            <p:ajax event="dialogReturn" update="basicDT"/>
+                                        </p:commandButton>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <br/>
+                                
+                                <p:outputPanel id="pnlEstudiantes">
+                                    <p:dataTable id="tablaEstudiantes"                         
+                                                 widgetVar="widEstudiantes"                         
+                                                 var="elem"                          
+                                                 value="#{proyectoInstitucionalBean.estudiantesLazy}"                          
+                                                 emptyMessage="#{msg.noHayResultados}"		
+                                                 paginator="true"
+                                                 lazy="true"
+                                                 paginatorPosition="bottom"
+                                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                                 sortField="piePk"
+                                                 paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                                 rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                                                 rows="#{proyectoInstitucionalBean.paginado}"
+                                                 reflow="true" >
+                                        <f:facet name="{anterior}">
+                                            <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                                        </f:facet>
+                                        <f:facet name="{siguiente}">
+                                            <h:outputText styleClass="#{proyectoInstitucionalBean.totalEstudiantes lt (proyectoInstitucionalBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                                        </f:facet>
+
+                                        <f:facet name="header">
+                                            <p:outputPanel id="pnlHeaderTablaEstudiantes" styleClass="row">
+                                                <p:outputPanel styleClass="col-md-6">
+                                                    <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{proyectoInstitucionalBean.totalEstudiantes}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </f:facet>
+                                        
+                                        <p:column headerText="#{msg.hestudiante}">
+                                            <h:outputText value="#{elem.pieEstudiante.estPersona.nieNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hfechaOtorgado}">
+                                            <p:calendar styleClass="form-control" 
+                                                        value="#{elem.pieFechaOtorgado}" 
+                                                        pattern="#{applicationBean.patternFecha}" 
+                                                        converter="#{localDateConverter}" 
+                                                        showOn="button" autocomplete="off"
+                                                        mask="true">
+                                            </p:calendar>
+                                        </p:column>
+                                        <p:column headerText="#{msg.hObservacion}">
+                                            <h:inputText autocomplete="off" 
+                                                         value="#{elem.pieObservaciones}" 
+                                                         styleClass="form-control texto-medio" >
+                                            </h:inputText>
+                                        </p:column>                                                                        
+
+                                        <p:column styleClass="columnaAcciones"  exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_PROYECTO_INST_ESTUDIANTE)}">
+                                            <p:commandButton update="tablaEstudiantes"  
+                                                             icon="glyphicon glyphicon-trash" 
+                                                             styleClass="btn btn-icono rojo" 
+                                                             title="#{msg.eliminar}" action="#{proyectoInstitucionalBean.eliminarEstudiante(elem)}"/>
+                                        </p:column>                                         
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                
+                            
+                                <p:outputPanel styleClass="float-right">
+                                    <p:commandButton value="#{msg.guardar}" 
+                                                     action="#{proyectoInstitucionalBean.actualizarEstudiante()}" 
+                                                     icon="glyphicon glyphicon-floppy-disk" 
+                                                     id="btnActualizarEstudiantes" 
+                                                     styleClass="btn btn-primary" 
+                                                     rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_PROYECTO_INST_ESTUDIANTE)}" >
+                                    </p:commandButton>
+                                </p:outputPanel>
+                                
+                            </fieldset>
+                            
+                            <p:dialog header="#{msg.agregarEstudiante}" id="itemDialog" widgetVar="itemDialog" modal="true" showEffect="fade" 
+                                      hideEffect="fade" resizable="false" width="80%" height="50%"  maximizable="true" position="center top">
+                                <p:ajax event="close" process="@this" listener="#{proyectoInstitucionalBean.eliminarListaEstudiantes()}"  update="basicDT" />       
+                                <p:outputPanel  id="itemDetail">
+                                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>
+                                    <p:panel header="#{msg.filtro}"
+                                        styleClass="panel-filtro"
+                                        closable="true" toggleable="true">
+                                        <p:outputPanel styleClass="row">
+                                            <f:subview id="viewFiltroSeccion">
+                                                <ui:include src="componentes/filtrosSeccion.xhtml">
+                                                </ui:include>
+                                            </f:subview>
+                                            
+                                            <p:outputPanel styleClass="col-md-6">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel value="#{msg.fechaOtorgado}" for="filtro_fecha_otorgado" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                                    <p:outputPanel styleClass="col-sm-9 ">
+                                                        <p:calendar id="filtro_fecha_otorgado" styleClass="form-control" 
+                                                                    value="#{proyectoInstitucionalBean.fechaOtorgado}" 
+                                                                    pattern="#{applicationBean.patternFecha}" 
+                                                                    converter="#{localDateConverter}" 
+                                                                    showOn="button" autocomplete="off"
+                                                                    mask="true"/>
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+
+
+                                            <p:outputPanel styleClass="col-md-12" >
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <p:outputPanel styleClass="col-sm-12 texto-right" style="padding-right: 2em;">
+                                                        <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                                                         icon="glyphicon glyphicon-search" 
+                                                                         action="#{proyectoInstitucionalBean.buscarEstudiantes()}" 
+                                                                         update="basicDT itemDetail"/>
+                                                        <p:defaultCommand target="btnBuscar" scope="itemDetail"/>
+                                                        <p:blockUI block="@form" trigger="btnBuscar" />
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>    
+                                    </p:panel>
+                                    
+                                    <p:dataTable id="basicDT"
+                                                 widgetVar="basicDT"
+                                                 var="elem" 
+                                                 value="#{proyectoInstitucionalBean.estudiantesLista}"
+                                                 emptyMessage="#{msg.noHayResultados}"
+                                                 selection="#{proyectoInstitucionalBean.estudiantesSeleccionados}" 
+                                                 rowKey="#{elem.estPk}">
+
+                                        <p:column headerText="#{msg.hnie}" sortBy="#{elem.estPersona.perNie}">
+                                            <h:outputText value="#{elem.estPersona.perNie}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hnombrecompleto}">
+                                            <h:outputText value="#{elem.estPersona.perNombreCompleto}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hsexo}" sortBy="#{elem.estPersona.perSexo.sexNombre}">
+                                            <h:outputText value="#{elem.estPersona.perSexo.sexNombre}" />
+                                        </p:column>
+                                        <p:column headerText="#{msg.hfechaNacimiento}" sortBy="#{elem.estPersona.perFechaNacimiento}">
+                                            <h:outputText value="#{elem.estPersona.perFechaNacimiento}" converter="#{localDateConverter}" />
+                                        </p:column>
+                                        <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                                    </p:dataTable>
+                                    
+                                    <p:outputPanel styleClass="control-group" >
+                                        <p:outputPanel styleClass="float-right">
+                                            <p:commandButton id="btnConfirmarEstudiantes"  value="#{msg.guardar}" 
+                                                             action="#{proyectoInstitucionalBean.confirmarEstudiantes()}" 
+                                                             update=":form:pnlEstudiantes itemDetail"  
+                                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" 
+                                                             rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_PROYECTO_INST_ESTUDIANTE)}" />
+                                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  
+                                                           styleClass="btn btn-link"/>
+                                        </p:outputPanel>                    
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:dialog> 
+                        </p:outputPanel>
+                    </h:panelGroup>
+                    
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+    </h:form>
+</ui:composition>

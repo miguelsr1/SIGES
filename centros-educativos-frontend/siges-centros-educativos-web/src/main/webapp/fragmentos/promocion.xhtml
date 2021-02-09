@@ -1,0 +1,347 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTiposPeriodosCalificaciones" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumEstadoProcesamientoCalificacionPromocion" />
+    <h:form id="form"> 
+
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.PROMOCIONES}.xhtml">#{msg.gestionPromociones}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionPromocion}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionPromocion}"/></h2>
+
+            <p:outputPanel styleClass="float-right">               
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.PROMOCION)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="horarioEscPanel">
+
+
+            <p:panel  toggleable="false" styleClass="panel-filtro">                        
+                <p:outputPanel>
+
+                    <f:subview id="seleccionarSeccion">
+                        <ui:include src="componentes/seleccionarSeccion.xhtml" >   
+                            <ui:param name="controllerParam" value="#{promocionBean}" />
+                            <ui:param name="actionParam" value="cargarCalificacionSeccion" />
+                            <ui:param name="seccion" value="#{promocionBean.seccionEnEdicion}" />
+                            <ui:param name="securityOperation" value="#{ConstantesOperaciones.CREAR_CALIFICACIONES}" />
+                            <ui:param name="retornarSoloSeccionesAbiertas" value="#{false}" />
+                        </ui:include>
+                    </f:subview>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_opcion" rendered="#{promocionBean.seccionEnEdicion.secServicioEducativo.sduOpcion!=null}">
+                        <h:outputLabel value="#{msg.opcion}" for="input_opcion" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_opcion" styleClass="form-control-plaintext texto-medio" value="#{promocionBean.seccionEnEdicion.secServicioEducativo.sduOpcion.opcNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proged" rendered="#{promocionBean.seccionEnEdicion.secServicioEducativo.sduProgramaEducativo!=null}">
+                        <h:outputLabel value="#{msg.programa}" for="input_proged" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_proged" styleClass="form-control-plaintext texto-medio" value="#{promocionBean.seccionEnEdicion.secServicioEducativo.sduProgramaEducativo.pedNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>                    
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_planEstudio" rendered="#{promocionBean.seccionEnEdicion.secPlanEstudio!=null}">
+                        <h:outputLabel value="#{msg.planEstudio}" for="input_planEstudio" styleClass="col-sm-4 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <h:outputText id="input_planEstudio" styleClass="form-control-plaintext texto-medio" value="#{promocionBean.seccionEnEdicion.secPlanEstudio.pesNombre}" />                       
+                        </p:outputPanel>  
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" id="fila_input_fecha" rendered="#{promocionBean.seccionEnEdicion!=null and promocionBean.calendarioSede.calPermiteCierreAnio}">
+                        <h:outputLabel value="Fecha de cierre de Sección:" 
+                                       for="input_fecha" styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8">
+                            <p:calendar autocomplete="off" styleClass="fomr-control" id="input_fecha"
+                                        value="#{promocionBean.seccionEnEdicion.secFechaCierreSeccion}" 
+                                        pattern="#{applicationBean.patternFecha}" 
+                                        locale="#{sessionBean.locale}" 
+                                        converter="#{localDateConverter}"
+                                        disabled="#{  (promocionBean.entidadEnEdicion.calEstadoProcesamientoPromocion eq EnumEstadoProcesamientoCalificacionPromocion.SIN_PROCESAR) }"
+                                        rendered="#{ promocionBean.seccionEnEdicion!=null and promocionBean.calendarioSede.calPermiteCierreAnio and (not promocionBean.soloLectura) and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CERRAR_ANIO_PROMOCION) and (not (promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA))}" 
+                                        readonlyInput="true" showOn="button"
+                                        maxdate="#{applicationBean.today()}" >                                 
+                            </p:calendar>
+                            <h:outputText value="#{promocionBean.seccionEnEdicion.secFechaCierreSeccion}" converter="#{localDateConverter}"
+                                          styleClass="form-control-plaintext" rendered="#{promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA}"/>
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{ promocionBean.mensajeWarningCierreAnio!=null and  promocionBean.seccionEnEdicion!=null and (not promocionBean.soloLectura) and promocionBean.habilitadoCierreAnio and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CERRAR_ANIO_PROMOCION)}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{promocionBean.mensajeWarningCierreAnio}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{promocionBean.mensajeWarningPromocion!=null and promocionBean.seccionEnEdicion!=null and (promocionBean.listEstudiantes.size() gt 0)  and not promocionBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CALIFICACIONES)}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{promocionBean.mensajeWarningPromocion}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+
+
+                </p:outputPanel>
+            </p:panel>  
+            
+            <div class="form-action-buttons" >
+                <p:commandButton value="#{msg.hverConfirmacionFirmada}" ajax="false" 
+                                 rendered="#{promocionBean.conf.cprPk != null and promocionBean.conf.cprArchivoFirmado != null}"
+                                 onclick="this.form.target = '_blank';" 
+                                 styleClass="btn btn-secondary">
+                    <p:fileDownload contentDisposition="inline" 
+                                    value="#{handleArchivoBean.descargarArchivo(promocionBean.conf.cprArchivoFirmado)}" />
+                </p:commandButton>
+            </div>     
+            
+            <div class="form-action-buttons" >
+                <p:commandButton rendered="#{promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA 
+                                             and promocionBean.firmaPromocionActivada 
+                                             and (promocionBean.conf == null or promocionBean.conf.cprFirmada eq false)
+                                             and sessionBean.operaciones.contains(ConstantesOperaciones.CONFIRMAR_PROMOCION)}"
+                                 action="#{promocionBean.confirmar()}"
+                                 id="confirmarPromocion" value="#{msg.hfirmar}" 
+                                 update="@form"  styleClass="btn btn-primary" />
+                <p:blockUI block="@form" trigger="confirmarPromocion" />
+            </div>     
+
+            <div class="form-action-buttons" >
+                <p:commandButton oncomplete="PF('confirmDialog').show()" 
+                                 disabled="#{ (promocionBean.entidadEnEdicion.calEstadoProcesamientoPromocion eq EnumEstadoProcesamientoCalificacionPromocion.SIN_PROCESAR) }" 
+                                 rendered="#{ (not (promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA)) and promocionBean.seccionEnEdicion!=null and promocionBean.calendarioSede.calPermiteCierreAnio and (not promocionBean.soloLectura) and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_CERRAR_ANIO_PROMOCION)}"  id="btnCerrarAnio" value="#{msg.cierreSeccion}" 
+                                 update="@form"  styleClass="btn btn-primary" icon="fa fa-fw fa-calculator" />
+                <p:blockUI block="@form" trigger="btnCerrarAnio" />
+            </div>          
+
+
+            <div class="form-action-buttons" >
+                <p:commandButton rendered="#{promocionBean.seccionEnEdicion!=null  and (promocionBean.listEstudiantes.size() gt 0)  and not promocionBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CALIFICACIONES) and (not (promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA)) }"  disabled="#{  (promocionBean.entidadEnEdicion.calEstadoProcesamientoPromocion eq EnumEstadoProcesamientoCalificacionPromocion.SIN_PROCESAR)}"  id="btnGuardarAprobacion" value="#{msg.calculoNotaPromocion}" action="#{promocionBean.calcularNotaPromocion(true)}" 
+                                 update="@form"  styleClass="btn btn-primary" icon="fa fa-fw fa-calculator" />
+                <p:blockUI block="@form" trigger="btnGuardarAprobacion" />
+            </div>
+
+            <div class="form-action-buttons" >
+                <p:outputPanel  id="fila_boton_reporte" 
+                                rendered="#{promocionBean.existenPromocionesCalculadas and sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE)}">
+                    <p:outputPanel>
+                        <p:link id="btnGenerarReporte"
+                                href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_PROMOCIONES_ESTUDIANTES}?seccionId=#{promocionBean.entidadEnEdicion.calSeccion.secPk}" target="_blank" 
+                                title="#{msg.generarreportecalificaciones}" 
+                                styleClass="btn btn-secondary">
+                            <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            <h:outputText value="#{msg.reportePromociones}"/>
+                        </p:link>
+                        <p:blockUI block="@form" trigger="btnGenerarReporte"/>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </div>
+
+            <p:outputPanel id="pnlResultado" >
+                <h:panelGroup rendered="#{ promocionBean.seccionEnEdicion!=null}"  >
+
+                    <p:outputPanel rendered="#{(promocionBean.entidadEnEdicion.calPk != null) and (promocionBean.entidadEnEdicion.calEstadoProcesamientoPromocion eq EnumEstadoProcesamientoCalificacionPromocion.PROCESADO)}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{(promocionBean.habilitadoCierreAnio eq true) ? msg.procesamientoRealizadoDeFormaCorrecta : msg.procesamientoRealizadoDeFormaCorrectaEstPendientes}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+                    <p:outputPanel rendered="#{promocionBean.entidadEnEdicion.calPk != null and (promocionBean.entidadEnEdicion.calEstadoProcesamientoPromocion eq EnumEstadoProcesamientoCalificacionPromocion.SIN_PROCESAR)}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="El procesamiento de la promoción aún no ha sido realizado." />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+
+                    <p:outputPanel rendered="#{ promocionBean.listEstudiantes.size() == 0}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.noHayEstudiantes}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{ promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA}" styleClass="ui-messages">
+                        <div class="ui-messages-warn ui-corner-all">
+                            <span class="ui-messages-warn-icon"></span>
+                            <ul>
+                                <li>
+                                    <h:outputText styleClass="ui-messages-warn-summary" value="#{msg.seccionCerrado}" />
+                                </li>
+                            </ul>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:dataTable id="basicDT" 
+                                 class="tabla-promocion"
+                                 widgetVar="widResultado"                         
+                                 var="elem"      
+                                 rendered="#{promocionBean.listEstudiantes.size() gt 0}"
+                                 value="#{promocionBean.listEstudiantes}"                              
+                                 emptyMessage="#{msg.noHayResultados}"	
+                                 rowStyleClass="#{promocionBean.colorRow(elem)}"
+                                 currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                 sortField="estPersona.perPrimerApellido"                        
+                                 rowIndexVar="rowIndex">              
+
+                        <f:facet name="header">
+                            <p:outputPanel id="pnlHeaderTabla" styleClass="row">                        
+                                <p:outputPanel styleClass="col-md-12">
+                                    <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                        <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                            <p:dataExporter type="csv" target="basicDT" fileName="calificacion" pageOnly="false"/>
+                                        </h:commandLink>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </f:facet>
+                        <p:column headerText="#{msg.hnie}" sortBy="#{elem.estPersona.perNie}" >
+                            <h:outputText value="#{elem.estPersona.perNie}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hprimerNombre}" sortBy="#{elem.estPersona.perPrimerNombre}">
+                            <h:outputText value="#{elem.estPersona.perPrimerNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoNombre}" sortBy="#{elem.estPersona.perSegundoNombre}">
+                            <h:outputText value="#{elem.estPersona.perSegundoNombre}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hprimerApellido}" sortBy="#{elem.estPersona.perPrimerApellido}">
+                            <h:outputText value="#{elem.estPersona.perPrimerApellido}" />
+                        </p:column>
+                        <p:column headerText="#{msg.hsegundoApellido}" sortBy="#{elem.estPersona.perSegundoApellido}">
+                            <h:outputText value="#{elem.estPersona.perSegundoApellido}" />
+                        </p:column>                         
+                        <p:column headerText="#{msg.calificacion}"  >                            
+                            <h:outputText value="#{promocionBean.obtenerCalificacionEstudiante(elem)}" />
+                        </p:column>   
+                        <p:column styleClass="columnaAcciones" exportable="false" rendered="#{promocionBean.existenPromocionesCalculadas and sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_PROMOCION_ESTUDIANTE)}">
+                            <p:link   styleClass="btn btn-icono" target="_blank"  rendered="#{promocionBean.renderReporte(elem)}" title="#{msg.reportePromociones}" href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_PROMOCIONES_ESTUDIANTES}?seccionId=#{promocionBean.entidadEnEdicion.calSeccion.secPk}&amp;estudianteId=#{elem.estPk}">
+                                <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            </p:link>
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false"  >
+                            <p:commandButton oncomplete="PF('confirmError').show()" rendered="#{promocionBean.estudianteTieneError(elem)}" update=":form:confirmError" icon="glyphicon glyphicon-info-sign" styleClass="btn btn-icono" title="Motivo de promoción pendiente" action="#{promocionBean.buscarError(elem)}"/>
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false" rendered="#{(not (promocionBean.seccionEnEdicion.secEstado eq EnumSeccionEstado.CERRADA))and (not promocionBean.soloLectura) and sessionBean.operaciones.contains(ConstantesOperaciones.PUEDE_PONER_EN_PENDIENTE_PROMOCIONES)}">
+                            <p:commandButton oncomplete="PF('confirmAPendiente').show()" rendered="#{promocionBean.estudiantePuedeModificarPendiente(elem)}" update=":form:confirmAPendiente" styleClass="btn btn-secondary botones-pendiente" icon="#{promocionBean.iconoModificarPendiente(elem)}"  value="#{promocionBean.botonModificarPendiente(elem)}"  action="#{promocionBean.prepararCalificacionAPendiente(elem)}"/>
+                        </p:column>
+                        <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_FICHA_ESTUDIANTE)}">
+                            <p:link href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_FICHA_ESTUDIANTE}?id=#{elem.estPk}" 
+                                    target="_blank" styleClass="btn btn-icono" 
+                                    title="#{msg.hfichaEstudiante}">
+                                <h:outputText styleClass="glyphicon glyphicon-file"/>
+                            </p:link>
+                        </p:column>
+                    </p:dataTable>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:outputPanel>
+
+        <p:dialog header="Motivo de promoción pendiente" widgetVar="confirmError" modal="true" showEffect="fade" hideEffect="fade" resizable="false">             
+
+
+            <p:outputPanel id="confirmError" style="max-height: calc(100vh - 150px); overflow-y: auto; overflow-x: hidden; "> 
+                <h:outputText value="#{promocionBean.errorAlCalificarDeEst}" escape="false"/>
+            </p:outputPanel>
+
+            <p:outputPanel styleClass="control-group" >
+                <p:outputPanel styleClass="float-right">                        
+                    <p:commandLink value="#{msg.cerrar}" oncomplete="PF('confirmError').hide();"  
+                                   styleClass="btn btn-link" />
+                </p:outputPanel>                    
+            </p:outputPanel>        
+        </p:dialog>
+
+
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+        <p:outputPanel id="cierreSecDialog">
+            <p:confirmDialog id="confirmDialog"
+                             message="#{msg.textoConfirmaCierreDeSeccion}"
+                             header="#{msg.textoConfirmaCierreDeSeccion}" severity="alert" widgetVar="confirmDialog">
+                <p:outputPanel rendered="#{not (promocionBean.seccionEnEdicion.secFechaCierreSeccion eq null)}" styleClass="ui-messages">
+                    <div class="ui-messages-warn ui-corner-all">
+                        <span class="ui-messages-warn-icon"></span>
+                        <ul>
+                            <li>
+                                <h:outputText styleClass="ui-messages-warn-summary" value="Tenga en cuenta que las matrícula, de los estudiantes aún con matrícula abierta, quedarán con fecha de cierre de matrícula " />
+                                <h:outputText styleClass="ui-messages-warn-summary" value="#{promocionBean.seccionEnEdicion.secFechaCierreSeccion}" converter="#{localDateConverter}" />
+                            </li>
+                        </ul>
+                    </div>
+                </p:outputPanel>
+                <p:outputPanel styleClass="float-right" >
+                    <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="@form"
+                                     oncomplete="PF('confirmDialog').hide()"
+                                     styleClass="btn btn-primary"
+                                     action="#{promocionBean.cerrarAnioPromocion()}"  />
+                    <p:blockUI block="@form" trigger="confirmDelete"/>
+                    <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                                   onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+                </p:outputPanel>
+            </p:confirmDialog>
+        </p:outputPanel>     
+
+
+        <p:confirmDialog id="confirmAPendiente"
+                         message="#{promocionBean.obtenerMensajeCambioPendiente()}"
+                         header="#{msg.modificarPromocionPendiente}" severity="alert" styleClass="table-scroll" widgetVar="confirmAPendiente">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmCambio" value="#{msg.hconfirmar}" update="@form"
+                                 oncomplete="PF('confirmAPendiente').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{promocionBean.cambioAPendiente()}"  />
+                <p:blockUI block="@form" trigger="confirmCambio"/>
+                <p:commandLink id="cancelarConfirmAPendiente" value="#{msg.cancelar}"
+                               onclick="PF('confirmAPendiente').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+    </h:form>
+</ui:composition>

@@ -1,0 +1,179 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <h:form id="formTitulo">
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.ContratoOrdenDeCompra')}" /> 
+                </h2>
+            </div>
+        </h:form>
+
+        <h:form styleClass="buscador" id="formfiltro">
+            <div class="panelFiltro">
+                <fieldset>
+                    <legend><h:outputText value="#{textMB.obtenerTexto('labels.filtrar')}" /></legend>
+                    <div class="buscador-filtros row">
+                        <div class="col-sm-12">
+                            <h:messages id="mensajes" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        </div>
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nro')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{contratoConsulta.nroContratoOC}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Tipo')}:" for="estado"/>
+                                <div class="col-sm-8">                      
+                                    <h:selectOneMenu value="#{contratoConsulta.tipoContratoOC}" styleClass="form-control textoMedio" id="estado">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getTiposContratoOC()}" var="estado" itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nombreProceso')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{contratoConsulta.nombreProceso}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.ProveedorContratoOC')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{contratoConsulta.proveedor}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.nroInsumo')}:" />
+                                <div class="col-sm-8">
+                                    <h:inputText  value="#{contratoConsulta.nroInsumo}" styleClass="form-control textoMedio" />
+                                </div>
+                            </div>
+                        </div>                                
+                        <div class="col-sm-6 form-horizontal">
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.EstadoContrato')}:" for="estado"/>
+                                <div class="col-sm-8">                      
+                                    <h:selectOneMenu value="#{contratoConsulta.estadoContratoOC}" styleClass="form-control textoMedio" id="estadoContrato">
+                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{utilsMB.getEstadosContrato()}" var="estado" itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FechaInicio')}:"/>
+                                <div class="col-sm-8">
+                                    <p:calendar value="#{contratoConsulta.fechaDesde}" styleClass="textoMedio" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <p:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.FechaFin')}:" />
+                                <div class="col-sm-8">
+                                    <p:calendar value="#{contratoConsulta.fechaHasta}" styleClass="textoMedio" locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-search" update="tableForm formfiltro:mensajes" value="#{textMB.obtenerTexto('labels.Consultar')}"  actionListener="#{contratoConsulta.filterTable()}"/>
+                                    <p:commandButton styleClass="btn btn-link" update="tableForm formfiltro" value="#{textMB.obtenerTexto('labels.Limpiar')}" actionListener="#{contratoConsulta.limpiar()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </h:form>
+        <h:form id="tableForm">
+            <div class="panelFiltro">
+                <h:outputText value="#{textMB.obtenerTexto('labels.ResultadoDeBusquedae{0}ementos', contratoConsulta.lazyModel.rowCount)}" styleClass="titulo-resultados"></h:outputText>
+
+                <p:dataTable
+                    id="dataTable"
+                    var="item" 
+                    emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                    value="#{contratoConsulta.lazyModel}" 
+                    paginator="true" rows="25"
+                    paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                    rowsPerPageTemplate="5,10,25,50"
+                    lazy="true"
+                    styleClass="table tabla-resultados">
+
+                    <f:facet name="{Exporters}">
+                        <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                            <span class="glyphicon glyphicon-export"></span>
+                            <p:dataExporter type="csv" target="tableForm:dataTable" fileName="Contrato" />
+                        </h:commandLink> 
+                    </f:facet>
+
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Nro')}"  sortBy="#{dummy.nroContrato}" >
+                        <h:outputText value="#{item.nroContrato}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Tipo')}"  sortBy="#{dummy.tipo}" >
+                        <h:outputText value="#{textMB.obtenerTexto(item.tipo.label)}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.procesoAdq')}"  >
+                        <h:outputText value="#{item.procesoAdquisicion.secuenciaAnio} - " />
+                        <h:outputText value="#{item.procesoAdquisicion.secuenciaNumero}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.NombreProceso')}"  sortBy="#{dummy.procesoAdquisicion.nombre}" >
+                        <h:outputText value="#{item.procesoAdquisicion.nombre}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaInicio')}"  sortBy="#{dummy.fechaInicio}" >
+                        <h:outputText value="#{item.fechaInicio}"  converter="dateConverter" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.fechaFin')}"  sortBy="#{dummy.fechaFin}" >
+                        <h:outputText value="#{item.fechaFin}"  converter="dateConverter" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.EstadoContrato')}"  sortBy="#{dummy.estado}" >
+                        <h:outputText value="#{textMB.obtenerTexto(item.estado)}" />
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.MontoAdjudicado')}"  sortBy="#{dummy.montoAdjudicado}" styleClass="numericos">
+                        <h:outputText value="#{item.montoAdjudicado}">
+                            <f:convertNumber minFractionDigits="2" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Saldo')}"  styleClass="numericos">
+                        <h:outputText value="#{item.saldo}">
+                            <f:convertNumber minFractionDigits="2" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Ver')}" styleClass="columnaAcciones" >
+                        <h:outputLink  value="verContratoOC.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Ver')}"  >
+                            <f:param name="id" value="#{item.id}" />
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Ver')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones" >
+                        <h:outputLink  value="crearEditarContratoOC.xhtml" class="btn btn-icono" title="#{textMB.obtenerTexto('labels.Editar')}"  rendered="#{item.estado ne 'CERRADO' and contratoConsulta.usuarioEsAdministradorDelContrato(item)}">
+                            <f:param name="id" value="#{item.id}" />
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            <h:outputText value="#{textMB.obtenerTexto('labels.Editar')}" styleClass="textoOculto" />
+                        </h:outputLink>
+                    </p:column>
+                    <p:column headerText="#{textMB.obtenerTexto('labels.Abrir')}" styleClass="columnaAcciones" rendered="#{permisosMB.permisos['ABRIR_CONTRATO_OC']}">
+                        <p:commandButton  icon="glyphicon glyphicon-resize-full" 
+                                          styleClass="btn btn-icono"  
+                                          title="#{textMB.obtenerTexto('labels.AbrirContratoOC')}"  
+                                          onclick="if (!existeConfirmacionConParametros(this.id, 'Reapertura', '¿Seguro desea abrir el contrato?'))
+                                                      return false"
+                                          actionListener="#{contratoConsulta.abrirContratoOC(item.id)}"                                              
+                                          rendered="#{item.estado eq 'CERRADO'}"
+                                          update="tableForm"/> 
+                    </p:column>
+                </p:dataTable>       
+            </div>
+        </h:form>
+
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+        <ui:include src="../confirmarConParametros.xhtml" />
+
+    </ui:composition>
+</html>
+

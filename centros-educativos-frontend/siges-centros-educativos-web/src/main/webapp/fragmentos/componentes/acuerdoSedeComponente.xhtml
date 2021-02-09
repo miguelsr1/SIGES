@@ -1,0 +1,401 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui">    
+
+    
+    <c:set var="sedeEducativa" value="#{sedeEducativa}" scope="request"/>
+
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{acuerdoSedeComponenteBean.setSoloLectura(soloLectura)}"/>
+    </f:metadata>        
+    <p:outputPanel>
+        
+       <p:outputPanel styleClass="form-action-buttons margen-sup">
+            <p:commandButton value="#{msg.agregarAcuerdo}" icon="glyphicon glyphicon-plus" 
+                             action="#{acuerdoSedeComponenteBean.agregarAcuerdo()}" 
+                             update=":form:tabs:AcuerdoSedeDetalle" 
+                             oncomplete="PF('AcuerdoSedeDialog').show()"  
+                             id="btnAgregarAcuerdoSede" 
+                             styleClass="btn btn-secondary" 
+                             rendered="#{!acuerdoSedeComponenteBean.soloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACUERDO_SEDE)}"/>
+        </p:outputPanel>
+        
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" 
+                styleClass="panel-filtro"  >
+           <p:outputPanel id="pnlSearchAcuerdo" styleClass="row">
+
+
+               <p:outputPanel styleClass="col-md-6">
+                   <p:outputPanel styleClass="form-group row" id="fila_b_acuerdo_tipo_acuerdo">
+                       <h:outputLabel value="#{msg.tipoAcuerdo}" for="b_acuerdo_tipo_acuerdo" 
+                                      styleClass="col-sm-3 col-form-label"/>
+                       <p:outputPanel styleClass="col-sm-9">
+                           <h:selectOneMenu id="b_acuerdo_tipo_acuerdo" 
+                                            value="#{acuerdoSedeComponenteBean.comboTipoAcuerdoB.selected}"  
+                                            styleClass="form-control texto-medio" >
+                               <f:selectItems value="#{acuerdoSedeComponenteBean.comboTipoAcuerdoB.items}"/>
+                           </h:selectOneMenu>
+                       </p:outputPanel>                    
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="col-md-6">
+                   <p:outputPanel styleClass="form-group row" id="fila_b_acuerdo_numero_acuerdo">
+                       <h:outputLabel value="#{msg.numeroAcuerdo}" for="b_acuerdo_numero_acuerdo" 
+                                      styleClass="col-sm-3 col-form-label"/>
+                       <p:outputPanel styleClass="col-sm-9">
+                           <p:inputText id="b_acuerdo_numero_acuerdo" styleClass="form-control texto-medio"
+                                        autocomplete="false"
+                                        value="#{acuerdoSedeComponenteBean.filtro.aseNumeroAcuerdo}"/>
+                       </p:outputPanel>
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="col-md-6">
+                   <p:outputPanel styleClass="form-group row">
+                       <h:outputLabel value="Número de resolución:" for="b_acuerdo_id_resolucion" 
+                                      styleClass="col-sm-3 col-form-label"/>
+                       <p:outputPanel styleClass="col-sm-9 ">
+                           <p:inputText id="b_acuerdo_id_resolucion" styleClass="form-control texto-medio"
+                                          value="#{acuerdoSedeComponenteBean.filtro.aseNumeroResolucion}" 
+                                          />
+                       </p:outputPanel>
+                   </p:outputPanel>
+               </p:outputPanel>
+               
+               
+                <p:outputPanel styleClass="form-group row" id="rango_filtro_fecha_desde">
+                    <h:outputLabel value="#{msg.rangoFechaRegistro}" styleClass="col-sm-12"/>
+                </p:outputPanel>
+
+               <p:outputPanel styleClass="col-md-6 offset-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_desde">
+                        <h:outputLabel value="#{msg.desde}" for="filtro_fecha_desde" styleClass="col-sm-3 col-form-label "/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="filtro_fecha_desde" styleClass="form-control"
+                                        value="#{acuerdoSedeComponenteBean.filtro.aseFechaRegistroInicio}"
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="col-md-6 offset-md-6">
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_dhasta">
+                        <h:outputLabel value="#{msg.hasta}" for="filtro_fecha_hasta" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="filtro_fecha_hasta" styleClass="form-control"
+                                        value="#{acuerdoSedeComponenteBean.filtro.aseFechaRegistroFin}"
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+               </p:outputPanel>
+
+
+               
+               
+               <p:outputPanel styleClass="col-md-12" style="text-align: right;">        
+                   <p:outputPanel styleClass="form-group row">
+                       <p:outputPanel styleClass="col-sm-12">
+                           <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                            icon="glyphicon glyphicon-search" action="#{acuerdoSedeComponenteBean.buscar()}" 
+                                            update="pnlResultadoAcuerdos"/>
+                           <p:commandLink value="#{msg.limpiar}" action="#{acuerdoSedeComponenteBean.limpiar()}" 
+                                          update="pnlSearchAcuerdo pnlResultadoAcuerdos" immediate="true" styleClass="btn btn-link">
+                               <p:resetInput target="pnlSearchAcuerdo pnlResultadoAcuerdos" />
+                           </p:commandLink>
+                           <p:defaultCommand target="btnBuscar" scope="pnlSearchAcuerdo"/>
+                           <p:blockUI block="@form" trigger="btnBuscar" />
+                       </p:outputPanel>
+                   </p:outputPanel>
+               </p:outputPanel>
+
+
+           </p:outputPanel>
+       </p:panel>
+
+
+       <p:outputPanel id="pnlResultadoAcuerdos" >
+           <p:dataTable id="basicDTAcuerdosSede" 
+                        widgetVar="widAcuerdosSede"                         
+                        var="elem"                          
+                        value="#{acuerdoSedeComponenteBean.acuerdoEducativoLazyModel}"                          
+                        emptyMessage="#{msg.noHayResultados}"      
+                        paginator="#{acuerdoSedeComponenteBean.totalResultados gt acuerdoSedeComponenteBean.paginado}"
+                        lazy="true"
+                        paginatorPosition="bottom"
+                        currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                        sortField="asePk"
+                        paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                        rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                        rows="#{acuerdoSedeComponenteBean.paginado}"
+                        reflow="true" 
+                        rendered="#{acuerdoSedeComponenteBean.acuerdoEducativoLazyModel ne null}">
+               <f:facet name="{anterior}">
+                   <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+               </f:facet>
+               <f:facet name="{siguiente}">
+                   <h:outputText styleClass="#{acuerdoSedeComponenteBean.totalResultados lt (acuerdoSedeComponenteBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+               </f:facet>
+
+               <f:facet name="header">
+                   <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{acuerdoSedeComponenteBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                       <p:outputPanel styleClass="col-md-6">
+                           <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                               <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                   <p:dataExporter type="csv" target="basicDTAcuerdosSede" fileName="AcuerdosSede" pageOnly="false"/>
+                               </h:commandLink>
+                           </p:outputPanel>
+                       </p:outputPanel>
+                   </p:outputPanel>
+               </f:facet>
+               <p:column headerText="#{msg.htipoAcuerdo}" sortBy="#{elem.aseTipoAcuerdo.taoNombre}">
+                   <h:outputText value="#{elem.aseTipoAcuerdo.taoNombre}" />
+               </p:column>
+               <p:column headerText="#{msg.hnumeroAcuerdo}" >
+                   <h:outputText value="#{elem.aseNumeroAcuerdo}" />
+               </p:column>
+               <p:column headerText="Número de resolución" sortBy="#{elem.aseNumeroResolucion}">
+                   <h:outputText value="#{elem.aseNumeroResolucion}" />
+               </p:column>
+               <p:column headerText="#{msg.responsable}" sortBy="#{elem.aseNombreResponsable}">
+                   <h:outputText value="#{elem.aseNombreResponsable}" />
+               </p:column>
+               <p:column headerText="Número de solicitud o trámite" sortBy="#{elem.aseNumeroSolicitud}">
+                   <h:outputText value="#{elem.aseNumeroSolicitud}" />
+               </p:column>
+               <p:column styleClass="columnaAcciones" exportable="false" >
+                    <p:commandButton update=":form:tabs:AcuerdoSedeDetalle" oncomplete="PF('AcuerdoSedeDialog').show()" 
+                                     icon="glyphicon glyphicon-eye-open" styleClass="btn btn-icono" 
+                                     title="#{msg.ver}" action="#{acuerdoSedeComponenteBean.ver(elem.asePk)}"/>
+               </p:column>
+
+               <p:column styleClass="columnaAcciones" exportable="false" 
+                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_ACUERDO_SEDE) and !acuerdoSedeComponenteBean.soloLectura }">
+                    <p:commandButton update=":form:tabs:AcuerdoSedeDetalle" oncomplete="PF('AcuerdoSedeDialog').show()" 
+                                     icon="glyphicon glyphicon-pencil" styleClass="btn btn-icono" 
+                                     title="#{msg.editar}" action="#{acuerdoSedeComponenteBean.actualizar(elem.asePk)}"/>
+               </p:column>
+
+               <p:column styleClass="columnaAcciones" exportable="false" 
+                         rendered="#{(sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ACUERDO_SEDE)
+                                     or sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ACUERDO_SEDE_TRAMITE)) 
+                                     and !acuerdoSedeComponenteBean.soloLectura }">
+                   <p:commandButton oncomplete="PF('confirmAcuerdoSedeDialog').show()" icon="glyphicon glyphicon-trash " 
+                                    styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                    rendered="#{(!elem.aseSoloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ACUERDO_SEDE))or
+                                                (elem.aseSoloLectura and sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_ACUERDO_SEDE_TRAMITE))}"
+                                    action="#{acuerdoSedeComponenteBean.actualizar(elem.asePk)}" />
+
+               </p:column>
+               <p:column styleClass="columnaAcciones" exportable="false" 
+                         rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_TRAMITE_SIMPLE)}">
+                   <p:link href="#{applicationBean.simpleUrl}/etapas/siges_consulta/#{elem.aseNumeroSolicitud}" 
+                           rendered="#{elem.aseSoloLectura}"
+                                    target="_blank" styleClass="btn btn-icono" 
+                                    title="Trámite">
+                                <h:outputText styleClass="glyphicon glyphicon-file"/>
+                    </p:link>
+               </p:column>
+           </p:dataTable>
+       </p:outputPanel>
+           
+        <p:confirmDialog id="confirmAcuerdoSedeDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmAcuerdoSedeDialog">
+            <p:outputPanel styleClass="float-right" id="panelDeleteAcuerdoSede" >
+                <p:commandButton id="confirmAcuerdoSedeDelete" value="#{msg.hconfirmar}" update="basicDTAcuerdosSede"
+                                 oncomplete="PF('confirmAcuerdoSedeDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{acuerdoSedeComponenteBean.eliminar()}"  />
+                <p:commandLink id="cancelarAcuerdoSedeDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmAcuerdoSedeDialog').hide()" styleClass="btn btn-link" />
+                <p:blockUI block="panelDeleteAcuerdoSede" trigger="confirmAcuerdoSedeDelete"/>
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+        <p:dialog id="AcuerdoSedeDialog" header="#{msg.acuerdo}" 
+                 widgetVar="AcuerdoSedeDialog" modal="true" showEffect="fade" 
+                 hideEffect="fade" resizable="false" >
+           <p:outputPanel id="AcuerdoSedeDetalle"> 
+               <p:messages id="popupmsgAcuerdoSede" showDetail="true" globalOnly="false" 
+                           for="popupmsgAcuerdoSede" closable="true"/>   
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_tipo_acuerdo">
+                   <h:outputLabel value="#{msg.tipoAcuerdo}" for="input_acuerdo_tipo_acuerdo" 
+                                  styleClass="col-sm-4 col-form-label obligatorio"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                       <h:selectOneMenu id="input_acuerdo_tipo_acuerdo" value="#{acuerdoSedeComponenteBean.comboTipoAcuerdo.selected}" 
+                                        styleClass="form-control dropdown texto-medio" rendered="#{!acuerdoSedeComponenteBean.verDatos}">
+                           <f:selectItems value="#{acuerdoSedeComponenteBean.comboTipoAcuerdo.items}" />
+                       </h:selectOneMenu>
+                       <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                     rendered="#{acuerdoSedeComponenteBean.verDatos}"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseTipoAcuerdo.taoNombre}" />
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_id_resolucion">
+                   <h:outputLabel value="Número de resolución:" for="input_acuerdo_id_resolucion" 
+                                  styleClass="col-sm-4 col-form-label obligatorio"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputText id="input_acuerdo_id_resolucion" styleClass="form-control texto-medio"
+                                       value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNumeroResolucion}" 
+                                       autocomplete="false" 
+                                       rendered="#{!acuerdoSedeComponenteBean.verDatos}"/>
+                       <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                     rendered="#{acuerdoSedeComponenteBean.verDatos}"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNumeroResolucion}" />
+                   </p:outputPanel>
+               </p:outputPanel>
+               
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_fecha_resolucion">
+                   <h:outputLabel value="Fecha de resolución:" for="input_acuerdo_fecha_resolucion" 
+                                  styleClass="col-sm-4 col-form-label"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                        <p:calendar id="input_acuerdo_fecha_resolucion" styleClass="form-control" 
+                                    autocomplete="false" 
+                                    value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseFechaResolucion}" 
+                                    pattern="#{applicationBean.patternFecha}"
+                                    converter="#{localDateConverter}" 
+                                    converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" 
+                                    maxdate="#{applicationBean.today()}" 
+                                    rendered="#{!acuerdoSedeComponenteBean.verDatos}"/>
+                       <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                     rendered="#{acuerdoSedeComponenteBean.verDatos}" converter="#{localDateConverter}"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseFechaResolucion}"  />   
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_numero_acuerdo">
+                   <h:outputLabel value="#{msg.numeroAcuerdo}" for="input_acuerdo_numero_acuerdo" 
+                                  styleClass="col-sm-4 col-form-label obligatorio"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                       <p:inputText id="input_acuerdo_numero_acuerdo" styleClass="form-control texto-medio" autocomplete="false"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNumeroAcuerdo}" 
+                                     rendered="#{!acuerdoSedeComponenteBean.verDatos}" maxlength="10"/>
+                       <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                     rendered="#{acuerdoSedeComponenteBean.verDatos}"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNumeroAcuerdo}" />
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_nombre_responsable">
+                   <h:outputLabel value="#{msg.nombreResponsable}" for="input_acuerdo_nombre_responsable" 
+                                  styleClass="col-sm-4 col-form-label obligatorio"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                       <p:inputText id="input_acuerdo_nombre_responsable" styleClass="form-control texto-medio" autocomplete="false" 
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNombreResponsable}" 
+                                     rendered="#{!acuerdoSedeComponenteBean.verDatos}" maxlength="100"/>
+                       <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                     rendered="#{acuerdoSedeComponenteBean.verDatos}"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNombreResponsable}" />
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_fecha_generacion">
+                   <h:outputLabel value="Fecha de acuerdo:" for="input_acuerdo_fecha_generacion" 
+                                  styleClass="col-sm-4 col-form-label"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                        <p:calendar id="input_acuerdo_fecha_generacion" styleClass="form-control" 
+                                    autocomplete="false" 
+                                    value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseFechaGeneracion}" 
+                                    pattern="#{applicationBean.patternFecha}"
+                                    converter="#{localDateConverter}" 
+                                    converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" 
+                                    maxdate="#{applicationBean.today()}" 
+                                    rendered="#{!acuerdoSedeComponenteBean.verDatos}"/>
+                       <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                     rendered="#{acuerdoSedeComponenteBean.verDatos}" converter="#{localDateConverter}"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseFechaGeneracion}"  />   
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_fecha_registro">
+                   <h:outputLabel value="#{msg.fechaRegistro}"  
+                                  styleClass="col-sm-4 col-form-label"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                       <h:outputText styleClass="form-control-plaintext" converter="#{localDateConverter}"
+                                          value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseFechaRegistro}" />
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_observacion">
+                   <h:outputLabel value="#{msg.observacion}" for="input_acuerdo_observacion" 
+                                  styleClass="col-sm-4 col-form-label"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputTextarea id="input_acuerdo_observacion" styleClass="form-control" 
+                                         value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseObservacion}" 
+                                         counter="display_obs_acuerdo" maxlength="4000" 
+                                         counterTemplate="{0} caracteres restantes." 
+                                         autoResize="false" 
+                                         rendered="#{!acuerdoSedeComponenteBean.verDatos}" />
+                        <h:outputText id="display_obs_acuerdo" />
+                        <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                      rendered="#{acuerdoSedeComponenteBean.verDatos}" 
+                                      value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseObservacion}"  />   
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_numero_solicitud">
+                   <h:outputLabel value="#{msg.numeroSolicitudOTramite}" for="input_acuerdo_numero_solicitud" 
+                                  styleClass="col-sm-4 col-form-label"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputText id="input_acuerdo_numero_solicitud" styleClass="form-control texto-medio" 
+                                     autocomplete="false" 
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNumeroSolicitud}"  
+                                     rendered="#{!acuerdoSedeComponenteBean.verDatos}" maxlength="10"/>
+                        <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                      rendered="#{acuerdoSedeComponenteBean.verDatos}" 
+                                      value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseNumeroSolicitud}"  />   
+                   </p:outputPanel>
+               </p:outputPanel>
+
+               <p:outputPanel styleClass="form-group row" id="fila_input_acuerdo_codigo_nominacion">
+                   <h:outputLabel value="#{msg.codigoNominacion}" for="input_acuerdo_codigo_nominacion" 
+                                  styleClass="col-sm-4 col-form-label"/>
+                   <p:outputPanel styleClass="col-sm-8 ">
+                        <p:inputText id="input_acuerdo_codigo_nominacion" styleClass="form-control texto-medio" autocomplete="false"
+                                     value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseCodigoNominacion}"  
+                                     rendered="#{!acuerdoSedeComponenteBean.verDatos}" maxlength="10"/>
+                        <h:outputText styleClass="form-control-plaintext texto-medio" 
+                                      rendered="#{acuerdoSedeComponenteBean.verDatos}" 
+                                      value="#{acuerdoSedeComponenteBean.entidadEnEdicion.aseCodigoNominacion}"  /> 
+                   </p:outputPanel>
+               </p:outputPanel>
+               
+               
+               
+
+               <p:outputPanel styleClass="control-group" >
+                   <p:outputPanel styleClass="float-right">
+                       <p:commandButton id="btnGuardarAcuerdoSede"  value="#{msg.guardar}" action="#{acuerdoSedeComponenteBean.guardar()}"
+                                        update="AcuerdoSedeDetalle pnlResultadoAcuerdos" styleClass="btn btn-primary" 
+                                        icon="glyphicon glyphicon-floppy-disk" 
+                                        rendered="#{!acuerdoSedeComponenteBean.verDatos and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACUERDO_SEDE)}"/>
+                       <p:commandButton id="btnAceptarAcuerdoSede"  value="#{msg.aceptar}" oncomplete="PF('AcuerdoSedeDialog').hide();"  styleClass="btn btn-primary" 
+                                        rendered="#{!(!acuerdoSedeComponenteBean.verDatos and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACUERDO_SEDE))}"/>
+                       <p:commandLink value="#{msg.cancelar}" oncomplete="PF('AcuerdoSedeDialog').hide();" rendered="#{!acuerdoSedeComponenteBean.verDatos and sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_ACUERDO_SEDE)}" styleClass="btn btn-link"/>
+                       
+                   
+                   </p:outputPanel>
+               </p:outputPanel>
+               <p:blockUI block="AcuerdoSedeDetalle" trigger="btnGuardarAcuerdoSede" />     
+               <p:defaultCommand target="btnGuardarAcuerdoSede" scope="AcuerdoSedeDetalle"/>                           
+           </p:outputPanel>
+       </p:dialog>
+
+    </p:outputPanel>
+</ui:composition>
+
+
+
+

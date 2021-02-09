@@ -1,0 +1,381 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText value="#{textMB.obtenerTexto('labels.CrearPAC')}"/>
+                </h2>
+            </div>
+        </ui:fragment>  
+        <h:form id="formHeader"  prependId="false" >     
+            <h:panelGroup layout="block" styleClass="form-horizontal">    
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <!--<p:focus context="bloqueNoModal" />-->
+                <div class="grupoCampos">
+                    <h:messages  id="mensajes" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>	
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Anio')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText value="#{pacCargarFlujoCajaMensual.objeto.anio}" styleClass="form-control-static"  />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                        <div class="col-sm-9">
+                            <h:outputText id="nombre" value="#{pacCargarFlujoCajaMensual.objeto.nombre}" styleClass="form-control-static" />
+                            <h:message for="nombre" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}" for="estado"/>
+                        <div class="col-sm-9">    
+                            <h:outputText id="estado" value="#{textMB.obtenerTexto(pacCargarFlujoCajaMensual.objeto.estado.label)}" styleClass="form-control-static" />
+                        </div>
+                    </div>
+                </div>
+            </h:panelGroup>
+        </h:form>      
+        <h:messages id="mensajes2" showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+        <!-- GRUPOS -->
+        <h:panelGroup id="mainPanel" layout="block"  styleClass="row" >   
+            <div class="col-sm-12" id="grupos-div">
+                <p:panel header="#{textMB.obtenerTexto('labels.Grupos')}" >
+                    <!-- FILTRO DE GRUPOS -->
+                    <h:form>
+                        <fieldset class="fieldsetSmall fieldset" style="clear: both;margin-bottom: 20px;">
+                            <legend><h:outputText value="Filtrar #{textMB.obtenerTexto('labels.Grupos')}"/></legend>
+                            <div class="buscador-filtros">
+                                <div class="row">
+                                    <div class="form-horizontal">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Nro')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:inputText  value="#{pacCargarFlujoCajaMensual.filtroGrupoNro}" styleClass="form-control textoMedio" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}" for="grupoEstado"/>
+                                                <div class="col-sm-9">                      
+                                                    <h:selectOneMenu  value="#{pacCargarFlujoCajaMensual.filtroGrupoEstado}"  styleClass="form-control textoMedio" id="grupoEstado" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{pacCargarFlujoCajaMensual.getEstadosGrupos()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                                    </h:selectOneMenu>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Metodo')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:selectOneMenu value="#{pacCargarFlujoCajaMensual.filtroGrupoidMetodoAdquisicion}"  styleClass="form-control textoMedio" >
+                                                        <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.filtroVacio')}" itemValue="#{null}" />
+                                                        <f:selectItems value="#{pacCargarFlujoCajaMensual.getMetodosAdquisicion()}"  />
+                                                    </h:selectOneMenu> 
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-3 col-sm-9">
+                                                    <p:commandButton styleClass="btn btn-default"  
+                                                                     icon="glyphicon glyphicon-search"
+                                                                     value="#{textMB.obtenerTexto('labels.Filtrar')}" 
+                                                                     update="@form formGrupo:arbolDeGrupos mensajes2"
+                                                                     actionListener="#{pacCargarFlujoCajaMensual.initArbolPAC()}">
+                                                    </p:commandButton>
+                                                    <p:commandButton styleClass="btn btn-link"  
+                                                                     value="#{textMB.obtenerTexto('labels.Limpiar')}" 
+                                                                     update="@form formGrupo:arbolDeGrupos mensajes2"
+                                                                     actionListener="#{pacCargarFlujoCajaMensual.limpiarGrupo()}">
+                                                    </p:commandButton>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </h:form>  
+                    <!-- TABLA DE GRUPOS -->
+                    <h:form id="formGrupo">  
+                        <p:treeTable 
+                            id="arbolDeGrupos"
+                            value="#{pacCargarFlujoCajaMensual.rootNodeArbol}" 
+                            var="item"
+                            selectionMode="single" 
+                            selection="#{pacCargarFlujoCajaMensual.selectedNode}"
+                            emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}">
+                            <p:ajax event="select" listener="#{pacCargarFlujoCajaMensual.onNodeSelect}" update="flucoCajaMensualPanel" />
+                            <p:ajax event="unselect" listener="#{pacCargarFlujoCajaMensual.onNodeUnselect}" update="flucoCajaMensualPanel"/>
+
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Codigo')}">
+                                <h:outputText value="#{item.objeto.id}" styleClass="cortarTexto"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Nombre')}">
+                                <h:outputText value="#{item.objeto.nombre}" styleClass="cortarTexto" rendered="#{item.tipo eq 'GRUPO'}"/>
+                                <h:outputText value="#{item.objeto.insumo.nombre}" styleClass="cortarTexto" rendered="#{item.tipo eq 'INSUMO'}"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.UT')}">
+                                <h:outputText value="#{item.objeto.unidadTecnica.nombre}" rendered="#{item.tipo eq 'INSUMO'}"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Cantidad')}" styleClass="numericos">
+                                <h:outputText value="#{item.objeto.cantidad}"  rendered="#{item.tipo eq 'INSUMO'}"/>
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.PrecioUnitario')}" styleClass="numericos">
+                                <h:outputText value="#{item.objeto.montoUnit}" rendered="#{item.tipo eq 'INSUMO'}">
+                                    <f:convertNumber minFractionDigits="2" />
+                                </h:outputText>   
+                            </p:column>
+                            <p:column headerText="#{textMB.obtenerTexto('labels.Total')}" styleClass="numericos">
+                                <h:outputText value="#{item.objeto.total}" rendered="#{item.tipo eq 'GRUPO'}">
+                                    <f:convertNumber minFractionDigits="2" />
+                                </h:outputText>
+                                <h:outputText value="#{item.objeto.montoTotal}" rendered="#{item.tipo eq 'INSUMO'}">
+                                    <f:convertNumber minFractionDigits="2" />
+                                </h:outputText>
+                            </p:column>
+                        </p:treeTable>
+                    </h:form>  
+                </p:panel>
+            </div>
+        </h:panelGroup>
+
+
+        <!-- FLUJO CAJA MENSUAL -->
+        <h:panelGroup id="flucoCajaMensualPanel" layout="block"  styleClass="row" >   
+            <h:panelGroup styleClass="col-sm-12" id="grupos-div" rendered="#{pacCargarFlujoCajaMensual.nodoSeleccionado != null}" layout="block">
+                <p:panel header="#{textMB.obtenerTexto('labels.FlujoCajaMensual')}" >
+                    <h:form id="formFCM">   
+                        <h:panelGroup layout="block" styleClass="form-horizontal">   
+                            <div class="grupoCampos">
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Grupo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{pacCargarFlujoCajaMensual.nombreGrupoSeleccionado}" styleClass="form-control-static"  />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MenorFechaEstimadaContratación')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{pacCargarFlujoCajaMensual.menorFechaEstimadaContratacion}" styleClass="form-control-static" converter="dateConverter"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.montoTotalGrupo')}:" />
+                                    <div class="col-sm-9">
+                                        <h:outputText value="#{pacCargarFlujoCajaMensual.montoTotalgrupo}" styleClass="form-control-static">
+                                             <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                        </h:outputText> 
+                                    </div>
+                                </div>
+                            </div>
+                        </h:panelGroup>
+                        <div class="form-group">
+                            <div class="col-sm-12 clearfix">                        
+                                <p:commandButton styleClass="btn btn-default pull-right"  
+                                                 icon="glyphicon glyphicon-plus"
+                                                 value="#{textMB.obtenerTexto('labels.Anadir')}" 
+                                                 update="anadirFCMForm"
+                                                 action="#{pacCargarFlujoCajaMensual.reloadFlujoCajaPAC()}"
+                                                 oncomplete="$('#anadirFCM').modal('show');" 
+                                                 immediate="true">
+                                    <f:setPropertyActionListener target="#{pacCargarFlujoCajaMensual.tempFlujoCajaPAC}" value="#{null}" />
+                                </p:commandButton>
+                            </div>
+                        </div>
+                        <p:dataTable
+                            id="tablaDeFlujoCajaMensual"
+                            var="item" 
+                            emptyMessage="#{textMB.obtenerTexto('labels.TablaVacia')}"
+                            value="#{pacCargarFlujoCajaMensual.flujoCaja}"
+                            paginator="true" rows="25"
+                            paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {Exporters}"
+                            rowsPerPageTemplate="5,10,25,50"
+                            styleClass="table tabla-resultados">
+                            <f:facet name="{Exporters}">
+                                <h:commandLink styleClass="pull-right btn btn-icono" title="#{textMB.obtenerTexto('labels.Exportar')}">
+                                    <span class="glyphicon glyphicon-export"></span>
+                                    <p:dataExporter type="csv" target="tablaDeFlujoCajaMensual" fileName="flujoDeCaja" />
+                                </h:commandLink> 
+                            </f:facet>
+                            <p:column  headerText="#{textMB.obtenerTexto('labels.Anio')}" >
+                                <h:outputText value="#{item.anio}" />
+                            </p:column>
+
+                            <p:columns value="#{pacCargarFlujoCajaMensual.getMeses()}" var="mes" columnIndexVar="colIndex">
+                                <f:facet name="header">
+                                    <h:outputText value="#{mes}" />
+                                </f:facet>
+                                <h:outputText value="#{pacCargarFlujoCajaMensual.getValorFCM(item, colIndex)}" >
+                                    <f:convertNumber minFractionDigits="2" />
+                                </h:outputText>                         
+                            </p:columns>  
+
+                            <p:column  headerText="#{textMB.obtenerTexto('labels.TotalAnio')}" styleClass="numericos">
+                                <h:outputText value="#{pacCargarFlujoCajaMensual.sumaTotalPorAnio(item.anio)}" >
+                                    <f:convertNumber minFractionDigits="2" />
+                                </h:outputText> 
+                            </p:column>
+
+                            <p:column exportable="false" headerText="#{textMB.obtenerTexto('labels.Editar')}" styleClass="columnaAcciones">
+                                <p:commandButton icon="glyphicon glyphicon-pencil" 
+                                                 styleClass="btn btn-icono"  
+                                                 title="#{textMB.obtenerTexto('labels.Editar')}"  
+                                                 update="anadirFCMForm"
+                                                 action="#{pacCargarFlujoCajaMensual.reloadFlujoCajaPAC()}"
+                                                 oncomplete="$('#anadirFCM').modal('show');" 
+                                                 immediate="true">
+                                    <f:setPropertyActionListener target="#{pacCargarFlujoCajaMensual.tempFlujoCajaPAC}" value="#{item}" />
+                                </p:commandButton>
+                            </p:column>
+
+                            <p:column  exportable="false" headerText="#{textMB.obtenerTexto('labels.Eliminar')}" styleClass="columnaAcciones" rendered="#{not pacCargarFlujoCajaMensual.esGrupoElSelecionado()}">
+                                <p:commandButton icon="glyphicon glyphicon-remove" 
+                                                 styleClass="btn btn-danger btn-icono" 
+                                                 title="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                 onclick="if (!existeConfirmacion(this.id))
+                                                             return false" 
+                                                 actionListener="#{pacCargarFlujoCajaMensual.eliminarFlujoCajaPAC(item)}"
+                                                 update="tablaDeFlujoCajaMensual confirmModalCallBackBody"
+                                                 immediate="true">
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+                    </h:form>  
+                </p:panel>
+            </h:panelGroup>
+        </h:panelGroup>
+        <!-- END FLUJO CAJA MENSUAL -->
+
+
+        <h:form>
+            <div class="form-group">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <p:commandButton styleClass="btn btn-primary"  
+                                     value="#{textMB.obtenerTexto('labels.Guardar')}" 
+                                     update="@form mainPanel formHeader"
+                                     icon="glyphicon glyphicon-saved"
+                                     action="#{pacCargarFlujoCajaMensual.guardar()}">
+                    </p:commandButton>
+                    <h:outputLink  value="consultaPAC.xhtml" class="btn btn-link">
+                        <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                    </h:outputLink>
+                </div>
+            </div>
+        </h:form>
+
+
+        <!-- MODAL PARA AGREGAR -->  
+        <h:panelGroup id="blockAddFCM"  layout="block">
+            <div class="modal fade"  id="anadirFCM" tabindex="-1" role="dialog" aria-labelledby="anadirFCM">
+                <div class="modal-dialog modal-lg" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="anadirFCMContenidoModal">
+                        <h:form id="anadirFCMForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.anadirFCM')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <h:messages id="mensajesFCM" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+                                    <h:outputText  rendered="#{pacCargarFlujoCajaMensual.esGrupoElSelecionado()}" styleClass="alert alert-warning" value="#{textMB.obtenerTexto('labels.Al_trabajar_con_item_se_pierde_precision_Verifique_el_FCM_a_nivel_de_insumo')}" /> 
+                                    <h:outputText  rendered="#{pacCargarFlujoCajaMensual.tipoGeneracion eq 'AUTOMATICO'}" styleClass="alert alert-warning" value="#{textMB.obtenerTexto('labels.Se_trabaja_con_decimales_de_dos_cigras_y_puede_perder_precision_Edite_los_montos_para_que_coincida')}" /> 
+
+                                    <div class="form-group">
+                                        <h:outputText styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.TipoGeneracion')}:"  />
+                                        <div class="col-sm-9">
+                                            <h:selectOneRadio styleClass="radio" value="#{pacCargarFlujoCajaMensual.tipoGeneracion}" id="tipoGeneracion"
+                                                              required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  > 
+                                                <f:selectItem itemValue="MANUAL" itemLabel="#{textMB.obtenerTexto('labels.Manual')}" />
+                                                <f:selectItem itemValue="AUTOMATICO" itemLabel="#{textMB.obtenerTexto('labels.Automatico')}" />
+                                                <f:ajax event="change" render="@form" /> 
+                                            </h:selectOneRadio>
+                                            <h:message for="tipoGeneracion" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+                                    <div class="separador"></div>
+                                    <ui:fragment rendered="#{pacCargarFlujoCajaMensual.tipoGeneracion eq 'AUTOMATICO'}">
+                                        <div class="form-group">
+                                            <p:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.MesInicial')}:" for="fechaDesde"/>
+                                            <div class="col-sm-9">
+                                                <p:calendar value="#{pacCargarFlujoCajaMensual.desdeFCM}" styleClass="textoMedio" id="fechaDesde" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  locale="#{utilsMB.localeDate}" pattern="#{utilsMB.patternDate}" />
+                                                <h:message for="fechaDesde" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <p:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.CantMeses')}:" for="fechaHasta" />
+                                            <h:panelGroup layout="block" styleClass="col-sm-9">
+                                                <h:inputText id="fechaHasta" value="#{pacCargarFlujoCajaMensual.cantMeses}"  styleClass="form-control textoCorto numericos"
+                                                             required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                                    <f:validateLongRange minimum="1"  />
+                                                </h:inputText>			
+                                                <h:message for="fechaHasta" styleClass="help-inline msj-danger" />
+                                            </h:panelGroup>
+                                        </div>
+                                    </ui:fragment>
+                                    <ui:fragment rendered="#{pacCargarFlujoCajaMensual.tipoGeneracion eq 'MANUAL'}">
+                                        <div class="form-group">
+                                            <h:outputLabel for="anioFiscal" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" />
+                                            <div class="col-sm-9">
+                                                <h:selectOneMenu id="anioFiscal" value="#{pacCargarFlujoCajaMensual.anioFiscal}"  styleClass="form-control textoMedio" required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                    <f:selectItems value="#{utilsMB.getAniosFiscalesSoloAnios()}" />
+                                                </h:selectOneMenu>
+                                                <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                                            </div>
+                                        </div>
+                                        <h:outputText styleClass="requeridos margenSup" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                                        <fieldset class="fieldset fieldsetSmall margenSup margenInf">
+                                            <legend><h:outputText  value="#{textMB.obtenerTexto('labels.FlujoCajaMensual')}" /></legend>
+                                            <ui:repeat  var="flujo" value="#{pacCargarFlujoCajaMensual.tempFlujoCajaPAC.flujoCajaMenusal}" varStatus="status">
+                                                <div class="form-group">
+                                                    <h:outputLabel for="mes-flujo"  styleClass="col-sm-3 control-label" value="#{pacCargarFlujoCajaMensual.getMesName(flujo.mes-1)}:" />
+                                                    <h:panelGroup layout="block" styleClass="col-sm-9 numericos">
+                                                        <h:inputText  id="mes-flujo" value="#{flujo.monto}" styleClass="form-control textoMedio numericos"  >
+                                                            <f:convertNumber minFractionDigits="2" />
+                                                             <p:ajax event="keyup" update="totalFCMEnModal"/>
+                                                        </h:inputText>
+                                                        <h:message for="mes-flujo" styleClass="help-inline msj-danger" />
+                                                    </h:panelGroup>
+                                                </div>
+                                            </ui:repeat>
+                                            
+                                            <p:outputPanel    styleClass="form-group" id="totalFCMEnModal">
+                                                <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.MontoTotal')}:" />
+                                                <div class="col-sm-9">
+                                                    <h:outputText value="#{pacCargarFlujoCajaMensual.getTotalFCMEnEdicion()}" styleClass="form-control-static">
+                                                         <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                                    </h:outputText> 
+                                                </div>
+                                            </p:outputPanel>
+                                                                                        
+                                        </fieldset>
+                                    </ui:fragment>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" 
+                                                  icon="glyphicon glyphicon-ok" 
+                                                  value="#{textMB.obtenerTexto('labels.Aceptar')}" 
+                                                  actionListener="#{pacCargarFlujoCajaMensual.guardarFlujoCajaPAC()}"   
+                                                  update="anadirFCMContenidoModal formFCM" />
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+    </ui:composition>
+</html>

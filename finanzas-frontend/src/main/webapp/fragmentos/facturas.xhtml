@@ -1,0 +1,726 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"                 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"> 
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumFacturaEstado" />
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumTipoDocumentoPago"/>
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off" />
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">#{msg.administracion}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{msg.gestionFacturasRecibos}</li>
+            </ol>
+        </nav>
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionFacturasRecibos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton value="#{msg.nuevoFactura}" icon="glyphicon glyphicon-plus" action="#{facturaBean.agregar()}" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()" id="btnAgregarFactura" styleClass="btn btn-secondary"
+                                 rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_FACTURAS)}"/>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+                <p:outputPanel styleClass="col-md-6">                     
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.sede}" for="filtro_sede_autocomplete" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="ui-outputpanel ui-widget col-sm-9">
+                            <p:autoComplete id="filtro_sede_autocomplete_b"
+                                            styleClass="form-control texto-medio"
+                                            value="#{facturaBean.sedeSeleccionadaFiltro}"
+                                            completeMethod="#{facturaBean.completeSedeFiltro}"
+                                            var="sedB" itemLabel="#{sedB.sedCodigoNombre}"
+                                            itemValue="#{sedB}"
+                                            widgetVar="filtro_sede_autocomplete"
+                                            forceSelection="true"
+                                            maxResults="10"
+                                            queryDelay="500"
+                                            multiple="false"
+                                            converter="#{sedesConverter}"
+                                            placeholder="#{msg.autoCompleteEmptyItem}">
+                            </p:autoComplete>                            
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.factComponente}" for="input_componente" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_componente" value="#{facturaBean.comboComponente.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.comboComponente.items}" />
+                                <p:ajax listener= "#{facturaBean.cargarComboSubcomponentes()}" event="change" update="input_subcomponente" process="@this"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.factUnidadPres}" for="input_unidad" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_unidad" value="#{facturaBean.comboUnidadPresupuestaria.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.comboUnidadPresupuestaria.items}" />
+                                <p:ajax listener= "#{facturaBean.cargarComboLineaPresupuestaria()}" event="change" update="input_linea" process="@this"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.numeroDocumento}" for="b_numero_factura" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" styleClass="form-control texto-medio" id="b_numero" value="#{facturaBean.filtro.facNumero}" />                        
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.facProveedor}" for="b_proveedor" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:autoComplete id="filtro_proveedor_autocomplete_b" styleClass="form-control texto-medio" value="#{facturaBean.proveedorSeleccionadoFiltro}" completeMethod="#{facturaBean.completeProveedorFiltro}" var="sedB" itemLabel="#{sedB.proNitNombre}" itemValue="#{sedB}" widgetVar="filtro_resp_autocomplete" forceSelection="true" maxResults="10" queryDelay="500" multiple="false" converter="#{proveedorConverter}" placeholder="#{msg.autoCompleteEmptyItem}">
+                            </p:autoComplete>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.aniofiscal}" for="input_aniofiscal" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_aniofiscal" value="#{facturaBean.anioFiscalCombo.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.anioFiscalCombo.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.facTipoDoc}" for="input_tipo_documento" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="tipo_documento" value="#{facturaBean.comboTipoDocumento.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.comboTipoDocumento.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.estado}" for="input_estado" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_estado" value="#{facturaBean.comboEstado.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.comboEstado.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.factSubcomponente}" for="input_subcomponente" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_subcomponente" value="#{facturaBean.comboSubcomponente.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.comboSubcomponente.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.factLineaPres}" for="input_linea" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu id="input_linea" value="#{facturaBean.comboLineaPresupuestaria.selected}" styleClass="form-control dropdown texto-medio">
+                                <f:selectItems value="#{facturaBean.comboLineaPresupuestaria.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="rango_filtro_fecha_desde">
+                        <h:outputLabel value="#{msg.rangoFechaFactura}" styleClass="col-sm-3 col-form-label" />
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_desde">
+                        <h:outputLabel value="#{msg.desde}" for="filtro_fecha_desde" styleClass="col-sm-3 col-form-label " />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="filtro_fecha_desde" styleClass="form-control" value="#{facturaBean.filtro.facFechaFacturaDesde}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_fecha_dhasta">
+                        <h:outputLabel value="#{msg.hasta}" for="filtro_fecha_hasta" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="filtro_fecha_hasta" styleClass="form-control" value="#{facturaBean.filtro.facFechaFacturaHasta}" pattern="#{applicationBean.patternFecha}" converter="#{localDateConverter}" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_filtro_otrosingresos">
+                        <h:outputLabel value="#{msg.otrosIngresos}" for="filtro_fecha_hasta" styleClass="col-sm-3 col-form-label" />
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:selectOneRadio layout="responsive" columns="3" id="filtr_otrosingresos" value="#{facturaBean.otrosIngresosFiltro}">
+                                    <f:selectItems value="#{applicationBean.booleanValues}" />
+                                    <f:selectItem itemValue="#{null}" itemLabel="Todos"/>
+                            </p:selectOneRadio>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:commandButton id="btnBuscar" value="#{msg.buscar}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" action="#{facturaBean.buscar()}" update="pnlResultado" />
+                            <p:commandLink value="#{msg.limpiar}" action="#{facturaBean.limpiar()}" update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="btnBuscar" scope="pnlSearch" />
+                            <p:blockUI block="@form" trigger="btnBuscar" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:panel>
+
+        <p:outputPanel id="pnlResultado">
+            <p:dataTable id="basicDT" widgetVar="widResultado" var="elem" value="#{facturaBean.facturasLazyModel}" emptyMessage="#{msg.noHayResultados}" paginator="true" lazy="true" paginatorPosition="bottom" currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}" sortField="facPk" paginatorTemplate="#{applicationBean.paginatorTemplate}" rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}" rows="#{facturaBean.paginado}" reflow="true">
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}" />
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{facturaBean.totalResultados lt (facturaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;" />
+                </f:facet>
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{facturaBean.totalResultados} #{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link my-1">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="Facturas" pageOnly="false" />
+                                </h:commandLink>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hnumero}" sortBy="#{elem.facPk}">
+                    <h:outputText value="#{elem.facPk}" />
+                </p:column>
+                <p:column id="codigo_sede" sortBy="#{elem.facSedeFk.sedCodigo}" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hcod}"/>
+                        <p:tooltip position="top" value="#{msg.hcodTooltip}" for="codigo_sede" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facSedeFk.sedCodigo}" />
+                </p:column>                 
+                <p:column headerText="#{msg.hcodTooltip}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facSedeFk.sedCodigo}" />
+                </p:column>                
+                <p:column headerText="#{msg.hsede}">
+                    <h:outputText value="#{elem.facSedeFk.sedNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfacAnioFiscal}" sortBy="#{elem.facItemMovimiento.movPresupuestoFk.pesAnioFiscalFk.aniAnio}">
+                    <h:outputText value="#{elem.facItemMovimiento.movPresupuestoFk.pesAnioFiscalFk.aniAnio}" rendered="#{facItemMovimiento == null}" />
+                    <h:outputText value="#{elem.facItemPlanCompra.comPresupuestoFk.pesAnioFiscalFk.aniAnio}" rendered="#{facItemPlanCompra == null}" />
+                </p:column>                
+                <p:column id="documento" sortBy="#{elem.facTipoDocumento}" exportable="false" >
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hfacTipoDocTooltip}"/>
+                        <p:tooltip position="top" value="#{msg.hfacTipoDoc}" for="documento" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facTipoDocumento.text}" />
+                </p:column>
+                <p:column headerText="#{msg.hfacTipoDoc}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facTipoDocumento.text}" />
+                </p:column>
+                <p:column id="numero_documento" sortBy="#{elem.facNumero}" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hnumeroDocumentoTooltip}"/>
+                        <p:tooltip position="top" value="#{msg.hnumeroDocumento}" for="numero_documento" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facNumero}" />
+                </p:column> 
+                <p:column headerText="#{msg.hnumeroDocumento}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facNumero}" />
+                </p:column>               
+                <p:column id="fecha" sortBy="#{elem.facFechaFactura}" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hfacFechaFactura}"/>
+                        <p:tooltip position="top" value="#{msg.hfacFechaFacturaTooltip}" for="fecha" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facFechaFactura}" converter="#{localDateConverter}"/>
+                </p:column> 
+                <p:column headerText="#{msg.hfacFechaFacturaTooltip}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facFechaFactura}" converter="#{localDateConverter}" />
+                </p:column>                
+                <p:column headerText="#{msg.htotal}" styleClass="columnaRoja" sortBy="#{elem.facTotal}">
+                    <h:outputText value="#{elem.facTotal}">
+                        <f:convertNumber pattern="#{applicationBean.formatValoresDecimales}" locale="#{facturaBean.locale}" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{msg.hfacProveedor}" sortBy="#{elem.facProveedorFk.proNombre}">
+                    <h:outputText value="#{elem.facProveedorFk.proNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hComponente}">
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteIngresos.movTechoPresupuestal.subComponente.gesCategoriaComponente.cpeNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSubcomponente}">
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteIngresos.movTechoPresupuestal.subComponente.gesNombre}" />
+                </p:column> 
+                <p:column id="upes" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hUnidadPresupuestaria}"/>
+                        <p:tooltip position="top" value="#{msg.hUnidadPresupuestariaTooltip}" for="upes" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteIngresos.movTechoPresupuestal.subCuenta.cuCuentaPadre.cuNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hUnidadPresupuestariaTooltip}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteIngresos.movTechoPresupuestal.subCuenta.cuCuentaPadre.cuNombre}" />
+                </p:column>
+                <p:column id="lpes" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hLineaPresupuestaria}"/>
+                        <p:tooltip position="top" value="#{msg.hLineaPresupuestariaTooltip}" for="lpes" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteIngresos.movTechoPresupuestal.subCuenta.cuNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hLineaPresupuestariaTooltip}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteIngresos.movTechoPresupuestal.subCuenta.cuNombre}" />
+                </p:column>
+                <p:column id="item_compra" sortBy="#{elem.facItemPlanCompra.comInsumoFk.insNombre}" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hfacPlan}"/>
+                        <p:tooltip position="top" value="#{msg.hfacPlanTooltip}" for="item_compra" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facItemPlanCompra.comInsumoFk.insNombre}" />
+                </p:column> 
+                <p:column headerText="#{msg.hfacPlanTooltip}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facItemPlanCompra.comInsumoFk.insNombre}" />
+                </p:column>
+                <p:column id="item_pres" sortBy="#{elem.facItemMovimiento.movFuenteRecursos}" exportable="false">
+                    <f:facet name="header">
+                        <h:outputText value="#{msg.hfacMovimiento}"/>
+                        <p:tooltip position="top" value="#{msg.hfacMovimientoTooltip}" for="item_pres" />
+                    </f:facet> 
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteRecursos}" />
+                </p:column> 
+                <p:column headerText="#{msg.hfacMovimientoTooltip}" style="display: none !important;" >
+                    <h:outputText value="#{elem.facItemMovimiento.movFuenteRecursos}" />
+                </p:column>
+                <p:column headerText="#{msg.hfacEstado}" sortBy="#{elem.facEstado}">
+                    <h:outputText value="#{elem.facEstado.text}" id="nroCorr"/>
+                    <p:tooltip for="nroCorr"  position="top" value="#{elem.datosAnulacionTooltip}" />
+                </p:column>    
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_FACTURAS)}">
+                    <p:commandButton update=":form:itemDetail" 
+                                     oncomplete="PF('itemDialog').show()" 
+                                     icon="glyphicon glyphicon-pencil" 
+                                     styleClass="btn btn-icono"
+                                     rendered="#{!facturaBean.inicializarColumnaAcciones(elem)}"
+                                     title="#{msg.editar}" 
+                                     action="#{facturaBean.actualizar(elem)}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false"  rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ANULAR_FACTURAS_RECIBOS)}">
+                    <p:commandButton update=":form:itemDetail" 
+                                     oncomplete="PF('itemDialog').show()"                                          
+                                     icon="glyphicon glyphicon-ban-circle" 
+                                     styleClass="btn btn-icono rojo"
+                                     title="#{msg.anular}" 
+                                     rendered="#{!facturaBean.inicializarColumnaAcciones(elem)}"
+                                     action="#{facturaBean.anular(elem)}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_FACTURAS)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" 
+                                     icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" 
+                                     title="#{msg.eliminar}"
+                                     update=":form:confirmDialog"
+                                     rendered="#{!facturaBean.inicializarColumnaAcciones(elem)}"
+                                     action="#{facturaBean.actualizar(elem)}" />
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" 
+                                     oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" 
+                                     styleClass="btn btn-icono" 
+                                     title="#{msg.historial}" 
+                                     action="#{facturaBean.historial(elem.facPk)}" />
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link" />
+        </h:panelGroup>
+        <p:confirmDialog id="confirmDialog" message="#{msg.textoConfirmacionEliminacion}" 
+                         header="#{msg.confirmacionEliminacion} - Número de facutura #{facturaBean.entidadEnEdicion.facNumero}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="panelBotonesDer">
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado" oncomplete="PF('confirmDialog').hide()" styleClass="btn btn-primary" action="#{facturaBean.eliminar()}" />
+                <p:blockUI block="@form" trigger="confirmDelete" />
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}" onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+        <p:dialog header="#{msg.hfacFacRec}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetail">
+                <h:panelGroup rendered="#{not empty facturaBean.entidadEnEdicion}">
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true" />
+                    <p:tabView id="tabsFacturasPagos" >
+                        <p:tab title="#{msg.hfacFacRec}" id="tabFacturas"  >
+                            <p:outputPanel id="formularioFacturas">
+                                <p:outputPanel styleClass="form-group row" id="select_one">
+                                    <h:outputLabel value="#{msg.facTipoDoc}" for="select_tipo_calendario" styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <p:selectOneRadio layout="responsive" columns="3" id="select_tipo_calendario"  value="#{facturaBean.entidadEnEdicion.facTipoDocumento}" disabled="#{facturaBean.anulacion}" >
+                                            <f:selectItems value="#{facturaBean.tipoDocumentoList}" 
+                                                           var="tipo" itemLabel="#{tipo.text}" 
+                                                           itemValue="#{tipo}"  />
+                                            <p:ajax listener="#{facturaBean.tipoDocAjax()}" event="change" update=":form:itemDetail" />                             
+                                        </p:selectOneRadio>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_fecha" rendered="#{!facturaBean.anulacion}" >
+                                    <h:outputLabel value="#{msg.fecha}" for="input_fecha" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <p:calendar autocomplete="off" 
+                                                    styleClass="form-control texto-medio" 
+                                                    id="input_fecha" 
+                                                    value="#{facturaBean.entidadEnEdicion.facFechaFactura}" 
+                                                    pattern="#{applicationBean.patternFecha}" 
+                                                    locale="#{sessionBean.locale}" 
+                                                    converter="#{localDateConverter}" 
+                                                    readonlyInput="true" 
+                                                    maxdate="#{applicationBean.today()}">
+                                        </p:calendar>
+                                        <p:blockUI block="@form" widgetVar="blockerFecha" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_numeroFactura">
+                                    <h:outputLabel value="#{msg.numeroDocumento}" for="input_numeroFactura" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <h:inputText maxlength="50"
+                                                     autocomplete="off" 
+                                                     id="input_numeroFactura" 
+                                                     styleClass="form-control texto-medio" 
+                                                     value="#{facturaBean.entidadEnEdicion.facNumero}" 
+                                                     disabled="#{facturaBean.anulacion}" />
+                                    </p:outputPanel>
+                                </p:outputPanel>                                                                     
+                                <p:outputPanel styleClass="form-group row" id="fila_input_sede_autocomplete_b" rendered="#{!facturaBean.anulacion}" >
+                                    <h:outputLabel value="#{msg.sede}" for="input_sede_autocomplete_b" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <p:autoComplete id="input_sede_autocomplete_b" 
+                                                        styleClass="form-control texto-medio" 
+                                                        value="#{facturaBean.sedeSeleccionada}" 
+                                                        completeMethod="#{facturaBean.completeSede}" 
+                                                        var="sed" itemLabel="#{sed.sedCodigoNombre}" 
+                                                        itemValue="#{sed}" 
+                                                        widgetVar="b_inst_resp_autocomplete" 
+                                                        forceSelection="true" 
+                                                        maxResults="10" 
+                                                        queryDelay="500" 
+                                                        multiple="false" 
+                                                        converter="#{sedesConverter}" 
+                                                        placeholder="#{msg.autoCompleteEmptyItem}">
+                                            <p:ajax listener="#{facturaBean.setearSede()}" event="itemSelect" process="@this" update="fila_input_presupuesto fila_input_item_mov" />
+                                        </p:autoComplete>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_presupuesto" >
+                                    <h:outputLabel value="#{msg.presupuestoSeleccionado}" for="input_presupuesto" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <h:selectOneMenu id="input_presupuesto" 
+                                                         value="#{facturaBean.comboPresupuesto.selected}" 
+                                                         styleClass="form-control texto-medio">
+                                            <f:selectItems value="#{facturaBean.comboPresupuesto.items}" />
+                                            <p:ajax listener="#{facturaBean.prepararParaCargar()}" event="change" process="@this" update="input_item_plan input_item_mov_pago" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" rendered="#{!facturaBean.tipoPlanilla and !facturaBean.anulacion }" >   
+                                    <h:outputLabel value="#{msg.facProveedor}" for="input_proveedor_autocomplete_b"  styleClass="col-sm-4 col-md-3 col-form-label obligatorio"/>                             
+                                    <p:outputPanel styleClass="col-sm-5">                                   
+                                            <p:autoComplete id="input_proveedor_autocomplete_b" 
+                                                            styleClass="form-control texto-medio" 
+                                                            value="#{facturaBean.proveedorSeleccionado}" 
+                                                            completeMethod="#{facturaBean.completeProveedor}" 
+                                                            var="pro" itemLabel="#{pro.proNitNombre}" 
+                                                            itemValue="#{pro}" 
+                                                            widgetVar="b_inst_proveedor_autocomplete" 
+                                                            forceSelection="true" 
+                                                            maxResults="10" 
+                                                            queryDelay="500" 
+                                                            multiple="false" 
+                                                            rendered="#{!facturaBean.anulacion or !facturaBean.tipoPlanilla}"                                                    
+                                                            converter="#{proveedorConverter}" 
+                                                            placeholder="#{msg.autoCompleteEmptyItem}">
+                                            </p:autoComplete>
+                                    </p:outputPanel>                                                      
+                                    <p:outputPanel styleClass="col-sm-3">                                   
+                                            <p:commandButton value="#{msg.agregar}" 
+                                                             icon="glyphicon glyphicon-barcode" 
+                                                             action="#{facturaBean.agregarProveedor()}" 
+                                                             update=":form:itemDetail :form:itemDetailProveedor" 
+                                                             oncomplete="PF('itemProveedor').show()" 
+                                                             id="btnAgregarProveedor" 
+                                                             rendered="#{!facturaBean.anulacion or !facturaBean.tipoPlanilla}"
+                                                             styleClass="btn btn-secondary" />
+                                            <p:tooltip position="top" value="#{msg.nuevoProveedor}" for="btnAgregarProveedor" />    
+                                    </p:outputPanel>                             
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_tipo_item" rendered="#{!facturaBean.anulacion}" >
+                                    <h:outputLabel value="#{msg.factipoItem}" for="input_tipo_item" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <h:selectOneMenu id="input_tipo_item" 
+                                                         value="#{facturaBean.comboTipoItem.selected}" 
+                                                         styleClass="form-control texto-medio">
+                                            <f:selectItems value="#{facturaBean.comboTipoItem.items}" />
+                                            <p:ajax listener="#{facturaBean.prepararParaCargar()}" event="change" process="@this" update="input_item_plan input_item_mov_pago" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel>
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_item_plan" rendered="#{!facturaBean.anulacion}" >
+                                        <h:outputLabel value="#{msg.facItemPlan}" for="input_item_plan" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                            <h:selectOneMenu id="input_item_plan" 
+                                                             disabled="#{facturaBean.itemPlanCompras}" 
+                                                             value="#{facturaBean.comboItemPlanCompras.selected}" 
+                                                             styleClass="form-control texto-medio">
+                                                <f:selectItems value="#{facturaBean.comboItemPlanCompras.items}" />
+                                            </h:selectOneMenu>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                    <p:outputPanel styleClass="form-group row" id="fila_input_item_mov_pago" rendered="#{!facturaBean.anulacion}" >
+                                        <h:outputLabel value="#{msg.facItemDescripcion}" for="input_item_mov_pago" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                            <h:selectOneMenu id="input_item_mov_pago" 
+                                                             disabled="#{facturaBean.itemPresupuesto}" 
+                                                             value="#{facturaBean.comboItemMovimientos.selected}" 
+                                                             styleClass="form-control texto-medio">
+                                                <f:selectItems value="#{facturaBean.comboItemMovimientos.items}" />
+                                            </h:selectOneMenu>
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_subtotal"  >
+                                    <h:outputLabel value="#{msg.facSubtotal}" for="input_subtotal" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <p:inputNumber styleClass="form-control texto-medio" 
+                                                       minValue="0" 
+                                                       id="input_subtotal" 
+                                                       value="#{facturaBean.entidadEnEdicion.facSubTotal}" 
+                                                       disabled="#{facturaBean.anulacion}" >
+                                            <p:ajax listener="#{facturaBean.calculoTotal()}"  process="@this" update="output_total" />
+                                            <p:ajax event="keyup" update="output_total" listener="#{facturaBean.calculoTotal()}" />
+                                        </p:inputNumber>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_input_impuestos" >
+                                    <h:outputLabel value="#{msg.facDeducciones}" for="input_impuestos" styleClass="col-sm-4 col-md-3 col-form-label" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <p:inputNumber styleClass="form-control texto-medio" 
+                                                       minValue="0" id="input_impuestos" 
+                                                       value="#{facturaBean.entidadEnEdicion.facDeducciones}" 
+                                                       disabled="#{facturaBean.anulacion}" >
+                                            <p:ajax listener="#{facturaBean.calculoTotal()}"  process="@this" update="output_total" />
+                                            <p:ajax event="keyup" update="output_total" listener="#{facturaBean.calculoTotal()}" />
+                                        </p:inputNumber>
+                                    </p:outputPanel>
+                                </p:outputPanel>                                                 
+                                <p:outputPanel styleClass="form-group row" id="fila_output_total">
+                                    <h:outputLabel value="#{msg.total}" for="output_total" styleClass="col-sm-4 col-md-3 col-form-label" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">                                 
+                                        <p:inputNumber styleClass="form-control-plaintext" 
+                                                       id="output_total"  
+                                                       minValue="0"  
+                                                       value="#{facturaBean.entidadEnEdicion.facTotal}" 
+                                                       disabled="true" />
+                                    </p:outputPanel>
+                                </p:outputPanel> 
+                                <p:outputPanel styleClass="form-group row" id="fila_input_nota_credito" rendered="#{facturaBean.anulacion}" >
+                                    <h:outputLabel value="#{msg.notacredito}" for="input_nota_credito" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <h:inputText autocomplete="off" 
+                                                     id="input_nota_credito" 
+                                                     styleClass="form-control texto-medio" 
+                                                     value="#{facturaBean.entidadEnEdicion.facNotaCredito}" />
+                                    </p:outputPanel>
+                                </p:outputPanel> 
+                                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_anul" rendered="#{facturaBean.anulacion}" >
+                                    <h:outputLabel value="#{msg.fechanotacredito}" for="input_fecha_anul" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                                    <p:outputPanel styleClass="col-sm-8 col-md-9">
+                                        <p:calendar autocomplete="off" 
+                                                    styleClass="form-control texto-medio" 
+                                                    id="input_fecha_anul" 
+                                                    value="#{facturaBean.entidadEnEdicion.facFechaNotaCredito}" 
+                                                    pattern="#{applicationBean.patternFecha}" 
+                                                    locale="#{sessionBean.locale}" 
+                                                    converter="#{localDateConverter}" 
+                                                    readonlyInput="true" 
+                                                    maxdate="#{applicationBean.today()}">
+                                        </p:calendar>
+                                        <p:blockUI block="@form" widgetVar="blockerFecha" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel style="text-align: right">
+                                    <p:outputPanel style="text-align: right">
+                                        <p:commandButton id="btnGuardar" value="#{facturaBean.leyendaBoton}" action="#{facturaBean.guardar()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{facturaBean.leyendaBoton eq 'Guardar'}"/>
+                                        <p:commandButton id="btnAnular" value="#{facturaBean.leyendaBoton}" action="#{facturaBean.anular()}" update="form:pnlResultado form:itemDetail" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" rendered="#{facturaBean.leyendaBoton eq 'Anular'}"/>
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();" update=":form:itemDetail" styleClass="btn btn-link" />
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:blockUI block="@form" trigger="btnGuardar" />    
+                            </p:outputPanel>
+                        </p:tab>
+                        <p:tab title="#{msg.gestionPago}" id="tabPagos"  rendered="#{!facturaBean.permiteEdicion}"  >
+                            <p:outputPanel id="formularioPago">
+                                <p:outputPanel styleClass="form-group row" id="fila_input_modo_pago">
+                                    <h:outputLabel value="#{msg.modoPago}" for="input_modo_pago" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu id="input_modo_pago" 
+                                                         value="#{facturaBean.comboModoPago.selected}" 
+                                                         styleClass="form-control texto-corto"  >
+                                            <f:selectItems value="#{facturaBean.comboModoPago.items}" />
+                                            <p:ajax event="change" listener="#{facturaBean.obtenerModoPago()}" update="formularioPago :form:itemDetail" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_factura" >                        
+                                    <h:outputLabel value="#{msg.facturaReciboPlanilla}" for="input_factura"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                                    <p:outputPanel styleClass="col-sm-8">                            
+                                        <h:selectOneMenu id="input_factura" 
+                                                         value="#{facturaBean.comboFacturas.selected}" 
+                                                         styleClass="form-control texto-corto" 
+                                                         disabled="true" >
+                                            <f:selectItems value="#{facturaBean.comboFacturas.items}" />
+                                            <p:ajax listener="#{facturaBean.cargarCuentas()}" event="change" process="@this" update="input_cuenta fila_input_caja_chica" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>  
+                                </p:outputPanel>                                 
+                                <p:outputPanel styleClass="form-group row" id="fila_input_item_mov" rendered="#{facturaBean.comboModoPago.getSelectedT()!=null and facturaBean.esCheque}">
+                                    <h:outputLabel value="#{msg.cuentaBancaria}" for="input_cuenta" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu id="input_cuenta" 
+                                                         value="#{facturaBean.comboCuentasBancarias.selected}" 
+                                                         styleClass="form-control texto-corto" 
+                                                         disabled="#{pagoBean.historial}" >
+                                            <f:selectItems value="#{facturaBean.comboCuentasBancarias.items}"/>
+                                            <p:ajax event="change" listener="#{facturaBean.obtenerCuentaSeleccioanda()}" update="fila_chequera" />
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>  
+                                <p:outputPanel styleClass="form-group row" id="fila_chequera" rendered="#{facturaBean.comboModoPago.getSelectedT()!=null and facturaBean.esCheque}" >
+                                    <h:outputLabel value="#{msg.chequeraSerie}" for="input_chequera"  styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">                             
+                                        <p:autoComplete id="input_chequera" 
+                                                        styleClass="form-control texto-corto" 
+                                                        value="#{facturaBean.chequeraSeleccionada}" 
+                                                        completeMethod="#{facturaBean.completeChequera}" 
+                                                        var="cheB" itemLabel="#{cheB.serieComplete}"
+                                                        itemValue="#{cheB}" 
+                                                        widgetVar="input_chequera_autocomplete" 
+                                                        forceSelection="true" 
+                                                        maxResults="10" 
+                                                        queryDelay="500" 
+                                                        multiple="false" 
+                                                        converter="#{chequerasConverter}" 
+                                                        placeholder="#{msg.autoCompleteEmptyItem}">                                                                                                                    
+                                        </p:autoComplete>                                   
+                                    </p:outputPanel>
+                                </p:outputPanel>
+                                <p:outputPanel styleClass="form-group row" id="fila_cheque" rendered="#{facturaBean.comboModoPago.getSelectedT()!=null and facturaBean.esCheque}">                        
+                                    <h:outputLabel value="#{msg.numeroCheque}" for="input_cheque"  styleClass="col-sm-4 col-form-label obligatorio"/>                        
+                                    <p:outputPanel styleClass="col-sm-8">                            
+                                        <h:inputText maxlength="15" 
+                                                     autocomplete="off" 
+                                                     styleClass="form-control texto-medio" 
+                                                     id="input_cheque" 
+                                                     value="#{facturaBean.pagoEnEdicion.pgsNumeroCheque}" 
+                                                     disabled="#{pagoBean.historial}"/>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>                        
+                                <p:outputPanel styleClass="form-group row" id="fila_input_caja_chica" rendered="#{facturaBean.comboModoPago.getSelectedT()!=null and !facturaBean.esCheque}">
+                                    <h:outputLabel value="#{msg.cajachica}" for="input_caja_chica" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:selectOneMenu id="input_caja_chica" 
+                                                         value="#{facturaBean.comboCuentasBancariasCC.selected}" 
+                                                         styleClass="form-control texto-corto" 
+                                                         disabled="#{pagoBean.historial}" >
+                                            <f:selectItems value="#{facturaBean.comboCuentasBancariasCC.items}"/>
+                                        </h:selectOneMenu>
+                                    </p:outputPanel>
+                                </p:outputPanel>                        
+                                <p:outputPanel styleClass="form-group row" id="fila_input_fecha_pago">
+                                    <h:outputLabel value="#{msg.fecha}" for="input_fecha_pago" styleClass="col-sm-4 col-form-label obligatorio"/>
+                                    <p:outputPanel styleClass="col-sm-8" >
+                                        <p:calendar disabled="true" 
+                                                    maxdate="#{facturaBean.currentDateTime}" 
+                                                    id="input_fecha_pago" 
+                                                    showMinute="false" 
+                                                    showHour="false" 
+                                                    value="#{facturaBean.pagoEnEdicion.pgsFechaPago}" 
+                                                    pattern="#{applicationBean.patternFechaHora}" 
+                                                    converter="#{localDateTimeConverter}" >
+                                        </p:calendar>
+                                    </p:outputPanel>                    
+                                </p:outputPanel>                        
+                                <p:outputPanel styleClass="form-group row" id="fila_input_monto">
+                                    <h:outputLabel value="#{msg.monto}" for="input_monto" styleClass="col-sm-4 col-form-label obligatorio"
+                                                   />
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <p:inputNumber disabled="true" 
+                                                       minValue="0" 
+                                                       id="input_monto"                                                        
+                                                       styleClass="form-control texto-corto" 
+                                                       value="#{facturaBean.pagoEnEdicion.pgsImporte}"
+                                                       />
+                                    </p:outputPanel>                    
+                                </p:outputPanel>                        
+                                <p:outputPanel styleClass="form-group row" id="fila_input_detalle">
+                                    <h:outputLabel value="#{msg.detalle}" for="input_detalle" styleClass="col-sm-4 col-form-label"/>
+                                    <p:outputPanel styleClass="col-sm-8">
+                                        <h:inputTextarea disabled="#{pagoBean.historial}" 
+                                                         id="input_detalle" 
+                                                         styleClass="form-control texto-medio" 
+                                                         value="#{facturaBean.pagoEnEdicion.pgsComentario}" 
+                                                         />                     
+                                    </p:outputPanel>                    
+                                </p:outputPanel>                                
+                                <p:outputPanel style="text-align: right" >
+                                    <p:outputPanel style="text-align: right">
+                                        <p:commandButton id="btnGuardarPago" rendered="#{!cuentasBancariasBean.historial}" value="#{msg.guardar}" action="#{facturaBean.guardarPago()}" update="form:pnlResultado form:itemDetail " styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                        <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update=":form:itemDetail" styleClass="btn btn-link"/>                        
+                                    </p:outputPanel>                    
+                                </p:outputPanel>                     
+                                <p:blockUI block="@form" trigger="btnGuardarPago" /> 
+                            </p:outputPanel> 
+                        </p:tab>
+                    </p:tabView>
+                </h:panelGroup>
+            </p:outputPanel>
+        </p:dialog>
+
+        <p:dialog header="#{msg.hfacProveedor}" widgetVar="itemProveedor" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <p:outputPanel id="itemDetailProveedor">
+                <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true" />
+                <p:outputPanel id="formularioProveedor">                
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proveedor">
+                        <h:outputLabel value="#{msg.nombre}" for="input_proveedor" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:inputText maxlength="150" autocomplete="off" id="input_proveedor" styleClass="form-control texto-medio" value="#{facturaBean.proveedorEnEdicion.proNombre}"  />                                
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nit">
+                        <h:outputLabel value="#{msg.nit}" for="input_nit" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">                            
+                            <p:inputMask maxlength="17" autocomplete="off" id="input_nit" styleClass="form-control texto-medio" value="#{facturaBean.proveedorEnEdicion.proNit}" mask="#{applicationBean.maskNit}" />                         
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proveedor_direccion">
+                        <h:outputLabel value="#{msg.direccion}" for="input_proveedor_direccion" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:inputTextarea id="input_proveedor_direccion" styleClass="form-control texto-medio" value="#{facturaBean.proveedorEnEdicion.proDireccionFactura}" />                     
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                    <p:outputPanel styleClass="form-group row" id="fila_input_proveedor_telefono">
+                        <h:outputLabel value="#{msg.telefono}" for="input_proveedor_telefono" styleClass="col-sm-4 col-md-3 col-form-label obligatorio" />
+                        <p:outputPanel styleClass="col-sm-8 col-md-9">
+                            <h:inputText maxlength="20" autocomplete="off" id="input_proveedor_telefono" styleClass="form-control texto-medio" value="#{facturaBean.proveedorEnEdicion.proTelefonoRepresentante}"  />                                
+                        </p:outputPanel>
+                    </p:outputPanel>   
+                    <p:outputPanel styleClass="control-group">
+                        <p:outputPanel styleClass="float-right">
+                            <p:commandButton id="btnGuardarProveedor"  value="#{msg.guardar}" action="#{facturaBean.guardarProveedor()}" update="form:pnlResultado form:itemDetail form:itemDetailProveedor" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk" />
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemProveedor').hide();" update=":form:itemDetail :form:itemDetailProveedor" styleClass="btn btn-link" />
+                        </p:outputPanel>
+                    </p:outputPanel>                    
+                </p:outputPanel>
+            </p:outputPanel>
+        </p:dialog>
+
+        <p:dialog header="#{msg.historialFacturas}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historialFacturas.xhtml">
+                <ui:param name="historial" value="#{facturaBean.historialFacturas}" />
+            </ui:include>   
+        </p:dialog>        
+
+    </h:form>
+</ui:composition>

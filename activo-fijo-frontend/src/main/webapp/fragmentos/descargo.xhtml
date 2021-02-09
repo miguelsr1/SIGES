@@ -1,0 +1,578 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui">
+
+    <h:form id="form">
+        <f:passThroughAttribute name="autocomplete" value="off"/>
+        
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.DESCARGOS}.xhtml">#{msg.gestionDescargos}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <h:outputText rendered="#{descargoBean.entidadEnEdicion.desPk != null}" value="#{msg.edicionDescargo}"/>
+                    <h:outputText rendered="#{descargoBean.entidadEnEdicion.desPk == null}" value="#{msg.nuevoDescargo}" />
+                </li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.gestionDescargos}"/></h2>
+            <p:outputPanel styleClass="float-right">
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.DESCARGOS)}" />
+                </ui:include>
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+        
+        <p:blockUI block="@form" widgetVar="formBlocker" /> 
+
+        <h:panelGroup id="itemDetail">
+            <div class="requeridos" style="text-align:left;" ><h:outputText rendered="#{!descargoBean.soloLectura}" value="#{msg.textoCamposObligatorios}"/></div>
+
+            <h:panelGroup id="searchPanels">
+                <p:panel toggleable="true" toggleSpeed="500" closeSpeed="500">
+                    <p:outputPanel id="pnlSearch" styleClass="row">
+                        <p:fieldset style="width: 100%;" legend="#{msg.unidadPoseedoraBien}" >
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_tipoUnidad" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_TIPO_UNIDAD)}">
+                                <h:outputLabel value="#{msg.tipoUnidad}" for="filtro_tipoUnidad" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9 ">
+                                    <h:selectOneMenu id="filtro_tipoUnidad"  styleClass="form-control dropdown texto-medio" value="#{descargoBean.comboTiposUnidad.selected}" 
+                                                     rendered="#{!descargoBean.soloLectura}">
+                                        <f:selectItems value="#{descargoBean.comboTiposUnidad.items}" />
+                                        <p:ajax event="change" listener="#{descargoBean.seleccionarTipoUnidadAF()}" process="@this" update="fila_filtro_unidadadministrativa listaDisponibles listaSeleccionados"/>
+                                    </h:selectOneMenu>
+                                    <p:blockUI block="@form" trigger="filtro_tipoUnidad" />
+                                    <h:outputText value="#{descargoBean.tipoUnidadSeleccionada.text}" rendered="#{descargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_unidadactivofijo" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ACTIVO_FIJO)}">
+                                <h:outputLabel value="#{msg.unidadActivoFijo}" for="filtro_unidadactivofijo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9 ">
+                                    <h:selectOneMenu id="filtro_unidadactivofijo"  styleClass="form-control dropdown texto-medio" value="#{descargoBean.comboUnidadesActivoFijo.selected}"
+                                                     rendered="#{!descargoBean.soloLectura}">
+                                        <f:selectItems value="#{descargoBean.comboUnidadesActivoFijo.items}" />
+                                        <p:ajax event="change" listener="#{descargoBean.seleccionarUnidadActivoFijo()}" process="@this"  update="fila_filtro_unidadadministrativa listaDisponibles listaSeleccionados"/>
+                                    </h:selectOneMenu>
+                                    <p:blockUI block="@form" trigger="filtro_unidadactivofijo" />
+                                    <h:outputText value="#{descargoBean.unidadAFSeleccionada.codigoNombre}" styleClass="form-control-plaintext" rendered="#{descargoBean.soloLectura}"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_UNIDAD_ADMINISTRATIVA)}">
+                                <h:outputLabel value="#{msg.unidadAdministrativa}" for="filtro_unidadadministrativa" styleClass="col-sm-3 col-form-label obligatorio"/>
+                                <p:outputPanel styleClass="col-sm-9"  >
+                                    <h:panelGroup id="fila_filtro_unidadadministrativa">
+                                        <p:selectOneMenu rendered="#{descargoBean.esUnidadAdministrativa and !descargoBean.soloLectura}" id="filtro_unidadadministrativa"  
+                                                         value="#{descargoBean.unidadSeleccionada}" converter="#{unidadesAdministrativasConverter}"
+                                            effect="fade" var="u"  styleClass="select_menu_with_filter texto-medio" filter="true" filterMatchMode="contains">
+                                             <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                            <f:selectItems value="#{descargoBean.unidadesAdministrativas}" var="unidad" itemLabel="#{unidad.codigoNombre}" itemValue="#{unidad}" />
+                                            <p:ajax event="change" listener="#{descargoBean.seleccionarUnidadAdministrativa()}"  process="@this" update="listaDisponibles listaSeleccionados"/>
+                                           <p:column>
+                                               <h:outputText value="#{u.codigoNombre}" />
+                                           </p:column>
+                                       </p:selectOneMenu>
+                                        <p:selectOneMenu rendered="#{!descargoBean.esUnidadAdministrativa and !descargoBean.soloLectura}" id="filtro_sede" value="#{descargoBean.sedeSeleccionada}" converter="#{sedeConverter}"
+                                                    effect="fade" var="s"  styleClass="texto-medio" filter="true" filterMatchMode="contains">
+                                               <f:selectItem itemLabel="#{msg.comboEmptyItem}" itemValue="" noSelectionOption="true" />
+                                                <f:selectItems value="#{descargoBean.sedes}" var="sede" itemLabel="#{sede.sedCodigoNombre}" itemValue="#{sede}" />
+                                                <p:ajax event="change" listener="#{descargoBean.seleccionarUnidadAdministrativa()}"  process="@this" update="listaDisponibles listaSeleccionados"/>
+                                               <p:column>
+                                                   <h:outputText value="#{s.sedCodigoNombre}" />
+                                               </p:column>
+                                        </p:selectOneMenu>
+                                        <p:blockUI block="@form" trigger="filtro_unidadadministrativa filtro_sede" />
+                                        <h:outputText value="#{descargoBean.unidadSeleccionada.uadPk != null ? descargoBean.unidadSeleccionada.codigoNombre : descargoBean.sedeSeleccionada.sedCodigoNombre}" rendered="#{descargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                    </h:panelGroup>
+                                </p:outputPanel> 
+                            </p:outputPanel>
+
+                            <p:outputPanel styleClass="form-group row" id="fila_filtro_activos" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_ACTIVOS) or sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_PRECIO)}">
+                                <h:outputLabel value="#{sessionBean.operaciones.contains(ConstantesOperaciones.VER_CAMPO_ACTIVOS)  ? msg.activos : msg.precio}" for="filtro_activos" styleClass="col-sm-3 col-form-label"/>
+                                <p:outputPanel styleClass="col-sm-9 ">
+                                    <h:selectOneMenu id="filtro_activos"  styleClass="form-control dropdown texto-medio" value="#{descargoBean.activosFijos}" rendered="#{!descargoBean.soloLectura}" >
+                                        <f:selectItems value="#{applicationBean.activoFijoValues}" />
+                                        <p:ajax event="change" listener="#{descargoBean.seleccionarTipoActivo()}"  process="@this" update="listaDisponibles listaSeleccionados opcionDEscargo input_opciondescargo"/>
+                                    </h:selectOneMenu>
+                                    <p:blockUI block="@form" trigger="filtro_activos" />
+                                    <h:outputText value="#{descargoBean.activosFijos}" converter="#{booleanActivoFijoConverter}" rendered="#{descargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </p:fieldset>     
+                    </p:outputPanel>
+                </p:panel>
+            </h:panelGroup>  
+            
+
+            <p:fieldset style="width: 100%;" legend="#{msg.hmotivosRechazo}" rendered="#{not empty descargoBean.entidadEnEdicion.sgAfMotivosRechazoDescargo}">
+                <p:outputPanel id="motivosRechazo">                
+                    <h:panelGroup rendered="#{not empty descargoBean.entidadEnEdicion.sgAfMotivosRechazoDescargo}"  >                     
+                        <p:dataTable value="#{descargoBean.entidadEnEdicion.sgAfMotivosRechazoDescargo}" var="motivorechazo" reflow="true">                                       
+                            <p:column headerText="#{msg.hmotivo}">                             
+                                <h:outputText value="#{motivorechazo.mrdMotivoRechazo}"/>                         
+                            </p:column>
+                            <p:column headerText="#{msg.hfecharechazo}">                            
+                                <h:outputText value="#{motivorechazo.mrdUltModFecha}" converter="#{localDateTimeConverter}"/>                         
+                            </p:column>
+                        </p:dataTable>                
+                    </h:panelGroup>            
+                </p:outputPanel>  
+            </p:fieldset>
+            
+            <p:fieldset style="width: 100%;" legend="#{msg.datosDescargo}">
+                <p:outputPanel id="panelBotonesBusqueda" styleClass="col-md-12" style="margin-top: -15px;" rendered="#{!descargoBean.soloLectura}">
+                        <p:outputPanel styleClass="form-group row">
+                            <p:outputPanel styleClass="col-sm-12 texto-right">
+                                <p:commandButton id="btnBuscar" value="#{msg.agregarBienes}" styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                                 action="#{descargoBean.buscar(false,true)}"  update="listaDisponibles"/>
+                                <p:commandLink value="#{msg.limpiar}"  action="#{descargoBean.limpiar()}"
+                                               update="pnlSearch listaDisponibles" immediate="true" styleClass="btn btn-link">
+                                    <p:resetInput target="pnlSearch listaDisponibles" />
+                                </p:commandLink>
+                                <p:defaultCommand target="btnBuscar" scope="searchPanels"/>
+                                <p:blockUI block="@form" trigger="btnBuscar" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_tipodescargo">
+                        <h:outputLabel value="#{msg.tipoDescargo}" for="input_tipodescargo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="input_tipodescargo"  styleClass="form-control dropdown texto-medio" value="#{descargoBean.comboEstadosDescargo.selected}"
+                                             rendered="#{!descargoBean.soloLectura}">
+                                <f:selectItems value="#{descargoBean.comboEstadosDescargo.items}" />
+                            </h:selectOneMenu>
+                            <h:outputText value="#{descargoBean.entidadEnEdicion.desTipoDescargoFk.edeNombre}" rendered="#{descargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <h:panelGroup id="opcionDEscargo">
+                        <p:outputPanel styleClass="form-group row" id="fila_input_opciondescargo">
+                            <h:outputLabel value="#{msg.opcionDescargo}" for="input_opciondescargo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9 ">
+                                <h:selectOneMenu id="input_opciondescargo"  styleClass="form-control dropdown texto-medio" value="#{descargoBean.comboOpcionesDescargo.selected}"
+                                                 rendered="#{!descargoBean.soloLectura}">
+                                    <f:selectItems value="#{descargoBean.comboOpcionesDescargo.items}" />
+                                </h:selectOneMenu>
+                                <h:outputText value="#{descargoBean.entidadEnEdicion.desOpcionDescargoFk.odeNombre}" rendered="#{descargoBean.soloLectura}" styleClass="form-control-plaintext"/>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </h:panelGroup>
+                
+                    
+            </p:fieldset>
+            <p:fieldset style="width: 100%;" legend="#{msg.bienesADescargar}">
+                <h:panelGroup rendered="#{(descargoBean.crearSolicitud or descargoBean.enviarSolicitud) and !descargoBean.soloLectura}">
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:dataTable id="listaDisponibles"                         
+                               widgetVar="dataTableWidgetVar"                         
+                               var="elem"                        
+                               value="#{descargoBean.bienesDepreciablesLazyModel}"                          
+                               emptyMessage="#{msg.noHayResultados}"        
+                               paginator="true"
+                               lazy="true"
+                               paginatorPosition="bottom"
+                               currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                               sortField="bdePk"
+                               paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                               rowsPerPageTemplate="1,5,10,25,50,100"
+                               rows="#{descargoBean.paginado}"
+                               reflow="true"  
+                               selection="#{descargoBean.bienesDestino}"
+                               rowSelectMode="checkbox"
+                               rowKey="#{elem.bdePk}"
+                               disabledSelection="#{!descargoBean.bienPuedeAgregarse(elem)}"
+                              >  
+                              <f:facet name="{anterior}">
+                                  <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                              </f:facet>
+                              <f:facet name="{siguiente}">
+                                  <h:outputText styleClass="#{descargoBean.totalResultados lt (descargoBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                              </f:facet>
+                              <f:facet name="header">   
+                                  <p:outputPanel styleClass="form-group row" style="height: 15%">
+                                      <p:outputPanel styleClass="col-md-9">
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel value="#{msg.codInventario}"  styleClass="col-sm-4 col-form-label"/>
+                                                    <p:outputPanel styleClass="col-sm-8 ">
+                                                        <h:inputText autocomplete="off"  styleClass="form-control"  maxlength="30" value="#{descargoBean.filtroBienes.codigoInventario}"/>    
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel value="#{msg.tBien}"  styleClass="col-sm-4 col-form-label"/>
+                                                    <p:outputPanel styleClass="col-sm-8">
+                                                        <p:autoComplete id="input_tipobien_autocomplete" 
+                                                                        styleClass="form-control"
+                                                                        value="#{descargoBean.tipoBienSeleccionado}"
+                                                                        rendered="#{!descargoBean.soloLectura}"
+                                                                        completeMethod="#{descargoBean.completeTipoBien}"
+                                                                        var="tipobien" itemLabel="#{tipobien.tbiCodigoNombreCategoria}" 
+                                                                        itemValue="#{tipobien}" 
+                                                                        widgetVar="tipo_bien_resp_autocomplete"
+                                                                        forceSelection="true"
+                                                                        maxResults="10"
+                                                                        queryDelay="500"
+                                                                        placeholder="#{msg.autoCompleteEmptyItem}"
+                                                                        converter="#{tipoBienConverter}"
+                                                                        multiple="false" 
+                                                                        >
+                                                            </p:autoComplete>   
+                                                    </p:outputPanel>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                      </p:outputPanel>
+                                      <p:outputPanel styleClass="col-md-3">
+                                            <p:outputPanel styleClass="form-group row">
+                                              <p:outputPanel styleClass="col-sm-12 texto-right">
+                                                  <p:commandButton id="btnBuscarBienes" value="#{msg.buscar}" update="listaDisponibles"
+                                                                   styleClass="btn btn-primary" icon="glyphicon glyphicon-search" 
+                                                                   action="#{descargoBean.buscar(false, false)}"  />
+                                                  <p:blockUI block="@form" trigger="btnBuscarBienes" />
+                                              </p:outputPanel>
+                                        </p:outputPanel>
+                                      </p:outputPanel>
+                                      
+                                      
+                                </p:outputPanel>
+                                <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                      <p:outputPanel styleClass="col-md-6">
+                                          <h3><h:outputText value="Disponibles:" /><h:outputText id="totalResultados" styleClass="cantidad" value="#{descargoBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                      </p:outputPanel>
+                                </p:outputPanel>
+                              </f:facet>
+                              
+                               
+                              <p:ajax event="rowSelectCheckbox" listener="#{descargoBean.rowSelectCheckbox}" update="listaDisponibles form:listaSeleccionados"/>
+                              <p:ajax event="toggleSelect" listener="#{descargoBean.toggleSelected}" update="listaDisponibles form:listaSeleccionados"/>
+
+                              <p:column selectionMode="multiple" style="width:16px;text-align:center" exportable="false"/>
+                               
+                              <p:column styleClass="cortar-texto" headerText="#{msg.hcodigoInventario}">
+                                  <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                              </p:column>
+                              <p:column headerText="#{msg.htipoBien}">
+                                  <h:outputText value="#{elem.bdeTipoBien.tbiNombre}" />
+                              </p:column>
+                         </p:dataTable>
+                       </p:outputPanel>
+                       <p:outputPanel styleClass="col-md-6">
+                            <p:dataTable id="listaSeleccionados"                         
+                               widgetVar="dataTableWidgetVar1"                         
+                               var="elem"                        
+                               value="#{descargoBean.bienesDestino}"                          
+                               emptyMessage="#{msg.noHayResultados}"        
+                               paginator="true"
+                               paginatorPosition="bottom"
+                               currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                               sortField="bdePk"
+                               paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                               rowsPerPageTemplate="1,5,10,25,50,100"
+                               rows="#{descargoBean.paginado}"
+                               reflow="true"
+                               selection="#{descargoBean.bienesDestino}"
+                               rowSelectMode="checkbox"
+                               rowKey="#{elem.bdePk}"
+                              >
+                              <f:facet name="{anterior}">
+                                  <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                              </f:facet>
+                              <f:facet name="{siguiente}">
+                                  <h:outputText styleClass="#{descargoBean.totalBienesDestino lt (descargoBean.paginadoDestino +1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                              </f:facet>
+                              <f:facet name="header">
+                                    <p:outputPanel styleClass="form-group row">
+                                      <p:outputPanel styleClass="col-md-12">
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel  styleClass="col-sm-12 col-form-label"/>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel  styleClass="col-sm-12 col-form-label"/>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                    <h:outputLabel  styleClass="col-sm-12 col-form-label"/>
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                          <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-group row">
+                                                </p:outputPanel>
+                                          </p:outputPanel>
+                                      </p:outputPanel>
+                                  </p:outputPanel>
+                                  <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                      <p:outputPanel styleClass="col-md-6">
+                                          <h3><h:outputText value="Seleccionados:" /><h:outputText styleClass="cantidad" value="#{descargoBean.totalBienesDestino}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                                      </p:outputPanel>
+                                  </p:outputPanel>
+                                  
+                              </f:facet>
+
+                              <p:ajax event="rowSelect" listener="#{descargoBean.rowSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/> 
+                              <p:ajax event="rowUnselect" listener="#{descargoBean.rowUnSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/> 
+                              <p:ajax event="rowUnselectCheckbox" listener="#{descargoBean.rowUnSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/>  
+                              <p:ajax event="rowSelectCheckbox" listener="#{descargoBean.rowSelectCheckboxSeleccionados}" update="form:listaDisponibles listaSeleccionados"/>
+                              <p:ajax event="toggleSelect" listener="#{descargoBean.toggleSelectedSeleccionado}" update="form:listaDisponibles listaSeleccionados"/>
+
+                               <p:column selectionMode="multiple" style="width:16px;text-align:center" exportable="false"/>
+                               
+                              <p:column styleClass="cortar-texto" headerText="#{msg.hcodigoInventario}" filterBy="#{elem.bdeCodigoInventario}" filterMatchMode="contains">
+                                  <h:outputText value="#{elem.bdeCodigoInventario}"/>
+                              </p:column>
+                              <p:column headerText="#{msg.htipoBien}" filterBy="#{elem.bdeTipoBien.tbiNombre}" filterMatchMode="contains">
+                                  <h:outputText value="#{elem.bdeTipoBien.tbiNombre}" />
+                              </p:column>
+                         </p:dataTable>
+                       </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup> 
+                
+                <h:panelGroup rendered="#{descargoBean.descargarSolicitud or descargoBean.soloLectura}">
+                    <ui:include src="componentes/detalleBienes.xhtml">
+                        <ui:param name="bienes" value="#{descargoBean.bienesDestino}" />
+                    </ui:include>
+                </h:panelGroup>
+            </p:fieldset>
+            
+            <p:fieldset style="width: 100%;" legend="#{msg.datosDescargo}"  rendered="#{descargoBean.descargado}">
+                <h:panelGroup>
+                    <p:outputPanel styleClass="form-group row" >                        
+                        <h:outputLabel value="#{msg.codigoSolicitud}"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{descargoBean.entidadEnEdicion.desCodigoDescargo}" styleClass="form-control-plaintext"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.hfechaDescargo}"  styleClass="col-sm-3 col-form-label obligatorio"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{descargoBean.entidadEnEdicion.desFechaDescargo}" styleClass="form-control-plaintext"/> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row">                        
+                        <h:outputLabel value="#{msg.usuarioAprobacion}" styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:outputText value="#{descargoBean.entidadEnEdicion.desNombreAutoriza}" styleClass="form-control-plaintext"/> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </h:panelGroup>
+            </p:fieldset>
+            
+            <div  class="form-action-buttons">
+                <h:panelGroup id="panel_botones">
+                    
+                    <p:commandButton id="btnDetalleDescargo" value="#{msg.verDetalle}" rendered="#{descargoBean.entidadEnEdicion != null and descargoBean.entidadEnEdicion.desPk != null and (descargoBean.crearSolicitud or descargoBean.enviarSolicitud) and (not empty descargoBean.bienesDestino)}"
+                                 oncomplete="PF('detalleDescargoDialog').show()"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-list-alt"/>
+                    
+                    
+                    <p:link styleClass="btn btn-secondary" id="btnImprimir" rendered="#{descargoBean.entidadEnEdicion != null and descargoBean.entidadEnEdicion.desPk != null and sessionBean.operaciones.contains(ConstantesOperaciones.GENERAR_REPORTE_DESCARGOS)}" 
+                                                disabled="#{descargoBean.entidadEnEdicion == null}" 
+                                                value="#{msg.generarPDF}" 
+                                                href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_DESCARGO}?uaf=#{descargoBean.unidadAFSeleccionada.uafPk}&amp;uad=#{descargoBean.unidadSeleccionada.uadPk}&amp;sed=#{descargoBean.sedeSeleccionada.sedPk}&amp;desId=#{descargoBean.entidadEnEdicion.desPk}&amp;op=1" target="_blank"/>
+
+
+                    <p:commandButton id="btnActaDescargo"  value="#{msg.generarActaDescargo}" rendered="#{descargoBean.puedeGenerarActaDescargo() and descargoBean.entidadEnEdicion.desActaDescargo.adePk ==null}" 
+                                 action="#{descargoBean.agregaroEditar()}"
+                                 update=":form:itemActaDetailDialog" oncomplete="PF('itemActaDialog').show()"  
+                                 styleClass="btn btn-secondary" />
+                    
+                    <p:link styleClass="btn btn-secondary" id="generarActaDescargo" 
+                            rendered="#{descargoBean.puedeGenerarActaDescargo() and descargoBean.entidadEnEdicion.desActaDescargo.adePk !=null}" 
+                                                value="#{msg.imprimirActa}"
+                                                href="#{applicationBean.reportGeneratorUrl}#{ConstantesPaginas.REPORTE_ACTA_DESCARGO}?uaf=#{descargoBean.unidadAFSeleccionada.uafPk}&amp;uad=#{descargoBean.unidadSeleccionada.uadPk}&amp;sed=#{descargoBean.sedeSeleccionada.sedPk}&amp;desId=#{descargoBean.entidadEnEdicion.desPk}" target="_blank"/>
+                    
+
+                    
+                    <p:commandButton id="btnGuardar" value="#{msg.guardar}" update="@form" 
+                                     rendered="#{descargoBean.crearSolicitud and (sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SOLICITUD_DESCARGO)
+                                                 or sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_SOLICITUD_DESCARGO))}"
+                                 action="#{descargoBean.guardar(true, false, false, false)}" styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+
+                    <p:commandButton id="btnEnviar" value="#{msg.enviarAAprobacion}" rendered="#{descargoBean.enviarSolicitud and sessionBean.operaciones.contains(ConstantesOperaciones.ENVIAR_DESCARGO_BIENES)}"     
+                                     action="#{descargoBean.guardar(false, true, false, false)}" update="@form"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-send"/>
+                    
+                    <p:commandButton id="btnRechazar" value="#{msg.rechazarSolicitud}" rendered="#{descargoBean.descargarSolicitud and descargoBean.puedeRechzarDescargo()}"
+                                     action="#{descargoBean.crearNuevoMotivoRechazo()}" update=":form:motivoDetailDialog" oncomplete="PF('motivoRechazoDialog').show()"  styleClass="btn btn-secondary" icon="glyphicon glyphicon-minus"/>
+                    
+                    <p:commandButton id="btnDescargar" value="#{msg.descargar}" rendered="#{descargoBean.descargarSolicitud and descargoBean.puedeAutorizarDescargo()}"
+                                     oncomplete="PF('itemDialog').show()" update=":form:itemDetailDialog"
+                                     styleClass="btn btn-secondary" icon="glyphicon glyphicon-remove"/>
+                    
+                    <p:blockUI block="@form" trigger="btnGuardar btnEnviar btnRechazar btnDescargar" />
+                    
+                    <p:link styleClass="btn btn-secondary" outcome="#{ConstantesPaginas.DESCARGO}" title="#{msg.agregarDescargo}" rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_SOLICITUD_DESCARGO)}">
+                        <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                        <h:outputText styleClass="" value="#{msg.nuevaSolicitud}"/>
+                    </p:link>
+                </h:panelGroup> 
+
+                <p:blockUI block="@form" trigger="btnGuardar" />
+            </div>
+        </h:panelGroup>
+            
+        
+        
+        
+        
+        <div class="volverLink">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </div>
+        
+        
+        <p:dialog header="#{msg.datosActaDescargo}" widgetVar="itemActaDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('itemActaDialog').initPosition()">             
+            <p:outputPanel id="itemActaDetailDialog">                                                             
+                <h:panelGroup rendered="#{not empty descargoBean.actaEnEdicion}"  >   
+                    <p:messages id="popupmsg3" showDetail="true" globalOnly="false" for="popupmsg3" closable="true"/>
+                    <p:outputPanel id="formularioActaDescargo">   
+                        <p:outputPanel styleClass="form-group row" id="fila_numero_acuerdo" >                        
+                            <h:outputLabel value="#{msg.numeroAcuerdo}" for="input_numero_acuerdo"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:inputText autocomplete="off" id="input_numero_acuerdo" styleClass="form-control" value="#{descargoBean.actaEnEdicion.adeNumeroAcuerdo}"/> 
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_acuerdo">
+                            <h:outputLabel value="#{msg.fechaAcuerdo}" for="input_fecha_acuerdo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">   
+                                <p:calendar id="input_fecha_acuerdo"  maxdate="#{applicationBean.today()}"
+                                            value="#{descargoBean.actaEnEdicion.adeFechaAcuerdo}"
+                                            pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}">
+                                </p:calendar>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_seautoriza">                        
+                            <h:outputLabel value="#{msg.seAutoriza}" for="input_seautoriza" 
+                                           styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputTextarea id="input_seautoriza" styleClass="form-control texto-medio" 
+                                                 value="#{descargoBean.actaEnEdicion.adeSeAutoriza}"
+                                                 counter="displaySeAutoriza" maxlength="500" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false">
+                                </p:inputTextarea>
+                                <h:outputText id="displaySeAutoriza" />
+                                <h:message for="input_seautoriza" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel  styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarActaDialog"  value="#{msg.guardar}" action="#{descargoBean.guardarActaDescargo()}" 
+                                                 update="form:itemDetailDialog form:itemDetail"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>
+                                                
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemActaDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarActaDialog" />  
+                        <p:defaultCommand target="btnGuardarActaDialog" scope="itemDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+       <p:dialog header="#{msg.descargar}" widgetVar="itemDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('itemDialog').initPosition()">             
+            <p:outputPanel id="itemDetailDialog">                                                             
+                <h:panelGroup rendered="#{not empty descargoBean.entidadEnEdicion}"  >                    
+                    <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>                
+                    <p:outputPanel id="formularioDescargo">                                               
+                        <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                            <h:outputLabel value="#{msg.codigoDescargo}" for="input_codigo"  styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">                            
+                                <h:inputText autocomplete="off" id="input_codigo" styleClass="form-control" value="#{descargoBean.entidadEnEdicion.desCodigoDescargo}"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_fecha_descargo">
+                            <h:outputLabel value="#{msg.hfechaDescargo}" for="input_fecha_descargo" styleClass="col-sm-3 col-form-label obligatorio"/>
+                            <p:outputPanel styleClass="col-sm-9">   
+                                <p:calendar id="input_fecha_descargo"  maxdate="#{applicationBean.today()}"
+                                            value="#{descargoBean.entidadEnEdicion.desFechaDescargo}"
+                                            pattern="#{applicationBean.patternFecha}" converterMessage="#{msg.fechaInvalida}" mask="true" converter="#{localDateConverter}" />
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_observacion_fallo">                        
+                            <h:outputLabel value="#{msg.observacionFallo}" for="input_observacion_fallo" 
+                                           styleClass="col-sm-3 col-form-label"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputTextarea id="input_observacion_fallo" styleClass="form-control texto-medio" 
+                                                 value="#{descargoBean.entidadEnEdicion.desObservacionFallo}"
+                                                 counter="display" maxlength="500" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false" />
+                                <h:outputText id="display" />
+                                <h:message for="input_descripcion" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel>
+                        
+                        <p:outputPanel  styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarDialog"  value="#{msg.guardar}" action="#{descargoBean.guardar(false, false, true, false)}" 
+                                                 update="form:itemDetailDialog form:itemDetail"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarDialog" />  
+                        <p:defaultCommand target="btnGuardarDialog" scope="itemDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+        <p:dialog header="#{msg.rechazarSolicitud}" widgetVar="motivoRechazoDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('motivoRechazoDialog').initPosition()">             
+            <p:outputPanel id="motivoDetailDialog">                                                             
+                <h:panelGroup rendered="#{not empty descargoBean.entidadEnEdicion and not empty descargoBean.motivoRechazoDescargo}"  >                    
+                    <p:messages id="popupmsg2" showDetail="true" globalOnly="false" for="popupmsg2" closable="true"/>                
+                    <p:outputPanel id="formularioRechazo"> 
+                        
+                        <p:outputPanel styleClass="form-group row" id="fila_input_motivo_rechazo">                        
+                            <h:outputLabel value="#{msg.motivoRechazo}" for="input_motivo_rechazo" 
+                                           styleClass="col-sm-3 col-form-label obligatorio"/>                        
+                            <p:outputPanel styleClass="col-sm-9">
+                                <p:inputTextarea id="input_motivo_rechazo" styleClass="form-control texto-medio"
+                                                 value="#{descargoBean.motivoRechazoDescargo.mrdMotivoRechazo}"
+                                                 counter="conteoLetras" maxlength="500" counterTemplate="{0} caracteres restantes." 
+                                                 autoResize="false" />
+                                <h:outputText id="conteoLetras" />
+                                <h:message for="input_motivo_rechazo" styleClass="msj-danger"/>
+                            </p:outputPanel>                    
+                        </p:outputPanel> 
+                        
+                        <p:outputPanel  styleClass="control-group" >
+                            <p:outputPanel styleClass="float-right">
+                                <p:commandButton id="btnGuardarMotivoDialog"  value="#{msg.guardar}" action="#{descargoBean.guardar(false, false, false,true)}" 
+                                                 update="form:motivoDetailDialog form:itemDetail"
+                                                 styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                                <p:commandLink value="#{msg.cancelar}" oncomplete="PF('motivoRechazoDialog').hide();"  update="@form" styleClass="btn btn-link"/>                        
+                            </p:outputPanel>                    
+                        </p:outputPanel>                     
+                        <p:blockUI block="@form" trigger="btnGuardarMotivoDialog" />  
+                        <p:defaultCommand target="btnGuardarMotivoDialog" scope="motivoDetailDialog"/>       
+                    </p:outputPanel>         
+                </h:panelGroup>            
+            </p:outputPanel>        
+        </p:dialog>
+        
+        <p:dialog header="#{msg.detalleBienes}" widgetVar="detalleDescargoDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false" onShow="PF('detalleDescargoDialog').initPosition()">
+            <ui:include src="componentes/detalleBienes.xhtml">
+                <ui:param name="bienes" value="#{descargoBean.bienesDestino}" />
+            </ui:include>
+        </p:dialog>
+    </h:form>
+</ui:composition>

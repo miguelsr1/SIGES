@@ -1,0 +1,165 @@
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://java.sun.com/jsp/jstl/core"                 
+                xmlns:f="http://java.sun.com/jsf/core"                 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <h:form id="form">
+
+        <nav aria-label="breadcrumb">
+
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#{ConstantesPaginas.ROLES}.xhtml">#{msg.gestionRol}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{rolBean.tituloPagina}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{rolBean.tituloPagina}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:commandButton title="#{msg.ayuda}" icon="glyphicon glyphicon-question-sign" 
+                                 id="btnAyuda" styleClass="btn btn-icono btn-ayuda"
+                                 oncomplete="PF('sidebar2').show()"/>
+                <p:sidebar widgetVar="sidebar2" position="right" baseZIndex="90000">
+                    <ui:include src="componentes/ayudaComponente.xhtml">
+                        <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.ROLES)}" /> 
+                    </ui:include>
+                </p:sidebar>
+            </p:outputPanel>
+
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+        <p:outputPanel id="pnlSearch" >
+            <p:outputPanel id="itemDetail">                                                             
+                <p:outputPanel id="formularioRol">                                               
+                    <p:outputPanel styleClass="form-group row" id="fila_input_codigo" >                        
+                        <h:outputLabel value="#{msg.codigo}" for="input_codigo"  styleClass="col-sm-3 col-form-label"/>                        
+                        <p:outputPanel styleClass="col-sm-9">                            
+                            <h:inputText autocomplete="off" disabled="#{rolBean.entidadEnEdicion.rolPk!=null}" id="input_codigo" styleClass="form-control texto-corto" 
+                                         value="#{rolBean.entidadEnEdicion.rolCodigo}"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                    <p:outputPanel styleClass="form-group row" id="fila_input_nombre">
+                        <h:outputLabel value="#{msg.nombre}" for="input_nombre" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:inputText autocomplete="off" id="input_nombre" styleClass="form-control" value="#{rolBean.entidadEnEdicion.rolNombre}" />                     
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >   
+                        <h:outputText value="#{msg.delegable}" styleClass="col-sm-3 col-form-label"/>
+                        <div class="col-sm-9">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="input_delegable" styleClass="form-check-input" value="#{rolBean.entidadEnEdicion.rolDelegable}" disabled="#{rolBean.esSuperUsuario() }"/>
+                                <h:outputLabel for="input_delegable" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="form-group row" >   
+                        <h:outputText value="#{msg.habilitado}" styleClass="col-sm-3 col-form-label"/>
+                        <div class="col-sm-9">
+                            <p:outputPanel styleClass="form-check">
+                                <h:selectBooleanCheckbox id="input_habilitado" styleClass="form-check-input" value="#{rolBean.entidadEnEdicion.rolHabilitado}" />
+                                <h:outputLabel for="input_habilitado" styleClass="form-check-label">
+                                    <h:outputText value="#{msg.si}"/>
+                                </h:outputLabel>
+                            </p:outputPanel>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:outputPanel rendered="#{rolBean.entidadEnEdicion.rolPk!=null}" >
+                        <p:outputPanel styleClass="form-group row" id="fila_input_categoria">
+                            <h:outputLabel value="#{msg.categoria}" for="input_categoria" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9">
+                                <h:selectOneMenu value="#{rolBean.comboCategorias.selected}" id="input_categoria" styleClass="form-control">
+                                    <p:ajax update="fila_input_roles_operaciones" oncomplete="PF('dataTableWidgetVar').filter()" listener="#{rolBean.cargarOperacionesDeCategoria()}"/>
+                                    <f:selectItems  value="#{rolBean.comboCategorias.items}" />
+                                </h:selectOneMenu>
+                            </p:outputPanel>                    
+                        </p:outputPanel>      
+
+                        <p:outputPanel styleClass="form-group row" >   
+                            <h:outputText value="#{msg.verOperacionesAsignadas}" styleClass="col-sm-3 col-form-label"/>
+                            <div class="col-sm-9">
+                                <p:outputPanel styleClass="form-check">
+                                    <h:selectBooleanCheckbox id="input_verOperaciones" styleClass="form-check-input" value="#{rolBean.verOperacionesAsignadas}" >
+                                        <p:ajax update="fila_input_roles_operaciones" oncomplete="PF('dataTableWidgetVar').filter()" listener="#{rolBean.cargarOperacionesDeCategoria()}"/>
+                                    </h:selectBooleanCheckbox>
+                                    <h:outputLabel for="input_verOperaciones" styleClass="form-check-label">
+                                        <h:outputText value="#{msg.si}"/>
+                                    </h:outputLabel>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+
+                        <p:outputPanel styleClass="form-group row" id="fila_input_roles_operaciones" >
+                            <h:outputLabel value="#{msg.operaciones}" for="input_categoria" styleClass="col-sm-3 col-form-label"/>
+                            <p:outputPanel styleClass="col-sm-9" >
+                                <p:dataTable id="listaDisponibles" 
+                                             paginator="true"
+                                             paginatorPosition="bottom"
+                                             currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                                             paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                                             rowsPerPageTemplate="1,5,10,25,50,100,1000"
+                                             rows="#{rolBean.paginado}"
+                                             rowSelectMode="checkbox"
+                                             widgetVar="dataTableWidgetVar" var="operacion" selection="#{rolBean.rolOperacioensSeleccionados}" 
+                                             value="#{rolBean.rolOperaciones}" rowKey="#{operacion.ropOperacion.opePk}" style="margin-bottom:0" >
+                                    <f:facet name="{anterior}">
+                                        <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                                    </f:facet>
+                                    <f:facet name="{siguiente}">
+                                        <h:outputText styleClass="ui-paginator-next" value="#{msg.siguiente} &gt;"/>
+                                    </f:facet>
+                                    <f:facet name="header">
+                                        <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                                            <p:outputPanel styleClass="col-md-12">
+                                                <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                                    <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                                        <p:dataExporter type="csv" target="listaDisponibles" fileName="operaciones" pageOnly="false"/>
+                                                    </h:commandLink>
+                                                </p:outputPanel>
+                                            </p:outputPanel>
+                                        </p:outputPanel>
+                                    </f:facet>
+                                    <p:column selectionMode="multiple" style="width:16px;text-align:center" exportable="false"/>
+                                    <p:column visible="false" exportable="true" headerText="#{msg.hactiva}" >
+                                        <h:outputText value="#{rolBean.operacionActiva(operacion)}"/>
+                                    </p:column>
+                                    <p:column styleClass="cortar-texto" headerText="#{msg.hnombre}" filterBy="#{operacion.ropOperacion.opeNombre}"  filterMatchMode="contains">
+                                        <h:outputText value="#{operacion.ropOperacion.opeNombre}" />
+                                    </p:column>    
+                                    <p:column styleClass="cortar-texto" headerText="#{msg.cascada}" exportable="false">
+                                        <h:selectBooleanCheckbox value="#{operacion.ropCascada}" />
+                                    </p:column> 
+                                    <p:column visible="false" exportable="true" headerText="#{msg.cascada}" >
+                                        <h:outputText value="#{operacion.ropCascada}" converter="#{booleanConverter}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel> 
+
+                    <p:outputPanel styleClass="form-action-buttons" >
+                        <p:commandButton id="btnGuardar"  value="#{msg.guardar}" action="#{rolBean.guardar()}" update="@form" 
+                                         styleClass="btn btn-primary" icon="glyphicon glyphicon-floppy-disk"/>                             
+                    </p:outputPanel>            
+                    <p:blockUI block="@form" trigger="btnGuardar" />       
+                </p:outputPanel>  
+            </p:outputPanel>    
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/> 
+        </h:panelGroup>
+
+
+    </h:form>
+</ui:composition>

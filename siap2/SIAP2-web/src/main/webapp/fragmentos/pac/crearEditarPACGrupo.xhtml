@@ -1,0 +1,221 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:composition>
+        <div class="panelTituloPagina">
+            <h2 id="overview" class="page-header">
+                <h:outputText value="#{textMB.obtenerTexto('labels.CrearGrupoEnPAC')}"/>
+            </h2>
+        </div>
+
+        <h:form   prependId="false" >   
+            <h:panelGroup layout="block" styleClass="row">
+                <div class="col-sm-8">
+                    <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+
+                    <div class="grupoCampos form-horizontal">
+                        <h:messages showSummary="true"  globalOnly="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>
+                        <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.PreciosExpresadosEnDolares')}"/>
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Nro')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText  value="#{utilsMB.getNumeroParaPAC(pacGrupoCE.tempGrupo.id)}" styleClass="form-control-static" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Nombre')}:" />
+                            <div class="col-sm-9">
+                                <h:inputText id="grupoNombre" maxlength="255" value="#{pacGrupoCE.tempGrupo.nombre}" styleClass="form-control"  
+                                             disabled="#{pacGrupoCE.tempGrupo.estado eq 'CERRADO'}"
+                                             required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:validateLength maximum="255" />
+                                </h:inputText>
+                                <h:message for="grupoNombre" styleClass="help-inline msj-danger" />
+                            </div>
+                        </div>
+                        <p:outputPanel  styleClass="form-group" rendered="#{pacGrupoCE.tempGrupo.iniciado}">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.estado')}" for="estado"/>
+                            <div class="col-sm-9">     
+                                <h:outputText id="estado" value="#{textMB.obtenerTexto(pacGrupoCE.tempGrupo.estado.label)}"  styleClass="form-control-static" /> 
+<!--                                <h:selectOneMenu  value="#{pacGrupoCE.tempGrupo.estado}"  styleClass="form-control textoMedio" id="estado" 
+                                                  disabled="#{pacGrupoCE.pac.estado eq 'CERRADO'}"
+                                                  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                    <f:selectItems value="#{pacGrupoCE.getEstadosGrupos()}" var="estado"  itemValue="#{estado}" itemLabel="#{textMB.obtenerTexto(estado.label)}" />
+                                </h:selectOneMenu>-->
+                            </div>
+                        </p:outputPanel>
+                        <p:outputPanel  styleClass="form-group" rendered="#{pacGrupoCE.tempGrupo.iniciado}">
+                            <h:outputLabel for="idMetodoAdquisision" styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.Metodo')}:" />
+                            <div class="col-sm-9">
+                                <h:selectOneMenu id="idMetodoAdquisision" value="#{pacGrupoCE.idMetodoAdquisicion}"  styleClass="form-control textoMedio" 
+                                                 disabled="#{pacGrupoCE.tempGrupo.estado eq 'CERRADO'}"
+                                                 required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                    <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}" />
+                                    <f:selectItems value="#{pacGrupoCE.getMetodosAdquisicion()}"  />
+                                    <f:ajax listener="#{pacGrupoCE.regenerarGantt}" render="ta" />
+                                </h:selectOneMenu> 
+                                <h:message for="idMetodoAdquisision" styleClass="help-inline msj-danger" />
+                            </div>
+                        </p:outputPanel>
+                        <div class="form-group">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.Presupuesto')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText value="#{pacGrupoCE.tempGrupo.total}" styleClass="form-control-static" >
+                                    <f:convertNumber locale="#{utilsMB.localeDinero}" pattern="#{utilsMB.patternDinero}"/>
+                                </h:outputText>
+                            </div>
+                        </div>
+                        <h:panelGroup layout="block" styleClass="form-group" rendered="#{pacGrupoCE.tempGrupo.insumos.size()>0}">
+                            <h:outputLabel styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FechaMinimaSolicitada')}:" />
+                            <div class="col-sm-9">
+                                <h:outputText  value="#{pacGrupoCE.tempGrupo.fechaMinimoInsumo}" styleClass="form-control-static" converter="dateConverter" />
+                            </div>
+                        </h:panelGroup>
+                        <div class="form-group sin-color">
+                            <div class="col-sm-o-3 col-sm-9">
+                                <p:commandButton rendered="#{pacGrupoCE.tempGrupo.iniciado and pacGrupoCE.tempGrupo.estado ne 'CERRADO'}"
+                                                 styleClass="btn btn-primary"
+                                                 onclick="saveInLocalStorage();"
+                                                 value="#{textMB.obtenerTexto('labels.GuardarGrupo')}" 
+                                                 update="@form"
+                                                 icon="glyphicon glyphicon-saved"
+                                                 actionListener="#{pacGrupoCE.guardarGrupo()}">
+                                </p:commandButton>
+                                <p:commandButton rendered="#{pacGrupoCE.tempGrupo.iniciado and pacGrupoCE.tempGrupo.estado ne 'CERRADO' and permisosMB.permisos['CERRAR_GRUPO_PAC']}"
+                                                 styleClass="btn btn-primary"
+                                                 onclick="saveInLocalStorage();"
+                                                 value="#{textMB.obtenerTexto('labels.Cerrar')}" 
+                                                 update="@form"
+                                                 action="#{pacGrupoCE.cerrarGrupo()}">
+                                </p:commandButton>
+                                <p:commandButton rendered="#{pacGrupoCE.tempGrupo.iniciado 
+                                                             and pacGrupoCE.tempGrupo.estado eq 'CERRADO' 
+                                                             and pacGrupoCE.pac.estado ne 'CERRADO'
+                                                             and permisosMB.permisos['CERRAR_GRUPO_PAC']}"
+                                                 styleClass="btn btn-primary"
+                                                 onclick="saveInLocalStorage();"
+                                                 value="#{textMB.obtenerTexto('labels.AbrirGrupo')}" 
+                                                 update="@form"
+                                                 action="#{pacGrupoCE.reAbrirGrupo()}">
+                                </p:commandButton>                                
+                                <p:commandButton rendered="#{not pacGrupoCE.tempGrupo.iniciado}"
+                                                 styleClass="btn btn-primary"
+                                                 onclick="saveInLocalStorage();"
+                                                 value="#{textMB.obtenerTexto('labels.Iniciar')}" 
+                                                 update="@form"
+                                                 action="#{pacGrupoCE.iniciarGrupoGrupo()}">
+                                </p:commandButton>
+                                <!--                        <p:commandButton 
+                                                            icon="glyphicon glyphicon-remove " 
+                                                            styleClass="btn btn-danger" 
+                                                            value="#{textMB.obtenerTexto('labels.Eliminar')}"  
+                                                            onclick="if (!existeConfirmacion(this.id))
+                                                                return false" 
+                                                            actionListener="#{pacGrupoCE.eliminarGrupo}"
+                                                            update="confirmModalCallBackBody"
+                                                            immediate="true">
+                                                        </p:commandButton>-->
+                                <h:outputLink  value="crearEditarPAC.xhtml" class="btn btn-link">
+                                    <f:param name="id" value="#{pacGrupoCE.pac.id}" />
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" />
+                                </h:outputLink>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
+                    <p:panel header="PAC" >
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.NroPAC')}:" />
+                                <div class="col-sm-8">
+                                    <h:outputText  value="#{pacGrupoCE.pac.id}" styleClass="form-control-static" />
+                                </div>
+                            </div>  
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Nombre')}:" />
+                                <div class="col-sm-8">
+                                    <h:outputText  value="#{pacGrupoCE.pac.nombre}" styleClass="form-control-static" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-4 control-label" value="#{textMB.obtenerTexto('labels.Anio')}:" />
+                                <div class="col-sm-8">
+                                    <h:outputText value="#{pacGrupoCE.pac.anio}" styleClass="form-control-static"  />
+                                </div>
+                            </div>
+                        </div>
+                    </p:panel>
+                </div>
+            </h:panelGroup>
+
+            <div id="taZone"  class="noprint hidden ">
+                <h:inputTextarea value="#{pacGrupoCE.ganttJson}" rows="8" cols="150" id="ta" />
+                <!--            <button onclick="loadGanttFromServer();">load</button>-->
+            </div>
+
+        </h:form>
+
+        <!-- EMPIEZA EL GANTT -->
+        <h:panelGroup id="bloqueGantt" layout="block" styleClass="margenSup"  rendered="#{pacGrupoCE.tempGrupo.iniciado}">
+            <div class="grupoCampos">
+                <h:outputStylesheet name="jQueryGantt-master/platform.css" />
+                <h:outputStylesheet name="jQueryGantt-master/libs/dateField/jquery.dateField.css" />
+                <h:outputStylesheet name="jQueryGantt-master/gantt.css" />
+                <!--                <h:outputStylesheet name="jQueryGantt-master/ganttPrint.css" />-->
+                <h:outputStylesheet name="jQueryGantt-master/libs/jquery.svg.css" />
+
+                <!-- se tendria que eliminar esta version de jquery porque se importa dos veces sino  -->
+                <!--                <h:outputScript library="jQueryGantt-master" name="libs/jquery.min.js" /> -->
+                <h:outputScript library="jQueryGantt-master" name="libs/jquery-ui.min.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/jquery.livequery.min.js" />  
+                <h:outputScript library="jQueryGantt-master" name="libs/jquery.timers.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/platform.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/date.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/i18nJs.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/dateField/jquery.dateField.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/JST/jquery.JST.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/jquery.svg.min.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="libs/jquery.svgdom.1.8.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="ganttUtilities.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="ganttTask.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="ganttDrawerSVG.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="ganttGridEditor.js" /> 
+                <h:outputScript library="jQueryGantt-master" name="ganttMaster.js" /> 
+                <h:outputScript>
+                    habilitadoAddRow = false;
+                    habilitadoModalEditar = false;
+                </h:outputScript>
+
+
+
+                <!-- <div id="ndo" style="position:absolute;right:5px;top:5px;width:378px;padding:5px;background-color: #FFF5E6; border:1px solid #F9A22F; font-size:12px" class="noprint">
+                    This Gantt editor is free thanks to <a href="http://twproject.com" target="_blank">Twproject</a> where it can be used on a complete and flexible project management solution.<br/> Get your projects done! Give <a href="http://twproject.com" target="_blank">Twproject a try now</a>.
+                </div> -->
+                <div id="workSpace" style="padding:0px; overflow-y:auto; overflow-x:hidden; border:1px solid #e5e5e5; position:relative; margin:0; width:100%; height:600px"></div>
+
+                <h:outputScript library="js" name="initGantt.js" />  
+
+                <div id="gantEditorTemplates" style="display:none;">
+                    <h:outputText value="#{ganttTemplates.printTemplatesSimple()}" escape="false" />
+                </div>
+
+                <h:outputScript library="js" name="initGantt2.js" />  
+
+            </div>
+        </h:panelGroup>
+
+
+
+
+
+
+        <ui:include src="../eliminarGeneralModal.xhtml" />
+
+
+    </ui:composition>
+</html>

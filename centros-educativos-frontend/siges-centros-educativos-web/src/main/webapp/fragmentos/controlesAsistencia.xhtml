@@ -1,0 +1,346 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"                 
+                xmlns="http://www.w3.org/1999/xhtml"                 
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"                 
+                xmlns:f="http://xmlns.jcp.org/jsf/core"                 
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:p="http://primefaces.org/ui">    
+
+    <o:importConstants type="sv.gob.mined.siges.web.enumerados.EnumSeccionEstado" />
+    <h:form id="form">
+        #{controlesAsistenciaBean.forceInit()}
+        <f:passThroughAttribute name="autocomplete" value="off"/>        
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">#{msg.hcontrolAsistencia}</li>
+            </ol>
+        </nav>
+
+        <p:outputPanel styleClass="panel-titulo-pagina">
+            <h2 class="page-header"><h:outputText value="#{msg.hcontrolAsistencia}"/></h2>
+
+            <p:outputPanel styleClass="float-right">
+                <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA}" title="#{msg.agregarControlAsistencia}"
+                        styleClass="btn btn-secondary" 
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CONTROL_ASISTENCIA_CABEZAL)}">
+                    <h:outputText styleClass="glyphicon glyphicon-plus"/>
+                    <h:outputText styleClass="" value="#{msg.agregarControlAsistencia}"/>
+                </p:link>
+                
+                <p:commandButton value="#{msg.importarControlAsistencia}" icon="glyphicon glyphicon-plus" 
+                                 update=":form:itemDetail" oncomplete="PF('itemDialog').show()"  
+                                 id="btnAgregarNie" styleClass="btn btn-secondary"  
+                                 actionListener="#{controlesAsistenciaBean.nuevoImport()}"
+                                 style="margin-left: 0.5em;"
+                        rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CONTROL_ASISTENCIA_CABEZAL_ARCHIVO)}"/>
+                
+                
+                <p:commandButton value="#{msg.descarPlantilla}" 
+                                 icon="glyphicon glyphicon-save" 
+                                 id="btnDescargarPlantilla" 
+                                 styleClass="btn btn-secondary"  
+                                 style="margin-left: 0.5em;"
+                                rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.CREAR_CONTROL_ASISTENCIA_CABEZAL_ARCHIVO)and controlesAsistenciaBean.plantillaImportacion !=null}" 
+                                ajax="false" 
+                                onclick="this.form.target = '_blank';">
+                    <p:fileDownload contentDisposition="inline" 
+                                        value="#{handleArchivoBean.descargarArchivo(controlesAsistenciaBean.plantillaImportacion.plaArchivo)}" />
+                </p:commandButton>
+                
+
+                <ui:include src="componentes/ayudaComponente.xhtml">
+                    <ui:param name="ayuda" id="uso" value="#{ayudaBean.getAyuda(ConstantesAyuda.CONTROLES_ASISTENCIA)}" /> 
+                </ui:include>
+
+            </p:outputPanel>
+            <div class="lineaHeader"><div class="verde"></div><div class="amarillo"></div><div class="rojo"></div><div class="celeste"></div></div>
+        </p:outputPanel>
+
+
+        <h3><h:outputText value="#{msg.busqueda}"/></h3>
+        <p:panel header="#{msg.filtro}" toggleable="true" toggleSpeed="500" closeSpeed="500" styleClass="panel-filtro">
+            <p:outputPanel id="pnlSearch" styleClass="row">
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.departamento}" for="filtro_departamento" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_departamento" value="#{controlesAsistenciaBean.comboDepartamento.selected}" 
+                                             styleClass="form-control dropdown texto-medio" >
+                                <f:selectItems value="#{controlesAsistenciaBean.comboDepartamento.items}" />
+                                <p:ajax listener="#{controlesAsistenciaBean.seleccionarDepartamento}" event="change" 
+                                        process="@this" update="fila_filtro_municipio"/>
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6" id="fila_filtro_municipio">
+                    <p:outputPanel styleClass="form-group row" >
+                        <h:outputLabel value="#{msg.municipio}" for="filtro_municipio" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9 ">
+                            <h:selectOneMenu id="filtro_municipio" value="#{controlesAsistenciaBean.comboMunicipio.selected}" 
+                                             styleClass="form-control dropdown texto-medio" 
+                                             disabled="#{controlesAsistenciaBean.comboDepartamento.selectedT==null}">
+                                <f:selectItems value="#{controlesAsistenciaBean.comboMunicipio.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <f:subview id="viewFiltroSeccion">
+                    <ui:include src="componentes/filtrosSeccion.xhtml">
+                    </ui:include>
+                </f:subview>
+
+                <p:outputPanel styleClass="col-md-6">     
+                    <p:outputPanel styleClass="form-group row" rendered="#{controlesAsistenciaBean.comboAmbito != null and controlesAsistenciaBean.comboAmbito.items.size() gt 1}">
+
+                        <h:outputLabel value="#{msg.trabajarCon}"  styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <h:selectOneMenu value="#{controlesAsistenciaBean.comboAmbito.selected}" id="input_ambito" 
+                                             rendered="#{controlesAsistenciaBean.comboAmbito != null and controlesAsistenciaBean.comboAmbito.items.size() gt 1}" 
+                                             styleClass="form-control texto-medio">
+                                <f:selectItems  value="#{controlesAsistenciaBean.comboAmbito.items}" />
+                            </h:selectOneMenu>
+                        </p:outputPanel>
+
+                    </p:outputPanel>
+                </p:outputPanel>
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.desde}" for="input_calFechaInicio" 
+                                       styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_calFechaInicio" styleClass="form-control" 
+                                        value="#{controlesAsistenciaBean.filtro.cacDesde}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}" 
+                                        converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />   
+                            <h:message for="input_calFechaInicio" styleClass="msj-danger"/> 
+                        </p:outputPanel>     
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel styleClass="col-md-6">
+                    <p:outputPanel styleClass="form-group row">
+                        <h:outputLabel value="#{msg.hasta}" for="input_calFechaFin" styleClass="col-sm-3 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-9">
+                            <p:calendar id="input_calFechaFin" 
+                                        styleClass="form-control" 
+                                        value="#{controlesAsistenciaBean.filtro.cacHasta}" 
+                                        pattern="#{applicationBean.patternFecha}"
+                                        converter="#{localDateConverter}"  converterMessage="#{msg.fechaInvalida}" mask="true" showOn="button" />
+                            <h:message for="input_calFechaFin" styleClass="msj-danger"/> 
+                        </p:outputPanel>                    
+                    </p:outputPanel>
+                        
+               
+                    <p:outputPanel styleClass="form-group row">
+                        <p:outputPanel styleClass="col-sm-9 offset-sm-3">
+                            <p:defaultCommand target="buscarAsistencia"/>
+                            <p:commandButton id="buscarAsistencia" value="#{msg.buscar}" styleClass="btn btn-primary" 
+                                             icon="glyphicon glyphicon-search" action="#{controlesAsistenciaBean.buscar()}" 
+                                             update="pnlResultado"/>
+                            <p:commandLink value="#{msg.limpiar}" action="#{controlesAsistenciaBean.limpiar()}" 
+                                           update="pnlSearch pnlResultado" immediate="true" styleClass="btn btn-link">
+                                <p:resetInput target="pnlSearch pnlResultado" />
+                            </p:commandLink>
+                            <p:defaultCommand target="buscarAsistencia" scope="pnlSearch"/>
+                            <p:blockUI block="@form" trigger="buscarAsistencia" />
+                        </p:outputPanel>
+                    </p:outputPanel>
+                 </p:outputPanel>
+           
+                
+
+            </p:outputPanel>
+        </p:panel>
+
+
+        <p:outputPanel id="pnlResultado" >
+            <p:dataTable id="basicDT"                         
+                         widgetVar="widResultado"                         
+                         var="elem"                
+                         rendered="#{controlesAsistenciaBean.controlAsistenciaCabezalLazyModel != null}"
+                         value="#{controlesAsistenciaBean.controlAsistenciaCabezalLazyModel}"
+                         emptyMessage="#{msg.noHayResultados}"		
+                         paginator="true"
+                         lazy="true"
+                         paginatorPosition="bottom"
+                         currentPageReportTemplate="#{msg.pagina} {currentPage} #{msg.de_m} {totalPages}"
+                         sortField="cacPk"
+                         paginatorTemplate="#{applicationBean.paginatorTemplate}"
+                         rowsPerPageTemplate="#{applicationBean.rowsPerPageTemplate}"
+                         rows="#{controlesAsistenciaBean.paginado}"
+                         reflow="true" >
+                <f:facet name="{anterior}">
+                    <h:outputText styleClass="ui-paginator-prev  ui-state-disabled" value="&lt; #{msg.anterior}"/>
+                </f:facet>
+                <f:facet name="{siguiente}">
+                    <h:outputText styleClass="#{controlesAsistenciaBean.totalResultados lt (controlesAsistenciaBean.paginado+1) ? 'ui-paginator-next ui-state-disabled' : 'ui-paginator-next'}" value="#{msg.siguiente} &gt;"/>
+                </f:facet>
+
+                <f:facet name="header">
+                    <p:outputPanel id="pnlHeaderTabla" styleClass="row">
+                        <p:outputPanel styleClass="col-md-6">
+                            <h3><h:outputText value="#{msg.resultadoBusqueda}" /><h:outputText styleClass="cantidad" value="#{controlesAsistenciaBean.totalResultados}" ><f:convertNumber  locale="#{sessionBean.localeNumber}"/></h:outputText><h:outputText styleClass="cantidad" value="#{msg.elementos}" /></h3>
+                        </p:outputPanel>
+                        <p:outputPanel styleClass="col-md-6">
+                            <p:outputPanel styleClass="form-inline float-right panel-exportar">
+                                <h:commandLink value="Exportar" styleClass="btn btn-link">
+                                    <p:dataExporter type="csv" target="basicDT" fileName="controlesAsistencia" pageOnly="false"/>
+                                </h:commandLink>                                
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </f:facet>
+                <p:column headerText="#{msg.hdepartamento}">
+                    <h:outputText value="#{elem.cacSeccion.secServicioEducativo.sduSede.sedDireccion.dirDepartamento.depNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hmunicipio}">
+                    <h:outputText value="#{elem.cacSeccion.secServicioEducativo.sduSede.sedDireccion.dirMunicipio.munNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hSedeEducativa}">
+                    <h:outputText value="#{elem.cacSeccion.secServicioEducativo.sduSede.sedCodigoNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hgrado}" >
+                    <h:outputText value="#{elem.cacSeccion.secServicioEducativo.sduGrado.graNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hidSeccion}" >
+                    <h:outputText value="#{elem.cacSeccion.secPk}" />
+                </p:column>
+                <p:column headerText="#{msg.hSeccion}" >
+                    <h:outputText value="#{elem.cacSeccion.secNombre}" />
+                </p:column>
+                <p:column headerText="#{msg.hfecha}" >
+                    <h:outputText value="#{elem.cacFecha}" converter="#{localDateConverter}" />
+                </p:column>
+                <p:column headerText="#{msg.hpresentes}" styleClass="texto-right" >
+                    <h:outputText value="#{elem.cacEstudiantesPresentes}" />
+                </p:column>
+                <p:column id="columnaJustificados"  headerText="#{msg.hfaltaronJustificado}"   styleClass="texto-right" >
+                    <h:outputText value="#{elem.cacEstudiantesAusentesJustificados}" />
+                </p:column>
+                <p:column id="columnSinJustificar" headerText="#{msg.hfaltaronSinJustificar}" styleClass="texto-right" >
+                    <h:outputText value="#{elem.cacEstudiantesAusentesSinJustificar}" />
+                </p:column>
+                <p:column headerText="#{msg.htotal}" styleClass="texto-right columnaVerde"   >
+                    <h:outputText value="#{elem.cacEstudiantesEnLista}" />
+                </p:column>
+                
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA}" title="#{msg.ver}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-eye-open"/>
+                        <f:param name="id" value="#{elem.cacPk}"/>
+                        <f:param name="edit" value="false"/>
+                    </p:link>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ACTUALIZAR_CONTROL_ASISTENCIA_CABEZAL) }">
+                    <p:link outcome="#{ConstantesPaginas.CONTROL_ASISTENCIA}" title="#{msg.editar}" rendered="#{elem.cacSeccion.secEstado eq EnumSeccionEstado.ABIERTA}" styleClass="btn btn-icono">
+                        <h:outputText styleClass="glyphicon glyphicon-pencil"/>
+                        <f:param name="id" value="#{elem.cacPk}"/>
+                        <f:param name="edit" value="true"/>
+                    </p:link>  
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false">
+                    <p:commandButton update=":form:historialDetail" oncomplete="PF('historialDialog').show()" 
+                                     icon="glyphicon glyphicon-time" styleClass="btn btn-icono" title="#{msg.historial}" 
+                                     action="#{controlesAsistenciaBean.historial(elem.cacPk)}"/>
+                </p:column>
+                <p:column styleClass="columnaAcciones" exportable="false" 
+                          rendered="#{sessionBean.operaciones.contains(ConstantesOperaciones.ELIMINAR_CONTROL_ASISTENCIA_CABEZAL)}">
+                    <p:commandButton oncomplete="PF('confirmDialog').show()" icon="glyphicon glyphicon-trash " 
+                                     styleClass="btn btn-icono rojo" title="#{msg.eliminar}" 
+                                     action="#{controlesAsistenciaBean.actualizar(elem)}"/>
+
+                </p:column>
+            </p:dataTable>
+        </p:outputPanel>
+
+        <h:panelGroup styleClass="volverLink" layout="block">
+            <p:commandLink value="#{msg.volver}" onclick="history.go(-1)" styleClass="btn btn-link"/>
+        </h:panelGroup> 
+        
+        <p:confirmDialog id="confirmDialog"
+                         message="#{msg.textoConfirmacionEliminacion}"
+                         header="#{msg.confirmacionEliminacion}" severity="alert" widgetVar="confirmDialog">
+            <p:outputPanel styleClass="float-right" >
+                <p:commandButton id="confirmDelete" value="#{msg.hconfirmar}" update="pnlResultado"
+                                 oncomplete="PF('confirmDialog').hide()"
+                                 styleClass="btn btn-primary"
+                                 action="#{controlesAsistenciaBean.eliminar()}"  />
+                <p:blockUI block="@form" trigger="confirmDelete"/>
+                <p:commandLink id="cancelarDelete" value="#{msg.cancelar}"
+                               onclick="PF('confirmDialog').hide()" styleClass="btn btn-link" />
+            </p:outputPanel>
+        </p:confirmDialog>
+
+
+        <p:dialog header="#{msg.historialControlAsistencia}" widgetVar="historialDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+            <ui:include src="componentes/historial.xhtml">
+                <ui:param name="historial" value="#{controlesAsistenciaBean.historialControlAsistenciaCabezal}" /> 
+            </ui:include>    
+        </p:dialog>    
+        
+        <p:dialog header="#{msg.agregarControlAsistencia}" widgetVar="itemDialog" modal="true" 
+                  showEffect="fade" hideEffect="fade" resizable="false" closable="false" style="min-height: 200px;">             
+            <p:outputPanel id="itemDetail">                  
+                <p:messages id="popupmsg" showDetail="true" globalOnly="false" for="popupmsg" closable="true"/>     
+                
+                <h:panelGroup id="uploading">
+                    <p:outputPanel styleClass="form-group row" id="fila_archivo" 
+                                   rendered="#{!controlesAsistenciaBean.uploading}">
+                        <h:outputLabel value="#{msg.archivo}" for="file_upload_archivo" 
+                                       styleClass="col-sm-4 col-form-label"/>
+                        <p:outputPanel styleClass="col-sm-8" id="inputfile">
+                            <p:fileUpload fileUploadListener="#{controlesAsistenciaBean.handleFileUpload}"
+                                          id="file_upload_archivo"
+                                          mode="advanced" 
+                                          dragDropSupport="true"
+                                          label="Cargar archivo"
+                                          uploadLabel="#{msg.confirmar}"
+                                          invalidSizeMessage="#{msg.tamanioNoPermitido} "
+                                          invalidFileMessage="#{msg.formatoNoPermitidoXLSX} "
+                                          update=":form:itemDetail"
+                                          cancelLabel="#{msg.cancelar}" 
+                                          auto="true"
+                                          sizeLimit="#{controlesAsistenciaBean.tamanioImportArchivo}" 
+                                          allowTypes="#{controlesAsistenciaBean.tipoImportArchivo}"
+                                          rendered="#{controlesAsistenciaBean.file == null}"/>
+                            <h:outputText styleClass="form-control-plaintext" value="#{controlesAsistenciaBean.nombreFile}"
+                                          rendered="#{controlesAsistenciaBean.file!=null}"/>
+                            <p:commandLink action="#{controlesAsistenciaBean.eliminarFile()}" 
+                                           update=":form:itemDetail" value="#{msg.eliminar}" 
+                                           rendered="#{controlesAsistenciaBean.file!=null}" 
+                                           style="margin-top:1px;margin-bottom: 6px; display: block;" />
+                            <o:graphicImage name="/imagenes/fileXLSX.png" width="100"/>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <p:outputPanel style="width: 100%;text-align: center;padding-bottom: 5em;padding-top: 5em;" 
+                                    rendered="#{controlesAsistenciaBean.uploading}">
+                        <o:graphicImage name="/imagenes/loading-cloud.gif" width="50" /> 
+                        <h:outputText style="display: block;font-size: 10px;font-style: italic;" value="Importando archivo..."/>
+                    </p:outputPanel>
+
+                    <p:outputPanel styleClass="control-group">
+                        <p:outputPanel styleClass="float-right">
+                            <p:remoteCommand name="inicio" update="form:itemDetail" action="#{controlesAsistenciaBean.renderLoading()}" />
+                            <p:remoteCommand name="fin" update="form:itemDetail" action="#{controlesAsistenciaBean.renderLoading()}" />
+                            <p:commandButton id="btnGuardar"  value="#{msg.importar}" 
+                                             onclick="inicio()" 
+                                             onsuccess="fin()" 
+                                             styleClass="btn btn-primary" icon="glyphicon glyphicon-cloud-upload"
+                                             rendered="#{!controlesAsistenciaBean.uploading and controlesAsistenciaBean.file!=null}"/>                             
+                            <p:commandLink value="#{msg.cancelar}" oncomplete="PF('itemDialog').hide();"  
+                                           update="form:itemDetail" styleClass="btn btn-link"
+                                           rendered="#{!controlesAsistenciaBean.uploading}"/>                        
+                        </p:outputPanel>                    
+                    </p:outputPanel>   
+                </h:panelGroup>
+            </p:outputPanel>        
+        </p:dialog>       
+    </h:form>
+</ui:composition>

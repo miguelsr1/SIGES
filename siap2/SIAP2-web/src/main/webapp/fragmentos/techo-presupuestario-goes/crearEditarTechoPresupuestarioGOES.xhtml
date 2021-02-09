@@ -1,0 +1,212 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:sc="http://java.sun.com/jsf/composite/siapComponent">
+
+    <ui:composition>
+        <ui:fragment>
+            <div class="panelTituloPagina">
+                <h2 id="overview" class="page-header">
+                    <h:outputText rendered="#{!techoPresupuestarioGoesCE.update}" value="#{textMB.obtenerTexto('labels.CrearTechoPresupuestarioGOES')}" />
+                    <h:outputText rendered="#{techoPresupuestarioGoesCE.update}" value="#{textMB.obtenerTexto('labels.EditarTechoPresupuestarioGOES')}" />
+                </h2>
+            </div>
+        </ui:fragment> 
+
+        <h:form id="crear"  prependId="false">          
+            <div class="form-horizontal">
+                <h:outputText styleClass="requeridos" value="#{textMB.obtenerTexto('labels.LosCamposIndicadosSonRequeridos')}" />
+                <h:panelGroup layout="block" id="bloqueNoModal" styleClass="grupoCampos" >
+                    <p:focus context="bloqueNoModal" />
+                    <h:messages id="mensajes" showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                    <div class="form-group">
+                        <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.AnioFiscal')}:" for="anioFiscal"/>
+                        <div class="col-sm-9">
+                            <h:inputText id="anioFiscal" value="#{techoPresupuestarioGoesCE.objeto.anioFiscal}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                            <h:message for="anioFiscal" styleClass="help-inline msj-danger" />
+                        </div>
+                    </div>
+                </h:panelGroup>
+
+
+                <!--tabla de de RELACIONES TECHOS -->    
+                <h:panelGroup id="panelArbol" layout="block">
+                    <ui:repeat value="#{techoPresupuestarioGoesCE.objeto.techosPresupuestariosFuente}"  var="fuente" >
+                        <div class="grupoCampos">
+                            <!--                            <div class="form-group">
+                                                            <h:outputText styleClass="col-sm-6 control-label" value="# {fuente.fuenteRecursos.nombre}:" />
+                                                        </div>   -->
+                            <div class="form-group">
+                                <h:outputText styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.SelecioneUT')}:" />
+                                <div class="col-sm-9">
+                                    <sc:UnidadesTecnicasTree selected="#{techoPresupuestarioGoesCE.selectedNode}" documento="#{unidadesTecnicasTree.root}"
+                                                             backing="#{unidadesTecnicasTree}" 
+                                                             listenerOnNodeSelect="#{techoPresupuestarioGoesCE}"
+                                                             componentUpdate="panelArbol"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel styleClass="col-sm-3 control-label" value="*#{textMB.obtenerTexto('labels.SelecioneMonto')}:" />
+                                <div class="col-sm-9 campoConBoton">
+                                    <h:inputText value="#{techoPresupuestarioGoesCE.monto}" styleClass="form-control textoCorto"/>
+                                    <p:commandButton styleClass="btn btn-default"  value="#{textMB.obtenerTexto('labels.AgregarMonto')}" 
+                                                     actionListener="#{techoPresupuestarioGoesCE.setearMonto()}"  
+                                                     update="panelArbol" icon="glyphicon glyphicon-plus"/>
+                                    <p:commandButton styleClass="btn btn-default btn-danger"  value="#{textMB.obtenerTexto('labels.EliminarMonto')}" 
+                                                     actionListener="#{techoPresupuestarioGoesCE.eliminarMonto()}"  
+                                                     update="panelArbol" icon="glyphicon glyphicon-remove"/>
+                                </div>
+                            </div>
+
+
+<!--<ui:repeat   value="#{fuente.techoPresupuestarioUT}"  var="ut" varStatus="status">
+    <div class="form-group">
+        <h:outputLabel for="techoPresupuestario" styleClass="col-sm-3 control-label" value="*#{ut.unidadTecnica.nombre}:" />
+        <div class="col-sm-9">
+            <h:inputText  id="techoPresupuestario" value="#{ut.techoPresupuestario}" styleClass="form-control"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+            <h:message for="techoPresupuestario" styleClass="help-inline msj-danger" />
+        </div>
+    </div>
+</ui:repeat>-->
+
+                        </div>
+
+                    </ui:repeat>
+                </h:panelGroup>
+
+
+
+
+
+
+
+                <div class="form-group sin-color">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-saved" value="#{textMB.obtenerTexto('labels.Guardar')}" action="#{techoPresupuestarioGoesCE.guardar}"  update="crear"/>
+                        <h:outputLink styleClass="btn btn-link" value="#{techoPresupuestarioGoesCE.cerrar()}" ><h:outputText value="#{textMB.obtenerTexto('labels.Volver')}" /></h:outputLink>
+                    </div>
+                </div>
+            </div>
+        </h:form>   
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- MODAL PARA AGREGAR REL
+        <h:panelGroup id="blockRel"  layout="block">
+            <div class="modal fade"  id="anadirRel" tabindex="-1" role="dialog" aria-labelledby="anadirRel">
+                <div class="modal-dialog" role="document">
+                    <h:panelGroup styleClass="modal-content" layout="block" id="contenidoModalRel">
+                        <h:form id="anadirRelForm"  prependId="false"> 
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></button>
+                                <span class="modal-title">
+                                    <h:outputText value="#{textMB.obtenerTexto('labels.AniadirTechoPresupuestario')}" /> 
+                                </span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-horizontal">
+                                    <p:focus context="anadirRelForm" />
+                                    <h:messages  showSummary="true"  globalOnly="true"  errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes"/>		
+
+                                    
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="rel-recurso" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.FuenteRecurso')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="rel-recurso" value="#{techoPresupuestarioGoesCE.tmpIdFuenteRecurso}"  styleClass="form-control textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{techoPresupuestarioGoesCE.getFuentesRecurso()}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="rel-recurso" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="rel-unidadTecnica" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.UnidadTecnica')}:" />
+                                        <div class="col-sm-9">
+                                            <h:selectOneMenu id="rel-unidadTecnica" value="#{techoPresupuestarioGoesCE.tmpIdUnidadTecnica}"  styleClass="form-control textoMedio"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}"  >
+                                                <f:selectItem itemLabel="#{textMB.obtenerTexto('labels.seleccioneUno')}" itemValue="#{null}"/>
+                                                <f:selectItems value="#{techoPresupuestarioGoesCE.getUnidadesTecnicas()}" />
+                                            </h:selectOneMenu> 
+                                            <h:message for="rel-unidadTecnica" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+                                    
+                                    
+
+                                    <div class="form-group">
+                                        <h:outputLabel for="rel-monto" styleClass="col-sm-3 control-label" value="#{textMB.obtenerTexto('labels.TechoPresupuestario')}:" />
+                                        <div class="col-sm-9">
+                                            <h:inputText id="rel-monto" value="#{techoPresupuestarioGoesCE.tempRel.techoPresupuestario}" styleClass="form-control textoLargo"  required="true"  requiredMessage="#{textMB.obtenerTexto('labels.CampoRequerido')}" />
+                                            <h:message for="rel-monto" styleClass="help-inline msj-danger" />
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p:commandButton  styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Aceptar')}" actionListener="#{techoPresupuestarioGoesCE.saveRel()}"   update="relTabla contenidoModalRel"/>
+                                <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                            </div>
+                        </h:form> 
+                    </h:panelGroup>
+                </div>
+            </div> 
+        </h:panelGroup>
+
+
+
+        -->  
+
+
+
+
+
+        <!-- MODAL CONFIRMACION DE ELIMINAR
+        <h:form prependId="false">
+            <div class="modal fade confirm-modal-callback"  id="confirmModalCallBack" tabindex="-1" role="dialog" aria-labelledby="confirmModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span>
+                            </button>
+                            <span class="modal-title"><h:outputText value="#{textMB.obtenerTexto('labels.Eliminar')}" /> </span>
+                        </div>
+                        <div class="modal-body">    
+                            <p:outputPanel id="confirmModalCallBackBody">
+                                <div>
+                                    <h:messages id="mensajesConfirmModalCallBack" showSummary="true" errorClass="alert alert-danger" infoClass="alert alert-success" styleClass="mensajes ocultar-al-abrir"/>
+                                </div>
+                                <h:outputText value="#{textMB.obtenerTexto('labels.Seguro_desea_eliminar')}" />
+                            </p:outputPanel>
+                        </div>
+                        <div class="modal-footer">
+                            <p:commandButton styleClass="btn btn-primary" icon="glyphicon glyphicon-ok" value="#{textMB.obtenerTexto('labels.Confirmar')}" onclick="confirmar();"  />
+                            <button type="button" class="btn btn-link" data-dismiss="modal"><h:outputText value="#{textMB.obtenerTexto('labels.Cancelar')}" /></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+
+        <h:outputScript library="js" name="confirmModal.js" />  
+        -->
+
+    </ui:composition>
+</html>
